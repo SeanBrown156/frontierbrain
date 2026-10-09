@@ -16,13 +16,16 @@
     "build": "vite build",
     "test:ui": "node --test tools/tests/workbench.test.ts",
     "seed:ui": "node tools/workbench-seed.ts",
-    "postinstall": "node tools/build-dependencies.mjs"
+    "postinstall": "node tools/build-dependencies.mjs",
+    "build:api": "node tools/build-api.mjs",
+    "seed:hosted": "node tools/hosted-seed.ts"
   },
   "dependencies": {
     "@fontsource/press-start-2p": "^5.3.0",
     "@fontsource/vt323": "^5.3.0",
     "@smogon/calc": "0.12.0",
     "@supabase/supabase-js": "^2.117.3",
+    "@vercel/functions": "^3.9.11",
     "@vitejs/plugin-react": "^6.1.2",
     "pixelarticons": "^2.4.2",
     "pokemon-showdown": "https://codeload.github.com/smogon/pokemon-showdown/tar.gz/c046106cbe075931b1ff8d8b800ff5be47a85f96",
@@ -37,6 +40,7 @@
     "@types/node": "24.10.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
     "sql-template-strings": "2.2.2",
     "typescript": "5.9.3"
   }

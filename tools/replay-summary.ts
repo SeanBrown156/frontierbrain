@@ -2,7 +2,8 @@
 // ("themes across games"). Runs on the chat model tier. Inputs are a compact, chat-free transcript built from the
 // parsed log, so the model judges decisions from the recorded sequence; counts in the digest are recomputed here.
 import {createHash} from 'node:crypto';
-import {json,optionalJSON,save} from './io.ts';
+import {json,optionalJSON,save,dataContext} from './io.ts';
+import {keepAlive} from './keep-alive.ts';
 import type {Game,ReplayIndex} from './replays.ts';
 import {chatJSON,type ChatOptions} from './chat.ts';
 import {resolveTier} from './models.ts';
@@ -88,13 +89,15 @@ Reply as JSON only: {"themes":[{"title":"short imperative","detail":"two sentenc
 export async function readDigest(teamId:string){return optionalJSON<TeamDigest|null>(`${DIGESTS}/${teamId}.json`,null);}
 
 // New replays are summarised one at a time in the background, then the team digest is refreshed (from 2 games up).
-let queue:Promise<unknown>=Promise.resolve();
+// One queue per owner, so users never wait on each other's summaries.
+const queues=new Map<string,Promise<unknown>>();
 export function queueSummaries(teamId:string|undefined,gameIds:string[],digest=true){
+  const owner=dataContext().userId??'local';let queue=queues.get(owner)??Promise.resolve();
   for(const id of gameIds)queue=queue.then(()=>new Promise<void>(done=>{const job=startTask('replay-summary',`Summarise ${id}`,{teamId},[],async(emit,signal)=>{const s=await summariseReplay(id,emit,{signal});return {value:s,model:s.model};});
     const wait=setInterval(()=>{if(job.status!=='running'){clearInterval(wait);done();}},500);}));
   if(teamId&&digest)queue=queue.then(async()=>{const db=await readStore();const ids=Object.entries(db.associations).filter(([,a])=>a.teamId===teamId).map(([id])=>id);let n=0;for(const id of ids)if(await readSummary(id))n++;
     if(n>=2)await new Promise<void>(done=>{const job=startTask('team-digest',`What to work on`,{teamId},[],async(emit,signal)=>{const d=await teamDigest(teamId,emit,{signal});return {value:d,model:d.model};});const wait=setInterval(()=>{if(job.status!=='running'){clearInterval(wait);done();}},500);});}).catch(()=>{});
-  return queue;
+  queues.set(owner,queue);keepAlive(queue);return queue;
 }
 // What's running for a team, for "Summarising…" badges.
 export async function runningFor(teamId:string){return (await listJobs(60)).filter(j=>j.status==='running'&&(j.area==='replay-summary'||j.area==='team-digest')&&j.context.teamId===teamId).map(j=>({area:j.area,title:j.title}));}

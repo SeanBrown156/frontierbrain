@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "vite build && node tools/build-api.mjs",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/index.mjs": {
+      "maxDuration": 300,
+      "includeFiles": "{knowledge/mechanics/**,knowledge/regulations/**,knowledge/sources/**,node_modules/pokemon-showdown/dist/**,node_modules/pokemon-showdown/config/**}"
+    }
+  },
+  "rewrites": [{"source": "/api/(.*)", "destination": "/api/index"}]
+}
