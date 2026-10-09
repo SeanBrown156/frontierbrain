@@ -50,7 +50,8 @@ function EmailForm({onBack,upgrade=false}:{onBack:()=>void;upgrade?:boolean}){
     const r=upgrade?await supabase!.auth.updateUser({email,password},{emailRedirectTo:redirectTo()})
       :kind==='in'?await supabase!.auth.signInWithPassword({email,password}):await supabase!.auth.signUp({email,password,options:{emailRedirectTo:redirectTo()}});
     setBusy(false);if(r.error)return setError(r.error.message);
-    if(upgrade||kind==='up')setNote('Check your inbox to confirm your email. Your work is already saved.');};
+    // Only when Supabase is waiting on a confirmation email (sign-up with no session yet, or an email change pending).
+    const data:any=r.data;if(kind==='up'&&!upgrade&&!data?.session||upgrade&&data?.user?.new_email)setNote('Check your inbox to confirm your email. Your work is already saved.');};
   return <form className="welcome-form" onSubmit={e=>{e.preventDefault();void act(upgrade?'up':'in');}}>
     <label>Email<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>
     <label>Password<input type="password" autoComplete={upgrade?'new-password':'current-password'} required minLength={8} value={password} onChange={e=>setPassword(e.target.value)}/></label>
