@@ -1,93 +1,88 @@
 # Frontier Brain × Emerald design notes
 
-Implemented on `design/emerald`, 9 October 2026. This is an original CSS restyle of the existing toolkit, imagined as an unofficial eighth Battle Frontier facility.
+Round 2 on `design/emerald`, 9 October 2026. One light theme, original CSS graphics, IBM Plex for reading and calculations, Pixelify Sans for short display text. The owner's round 2 feedback supersedes the earlier palette and layout.
 
-## References and visual approach
+## Round 2 audit
 
-Looked up the Frontier Pass, Battle Tower lobby, Battle Factory rental menu, Pokémon summary screens, PC storage and dialogue boxes. The references informed framed records, compact menu groups, selection arrows and a quieter information hierarchy; no game images, tiles, symbols, logos or fonts were added.
+Captured the existing UI at 1440×1000 and 390×844 **before changing the design**. Local screenshots are in ignored `output/playwright/r2-before-*.png`; they contain private player data. Hosted-only screens use the original auth components in an ignored local preview with browser-only test configuration, without signing in. Empty-team/onboarding screens use the actual TeamsLanding component with an empty presentation fixture. The tournament API process was restarted to load the already-merged implementation.
 
-- [Frontier Pass screenshot](https://www.smogon.com/forums/threads/gen-iii-battle-frontier-discussion-and-records.3648697/page-58): trainer identity alongside records, individually framed sections.
-- [Frontier Pass image inspected](https://gamebanana.com/mods/634904): inset cream panels, strong outer frame, small selection cursor. The image remained outside the repository.
-- [Battle Tower lobby and PC storage screenshots](https://www.techtudo.com.br/listas/2020/05/pokemon-emerald-completa-15-anos-veja-curiosidades-sobre-o-jogo-de-rpg.ghtml): orderly compartments and a text-box hierarchy.
-- [Battle Factory rental menu](https://note.com/famous_auk630/n/nf5eabff0d464): a compact party strip alongside decisions.
-- [Emerald summary screen](https://note.com/hot_ixora5045/n/nd035a9d7ec3f): species identity separated from detailed information.
-
-The background is a subtle original 16px CSS tile grid. Offset border shadows draw stepped corners on the Pass and team records. Double borders frame panels and dialogue. Gold is reserved for the decorative VIII seal, notices and provenance hints; VIII identifies the imagined facility, not an earned achievement.
-
-## Palette tokens
-
-Tokens live on `:root` in `web/style.css`. Dark mode follows `prefers-color-scheme`; its navy night background, blue-green panels, mint controls and warm gold are intentionally authored.
-
-| Token | Day | Night | Purpose |
+| ID | Area | Observed before | Resolution |
 | --- | --- | --- | --- |
-| `--emerald` | `#176448` | `#88d5ab` | Facility green |
-| `--navy` | `#183548` | `#0d1d2c` | Frontier navy |
-| `--cream` | `#fffbed` | `#ecf0df` | Warm cream |
-| `--gold` | `#b28b37` | `#d4b66b` | Restrained accents |
-| `--ink` | navy | `#ecf0df` | Main text |
-| `--paper` | cream | `#172e38` | Framed panels |
-| `--page` | `#e7eddd` | `#0d1d2c` | Page background |
-| `--surface` | `#eef3e5` | `#203d43` | Secondary panels |
-| `--field` | `#fffef8` | `#112730` | Inputs |
-| `--muted` | `#53665d` | `#b2c3b9` | Secondary text |
-| `--blue` | `#176448` | `#88d5ab` | Existing link/action token, now green |
-| `--red` | `#a43e36` | `#ffa99a` | Errors and losses |
-| `--success` | `#27613e` | `#9cd9af` | Success and wins |
-| `--line` | `#b4c4ae` | `#46645f` | Dividers |
-| `--frame` | `#315647` | `#7eaa92` | Outer frames |
-| `--hover` | `#dde9ce` | `#2b4b4b` | Hover surfaces |
-| `--tint` | `#f4ebce` | `#3b392b` | Notices and dialogue input |
-| `--gold-ink` | `#75561b` | `#e0c47e` | Readable gold text |
-| `--inverse` | `#fffbed` | `#10232c` | Text on filled controls |
-| `--strong` | `#183548` | `#9bd4b4` | Ticker and strong actions |
-| `--focus` | `#176448` | `#e0c47e` | Keyboard outline |
+| A01 | Global palette | Muted teal/blue-green framing and navy text/ticker do not match the requested rich Emerald green and trainer red | Fixed: rich green signboard and actions, trainer red accents, cream paper and neutral ink; one light palette. |
+| A02 | Global geometry | Competing 10/14/18/20/22/26/28/36px spaces; broad page content and different inset widths | Fixed: 4/8/12/16/24/32/48px spacing tokens; centred 1200px shell, 880px reading panels, 32px desktop and 16px phone gutters. |
+| A03 | Buttons | Default 38px, chips 30px, Mega selectors 28px, star action 20px, history action 40px; icon close 32px | Fixed: 40px default/primary/danger and square icon controls; 32px compact/text actions; IBM Plex labels. Multiline picker/suggestion rows deliberately grow together. |
+| A04 | Teams | Heading/action anchored opposite sides; trainer identity far left and counters far right; hidden title cursor occupies space; card title/tag/footer baselines differ | Fixed: centred introduction and record, two equal desktop cards / one phone column, shared title/tag, sprite-strip and footer rows; cursor removed from flow. |
+| A05 | Overview | Phone title, milestone and Export scatter across rows; tabs have uneven wrapping; six desktop cards have cramped move text and varied inner alignment | Fixed: centred title/actions and tabs; three equal desktop cards with aligned headers/moves; two equal phone tab columns and one card column. |
+| A06 | Strategy | Edit/new actions and plan footers do not share spacing or alignment; prose spans a very wide column; phone header actions become separate islands | Fixed: centred 880px prose; consistent header/action gaps, paired footers and phone action rows. |
+| A07 | Replays | Add replays stretches to 51px next to the textarea; upload/import controls and filters do not share a baseline; short game cards leave irregular open space | Fixed: Add replays 40px; upload action on the same desktop baseline; balanced phone action grid, centred filters and equal card columns. |
+| A08 | Versions/delete | Edit-log rows and View/Restore pairs use mixed dimensions; destructive section is visually disconnected and its phone action hugs the left edge | Fixed: edit-log actions 32px and common gaps; centred reading width; red framed delete area with centred phone action. |
+| A09 | Pokémon | Species/set identity, six-member navigation, labels and stat rows use competing spacing; 20/28/30/40px actions; benchmark input/button need one baseline | Fixed: balanced identity/navigation, consistent field labels and stat columns, 32px stat/set actions and 40px benchmark controls; single phone column. |
+| A10 | New team tabs | Tabs start at left and break asymmetrically on phones; close button is shorter than normal controls; prompt action/model heights differ | Fixed: centred modal heading, 40px square close, three equal tabs (40px desktop / 56px phone for wrapped labels), baseline-aligned prompt/model controls. |
+| A11 | Paste import | Desktop Fetch paste stretches to 79px beside the labelled field; review fields and Create team lack balanced action spacing | Fixed: explicit paste-source alignment keeps Fetch paste 40px; phone fetch centred below the field; review grid and create actions share the spacing system. |
+| A12 | Tournament picker/picked draft | Placement, long player names, sprite groups and optional badges shift between rows; phone metadata truncates; selected-team heading/action compete; spread explanations are uneven | Fixed: stable placement/name/sprite/badge columns; wrapped phone metadata and visible sprites; centred picked-team banner and aligned spread evidence rows. Picking a team verified without creating it. |
+| A13 | Ask | Heading/actions wrap inconsistently; model picker is shorter than buttons; Send stretches to textarea height; suggestion buttons have inconsistent widths | Fixed: centred toolbar with 40px controls, 64px textarea and 40px square Send; equal-width readable suggestions; phone launcher spans the shell and footer clears it. |
+| A14 | Data/News/References/inbox | Pool totals have variable text heights; table and team-record spacing varies; News has nested frames and unbalanced week tabs; auxiliary headers start too close to the back link | Fixed: equal totals grid, consistent dense table spacing, centred auxiliary headers, three equal News tabs and one modal frame. All pages fit both viewport widths. |
+| A15 | Welcome/sign-in | Welcome contents left-aligned inside a centred card; email actions mix tiny text links and buttons; inconsistent label/field and prose spacing | Fixed: centred 480px welcome card, balanced dialogue panel and action sequence; 40px email actions with consistent labels and fields. |
+| A16 | Account | Popover follows its trigger rather than the shell edge; signed-in email crowds/wraps the phone brand; guest email form has irregular actions and vertical spacing | Fixed: popover aligned with shell edge; separate header account/save positions, centred phone trigger and full-shell popover; consistent email/action layout. |
+| A17 | Samples/onboarding/empty state | Wide shallow profile strip, sample prose/button pulled to opposite ends, and a separate empty panel compete instead of forming a centred welcome sequence | Fixed: centred 880px welcome sequence; profile heading spans the grid, fields align and Save centres; samples and empty state have balanced prose/action spacing. |
 
-`--shadow`, `--tile` and `--stripe` provide theme-specific shadow, texture and stat-point stripe colors. Legacy hard-coded component surfaces now use semantic tokens, including errors, notices, Markdown blocks, chat and table stripes.
+## Reference research
 
-Calculated WCAG text contrast against paper/page/surface/field/tint: the minimum among ink, muted, green links, error, success and gold text is **5.12:1 day / 6.30:1 night**. Primary control contrast is **6.87:1 / 9.36:1**; ticker contrast is **12.35:1 / 9.60:1**. These are token-pair checks, not a claim of a complete accessibility audit. Disabled controls are exempt from the text-contrast requirement.
+Reference images are for palette/layout research only; none are included in the app.
+
+- [Emerald box art](https://pokedexgenerator.com/walkthroughs/pokemon-emerald): bright green rays, deeper green shades, black/white Emerald lettering, small red Nintendo mark. Inspected a temporary image locally.
+- [Brendan's Emerald front sprite](https://github.com/pret/pokeemerald/blob/master/graphics/trainers/front_pics/brendan.png) and [May's Emerald front sprite](https://github.com/pret/pokeemerald/blob/master/graphics/trainers/front_pics/may.png): examined separately from later-generation or fan-made designs. Exact colors measured from the temporary PNG references include red `#c54141`, red highlight `#ff625a`, green `#629c5a`, green highlight `#8bde73`, black `#000000`, white `#ffffff`. Both sprites contain these red and green pairs. UI greens and text shades are contrast-adjusted adaptations, rather than claimed as exact box-art samples.
+- [Frontier Pass](https://www.smogon.com/forums/threads/gen-iii-battle-frontier-discussion-and-records.3648697/page-58), [Battle Tower and PC screenshots](https://www.techtudo.com.br/listas/2020/05/pokemon-emerald-completa-15-anos-veja-curiosidades-sobre-o-jogo-de-rpg.ghtml), and [Battle Factory menus](https://note.com/famous_auk630/n/nf5eabff0d464): framed records, compact menu groups and selection arrows.
 
 ## Typography and licences
 
-- **Pixelify Sans**, `--display`: short headings, navigation, buttons, badges and facility labels. [SIL Open Font License 1.1](https://github.com/google/fonts/blob/main/ofl/pixelifysans/OFL.txt), copyright the Pixelify Sans Project Authors; designed by Stefie Justprince.
-- **IBM Plex Sans**, `--font`: prose, forms, moves, source descriptions, Markdown, news articles, stat tables and numeric spread presets.
-- **IBM Plex Mono**, `--mono`: code/pastes, stat values, pool counts and calculator result numbers. Both Plex families use [SIL Open Font License 1.1](https://github.com/IBM/plex/blob/master/LICENSE.txt), copyright IBM Corp., reserved font name Plex.
+Pixelify Sans handles short headings and navigation. IBM Plex Sans handles prose, fields, button labels, source descriptions, numerical spread presets and tables. IBM Plex Mono handles pastes/code and key stat/calculator numbers. Loaded through the existing Google Fonts link with `display=swap`.
 
-All three load through the existing Google Fonts link with `display=swap`. Fallbacks remain readable when fonts are unavailable. No game font or new bitmap asset is bundled.
+[Pixelify Sans licence](https://github.com/google/fonts/blob/main/ofl/pixelifysans/OFL.txt): SIL Open Font License 1.1, Pixelify Sans Project Authors. [IBM Plex licence](https://github.com/IBM/plex/blob/master/LICENSE.txt): SIL Open Font License 1.1, IBM Corp., reserved name Plex.
 
-## Facilities and page changes
+## Facility conventions
 
-Existing routes, labels, roles and actions remain intact. The facility metaphor is conveyed through the shared record/panel language, not a replacement navigation system.
+| App area | Emerald reference translated into the interface |
+| --- | --- |
+| Teams | Frontier Pass: centred trainer record, six-member facility cards and a small original VIII seal |
+| Overview / Versions | Framed roster and immutable configuration records; the seal never implies an earned achievement |
+| Strategy / Replays | Preparation room: readable plans, move-by-move evidence and compact menu controls |
+| Pokémon / Data | Summary and PC conventions: clear stat columns, six-member navigation and organized reference panels |
+| New team / News | Facility menu: equal tabs, selection arrows and framed draft/news content |
+| Ask / welcome | RPG dialogue convention: original CSS double frame and a small continue marker |
 
-| Area / facility | Before | After |
+Dense prose and evidence remain left-aligned inside centred panels for reading. Official graphics, fabricated achievements, decorative stat numbers and behavior changes are outside this design’s scope.
+
+## Scope
+
+Preserve routes, behavior, accessible names, labels, original data and storage. CSS is the primary implementation surface; component edits may add styling classes only. No game assets, earned symbols, streaks or Battle Points are added. VIII identifies the imagined eighth facility, not an achievement. No auth implementation, tools, shared logic, API or storage changes. No publication, push or merge.
+
+## Final palette and components
+
+| Role | Hex | Origin / application |
 | --- | --- | --- |
-| Teams / Frontier Pass | One column of neutral team cards | Trainer identity, actual team/replay counts, decorative VIII seal, two facility records across on desktop, one on phones |
-| Team Overview / party preparation | Thin neutral roster panels | Emerald-topped set panels, pixel species headings, framed roster; six across on wide desktop, three at intermediate widths, one on phones |
-| Strategy / planning room | Neutral notes and plan cards | Cream/day or blue-green/night framed notebook; Plex prose and tables; selected menu arrow; proposed plans retain dashed gold outlines |
-| Replays / battle records | Neutral digest and game cards | Framed coaching digest, distinct win/loss strips, readable tags and filters; phone cards stack |
-| Versions / record archive | Plain version panels | Framed facility records, current-version tag and readable edit log; phone edit-log rows stack |
-| Pokémon / training lab | Neutral set and calculator panels | Emerald set frame, inset calculator frame, crisp stat bars and Plex numbers; controls stack on phones |
-| New team / registration desk | Standard dialog | Double frame and cream/day or night panels; both prompt and paste modes retain all controls |
-| Ask / attendant dialogue | Plain chat cards | RPG dialogue frames with a static ▼ marker on replies and the onboarding hint; suggestions and reply prose remain Plex |
-| Data / research terminal | Neutral pool totals and tables | Framed totals, Plex Mono counts, themed striped tables and team records; loaded tables fit phone widths |
-| News / bulletin room | Neutral news dialog | Double frame, compact week menus, restrained gold digest inset; evidence labels and source links preserved |
-| References / reference library | Neutral source cards | Themed original source-card grid and menu cursor; descriptions stay Plex |
-| Welcome / Frontier entrance | Plain welcome card | Stepped facility frame, emerald top edge, pixel heading and dialogue-style hint; auth code untouched |
+| Deep emerald | `#006b35` | Adaptation of the box art’s rich green rays; masthead, primary buttons and active menus |
+| Bright emerald | `#00a64c` | Adaptation of the box art’s bright green; card and welcome frame accents |
+| Emerald shade | `#004c26` | Deeper box-art-inspired green for ticker and hover surfaces |
+| Trainer greens | `#629c5a`, `#8bde73` | Exact colors measured in both Emerald trainer sprites; decorative trim/highlights |
+| Trainer reds | `#c54141`, `#ff625a` | Exact sprite colors; accent, ticker label and filled danger state; highlight retained as a palette token |
+| Red text | `#b53333` | Contrast-adjusted trainer red for small error/danger text |
+| Paper / field | `#fffdf3`, `#ffffff` | Cream adaptation of the game’s menu paper; sprite white for fields |
+| Ink / secondary text | `#1c211e`, `#53604c` | Neutral near-black adaptation of sprite black; readable secondary text |
+| Page / secondary panel | `#eff4e7`, `#e6f0db` | Pale green paper adaptations, not sampled artwork colors |
+| Frame | `#47633f` | Contrast-adjusted green for panel boundaries |
+| Gold / gold text | `#b68b2e`, `#765715` | Small logo-inspired seal accent and readable caption, used sparingly |
 
-## Browser verification
+The shared CSS controls establish the hierarchy: default/primary/danger 40px, compact/chip/text 32px, icon 40px square. Inputs are 40px, stat inputs 32px. Wrapped phone modal tabs and two-line week tabs share a deliberate 56px height. Tournament rows and multiline chat suggestions use automatic height with a shared minimum. These are content rows, not stretched field actions. Reading, card, modal and onboarding frames share the same gutters and spacing tokens. The only TSX edit adds a styling class to the paste-source row.
 
-Used the existing throwaway data copy on web **5273**, API **5274**. The watch-based launcher hit `EMFILE`; started the same API without Node watch and Vite separately, with **both ports in both process environments**. No startup code was changed. The in-app browser tool failed during setup, so the available Playwright browser provided verification.
+## Final verification
 
-Checked Teams, Overview, Strategy, Replays, Versions, Pokémon set/calculator, Data, References, the replay inbox and standalone News at **1440×1000** and **390×844**, in **light and dark**. Waited for the saved replay digest, existing pool and calculated result rather than treating initial loading content as the completed page. Checked New team in both prompt and paste modes, the News modal and the Ask dock in all four combinations. Screenshots and contact sheets are local in the ignored `output/playwright/` directory because they include private player data.
+Every A01–A17 resolution above was checked against the after screenshots at **1440×1000 and 390×844**. The screenshot pairs cover Teams; Overview, Strategy, Replays, Versions; Pokémon; Data; References; replay analysis inbox; all three New team tabs; tournament selection and the draft’s final action; News; Ask; welcome; email sign-in; guest/account menus; guest email form; empty-state onboarding and samples. Files are ignored local artifacts under `output/playwright/r2-{before,after}-*.png`; review contact sheets are `r2-after-{pages,dialogs}-{desktop,phone}.jpg`.
 
-- No page-level horizontal overflow in the page matrix; no horizontal overflow inside the tested dialogs or dock.
-- Loaded Data pool totals, usage tables and recent teams checked on phones; dense Markdown strategy tables retain their existing contained scrolling.
-- `/` opens the Ask dock; a clearly labelled local reply fixture verifies the assistant frame, Plex prose and ▼ marker without an AI request. Original browser chat storage was restored.
-- Keyboard focus has a visible 3px outline. Escape closes the New team dialog.
-- Reduced-motion emulation yields `animation-name: none` on the ticker; CSS also disables pulse, transitions and smooth scrolling.
-- `npm run check` passed; `npm test` passed **59/59**.
-
-## Deliberate limits
-
-No earned symbols, streaks or Battle Points were invented. The Pass counts are read directly from existing dashboard data. No new animations, sounds, official game assets or sprite downloads were introduced; the app's existing artwork and box-icon infrastructure is preserved. No manual theme switch was added because that would expand behavior; the OS preference selects the palette. Existing private replay summaries and strategy prose were not rewritten.
-
-Welcome/account selectors are restyled, but hosted sign-in/account flows were not exercised in this local-data run. Reference-site favicons can fail to load; the existing fallback hides them. Browser verification covers presentation and existing read-only workflows, not paid AI generation or saving/importing player data. No tools, shared logic, API calls, storage, routes or auth code were changed. No push or merge was performed.
+- No horizontal document overflow at either width on the nine main routes or hosted-screen previews. Modal and picker contents scroll internally when necessary.
+- Measured actual controls: Add replays 40px, Fetch paste 40px, set actions 32px, close buttons 40px square. Labels are centred and adjacent controls share their specified baselines.
+- Computed-token WCAG text contrast: white/deep emerald **6.66:1**, white/trainer red **4.99:1**, ink/paper **16.02:1**, secondary text/paper **6.55:1**, green/secondary panel **5.66:1**, red text/pale red **5.26:1**, red text/hover **4.83:1**, gold text/paper **6.55:1**. Frame/white **6.72:1**. Enabled rendered text on the nine audited main routes also passed a computed foreground/background scan; decorative graphics and disabled controls are excluded. This is a contrast check, not a claim of a complete accessibility certification.
+- `npm run check`: passed, both TypeScript projects.
+- `npm test`: **64 passed, 0 failed**. Initial sandbox run could not bind the API test server (`EPERM`); the permitted localhost run passed.
+- Browser checks used Playwright because the in-app browser runtime could not initialize its sandbox policy. Hosted screens used original components with preview-only browser configuration; no credentials or actual authentication calls. No create/import/delete/save/AI action was submitted during the design audit.
+- Changes limited to `web/style.css`, one styling class in `web/team/NewTeam.tsx`, the browser theme-color metadata and these notes. Private screenshots, preview fixtures, reference downloads, dependencies and player data are excluded from commits.
