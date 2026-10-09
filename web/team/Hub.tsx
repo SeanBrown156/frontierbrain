@@ -85,6 +85,8 @@ function Versions({team,data,games,mutate}:{team:any;data:any;games:any[];mutate
       {v.configurations.length>1&&<details><summary>Edit log ({v.configurations.length-1} edit{v.configurations.length===2?'':'s'})</summary><ol className="changes">{[...v.configurations].map((c:any,i:number)=>({c,n:i})).reverse().map(({c,n})=><li key={c.id} className={c.id===v.currentConfigurationId?'current':''}><span className="when">{date(c.createdAt)}</span><span className="what">{n===0?'Saved':c.summary||'Edit'}</span>
         {c.id===v.currentConfigurationId?<span className="tag">Now</span>:<span className="button-row"><button className="text-button" onClick={()=>setViewing({version:v,config:c,n})}><Px icon={Eye} size={12}/>View</button>{current&&<button className="text-button" onClick={()=>void restore(v,c,n)}>Restore</button>}</span>}</li>)}</ol></details>}</section>;})}
     {viewing&&<Modal title={`${versionName(viewing.version)} · edit ${viewing.n}`} onClose={()=>setViewing(null)}><p className="muted">{viewing.config.summary} · {date(viewing.config.createdAt)}</p><div className="proposals">{getView(team,data.db,viewing.version.id,viewing.config.id).sets.map((s:any,i:number)=><SetTile key={i} set={s} art={data.art}/>)}</div></Modal>}
+    <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Removes the team, its versions and strategy. Its sets stay in your Pokémon library and its replays stay saved, just unlinked.</p></div>
+      <button className="danger" onClick={()=>{if(confirm(`Delete “${team.name}”? This can't be undone.`))void mutate({type:'team-delete',teamId:team.id}).then(()=>{location.hash='#teams';}).catch(()=>{});}}>Delete team</button></section>
   </div>;
 }
 
@@ -96,6 +98,7 @@ export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:
     <BuildJobs onReview={onReview} art={data.art}/>
     <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3><span className="tag">V{t.view.version.number}{t.view.version.label?` · ${t.view.version.label}`:''}</span></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span/><span>{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}</span></div></a>;})}</div>
     {inbox.length>0?<Notice>{inbox.length} replay(s) aren't linked to a team. <a href="#inbox">Open the inbox →</a></Notice>:null}
+    <SampleTeams data={data} reload={reload}/>
     {!data.teams.length&&<div className="empty-teams"><p>No teams yet. Describe one and Frontier Brain will research and build it, or bring a paste.</p><button className="primary" onClick={onImport}><Px icon={Plus}/>New team</button></div>}</div>;
 }
 
@@ -119,4 +122,12 @@ function ShowdownName({reload}:{reload?:()=>Promise<void>}){
     <label>Showdown name<input required value={name} onChange={e=>setName(e.target.value)} placeholder="YourName"/></label>
     <label>Other names (optional)<input value={aliases} onChange={e=>setAliases(e.target.value)} placeholder="alt1, alt2"/></label>
     <button className="primary" disabled={!name.trim()}>Save</button>{error&&<p className="error">{error}</p>}</form>;
+}
+
+// Starter teams: recent tournament top-8 lists with the players' shared spreads, plus a ladder team with replays.
+function SampleTeams({data,reload}:{data:any;reload?:()=>Promise<void>}){
+  const [busy,setBusy]=useState(false),[error,setError]=useState('');
+  if(data.teams.length)return null;
+  const add=async()=>{setBusy(true);setError('');try{await api('/samples',{});await reload?.();}catch(e){setError((e as Error).message);}finally{setBusy(false);}};
+  return <div className="sample-offer"><p>Want examples to explore? Add five sample teams: recent Regional top-8 teams with the players' own spreads, and a ladder team with replays.</p><button disabled={busy} onClick={()=>void add()}>{busy?'Adding…':'Add sample teams'}</button>{error&&<p className="error">{error}</p>}</div>;
 }

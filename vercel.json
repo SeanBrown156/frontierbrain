@@ -5,7 +5,7 @@
   "functions": {
     "api/index.mjs": {
       "maxDuration": 300,
-      "includeFiles": "{package.json,build/api/**,knowledge/mechanics/**,knowledge/regulations/**,knowledge/sources/**,node_modules/pokemon-showdown/dist/**,node_modules/pokemon-showdown/config/**}"
+      "includeFiles": "{package.json,build/api/**,knowledge/mechanics/**,knowledge/regulations/**,knowledge/sources/**,knowledge/samples/**,node_modules/pokemon-showdown/dist/**,node_modules/pokemon-showdown/config/**}"
     }
   },
   "rewrites": [

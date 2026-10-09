@@ -94,8 +94,17 @@ async function indexOriginal(index:ReplayIndex,source:string,html:string,config:
 }
 const emptyIndex=():ReplayIndex=>({schemaVersion:1,games:[],errors:[]});
 // Save one uploaded replay: original first (never overwritten), then its parsed copy and index entry.
-export async function addReplay(html:string,filename:string){
-  const config=await profile();const folder=dataPath(config.replayFolder);const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());
+// Several originals at once: one index read and write, files saved in parallel (fewer round trips when hosted).
+export async function addReplays(items:{html:string;filename:string}[],options:{folder?:string;as?:string}={}){
+  const profileNow=await profile();const config=options.as?{...profileNow,player:options.as,aliases:[]}:profileNow;const folder=dataPath(options.folder??config.replayFolder);
+  const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());const added:string[]=[];const results=[];
+  await Promise.all(items.map(async i=>{const source=`${folder}/${i.filename}`;if(!(await modifiedAt(source)))await save(source,i.html);}));
+  for(const i of items)results.push(await indexOriginal(index,`${folder}/${i.filename}`,i.html,config,added));
+  await save('replays/index.json',index);return {results,added};
+}
+// `as` reads a game from another player's side (sample replays use "Player"); `folder` keeps them out of ingest scans.
+export async function addReplay(html:string,filename:string,options:{folder?:string;as?:string}={}){
+  const profileNow=await profile();const config=options.as?{...profileNow,player:options.as,aliases:[]}:profileNow;const folder=dataPath(options.folder??config.replayFolder);const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());
   const source=`${folder}/${filename}`;if(!(await modifiedAt(source)))await save(source,html);
   const added:string[]=[];const result=await indexOriginal(index,source,html,config,added);await save('replays/index.json',index);return {...result,index,added};
 }

@@ -84,13 +84,16 @@ export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}
     const {teams,merged,duplicates}=consolidate(official,online,shared);
     const status={refreshedAt:new Date().toISOString(),started,minPlayers,counts:{official:official.length,online:online.length,shared:shared.length,mergedSpreads:merged,duplicateShares:duplicates,total:teams.length,withSpreads:teams.filter(t=>t.sets.some(s=>s.statPoints)).length},
       notes,errors,excluded:'Mirrors (StatCrusher, MunchStats Showdown tabs, Top Cut Explorer) and composites (Suckerpunch, Pikalytics, LabMaus) are not ingested; they repackage these upstreams or blend them.'};
-    if(teams.length||!(await optionalJSON(TEAMS,null)))await save(TEAMS,{refreshedAt:status.refreshedAt,teams});await save(STATUS,status);return status;})();
+    if(teams.length||!(await optionalJSON(TEAMS,null))){await save(TEAMS,{refreshedAt:status.refreshedAt,teams});memo=null;}await save(STATUS,status);return status;})();
   try{return await running;}finally{running=null;}
 }
 export const poolStatus=()=>optionalJSON<any>(STATUS,null);
 // Names are re-resolved on read, so pools built before a resolver fix are counted correctly without a rebuild.
 // A team that lists the same Pokémon twice is a source error; it counts once.
-export async function poolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species)}))}));}
+// Parsed once per minute per server (the file is ~19 MB); a refresh shows up within that minute.
+let memo:{at:number;teams:Promise<PoolTeam[]>}|null=null;
+export function poolTeams():Promise<PoolTeam[]>{if(memo&&Date.now()-memo.at<60_000)return memo.teams;const teams=loadPoolTeams();memo={at:Date.now(),teams};teams.catch(()=>{memo=null;});return teams;}
+async function loadPoolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species)}))}));}
 export interface PoolQuery {lanes?:Lane[];sinceDays?:number;}
 const inScope=(t:PoolTeam,q:PoolQuery)=>(!q.lanes||q.lanes.includes(t.lane))&&(!q.sinceDays||!t.date||Date.parse(t.date)>=Date.now()-q.sinceDays*86400_000);
 const tally=(values:string[],n:number):Share[]=>{const m=new Map<string,number>();for(const v of values)if(v)m.set(v,(m.get(v)??0)+1);return [...m].sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count,percent:Math.round(1000*count/Math.max(1,n))/10}));};
