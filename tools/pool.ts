@@ -10,7 +10,7 @@
 import {resolve} from 'node:path';
 import {optionalJSON,save,readText,modifiedAt} from './io.ts';
 import {fetchText} from './research.ts';
-import {dex} from './mechanics.ts';
+import {dex,resolveSpecies} from './mechanics.ts';
 import {recentEvents,standings,teamList} from './limitless.ts';
 import {pasteIndex,setsFromPaste} from './vgcpastes.ts';
 import type {MetaSets,Share,MetaSpread} from './meta-sets.ts';
@@ -21,7 +21,8 @@ export interface PoolTeam {id:string;lane:Lane;event:string;eventId:string;date:
   sources:{name:string;url:string}[];spreadsFrom?:{name:string;url:string};}
 const STATUS='knowledge/pool/status.json',TEAMS='knowledge/pool/teams.json';
 const base=(s:string)=>dex.species.get(s).baseSpecies||s;
-const species=(s:string)=>{const d=dex.species.get(s);return d.exists?d.name:s;};
+// Limitless display names ("Eternal Flower Floette", "Wash Rotom") resolve to Showdown forms, so usage isn't split.
+const species=(s:string)=>resolveSpecies(s)??s;
 export const playerKey=(s:string)=>s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'');
 const sixKey=(mons:string[])=>mons.map(base).sort().join('|');
 const sleep=(ms:number)=>new Promise(r=>setTimeout(r,ms));
@@ -87,7 +88,9 @@ export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}
   try{return await running;}finally{running=null;}
 }
 export const poolStatus=()=>optionalJSON<any>(STATUS,null);
-export async function poolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams;}
+// Names are re-resolved on read, so pools built before a resolver fix are counted correctly without a rebuild.
+// A team that lists the same Pokémon twice is a source error; it counts once.
+export async function poolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species)}))}));}
 export interface PoolQuery {lanes?:Lane[];sinceDays?:number;}
 const inScope=(t:PoolTeam,q:PoolQuery)=>(!q.lanes||q.lanes.includes(t.lane))&&(!q.sinceDays||!t.date||Date.parse(t.date)>=Date.now()-q.sinceDays*86400_000);
 const tally=(values:string[],n:number):Share[]=>{const m=new Map<string,number>();for(const v of values)if(v)m.set(v,(m.get(v)??0)+1);return [...m].sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count,percent:Math.round(1000*count/Math.max(1,n))/10}));};
