@@ -24,9 +24,10 @@ import {typicalSet} from './typical-set.ts';
 import {hostedConfig,hostedHandler} from './hosted.ts';
 
 function respond(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
-export function allowedRequest(req:IncomingMessage,apiPort=5174){
-  const host=req.headers.host; if(!host||!['127.0.0.1:5173',`127.0.0.1:${apiPort}`].includes(host))return false;
-  const origin=req.headers.origin;return !origin||['http://127.0.0.1:5173','http://127.0.0.1:5174'].includes(origin);
+const WEB_PORT=Number(process.env.WEB_PORT??5173),API_PORT=Number(process.env.API_PORT??5174);
+export function allowedRequest(req:IncomingMessage,apiPort=API_PORT){
+  const host=req.headers.host; if(!host||![`127.0.0.1:${WEB_PORT}`,`127.0.0.1:${apiPort}`].includes(host))return false;
+  const origin=req.headers.origin;return !origin||[`http://127.0.0.1:${WEB_PORT}`,`http://127.0.0.1:${apiPort}`].includes(origin);
 }
 async function body(req:IncomingMessage){if(!req.headers['content-type']?.startsWith('application/json'))throw new Error('Expected application/json');let length=0;const chunks:Buffer[]=[];for await(const chunk of req){length+=chunk.length;if(length>8_000_000)throw new Error('Upload exceeds 8 MB');chunks.push(chunk);}return JSON.parse(Buffer.concat(chunks).toString('utf8'));}
 async function jobHistory(){const files=(await listDir('reports/runs')).filter(f=>f.endsWith('.json')&&!f.endsWith('-request.json'));const history=(await Promise.all(files.map(async f=>({...await json(`reports/runs/${f}`),recordPath:`reports/runs/${f}`})))).sort((a,b)=>(b.startedAt??b.at??b.finishedAt??'').localeCompare(a.startedAt??a.at??a.finishedAt??'')).slice(0,40);const recentUI=history.filter(h=>h.id&&h.recordPath.includes('/ui-')).slice(0,8);
@@ -39,7 +40,7 @@ async function runJob(kind:string){
   const child=spawn(process.execPath,[resolve(CODE,'tools/workbench-worker.ts'),kind,job.id],{cwd:CODE,env:process.env,stdio:'ignore',detached:true});child.unref();
   child.once('error',async error=>{job.status='failed';job.error=error.message;job.finishedAt=new Date().toISOString();await save(`reports/runs/ui-${job.id}.json`,job);});return job;
 }
-export function createWorkbenchHandler(storageRoot=ROOT,apiPort=5174,{hostedMode=false}:{hostedMode?:boolean}={}){
+export function createWorkbenchHandler(storageRoot=ROOT,apiPort=API_PORT,{hostedMode=false}:{hostedMode?:boolean}={}){
 const readStore=()=>readRootStore(storageRoot);const mutateStore=(revision:number,fn:Parameters<typeof mutateRootStore>[1])=>mutateRootStore(revision,fn,storageRoot);const legacyTeams=()=>legacyRootTeams(storageRoot);
 async function saveReplay(html:string,associationInput:any,revision:number){
   const config=await profile();const parsed=parseReplay(html,'upload',config.player,config.aliases);
@@ -170,7 +171,7 @@ export const handler=createWorkbenchHandler();
 export function startServer(){
   try{process.loadEnvFile(resolve(CODE,'.env'));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
   const cloud=hostedConfig();if(!cloud)void schedulePool();
-  const server=createServer(cloud?hostedHandler(cloud,createWorkbenchHandler(ROOT,5174,{hostedMode:true})):handler);
-  server.listen(5174,'127.0.0.1',()=>console.log(`VGC ${cloud?'hosted-mode (Supabase)':'local'} API http://127.0.0.1:5174`));server.requestTimeout=30000;return server;
+  const server=createServer(cloud?hostedHandler(cloud,createWorkbenchHandler(ROOT,API_PORT,{hostedMode:true})):handler);
+  server.listen(API_PORT,'127.0.0.1',()=>console.log(`VGC ${cloud?'hosted-mode (Supabase)':'local'} API http://127.0.0.1:${API_PORT}`));server.requestTimeout=30000;return server;
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))startServer();
