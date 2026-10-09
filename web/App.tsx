@@ -1,0 +1,83 @@
+import {useState,useEffect,useCallback,useRef} from 'react';
+import {api,Panel,Modal,Markdown,Empty,date,Notice,JobStatus} from './ui.tsx';
+import {Px,Chart,Trophy,BookOpen,Users,Play,Bookmark,ChevronDown,Zap,Notes,Check,WarningDiamond} from './icons.tsx';
+import AssistDock,{type DockContext} from './ai/AssistDock.tsx';
+import {useSaveState,saving,saved,failed,hasDirty,confirmDiscard} from './save-state.ts';
+import TeamHub,{TeamsLanding} from './team/Hub.tsx';
+import PokemonWorkspace from './team/PokemonWorkspace.tsx';
+import NewTeam from './team/NewTeam.tsx';
+import DataPool from './DataPool.tsx';
+import Coach from './Coach.tsx';
+
+// Old Pokémon links carried a configuration id (#team/<id>/mon/<version>/<config>/<slot>); they now open the current set.
+const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[2]==='mon'&&p[4]?.startsWith('config-')?[...p.slice(0,4),p[5]].join('/'):hash;};
+export default function App(){
+  const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||'teams'),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
+  const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
+  // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
+  const revision=useRef<number|null>(null);const dataRef=useRef<any>(null);const lastHash=useRef(location.hash);
+  const load=useCallback(async()=>{try{const d=await api('/dashboard');revision.current=d.db.revision;dataRef.current=d;setData(d);setError('');}catch(e){setError((e as Error).message);}},[]);
+  // Leaving a page with an unsaved draft asks first; declining puts the address back without reloading anything.
+  useEffect(()=>{void load();const handler=()=>{if(location.hash===lastHash.current)return;if(hasDirty()&&!confirmDiscard()){history.replaceState(null,'',lastHash.current||'#teams');return;}
+      const fixed=normalise(location.hash.slice(1));if(fixed!==location.hash.slice(1))history.replaceState(null,'','#'+fixed);lastHash.current=location.hash;setRoute(fixed||'teams');scrollTo({top:0});};
+    addEventListener('hashchange',handler);return()=>removeEventListener('hashchange',handler);},[load]);
+  useEffect(()=>{let alive=true;const tick=async()=>{try{const result=await api('/jobs');if(alive)setJobs(result);}catch{}};void tick();const timer=setInterval(()=>{void tick();void load();},10000);return()=>{alive=false;clearInterval(timer);};},[load]);
+  useEffect(()=>{if(!message||message.error)return;const t=setTimeout(()=>setMessage(null),4000);return()=>clearTimeout(t);},[message]);
+  const notify=(text:string,isError=false)=>setMessage({text,error:isError});
+  const mutate=async(action:any)=>{saving();try{const result=await api('/action',{revision:revision.current??data.db.revision,action});revision.current=result.revision;await load();saved();return result;}catch(e){failed((e as Error).message);notify((e as Error).message,true);throw e;}};
+  const run=async(kind:string)=>{try{await api('/jobs',{kind});setJobs(await api('/jobs'));notify('Started. Progress is shown beside this workflow.');}catch(e){notify((e as Error).message,true);}};
+  const openReport=async(path:string)=>{try{setReport((await api('/report?path='+encodeURIComponent(path))).text);}catch(e){notify((e as Error).message,true);}};
+  // Routes: teams · team/<id>/<tab>/<version|all> · team/<id>/mon/<version>/<slot>[/swap] · inbox · news · data · references
+  const parts=route.split('/');const team=parts[0]==='team'?data?.teams.find((t:any)=>t.id===parts[1]):null;const pageData=data?{...data,jobs}:null;
+  const dock:DockContext|null=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:null;
+  const withDock=!!dock&&dockOpen;
+  return <div className={'shell'+(withDock?' with-dock':'')}>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className="masthead"><a href="#teams" className="brand"><img className="brand-logo" src="/favicon.svg" alt="" width={32} height={32}/><span>Frontier Brain</span></a>{data&&<QuickLinks sources={data.sources}/>}<span className="masthead-spacer"/><SavePill/></header>
+    <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button aria-label="Dismiss notification" onClick={()=>setMessage(null)}>×</button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
+    {!data?<Empty>Opening Frontier Brain…</Empty>:<>
+      {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
+      {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
+      {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
+      {team&&parts[2]!=='mon'&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
+      {route==='inbox'&&<><a href="#teams" className="text-button">← Teams</a><Coach data={pageData} notify={notify} load={load} run={run} initialTeam="inbox"/></>}
+      {route==='news'&&<><a href="#teams" className="text-button">← Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
+      {route==='data'&&<><a href="#teams" className="text-button">← Teams</a><DataPool art={data.art}/></>}
+      {route==='references'&&<><a href="#teams" className="text-button">← Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
+      {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
+    </>}</main><footer className="footer"><span>FRONTIER BRAIN · Champions M-C</span><span>Pokémon illustrations © Pokémon / Nintendo / Creatures / GAME FREAK. Unofficial, private tool.</span></footer>
+    {team&&dock&&pageData&&<AssistDock key={team.id} team={team} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
+    {importing&&<NewTeam mutate={mutate} load={load} notify={notify} review={importing.review} onClose={()=>setImporting(false)}/>} {newsOpen&&data&&<Modal title="This week in Champions VGC" onClose={()=>setNewsOpen(false)}><News weeks={data.news} jobs={jobs} run={run}/></Modal>} {report!==null&&<Modal title="Research notebook" onClose={()=>setReport(null)}><Markdown text={report}/></Modal>}
+  </div>;
+}
+// Header status: unsaved drafts first, then the last save's outcome.
+function SavePill(){const {status,dirty}=useSaveState();const time=(t?:number)=>t?new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'';
+  if(dirty.length)return <span className="save-pill dirty" role="status"><i/>Unsaved: {[...new Set(dirty)].join(', ')}</span>;
+  if(status.state==='saving')return <span className="save-pill" role="status">Saving…</span>;
+  if(status.state==='error')return <span className="save-pill error" role="status" title={status.error}><Px icon={WarningDiamond} size={12}/>Save failed</span>;
+  return <span className="save-pill ok" role="status"><Px icon={Check} size={12}/>{status.state==='saved'?`Saved ${time(status.at)}`:'All changes saved'}</span>;}
+// Headlines from the saved weekly briefings. A headline opens its source; anywhere else opens the week's briefing.
+function Ticker({weeks,openNews}:{weeks:any[];openNews:()=>void}){
+  const items=weeks.flatMap((w:any)=>[...(w.signals??[]).map((s:any)=>({text:s.title,tag:s.kind==='measured'?'DATA':s.kind==='community'?'CHATTER':'REPORT',url:w.articles.find((a:any)=>s.articleIds?.includes(a.id))?.url})),...w.articles.map((a:any)=>({text:a.title,tag:a.source,url:a.url}))]).slice(0,16);
+  if(!items.length)return null;const row=(copy:string)=>items.map((x:any,i:number)=>x.url?<a key={copy+i} href={x.url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()}><b>{x.tag}</b> {x.text} ↗</a>:<span key={copy+i}><b>{x.tag}</b> {x.text}</span>);
+  return <div className="ticker" role="button" tabIndex={0} aria-label="Open this week's news briefing" onClick={openNews} onKeyDown={e=>{if(e.key==='Enter')openNews();}}><span className="ticker-label"><Px icon={Zap} size={12}/>BREAKING</span><span className="ticker-track"><span className="ticker-run">{row('a')}<span aria-hidden="true" className="ticker-copy">{row('b')}</span></span></span><span className="ticker-more"><Px icon={Notes} size={12}/>This week</span></div>;
+}
+// Reference links in a few dropdown groups. Calculators and team builders are deliberately absent.
+const barGroups=[['data','Data',Chart],['results','Results',Trophy],['learn','Learn',BookOpen],['community','Community',Users]] as const;
+function QuickLinks({sources}:{sources:any[]}){
+  const host=(u:string)=>{try{return new URL(u).hostname;}catch{return '';}};const [open,setOpen]=useState('');
+  useEffect(()=>{const close=()=>setOpen('');addEventListener('click',close);return()=>removeEventListener('click',close);},[]);
+  const link=(s:any)=><a key={s.id} href={s.url} target="_blank" rel="noreferrer" title={s.notes}><img src={s.icon??`https://${host(s.url)}/favicon.ico`} alt="" loading="lazy" width={18} height={18} onError={e=>{e.currentTarget.style.visibility='hidden';}}/><span>{s.name}<small>{s.notes}</small></span></a>;
+  const play=sources.find(s=>s.bar==='play');
+  return <nav className="quickbar" aria-label="Quick links" onClick={e=>e.stopPropagation()}>{barGroups.map(([key,label,icon])=>{const rows=sources.filter(s=>s.bar===key).sort((a,b)=>a.barOrder-b.barOrder);return <div key={key} className={'quickbar-group'+(open===key?' open':'')}><button aria-expanded={open===key} onClick={()=>setOpen(open===key?'':key)}><Px icon={icon}/>{label}<Px icon={ChevronDown} size={12}/></button>{open===key&&<div className="quickbar-menu">{key==='data'&&<a href="#data" className="pool-link" onClick={()=>setOpen('')}><img src="/favicon.svg" alt="" width={18} height={18}/><span>Frontier Brain data pool<small>Every source combined into one deduplicated set of teams</small></span></a>}{rows.map(link)}</div>}</div>;})}
+    {play&&<a className="quickbar-play" href={play.url} target="_blank" rel="noreferrer"><Px icon={Play}/>{play.name}</a>}<a className="quickbar-all" href="#references"><Px icon={Bookmark}/>All references</a></nav>;
+}
+function News({weeks,jobs,run}:{weeks:any[];jobs:any;run:(s:string)=>void}){const [selected,setSelected]=useState(0);const week=weeks[selected];if(!week)return <Empty>No weekly briefing saved.</Empty>;return <Panel title="News & team reports" kicker="WEEKLY BRIEFING" ><div className="week-tabs">{weeks.map((w:any,i:number)=><button key={w.start} className={selected===i?'selected':''} onClick={()=>setSelected(i)}>{i===0?'This week':date(w.start).replace(' 2026','')}<small>{w.partial?'In progress':'Weekly digest'}</small></button>)}</div><div className="weekly-digest"><span className="eyebrow">{date(week.start)} — {date(week.end)}</span>{week.digest.map((s:string,i:number)=><p key={i}>{s}</p>)}</div>{week.signals?.map((s:any,i:number)=><article className="news-signal" key={i}><span className="tag">{s.kind==='measured'?'Measured evidence':s.kind==='community'?'Community chatter':'Report takeaway'}</span><h3>{s.title}</h3><p>{s.summary}</p>{s.whyItMatters&&<p><strong>Why it matters:</strong> {s.whyItMatters}</p>}<div className="tags">{s.articleIds.map((id:string)=>{const a=week.articles.find((a:any)=>a.id===id);return a?<a className="text-button" key={id} href={a.url} target="_blank" rel="noreferrer">{a.source} ↗</a>:null;})}</div></article>)}<div className="articles">{week.articles.map((a:any)=><article key={a.id}><span className={'article-mark '+a.category}>{a.category==='report'?'▤':a.category==='community'?'◉':'★'}</span><div><div className="article-meta">{a.source} · {date(a.publishedAt)} · {a.category==='community'?'Anecdotal discussion':a.category}</div><a href={a.url} target="_blank" rel="noreferrer"><h3>{a.title} ↗</h3></a><p>{a.summary}</p><span className="muted">{a.format}</span></div></article>)}</div><details className="coverage"><summary>Sources, freshness & gaps</summary>{week.coverage.map((c:string,i:number)=><p key={i}>{c}</p>)}{week.researchedAt&&<span>Checked {date(week.researchedAt)}</span>}<p>Report summaries are attributed paraphrases, not endorsements.</p></details></Panel>;}
+// Mirrors the top bar: the same groups and order, each link's role in the data pool, then the sources behind the
+// app itself (rules, raw datasets, engine) in one short list. Calculators are omitted on purpose.
+const catalogueGroups=[['data','Data'],['results','Results'],['learn','Learn'],['community','Community'],['play','Play']] as const;
+function ReferenceGroups({sources}:{sources:any[];compact?:boolean}){
+  const host=(u:string)=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch{return '';}};
+  const behind=sources.filter(s=>s.behind);
+  const card=(s:any)=><article key={s.id} className="source-card"><a href={s.url} target="_blank" rel="noreferrer"><img src={s.icon??`https://${host(s.url)}/favicon.ico`} alt="" width={18} height={18} onError={e=>{e.currentTarget.style.visibility='hidden';}}/>{s.name} ↗</a><p>{s.notes}</p><span className="muted tiny">{host(s.url)}</span></article>;
+  return <div className="reference-groups">{catalogueGroups.map(([key,title])=>{const rows=sources.filter(s=>s.bar===key).sort((a,b)=>a.barOrder-b.barOrder);return rows.length?<section key={key}><h3>{title}</h3><div className="source-grid">{rows.map(card)}</div></section>:null;})}
+    <section><h3>Behind Frontier Brain</h3><p className="muted">Rules, raw datasets and engine sources the app itself relies on.</p><div className="source-grid">{behind.map(card)}</div></section></div>;
+}

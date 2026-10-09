@@ -1,0 +1,24 @@
+node_modules/
+.cache/
+*.log
+.DS_Store
+dist/
+.playwright-cli/
+output/playwright/
+.env
+.playwright-mcp/
+settings.json
+# Downloaded Pokémon artwork and box icons: third-party images, re-cached on demand
+knowledge/artwork/
+# A player's data when APP_DATA is unset (the repo folder doubles as the data directory)
+/teams/
+/pokemon/
+/replays/
+/reports/
+/archive/
+/context/
+/config.json
+/knowledge/pool/
+/knowledge/metagame/
+/knowledge/news/
+/knowledge/sources/checks.json

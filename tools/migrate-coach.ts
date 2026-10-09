@@ -1,0 +1,10 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {ROOT,hash,json} from './io.ts';
+import {readStore,migrateStore,validateStoreReferences,currentTeam} from './workbench-store.ts';
+import assert from 'node:assert/strict';
+const before=await readStore();const index=await json('replays/index.json');const checksums=await Promise.all(index.games.map(async(g:any)=>({id:g.id,path:g.source,sha256:hash(await readFile(resolve(ROOT,g.source)))})));
+const outcome=await migrateStore();const after=await readStore();validateStoreReferences(after);
+assert.deepEqual(after,{...before,benchmarks:before.benchmarks??[]},'Migration must preserve every record and reference');
+for(const c of checksums)if(hash(await readFile(resolve(ROOT,c.path)))!==c.sha256)throw new Error('Original replay changed');
+await mkdir(resolve(ROOT,'archive'),{recursive:true});await writeFile(resolve(ROOT,'archive/coach-migration.json'),JSON.stringify({at:new Date().toISOString(),outcome,revision:after.revision,teams:after.teams.length,pokemon:after.bank.length,replayChecksums:checksums},null,2)+'\n');console.log(JSON.stringify(outcome));

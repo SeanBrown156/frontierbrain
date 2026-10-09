@@ -1,0 +1,403 @@
+[
+  {
+    "id": "pokemon-zone",
+    "name": "Pokémon Zone · Champions",
+    "url": "https://www.pokemon-zone.com/champions/",
+    "categories": [
+      "rules",
+      "mechanics",
+      "strategy"
+    ],
+    "notes": "Champions pages and regulation change summaries; cross-check official announcements.",
+    "bar": "data",
+    "barOrder": 3,
+    "icon": "/icons/pokemon-zone.png"
+  },
+  {
+    "id": "pokebase",
+    "name": "PokéBase",
+    "url": "https://pokebase.app/pokemon-champions",
+    "categories": [
+      "mechanics",
+      "community"
+    ],
+    "notes": "Spreads aggregate for M-C tournaments and in-game ladder seasons. Fallback for typical spreads when the pool has fewer than 8 for a species.",
+    "bar": "data",
+    "barOrder": 0
+  },
+  {
+    "id": "pikalytics",
+    "name": "Pikalytics",
+    "url": "https://www.pikalytics.com/",
+    "categories": [
+      "usage",
+      "sets"
+    ],
+    "notes": "COMPOSITE (Showdown ladder + curated teams). Moves/items/teammates cross-check; no spreads.",
+    "bar": "data",
+    "barOrder": 1
+  },
+  {
+    "id": "pokepaste",
+    "name": "PokePaste",
+    "url": "https://pokepast.es/",
+    "categories": [
+      "teams"
+    ],
+    "notes": "Paste host. Not a destination; Frontier Brain imports team info directly from pokepast.es links."
+  },
+  {
+    "id": "showdown",
+    "name": "Showdown!",
+    "url": "https://play.pokemonshowdown.com/",
+    "categories": [
+      "testing",
+      "teams"
+    ],
+    "notes": "Use Champions VGC M-C or M-C Bo3, not SV VGC or Champions singles.",
+    "bar": "play",
+    "barOrder": 0
+  },
+  {
+    "id": "limitless",
+    "name": "Limitless VGC",
+    "url": "https://limitlessvgc.com/",
+    "categories": [
+      "results",
+      "usage",
+      "teams"
+    ],
+    "notes": "UPSTREAM in the Frontier Brain pool: official-event Day 2 team lists and placings (no stat points).",
+    "bar": "results",
+    "barOrder": 0
+  },
+  {
+    "id": "suckerpunch",
+    "name": "Suckerpunch.gg",
+    "url": "https://suckerpunch.gg/",
+    "categories": [
+      "usage",
+      "results",
+      "teams",
+      "sets"
+    ],
+    "notes": "COMPOSITE of Limitless, Victory Road, Play! and Showdown data. Cross-check only; never added to the pool.",
+    "bar": "data",
+    "barOrder": 7
+  },
+  {
+    "id": "victory-road",
+    "name": "Victory Road",
+    "url": "https://victoryroad.pro/",
+    "categories": [
+      "results",
+      "reports",
+      "teams",
+      "events"
+    ],
+    "notes": "Event coverage and authored team reports; reports explain gameplans that usage percentages cannot.",
+    "bar": "results",
+    "barOrder": 3,
+    "icon": "/icons/victory-road.png"
+  },
+  {
+    "id": "vgcpastes",
+    "name": "VGCPastes",
+    "url": "https://docs.google.com/spreadsheets/d/1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw/edit?gid=2001945654#gid=2001945654",
+    "categories": [
+      "teams",
+      "reports",
+      "results"
+    ],
+    "notes": "UPSTREAM in the Frontier Brain pool: shared team pastes with exact spreads, merged into matching tournament teams.",
+    "bar": "data",
+    "barOrder": 2
+  },
+  {
+    "id": "reddit-vgc",
+    "name": "r/VGC/",
+    "url": "https://www.reddit.com/r/VGC/",
+    "categories": [
+      "community",
+      "strategy"
+    ],
+    "notes": "Hypothesis discovery; follow primary links and never treat comments as verified mechanics.",
+    "bar": "community",
+    "barOrder": 0
+  },
+  {
+    "id": "vgc-guide",
+    "name": "VGC Guide",
+    "url": "https://www.vgcguide.com/",
+    "categories": [
+      "strategy",
+      "teambuilding"
+    ],
+    "notes": "Doubles fundamentals, positioning and team-building principles; examples may use older formats.",
+    "bar": "learn",
+    "barOrder": 0
+  },
+  {
+    "id": "top-cut",
+    "name": "Top Cut Explorer",
+    "url": "https://cut-explorer.stalruth.dev/",
+    "categories": [
+      "results",
+      "teams",
+      "sets"
+    ],
+    "notes": "MIRROR of RK9 official-event team lists (the same events Limitless covers). Reference only.",
+    "bar": "results",
+    "barOrder": 2
+  },
+  {
+    "id": "pikalytics-builder",
+    "name": "Pikalytics | Team Builder",
+    "url": "https://www.pikalytics.com/team",
+    "categories": [
+      "teambuilding",
+      "teams"
+    ],
+    "notes": "Select Champions; verify SP rather than mainline EV inputs."
+  },
+  {
+    "id": "pikalytics-speed",
+    "name": "Pikalytics | Speed Tiers",
+    "url": "https://www.pikalytics.com/speed-tiers",
+    "categories": [
+      "speed",
+      "sets"
+    ],
+    "notes": "Consider priority, speed control, ties and spread assumptions."
+  },
+  {
+    "id": "pikalytics-calc",
+    "name": "Pikalytics | Damage Calculator",
+    "url": "https://www.pikalytics.com/calc",
+    "categories": [
+      "calculators"
+    ],
+    "notes": "Has Champions mode; select it explicitly and reproduce both sets/field."
+  },
+  {
+    "id": "liberty-note",
+    "name": "Liberty Note",
+    "url": "https://liberty-note.com/",
+    "categories": [
+      "reports",
+      "teams",
+      "results"
+    ],
+    "notes": "Japanese authored reports and ladder teams. Translate while preserving gameplan and calculation context.",
+    "bar": "learn",
+    "barOrder": 1
+  },
+  {
+    "id": "liquipedia",
+    "name": "Liquipedia",
+    "url": "https://liquipedia.net/pokemon/Main_Page",
+    "categories": [
+      "events",
+      "results"
+    ],
+    "notes": "Circuit/event context; prefer organizer/official result links for exact standings.",
+    "bar": "results",
+    "barOrder": 4
+  },
+  {
+    "id": "reddit-champions",
+    "name": "r/PokemonChampions",
+    "url": "https://www.reddit.com/r/PokemonChampions/",
+    "categories": [
+      "community",
+      "mechanics"
+    ],
+    "notes": "Champions-specific discussion and change discovery; verify assertions.",
+    "bar": "community",
+    "barOrder": 1
+  },
+  {
+    "id": "just-move-first",
+    "name": "Just move first!",
+    "url": "https://justmovefirst.com/",
+    "categories": [
+      "practice",
+      "speed"
+    ],
+    "notes": "Base-Speed recognition quiz, not usage data or full doubles effective-speed calculations.",
+    "bar": "learn",
+    "barOrder": 2,
+    "icon": "/icons/choice-scarf.png"
+  },
+  {
+    "id": "smogon",
+    "name": "Smogon University",
+    "url": "https://www.smogon.com/",
+    "categories": [
+      "strategy",
+      "reports",
+      "mechanics"
+    ],
+    "notes": "Doubles/VGC analyses, forums and reports; check generation/regulation and article date.",
+    "bar": "learn",
+    "barOrder": 3
+  },
+  {
+    "id": "showdown-calc",
+    "name": "Pokémon Showdown | Damage Calculator",
+    "url": "https://calc.pokemonshowdown.com/",
+    "categories": [
+      "calculators"
+    ],
+    "notes": "Independent calculator UI; select Champions. Local engine is pinned native Champions generation 0."
+  },
+  {
+    "id": "labmaus",
+    "name": "LabMaus",
+    "url": "https://labmaus.net/",
+    "categories": [
+      "usage",
+      "results",
+      "teams"
+    ],
+    "notes": "COMPOSITE tournament aggregator. Cross-check only; never added to the pool.",
+    "bar": "data",
+    "barOrder": 4
+  },
+  {
+    "id": "vgc-champions-calc",
+    "name": "VGC Champions | Damage Calculator",
+    "url": "https://vgcchampions.com/",
+    "categories": [
+      "calculators",
+      "speed",
+      "teambuilding"
+    ],
+    "notes": "Champions web calculator and mobile toolkit. Verify mechanics/data version before cross-checks."
+  },
+  {
+    "id": "ncp-calc",
+    "name": "Nimbasa City Post | Damage Calculator",
+    "url": "https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/",
+    "categories": [
+      "calculators",
+      "sets"
+    ],
+    "notes": "Explicit CHAMP mode and M-C updates; suitable independent implementation check."
+  },
+  {
+    "id": "statcrusher",
+    "name": "StatCrusher",
+    "url": "https://statcrusher.com/",
+    "categories": [
+      "usage",
+      "sets",
+      "speed"
+    ],
+    "notes": "MIRROR of Smogon Showdown ladder stats (same Elo/Bo3/month cuts). Reference only; not ingested to avoid double counting.",
+    "bar": "data",
+    "barOrder": 5
+  },
+  {
+    "id": "munchstats",
+    "name": "MunchStats",
+    "url": "https://www.munchstats.com/",
+    "categories": [
+      "usage",
+      "sets",
+      "speed",
+      "results"
+    ],
+    "notes": "In-game doubles stats captured by MunchStats (a distinct method) plus Smogon mirrors. Reference / cross-check only.",
+    "bar": "data",
+    "barOrder": 6,
+    "icon": "/icons/leftovers.png"
+  },
+  {
+    "id": "official-m-c",
+    "name": "Official Champions Regulation M-C",
+    "url": "https://champions-news.pokemon-home.com/en/page/816.html",
+    "categories": [
+      "rules"
+    ],
+    "notes": "Authoritative duration, eligibility link, Mega restriction, items and timers. Refresh before builds.",
+    "behind": true
+  },
+  {
+    "id": "smogon-stats",
+    "name": "Smogon original usage datasets",
+    "url": "https://www.smogon.com/stats/",
+    "categories": [
+      "usage",
+      "sets"
+    ],
+    "notes": "Original published monthly ladder datasets; adapter downloads exact M-C Bo1/Bo3 files and chaos distributions.",
+    "behind": true
+  },
+  {
+    "id": "showdown-source",
+    "name": "Showdown Champions source",
+    "url": "https://github.com/smogon/pokemon-showdown/tree/master/data/mods/champions",
+    "categories": [
+      "mechanics",
+      "rules"
+    ],
+    "notes": "Executable mod reference; installed commit pinned, changes require tests and deliberate upgrade.",
+    "behind": true
+  },
+  {
+    "id": "calc-source",
+    "name": "Smogon calculator source",
+    "url": "https://github.com/smogon/damage-calc",
+    "categories": [
+      "mechanics",
+      "calculators"
+    ],
+    "notes": "Native Champions generation 0. Track engine version separately from source verification date.",
+    "behind": true
+  },
+  {
+    "id": "pasrs",
+    "name": "PASRS reporting approach",
+    "url": "https://devoncorp.press/short-form-content/pasrs-5-0",
+    "categories": [
+      "iteration",
+      "strategy"
+    ],
+    "notes": "Creator's documentation; locally adapt concepts, do not copy protected spreadsheet formulas or assume v6.2 is Champions-compatible."
+  },
+  {
+    "id": "limitless-play",
+    "name": "Limitless Online",
+    "url": "https://play.limitlesstcg.com/tournaments?game=VGC",
+    "categories": [
+      "events",
+      "results",
+      "teams"
+    ],
+    "notes": "UPSTREAM in the Frontier Brain pool: online M-C tournaments with full team lists, placings and records (public API; events with ≥16 players, custom-rule events skipped).",
+    "bar": "results",
+    "barOrder": 1
+  },
+  {
+    "id": "pikalytics-tournaments",
+    "name": "Pikalytics tournament coverage",
+    "url": "https://www.pikalytics.com/tournaments",
+    "categories": [
+      "results",
+      "usage",
+      "teams"
+    ],
+    "notes": "Event-based statistics and teams; confirm stage and regulation."
+  },
+  {
+    "id": "pikalytics-topteams",
+    "name": "Pikalytics top teams",
+    "url": "https://www.pikalytics.com/topteams",
+    "categories": [
+      "teams",
+      "results"
+    ],
+    "notes": "Team examples; verify full sets, event, result and information profile."
+  }
+]

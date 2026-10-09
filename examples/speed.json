@@ -1,0 +1,5 @@
+{
+  "a":{"species":"Rillaboom","nature":"Jolly","statPoints":{"spe":32},"tailwind":true},
+  "b":{"species":"Salamence-Mega","nature":"Jolly","statPoints":{"spe":32}},
+  "trickRoom":false
+}

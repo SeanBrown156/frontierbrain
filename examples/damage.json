@@ -1,0 +1,6 @@
+{
+  "attacker":{"species":"Rillaboom","nature":"Adamant","ability":"Grassy Surge","statPoints":{"hp":32,"atk":32,"spe":2}},
+  "defender":{"species":"Primarina","nature":"Modest","ability":"Torrent","statPoints":{"hp":32,"spa":32,"spe":2}},
+  "move":"Wood Hammer",
+  "field":{"gameType":"Doubles","terrain":"Grassy"}
+}
