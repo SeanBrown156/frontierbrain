@@ -8,7 +8,8 @@
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
-import {dex} from './mechanics.ts';
+import {dex,resolveSpecies} from './mechanics.ts';
+export {resolveSpecies};
 import {ROOT} from './io.ts';
 import {playerKey,type PoolTeam,type PoolSet,type Lane} from './pool.ts';
 
@@ -28,18 +29,6 @@ const EVENT_SOURCES:Record<'official'|'online',{source:string;url:(id:string)=>s
   online:{source:'Limitless online',url:id=>`https://play.limitlesstcg.com/tournament/${id}/standings`},
 };
 const plain=(s:string)=>s.normalize("NFKD").replace(/\p{M}/gu,"").trim();
-// Limitless writes some forms as display names ("Eternal Flower Floette", "Paldean Tauros Aqua Breed"). They are
-// rewritten to Showdown's Species-Form spelling only when that name exists and is a form of the named species.
-const FORM_WORDS:Record<string,string>={female:'F',male:'M',paldean:'Paldea',alolan:'Alola',galarian:'Galar',hisuian:'Hisui'};
-const FORM_FILLER=new Set(['breed','flower','form','forme']);
-export function resolveSpecies(raw:string):string|null{
-  const name=plain(raw);if(!name)return null;const direct=dex.species.get(name);if(direct.exists)return direct.name;
-  const words=name.split(/\s+/);
-  for(const [i,w] of words.entries()){const base=dex.species.get(w);if(!base.exists||base.name!==base.baseSpecies)continue;
-    const form=words.filter((_,j)=>j!==i&&!FORM_FILLER.has(words[j].toLowerCase())).map(x=>FORM_WORDS[x.toLowerCase()]??x);if(!form.length)continue;
-    const candidate=dex.species.get(`${base.name}-${form.join('-')}`);if(candidate.exists&&candidate.baseSpecies===base.name)return candidate.name;}
-  return null;
-}
 const lookup=(table:{get(n:string):{exists:boolean;name:string}},raw:string|undefined|null)=>{const v=plain(raw??'');if(!v)return {value:null,ok:true};const d=table.get(v);return d.exists?{value:d.name,ok:true}:{value:(raw??'').trim(),ok:false};};
 const hash=(v:unknown)=>createHash('sha1').update(JSON.stringify(v)).digest('hex').slice(0,20);
 const RECORD=/^(\d+)-(\d+)(?:-(\d+))?$/;
