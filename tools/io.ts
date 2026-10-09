@@ -2,14 +2,16 @@ import {readFile, writeFile, mkdir, rename, readdir, stat, rm} from 'node:fs/pro
 import {resolve, dirname, relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {parseEnv} from 'node:util';
 import {AsyncLocalStorage} from 'node:async_hooks';
 
 // CODE is this repository. ROOT is the data directory: APP_DATA (from the environment or CODE/.env) when set,
 // otherwise the repository itself. Reads fall back to CODE so shipped reference files (knowledge/mechanics,
 // knowledge/regulations, knowledge/sources) work from any data directory; writes always go to ROOT.
-export const CODE = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+// The repository root: the nearest folder with package.json above this module (tools/ when run from source,
+// build/api/ when bundled for Vercel).
+export const CODE = (()=>{let dir=dirname(fileURLToPath(import.meta.url));while(!existsSync(resolve(dir,'package.json'))){const up=dirname(dir);if(up===dir)return resolve(dirname(fileURLToPath(import.meta.url)),'..');dir=up;}return dir;})();
 // Only APP_DATA is read here; API keys stay unloaded until a feature asks for them.
 if(!process.env.APP_DATA){try{const value=parseEnv(readFileSync(resolve(CODE,'.env'),'utf8')).APP_DATA;if(value)process.env.APP_DATA=value;}catch{}}
 export const ROOT = process.env.APP_DATA ? resolve(CODE,process.env.APP_DATA) : CODE;

@@ -5,8 +5,16 @@
   "functions": {
     "api/index.mjs": {
       "maxDuration": 300,
-      "includeFiles": "{knowledge/mechanics/**,knowledge/regulations/**,knowledge/sources/**,node_modules/pokemon-showdown/dist/**,node_modules/pokemon-showdown/config/**}"
+      "includeFiles": "{package.json,build/api/**,knowledge/mechanics/**,knowledge/regulations/**,knowledge/sources/**,node_modules/pokemon-showdown/dist/**,node_modules/pokemon-showdown/config/**}"
     }
   },
-  "rewrites": [{"source": "/api/(.*)", "destination": "/api/index"}]
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    }
+  ],
+  "regions": [
+    "syd1"
+  ]
 }
