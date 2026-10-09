@@ -1,4 +1,4 @@
-import {ROOT,optionalJSON,save,localDay} from './io.ts';
+import {ROOT,optionalJSON,save,localDay,listDir} from './io.ts';
 import {fetchText,setDistribution} from './research.ts';
 import {dex,FORMAT} from './mechanics.ts';
 import {vgcPastesSets} from './vgcpastes.ts';
@@ -70,7 +70,7 @@ function smogonSets(species:string):Promise<MetaSets>{
 }
 const cachePath=(source:MetaSource,species:string,day:string)=>`knowledge/metagame/${source}/${day}/${pokebaseSlug(species)}.json`;
 async function cached(source:MetaSource,species:string,root:string):Promise<MetaSets|null>{
-  let days:string[]=[];try{days=(await readdir(resolve(root,'knowledge/metagame',source))).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse();}catch{return null;}
+  let days:string[]=[];try{days=(root===ROOT?await listDir(`knowledge/metagame/${source}`):await readdir(resolve(root,'knowledge/metagame',source))).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse();}catch{return null;}
   for(const day of days){if((Date.parse(localDay())-Date.parse(day))/86400000>MAX_AGE_DAYS)break;const hit=await optionalJSON<MetaSets|null>(cachePath(source,species,day),null);if(hit)return hit;}return null;
 }
 // Polite, serialized fetching: one request at a time, cached per day.

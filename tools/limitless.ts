@@ -2,9 +2,8 @@
 // ability, nature and moves but NO stat points. Standings rows already show each team's six, so teammate/core
 // statistics need no extra requests; individual team lists are fetched only for the species asked about.
 // Finished events never change: standings and team lists are cached permanently. The event list refreshes every 6 h.
-import {readFile,stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ROOT,optionalJSON,save} from './io.ts';
+import {optionalJSON,save,readText,modifiedAt} from './io.ts';
 import {fetchText} from './research.ts';
 import {dex} from './mechanics.ts';
 import type {MetaSets,Share} from './meta-sets.ts';
@@ -35,7 +34,7 @@ export function parseEventMeta(html:string){
   return {date:Number.isFinite(parsed.getTime())?parsed.toISOString().slice(0,10):null,regulation:text.match(/Regulation Set ([A-Z]-[A-Z0-9]+)/)?.[1]??null,entrants:Number(text.match(/([\d,]+) Players/)?.[1]?.replaceAll(',',''))||null};
 }
 // permanent=false: refetch when the cached copy is over 6 h old (events still running or just finished).
-async function cachedText(path:string,url:string,permanent=true){try{const info=await stat(resolve(ROOT,path));if(permanent||Date.now()-info.mtimeMs<6*3600_000)return await readFile(resolve(ROOT,path),'utf8');}catch{}const {text}=await fetchText(url,5_000_000);await save(path,text);await new Promise(r=>setTimeout(r,150));return text;}
+async function cachedText(path:string,url:string,permanent=true){const at=await modifiedAt(path);if(at!==null&&(permanent||Date.now()-at<6*3600_000))return readText(path);const {text}=await fetchText(url,5_000_000);await save(path,text);await new Promise(r=>setTimeout(r,150));return text;}
 const settled=(date:string|null)=>!!date&&Date.parse(date)<Date.now()-3*86400_000;
 // Recent official events in one regulation (default M-C), newest first.
 export async function recentEvents(regulation='M-C',{refresh=false,limit=12}={}):Promise<EventInfo[]>{

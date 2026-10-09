@@ -1,6 +1,4 @@
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
-import {resolve} from 'node:path';
-import {ROOT,optionalJSON,save,id,hash} from './io.ts';
+import {optionalJSON,save,id,hash,modifiedAt,readBytes} from './io.ts';
 import {fetchText} from './research.ts';
 import {dex} from './mechanics.ts';
 
@@ -26,11 +24,11 @@ export function iconNumber(name:string,index:Record<string,number>){
 let loading:Promise<Record<string,number>>|null=null;
 export function iconIndex(){return loading??=(async()=>{
   const cached=await optionalJSON<{index:Record<string,number>}|null>(INDEX,null);
-  try{await readFile(resolve(ROOT,SHEET));if(cached)return cached.index;}catch{}
+  if(cached&&await modifiedAt(SHEET))return cached.index;
   const res=await fetch(SHEET_URL,{signal:AbortSignal.timeout(20000)});if(!res.ok||!res.headers.get('content-type')?.startsWith('image/png'))throw new Error(`Icon sheet HTTP ${res.status}`);
-  const bytes=Buffer.from(await res.arrayBuffer());await mkdir(resolve(ROOT,'knowledge/artwork'),{recursive:true});await writeFile(resolve(ROOT,SHEET),bytes);
+  const bytes=Buffer.from(await res.arrayBuffer());await save(SHEET,bytes);
   const index=parseIconIndex((await fetchText(INDEX_URL,2_000_000)).text);
   await save(INDEX,{source:INDEX_URL,sheet:SHEET_URL,sheetSha256:hash(bytes),retrievedAt:new Date().toISOString(),attribution:'Pokémon box icons via Pokémon Showdown. © Pokémon / Nintendo / Creatures / GAME FREAK. Personal local reference.',index});
   return index;
 })().catch(e=>{loading=null;throw e;});}
-export const iconSheet=()=>readFile(resolve(ROOT,SHEET));
+export const iconSheet=()=>readBytes(SHEET);

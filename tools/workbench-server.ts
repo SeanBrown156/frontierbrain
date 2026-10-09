@@ -1,13 +1,12 @@
 import {createServer,type IncomingMessage,type ServerResponse} from 'node:http';
-import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
 import {resolve,relative} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
-import {ROOT,CODE,json,optionalJSON,save,hash,workspacePath,id,config as profile} from './io.ts';
+import {ROOT,CODE,json,optionalJSON,save,hash,id,dataPath,listDir,readText,readBytes,withData,dataContext,config as profile} from './io.ts';
 import {dashboard,cacheArtwork,backfillUsage,refreshEvents,coachStats} from './workbench-data.ts';
 import {readStore as readRootStore,mutateStore as mutateRootStore,applyAction,currentTeam,teamPaste,sameRoster,Conflict,legacyTeams as legacyRootTeams,makeTeam,associateReplay} from './workbench-store.ts';
-import {parseReplay,ingest,loadGames} from './replays.ts';
+import {parseReplay,addReplay,loadGames} from './replays.ts';
 import {refreshResearch} from './research.ts';
 import {workflowLock} from './workbench-jobs.ts';
 import {exportText} from './teams.ts';
@@ -22,6 +21,7 @@ import {startJob,listJobs,getJob,dismissJob,cancelJob} from './ai-jobs.ts';
 import {modelSettings,saveModelSettings,availableModels} from './models.ts';
 import {queueSummaries,readSummary,readDigest,isStale,runningFor,transcript,readGame} from './replay-summary.ts';
 import {typicalSet} from './typical-set.ts';
+import {hostedConfig,hostedHandler} from './hosted.ts';
 
 function respond(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
 export function allowedRequest(req:IncomingMessage,apiPort=5174){
@@ -29,7 +29,7 @@ export function allowedRequest(req:IncomingMessage,apiPort=5174){
   const origin=req.headers.origin;return !origin||['http://127.0.0.1:5173','http://127.0.0.1:5174'].includes(origin);
 }
 async function body(req:IncomingMessage){if(!req.headers['content-type']?.startsWith('application/json'))throw new Error('Expected application/json');let length=0;const chunks:Buffer[]=[];for await(const chunk of req){length+=chunk.length;if(length>8_000_000)throw new Error('Upload exceeds 8 MB');chunks.push(chunk);}return JSON.parse(Buffer.concat(chunks).toString('utf8'));}
-async function jobHistory(){const files=(await readdir(resolve(ROOT,'reports/runs'))).filter(f=>f.endsWith('.json')&&!f.endsWith('-request.json'));const history=(await Promise.all(files.map(async f=>({...await json(`reports/runs/${f}`),recordPath:`reports/runs/${f}`})))).sort((a,b)=>(b.startedAt??b.at??b.finishedAt??'').localeCompare(a.startedAt??a.at??a.finishedAt??'')).slice(0,40);const recentUI=history.filter(h=>h.id&&h.recordPath.includes('/ui-')).slice(0,8);
+async function jobHistory(){const files=(await listDir('reports/runs')).filter(f=>f.endsWith('.json')&&!f.endsWith('-request.json'));const history=(await Promise.all(files.map(async f=>({...await json(`reports/runs/${f}`),recordPath:`reports/runs/${f}`})))).sort((a,b)=>(b.startedAt??b.at??b.finishedAt??'').localeCompare(a.startedAt??a.at??a.finishedAt??'')).slice(0,40);const recentUI=history.filter(h=>h.id&&h.recordPath.includes('/ui-')).slice(0,8);
   for(const job of recentUI.filter(j=>j.status==='running')){let interrupted=!job.pid&&Date.now()-Date.parse(job.startedAt)>30000;if(job.pid)try{process.kill(job.pid,0);}catch(e){if((e as NodeJS.ErrnoException).code==='ESRCH')interrupted=true;}if(interrupted){job.status='interrupted';job.phase='Worker stopped before a completion record; rerun the workflow. Original data is preserved.';}}
   return {current:recentUI,history};}
 async function runJob(kind:string){
@@ -39,18 +39,13 @@ async function runJob(kind:string){
   const child=spawn(process.execPath,[resolve(CODE,'tools/workbench-worker.ts'),kind,job.id],{cwd:CODE,env:process.env,stdio:'ignore',detached:true});child.unref();
   child.once('error',async error=>{job.status='failed';job.error=error.message;job.finishedAt=new Date().toISOString();await save(`reports/runs/ui-${job.id}.json`,job);});return job;
 }
-export function createWorkbenchHandler(storageRoot=ROOT,apiPort=5174){
+export function createWorkbenchHandler(storageRoot=ROOT,apiPort=5174,{hostedMode=false}:{hostedMode?:boolean}={}){
 const readStore=()=>readRootStore(storageRoot);const mutateStore=(revision:number,fn:Parameters<typeof mutateRootStore>[1])=>mutateRootStore(revision,fn,storageRoot);const legacyTeams=()=>legacyRootTeams(storageRoot);
 async function saveReplay(html:string,associationInput:any,revision:number){
   const config=await profile();const parsed=parseReplay(html,'upload',config.player,config.aliases);
   return workflowLock(async()=>{
     if(associationInput){const preview=await readStore();if(preview.revision!==revision)throw new Conflict('Workspace changed; reload before uploading');associateReplay(preview,parsed,associationInput);}
-    const index=await json('replays/index.json');const existing=index.games.find((g:any)=>g.logHash===parsed.logHash);let outcome:any;
-    if(existing){parsed.id=existing.id;outcome={duplicate:true,id:existing.id};}
-    else{
-      if(index.games.some((g:any)=>g.id===parsed.id))throw new Error('Replay ID conflicts with a different saved log');
-      const folder=workspacePath(config.replayFolder);await mkdir(folder,{recursive:true});const filename=`${parsed.id}-${hash(html).slice(0,12)}.html`;await writeFile(resolve(folder,filename),html,{flag:'wx'});const ingested=await ingest();if(!ingested.index.games.some((g:any)=>g.logHash===parsed.logHash))throw new Error('Original preserved, but parsing failed; inspect ingestion errors');outcome={...ingested,id:parsed.id};
-    }
+    const saved=await addReplay(html,`${parsed.id}-${hash(html).slice(0,12)}.html`);parsed.id=saved.id;const outcome:any=saved.duplicate?{duplicate:true,id:saved.id}:{added:saved.added,id:saved.id};
     if(associationInput){
       const changed=await mutateStore(revision,db=>associateReplay(db,parsed,associationInput));
       if(storageRoot===ROOT){const latest=await json('replays/index.json');const entry=latest.games.find((g:any)=>g.logHash===parsed.logHash);entry.teamVersion=changed.db.associations[parsed.id]?.configurationId??null;entry.reviewedAt=null;entry.reviewPath=null;const g=await json(entry.parsed);g.teamVersion=entry.teamVersion;await save(entry.parsed,g);await save('replays/index.json',latest);}
@@ -58,8 +53,13 @@ async function saveReplay(html:string,associationInput:any,revision:number){
     return outcome;
   });
 }
-return async function handler(req:IncomingMessage,res:ServerResponse){
-  if(!allowedRequest(req,apiPort))return respond(res,403,{error:'Local UI requests only'});
+// The caller's own AI key rides along with each request (X-AI-Provider / X-AI-Key) and is never stored.
+return function withCallerAI(req:IncomingMessage,res:ServerResponse){
+  const key=req.headers['x-ai-key'];if(typeof key!=='string'||!key)return serve(req,res);
+  return withData({...dataContext(),ai:{provider:req.headers['x-ai-provider']==='anthropic'?'anthropic':'openai',key}},()=>serve(req,res));
+};
+async function serve(req:IncomingMessage,res:ServerResponse){
+  if(!hostedMode&&!allowedRequest(req,apiPort))return respond(res,403,{error:'Local UI requests only'});
   const url=new URL(req.url??'/',`http://${req.headers.host}`);const path=url.pathname;
   try{
     if(req.method==='GET'&&path==='/api/dashboard')return respond(res,200,await dashboard(storageRoot));
@@ -109,20 +109,20 @@ return async function handler(req:IncomingMessage,res:ServerResponse){
     if(req.method==='POST'&&path==='/api/replay-summarise'){const input=await body(req);if(typeof input.teamId!=='string')throw new Error('teamId is required');
       const ids=Array.isArray(input.gameIds)?input.gameIds.filter((x:any)=>typeof x==='string').slice(0,40):[];void queueSummaries(input.teamId,ids);return respond(res,202,{queued:ids.length});}
     if(req.method==='GET'&&path==='/api/replay'){
-      const replayId=url.searchParams.get('id');const index=await json('replays/index.json');const entry=index.games.find((g:any)=>g.id===replayId);if(!entry)throw new Error('Replay not found');const game=await json(entry.parsed);let report='';if(entry.reviewPath&&/^reports\/replay-reviews\/[a-zA-Z0-9/_-]+\.md$/.test(entry.reviewPath))report=await readFile(workspacePath(entry.reviewPath),'utf8');
+      const replayId=url.searchParams.get('id');const index=await json('replays/index.json');const entry=index.games.find((g:any)=>g.id===replayId);if(!entry)throw new Error('Replay not found');const game=await json(entry.parsed);let report='';if(entry.reviewPath&&/^reports\/replay-reviews\/[a-zA-Z0-9/_-]+\.md$/.test(entry.reviewPath))report=await readText(dataPath(entry.reviewPath));
       const sections=report.split(/(?=^### )/m);const specific=sections.filter((s:string)=>s.includes(game.id));return respond(res,200,{game,coaching:specific.length?specific.join('\n'):report,reportPath:entry.reviewPath,association:(await readStore()).associations[game.id]??null});
     }
     if(req.method==='GET'&&path==='/api/export'){
       const db=await readStore();const team=db.teams.find(t=>t.id===url.searchParams.get('team'));if(!team)throw new Error('Team not found');return respond(res,200,{paste:teamPaste(db,team,url.searchParams.get('version')??undefined,url.searchParams.get('configuration')??undefined)});
     }
     if(req.method==='GET'&&path==='/api/report'){
-      const file=url.searchParams.get('path')??'';if(!/^(reports|knowledge|teams|context)\/[a-zA-Z0-9/_.-]+\.md$/.test(file))throw new Error('Expected a local Markdown report');return respond(res,200,{text:await readFile(workspacePath(file),'utf8')});
+      const file=url.searchParams.get('path')??'';if(!/^(reports|knowledge|teams|context)\/[a-zA-Z0-9/_.-]+\.md$/.test(file))throw new Error('Expected a local Markdown report');return respond(res,200,{text:await readText(dataPath(file))});
     }
     if(req.method==='GET'&&path==='/api/original'){
-      const index=await json('replays/index.json');const entry=index.games.find((g:any)=>g.id===url.searchParams.get('id'));if(!entry)throw new Error('Replay not found');res.writeHead(200,{'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${entry.id}.html"`,'X-Content-Type-Options':'nosniff','Content-Security-Policy':"sandbox; default-src 'none'"});res.end(await readFile(workspacePath(entry.source)));return;
+      const index=await json('replays/index.json');const entry=index.games.find((g:any)=>g.id===url.searchParams.get('id'));if(!entry)throw new Error('Replay not found');res.writeHead(200,{'Content-Type':'application/octet-stream','Content-Disposition':`attachment; filename="${entry.id}.html"`,'X-Content-Type-Options':'nosniff','Content-Security-Policy':"sandbox; default-src 'none'"});res.end(await readBytes(dataPath(entry.source)));return;
     }
     if(req.method==='GET'&&path==='/api/art'){
-      const key=url.searchParams.get('id')??'';if(!/^[a-z0-9]+$/.test(key))throw new Error('Invalid artwork key');const manifest=await optionalJSON<any>('knowledge/artwork/manifest.json',{});const entry=manifest[key];if(entry?.state!=='cached')return respond(res,404,{error:'Illustrated artwork unavailable'});res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'});res.end(await readFile(workspacePath(entry.file)));return;
+      const key=url.searchParams.get('id')??'';if(!/^[a-z0-9]+$/.test(key))throw new Error('Invalid artwork key');const manifest=await optionalJSON<any>('knowledge/artwork/manifest.json',{});const entry=manifest[key];if(entry?.state!=='cached')return respond(res,404,{error:'Illustrated artwork unavailable'});res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'});res.end(await readBytes(dataPath(entry.file)));return;
     }
     if(req.method==='GET'&&path==='/api/dex'){
       const species=dex.species.get(url.searchParams.get('species')??'');const all=dex.moves.all().filter((m:any)=>m.exists&&!m.isNonstandard);const moves=all.map((m:any)=>m.name);return respond(res,200,{statusMoves:all.filter((m:any)=>m.category==='Status').map((m:any)=>m.name),multiHit:Object.fromEntries(all.filter((m:any)=>Array.isArray(m.multihit)).map((m:any)=>[m.name,m.multihit])),contextMoves:Object.fromEntries(Object.entries(contextMoves).map(([k,v])=>[k,{field:v.field,label:v.label,max:v.max}])),species:species.exists?{name:species.name,types:species.types,abilities:Object.values(species.abilities),baseStats:species.baseStats,megas:(species.otherFormes??[]).map((f:string)=>dex.species.get(f)).filter((f:any)=>f.isMega&&f.requiredItem).map((f:any)=>({name:f.name,item:f.requiredItem,types:f.types,ability:Object.values(f.abilities)[0],baseStats:f.baseStats}))}:null,speciesNames:dex.species.all().filter((s:any)=>s.exists&&!s.isNonstandard).map((s:any)=>s.name),moves,natures:dex.natures.all().map((n:any)=>n.name),items:dex.items.all().filter((i:any)=>!i.isNonstandard).map((i:any)=>i.name),abilities:dex.abilities.all().filter((a:any)=>!a.isNonstandard).map((a:any)=>a.name)});
@@ -135,6 +135,10 @@ return async function handler(req:IncomingMessage,res:ServerResponse){
       return respond(res,200,{paste:raw.text,title:meta.title??'',author:meta.author??'',notes:meta.notes??'',source:`https://pokepast.es/${pasteId}`});
     }
     if(req.method==='POST'&&path==='/api/ai-jobs'){const input=await body(req);if(!['build','assist'].includes(input.area))throw new Error('Unknown assistant area');const job=startJob(input.area,input.messages,input.context??{});return respond(res,202,{id:job.id});}
+    if(req.method==='GET'&&path==='/api/profile')return respond(res,200,await profile());
+    if(req.method==='POST'&&path==='/api/profile'){const input=await body(req);const current=await optionalJSON<any>('config.json',{});
+      const player=typeof input.player==='string'?input.player.trim().slice(0,30):current.player;const aliases=Array.isArray(input.aliases)?input.aliases.filter((a:any)=>typeof a==='string'&&a.trim()).map((a:string)=>a.trim().slice(0,30)).slice(0,10):current.aliases;
+      await save('config.json',{...current,player,aliases});return respond(res,200,await profile());}
     if(req.method==='GET'&&path==='/api/settings')return respond(res,200,{models:await modelSettings()});
     if(req.method==='POST'&&path==='/api/settings'){const input=await body(req);return respond(res,200,{models:await saveModelSettings(input.models)});}
     if(req.method==='GET'&&path==='/api/models')return respond(res,200,await availableModels());
@@ -160,5 +164,11 @@ let poolRefreshing=false;
 function startPoolRefresh(){if(poolRefreshing)return;poolRefreshing=true;refreshPool({log:()=>{}}).catch(e=>console.error('Pool refresh failed:',e.message)).finally(()=>{poolRefreshing=false;});}
 async function schedulePool(){const s=await poolStatus().catch(()=>null);if(!s||Date.now()-Date.parse(s.refreshedAt)>12*3600_000)startPoolRefresh();setInterval(startPoolRefresh,12*3600_000).unref();}
 export const handler=createWorkbenchHandler();
-export function startServer(){try{process.loadEnvFile(resolve(CODE,'.env'));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}void schedulePool();const server=createServer(handler);server.listen(5174,'127.0.0.1',()=>console.log('VGC local API http://127.0.0.1:5174'));server.requestTimeout=30000;return server;}
+// Hosted mode (SUPABASE_URL and a publishable key in the environment): every request is a signed-in or guest user.
+export function startServer(){
+  try{process.loadEnvFile(resolve(CODE,'.env'));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
+  const cloud=hostedConfig();if(!cloud)void schedulePool();
+  const server=createServer(cloud?hostedHandler(cloud,createWorkbenchHandler(ROOT,5174,{hostedMode:true})):handler);
+  server.listen(5174,'127.0.0.1',()=>console.log(`VGC ${cloud?'hosted-mode (Supabase)':'local'} API http://127.0.0.1:5174`));server.requestTimeout=30000;return server;
+}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))startServer();

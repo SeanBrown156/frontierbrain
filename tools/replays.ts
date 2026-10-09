@@ -1,6 +1,6 @@
 import {readFile,readdir,mkdir,copyFile,unlink,stat} from 'node:fs/promises';
 import {resolve,join,relative} from 'node:path';
-import {ROOT,hash,id,json,optionalJSON,save,stamp,markdown,workspacePath,config as profile} from './io.ts';
+import {ROOT,hash,id,json,optionalJSON,save,stamp,markdown,workspacePath,dataPath,listDir,readText,modifiedAt,config as profile} from './io.ts';
 
 export interface Event {line:number;turn:number;type:string;args:string[];raw:string;}
 export interface Mon {key:string;species:string;nickname:string;hp?:{value:number;max:number|null;precision:'exact'|'percent'|'unknown'};status?:string;boosts:Record<string,number>;moves:string[];ability?:string;item?:string;fainted?:boolean;volatiles:string[];}
@@ -20,7 +20,7 @@ export function parseReplay(html:string,source:string,player:string,aliases:stri
   const players:Game['players']={};const preview:Game['preview']={p1:[],p2:[]};const selectedSize:Game['selectedSize']={};
   for(const e of events){if(e.type==='player'&&e.args[1])players[e.args[0]]={name:e.args[1],rating:e.args[3]?Number(e.args[3]):undefined};if(e.type==='poke')preview[e.args[0]]?.push(e.args[1].split(',')[0]);if(e.type==='teamsize')selectedSize[e.args[0]]=Number(e.args[1]);}
   const ownSide=Object.keys(players).find(s=>[player,...aliases].some(p=>id(p)===id(players[s].name)));
-  if(!ownSide)throw new Error(`Player ${player} not found; this file may be a reference game`);
+  if(!ownSide)throw new Error(player?`Player ${player} not found; this file may be a reference game. Add your other Showdown names as aliases on the Teams page.`:'Add your Showdown name on the Teams page first, so Frontier Brain knows which side of the replay is you.');
   const leads:Game['leads']={p1:[],p2:[]},revealed:Game['revealed']={p1:[],p2:[]};const mons:Record<string,Mon>={};const active:Record<string,string>={};
   const state:any={active,mons,weather:null,terrain:null,rooms:[],sideConditions:{p1:[],p2:[]}};const turns:any[]=[];const warnings:string[]=[];const leadKeys:Record<string,string[]>={p1:[],p2:[]};
   function hp(text:string|undefined,side:string):Mon['hp'] {
@@ -78,22 +78,34 @@ export function parseReplay(html:string,source:string,player:string,aliases:stri
 
 export interface IndexEntry {id:string;logHash:string;source:string;parsed:string;rosterGroup:string;teamVersion:string|null;reviewedAt:string|null;reviewPath:string|null;}
 export interface ReplayIndex {schemaVersion:1;games:IndexEntry[];errors:{source:string;error:string}[];lastScan?:string;}
+// One saved original into the index (parsed copy plus index entry). Works for local files and hosted rows alike.
+async function indexOriginal(index:ReplayIndex,source:string,html:string,config:Awaited<ReturnType<typeof profile>>,added:string[]){
+  const game=parseReplay(html,source,config.player,config.aliases);
+  const existing=index.games.find(e=>e.logHash===game.logHash);
+  if(existing){
+    const old=await json<Game>(existing.parsed);
+    if(old.parserVersion!==game.parserVersion){game.id=existing.id;game.source=existing.source;game.teamVersion=existing.teamVersion;await save(existing.parsed,game);existing.reviewedAt=null;existing.reviewPath=null;}
+    return {duplicate:true,id:existing.id};
+  }
+  if(index.games.some(g=>g.id===game.id))throw new Error(`Replay ID conflict for ${game.id}: different logs; retain originals and inspect`);
+  const parsed=`replays/parsed/${game.id}.json`;await save(parsed,game);
+  index.games.push({id:game.id,logHash:game.logHash,source,parsed,rosterGroup:game.rosterGroup,teamVersion:null,reviewedAt:null,reviewPath:null});added.push(game.id);
+  return {duplicate:false,id:game.id};
+}
+const emptyIndex=():ReplayIndex=>({schemaVersion:1,games:[],errors:[]});
+// Save one uploaded replay: original first (never overwritten), then its parsed copy and index entry.
+export async function addReplay(html:string,filename:string){
+  const config=await profile();const folder=dataPath(config.replayFolder);const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());
+  const source=`${folder}/${filename}`;if(!(await modifiedAt(source)))await save(source,html);
+  const added:string[]=[];const result=await indexOriginal(index,source,html,config,added);await save('replays/index.json',index);return {...result,index,added};
+}
 export async function ingest() {
-  const config=await profile();const folder=workspacePath(config.replayFolder);await mkdir(folder,{recursive:true});
-  const index=await optionalJSON<ReplayIndex>('replays/index.json',{schemaVersion:1,games:[],errors:[]});
-  const hashes=new Set(index.games.map(g=>g.logHash));const ids=new Map(index.games.map(g=>[g.id,g.logHash]));const added:string[]=[];let duplicates=0;index.errors=[];
-  for(const file of (await readdir(folder)).filter(f=>/\.html?$/i.test(f)).sort()){
-    const source=relative(ROOT,join(folder,file));try{
-      const game=parseReplay(await readFile(join(folder,file),'utf8'),source,config.player,config.aliases);
-      if(hashes.has(game.logHash)){
-        const entry=index.games.find(e=>e.logHash===game.logHash)!;const old=await json<Game>(entry.parsed);
-        if(old.parserVersion!==game.parserVersion){game.id=entry.id;game.source=entry.source;game.teamVersion=entry.teamVersion;await save(entry.parsed,game);entry.reviewedAt=null;entry.reviewPath=null;}
-        duplicates++;continue;
-      }
-      if(ids.has(game.id))throw new Error(`Replay ID conflict for ${game.id}: different logs; retain originals and inspect`);
-      const parsed=`replays/parsed/${game.id}.json`;await save(parsed,game);
-      index.games.push({id:game.id,logHash:game.logHash,source,parsed,rosterGroup:game.rosterGroup,teamVersion:null,reviewedAt:null,reviewPath:null});hashes.add(game.logHash);ids.set(game.id,game.logHash);added.push(game.id);
-    }catch(e){index.errors.push({source,error:(e as Error).message});}
+  const config=await profile();const folder=dataPath(config.replayFolder);
+  const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());const added:string[]=[];let duplicates=0;index.errors=[];
+  for(const file of (await listDir(folder)).filter(f=>/\.html?$/i.test(f)).sort()){
+    const source=`${folder}/${file}`;
+    try{const r=await indexOriginal(index,source,await readText(source),config,added);if(r.duplicate)duplicates++;}
+    catch(e){index.errors.push({source,error:(e as Error).message});}
   }
   index.lastScan=new Date().toISOString();await save('replays/index.json',index);
   return {index,added,duplicates,errors:index.errors};
@@ -131,7 +143,7 @@ export function aggregate(games:Game[]) {
   for(const o of Object.values(groups)){o.winRate=o.games?o.wins/o.games:null;for(const v of Object.values(o.matchups) as any[]){v.highlightEligible=v.previewGames>=4;v.attendanceLowerBound=v.observedBrought/v.previewGames;v.attendanceUpperBound=(v.observedBrought+v.unknownSelections)/v.previewGames;}}
   return {groups,notes:'Roster groups are provisional, not exact set versions. Bring counts are observed lower bounds when back slots are unseen. Win rates are descriptive and have small samples; attendance records bounds, not invented selections.'};
 }
-export async function loadGames(){const index=await optionalJSON<ReplayIndex>('replays/index.json',{games:[],errors:[]} as any);return Promise.all(index.games.map(g=>json<Game>(g.parsed)));}
+export async function loadGames(){const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());return Promise.all(index.games.map(g=>json<Game>(g.parsed)));}
 export async function replayReports() {
   const result=await ingest();const games=await loadGames();const stats=aggregate(games);await save('reports/replay-reviews/statistics.json',stats);
   let overview='# Replay overview\n\n'+`${games.length} saved games. ${result.added.length} newly ingested. ${result.errors.length} ingestion errors.\n\n${stats.notes}\n\n`;

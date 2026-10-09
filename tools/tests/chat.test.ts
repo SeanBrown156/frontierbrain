@@ -44,3 +44,17 @@ test('chatJSON repairs without redoing research, sends the model tier, and drops
   assert.ok(events.some(([,d])=>d.name==='validation'));
   const old:any[]=[];await chatJSON('check',{},()=>{},v=>v,{apiKey:'test',fetchImpl:repairModel(old),keepTranscript:false,model:'gpt-4.1',effort:'low'});assert.equal(old[0].reasoning,undefined);
 });
+// Anthropic: same tool loop over the Messages API (tool_use → tool_result), with the caller's own key.
+function scriptedClaude(log:any[]){let turn=0;return (async(url:string,init:any)=>{assert.equal(url,'https://api.anthropic.com/v1/messages');log.push({headers:init.headers,body:JSON.parse(init.body)});turn++;
+  const content=turn===1?[{type:'text',text:'Checking.'},{type:'tool_use',id:'tu1',name:'calc_damage',input:{attacker:{species:'Gengar',nature:'Modest',statPoints:{spa:32,spe:32,hp:2}},defender:{species:'Incineroar',nature:'Careful',ability:'Intimidate',statPoints:{hp:32,def:2,spd:32}},move:'Shadow Ball'}}]
+    :[{type:'text',text:'Shadow Ball does the range reported by the tool.'}];
+  return new Response(JSON.stringify({content,stop_reason:turn===1?'tool_use':'end_turn'}),{status:200,headers:{'Content-Type':'application/json'}});}) as typeof fetch;}
+test('Anthropic keys run the same tool loop through the Messages API',async()=>{
+  const log:any[]=[];const result=await chat([{role:'user',content:'Shadow Ball on Incineroar?'}],{},()=>{},{apiKey:'sk-ant-test',provider:'anthropic',fetchImpl:scriptedClaude(log),keepTranscript:false});
+  assert.equal(result.text,'Shadow Ball does the range reported by the tool.');assert.equal(log[0].headers['x-api-key'],'sk-ant-test');assert.equal(log[0].body.model,'claude-haiku-4-5');
+  assert.match(log[0].body.system,/MUST come from a tool result/);assert.ok(log[0].body.tools.some((t:any)=>t.name==='calc_damage'&&t.input_schema));
+  const reply=log[1].body.messages.at(-1);assert.equal(reply.role,'user');assert.equal(reply.content[0].type,'tool_result');assert.equal(reply.content[0].tool_use_id,'tu1');
+  assert.deepEqual(JSON.parse(reply.content[0].content).range,result.tools[0].output.range);
+  // The repair turn keeps the tools defined but forbids calling them.
+  const fixed=await result.repair('Reply as JSON.');assert.equal(log[2].body.tool_choice.type,'none');assert.equal(typeof fixed,'string');
+});

@@ -2,9 +2,8 @@
 // The sheet lists each team's PokePaste and whether it includes EVs (Champions stat points). We read the
 // public CSV export, then fetch only the pastes that carry spreads for the requested species, cached forever
 // by paste id. These are exact shared sets, not a random sample: label them as such.
-import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ROOT,optionalJSON,save} from './io.ts';
+import {optionalJSON,save,readText,modifiedAt} from './io.ts';
 import {fetchText} from './research.ts';
 import {importText} from './teams.ts';
 import {dex} from './mechanics.ts';
@@ -43,7 +42,7 @@ export function setsFromPaste(text:string){
   const clean=text.split('\n').filter(l=>!/^\s*(IVs|Tera Type|Gigantamax):/i.test(l)).join('\n');const sets=importText(clean);
   return sets.filter(s=>Object.values(s.statPoints??{}).every(v=>typeof v==='number'&&v<=32)&&Object.values(s.statPoints??{}).reduce((a:number,b)=>a+(b as number),0)<=66);
 }
-async function paste(id:string){const path=`knowledge/metagame/vgcpastes/pastes/${id}.txt`;try{return await readFile(resolve(ROOT,path),'utf8');}catch{const {text}=await fetchText(`https://pokepast.es/${id}/raw`,200_000);await save(path,text);return text;}}
+async function paste(id:string){const path=`knowledge/metagame/vgcpastes/pastes/${id}.txt`;try{return await readText(path);}catch{const {text}=await fetchText(`https://pokepast.es/${id}/raw`,200_000);await save(path,text);return text;}}
 const base=(s:string)=>dex.species.get(s).baseSpecies;
 export async function vgcPastesSets(species:string,limit=30,refresh=false):Promise<MetaSets>{
   const name=dex.species.get(species).name;const index=await pasteIndex({refresh});

@@ -1,6 +1,6 @@
-import {readdir,readFile,mkdir,writeFile} from 'node:fs/promises';
+import {readdir,readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ROOT,json,optionalJSON,save,id,hash,localDay} from './io.ts';
+import {ROOT,json,optionalJSON,save,id,hash,localDay,listDir,readText,config} from './io.ts';
 import {dex} from './mechanics.ts';
 import {fetchText,parseUsage,pool} from './research.ts';
 import {loadGames,type Game} from './replays.ts';
@@ -12,7 +12,7 @@ export function newsWindow(weeks:NewsWeek[],today=localDay()){
   const start=weekStart(today);return [0,1,2].map(n=>{const d=new Date(start+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-7*n);const s=d.toISOString().slice(0,10);d.setUTCDate(d.getUTCDate()+6);const e=d.toISOString().slice(0,10);const existing=weeks.find(w=>w.start===s);return existing?{...existing,partial:n===0}:{start:s,end:e,partial:n===0,digest:['Research has not been completed for this week.'],articles:[],coverage:['No saved digest; run weekly research.'],researchedAt:null};});
 }
 export async function usageHistory(){
-  const output:any[]=[];for(const folder of (await readdir(resolve(ROOT,'knowledge/metagame/snapshots')).catch(()=>[] as string[])).filter(f=>/^\d{4}-\d{2}$/.test(f))){for(const file of await readdir(resolve(ROOT,'knowledge/metagame/snapshots',folder))){if(file.includes('-sets-')||!file.endsWith('.json'))continue;const s=await json(`knowledge/metagame/snapshots/${folder}/${file}`);if(s.rows)output.push(s);}}
+  const output:any[]=[];for(const folder of (await listDir('knowledge/metagame/snapshots')).filter(f=>/^\d{4}-\d{2}$/.test(f))){for(const file of await listDir(`knowledge/metagame/snapshots/${folder}`)){if(file.includes('-sets-')||!file.endsWith('.json'))continue;const s=await json(`knowledge/metagame/snapshots/${folder}/${file}`);if(s.rows)output.push(s);}}
   // Repeated weekly fetches of one published period are one measurement, not a flat weekly series.
   const dedup=new Map();for(const s of output.sort((a,b)=>a.fetchedAt.localeCompare(b.fetchedAt)))dedup.set(`${s.format}:${s.rating}:${s.period}`,s);return [...dedup.values()].sort((a,b)=>a.period.localeCompare(b.period));
 }
@@ -50,7 +50,6 @@ export function parseEventMetadata(html:string){
 }
 export async function cacheArtwork(names:string[]){
   const manifest=await optionalJSON<Record<string,any>>('knowledge/artwork/manifest.json',{});
-  await mkdir(resolve(ROOT,'knowledge/artwork/images'),{recursive:true});
   const slugs:Record<string,string>={'indeedeef':'indeedee-female','indeedee':'indeedee-male','basculegion':'basculegion-male','basculegionf':'basculegion-female','mausholdfour':'maushold-family-of-four','maushold':'maushold-family-of-four','mausholdthree':'maushold-family-of-three','meowstic':'meowstic-male','meowsticf':'meowstic-female','meowsticfmega':'meowstic-female-mega','meowsticmmega':'meowstic-male-mega','taurospaldeaaqua':'tauros-paldea-aqua-breed','taurospaldeablaze':'tauros-paldea-blaze-breed','taurospaldeacombat':'tauros-paldea-combat-breed','floetteeternal':'floette-eternal'};
   const results=await pool([...new Set(names)],async name=>{
     const key=id(name);if(manifest[key]?.state==='cached')return manifest[key];const species=dex.species.get(name);let slug=slugs[key]??species.name.toLowerCase().replace(/[^a-z0-9-]/g,'');
@@ -59,7 +58,7 @@ export async function cacheArtwork(names:string[]){
     try{if(!species.exists||species.num<1)throw new Error('Unknown species');if(!species.forme&&!slugs[key])slug=String(species.num);
       const endpoint=`https://pokeapi.co/api/v2/pokemon/${slug}`;const api=await fetch(endpoint,{signal:AbortSignal.timeout(12000)});if(!api.ok)throw new Error(`Artwork mapping HTTP ${api.status}`);const data:any=await api.json();const url=data.sprites?.other?.['official-artwork']?.front_default;if(!url||!/^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\//.test(url))throw new Error('No verified illustrated artwork for this form');
       const r=await fetch(url,{signal:AbortSignal.timeout(15000)});if(!r.ok)throw new Error(`Image HTTP ${r.status}`);const bytes=Buffer.from(await r.arrayBuffer());if(bytes.length>3_000_000||!bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))throw new Error('Invalid or oversized PNG');
-      await writeFile(resolve(ROOT,`knowledge/artwork/images/${key}.png`),bytes);Object.assign(record,{state:'cached',url,mappingURL:endpoint,sha256:hash(bytes),file:`knowledge/artwork/images/${key}.png`});
+      await save(`knowledge/artwork/images/${key}.png`,bytes);Object.assign(record,{state:'cached',url,mappingURL:endpoint,sha256:hash(bytes),file:`knowledge/artwork/images/${key}.png`});
     }catch(e){record.error=(e as Error).message;}return record;
   },6);for(const r of results)manifest[id(r.species)]=r;await save('knowledge/artwork/manifest.json',manifest);return {cached:results.filter(r=>r.state==='cached').length,missing:results.filter(r=>r.state!=='cached').map(r=>r.species)};
 }
@@ -81,7 +80,7 @@ export async function dashboard(storageRoot=ROOT){
   const [db,games,usage,news,sources,art,index,events,historyCheck]=await Promise.all([readStore(storageRoot),loadGames(),usageHistory(),optionalJSON<NewsWeek[]>('knowledge/news/weeks.json',[]),json('knowledge/sources/catalogue.json'),optionalJSON('knowledge/artwork/manifest.json',{}),optionalJSON<any>('replays/index.json',{games:[],errors:[]}),optionalJSON('knowledge/metagame/events.json',[]),optionalJSON('knowledge/metagame/history-check.json',null)]);
   const summaries=games.map(g=>{const suggestions=db.teams.filter(t=>sameRoster(g.preview[g.ownSide],currentTeam(db,t).sets.map(s=>s.species))).map(t=>t.id);return {...g,events:undefined,turns:undefined,finalState:undefined,suggestions,association:db.associations[g.id]??null,reviewPath:index.games.find((e:any)=>e.id===g.id)?.reviewPath??null};});
   const teams=db.teams.map(t=>({...t,view:currentTeam(db,t)}));
-  const reportNames=await readdir(resolve(ROOT,'reports/replay-reviews')).catch(e=>{if(e.code==='ENOENT')return [] as string[];throw e;});const coaching=reportNames.filter(f=>f.endsWith('-coaching.md')).sort().at(-1);const overview=coaching?await readFile(resolve(ROOT,'reports/replay-reviews',coaching),'utf8'):'';
-  let reviews:any[]=[];try{const files=await readdir(resolve(storageRoot,'reports/coaching'));reviews=await Promise.all(files.filter(f=>/^[a-f0-9-]+\.json$/.test(f)).map(async f=>{const r=JSON.parse(await readFile(resolve(storageRoot,'reports/coaching',f),'utf8'));return {...r,stale:r.associationFingerprint!==hash(JSON.stringify(r.scope.replayIds.map((id:string)=>[id,db.associations[id]??null])))};}));reviews.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
-  return {db,teams,reviews,legacyTeams:(await legacyTeams(storageRoot)).filter(t=>!db.teams.some(team=>team.name===t.id)),games:summaries,stats:coachStats(games),usage,events,news:newsWindow(news),sources,art,historyCheck,coaching:overview,coachingPath:coaching?`reports/replay-reviews/${coaching}`:null,ingestionErrors:index.errors};
+  const reportNames=await listDir('reports/replay-reviews');const coaching=reportNames.filter(f=>f.endsWith('-coaching.md')).sort().at(-1);const overview=coaching?await readText(`reports/replay-reviews/${coaching}`):'';
+  let reviews:any[]=[];try{const viaBackend=storageRoot===ROOT;const files=viaBackend?await listDir('reports/coaching'):await readdir(resolve(storageRoot,'reports/coaching'));reviews=await Promise.all(files.filter(f=>/^[a-f0-9-]+\.json$/.test(f)).map(async f=>{const r=JSON.parse(viaBackend?await readText(`reports/coaching/${f}`):await readFile(resolve(storageRoot,'reports/coaching',f),'utf8'));return {...r,stale:r.associationFingerprint!==hash(JSON.stringify(r.scope.replayIds.map((id:string)=>[id,db.associations[id]??null])))};}));reviews.sort((a,b)=>b.createdAt.localeCompare(a.createdAt));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
+  return {profile:await config(),db,teams,reviews,legacyTeams:(await legacyTeams(storageRoot)).filter(t=>!db.teams.some(team=>team.name===t.id)),games:summaries,stats:coachStats(games),usage,events,news:newsWindow(news),sources,art,historyCheck,coaching:overview,coachingPath:coaching?`reports/replay-reviews/${coaching}`:null,ingestionErrors:index.errors};
 }

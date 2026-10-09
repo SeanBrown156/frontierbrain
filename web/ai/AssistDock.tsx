@@ -2,6 +2,7 @@ import {useState,useEffect,useRef} from 'react';
 import type {PokemonSet} from '../../shared/workbench.ts';
 import {api,Art,Markdown} from '../ui.tsx';
 import {Px,Sparkles,Message,Trash,Close} from '../icons.tsx';
+import {AIKeySettings} from './keys.tsx';
 import SetTile from './SetTile.tsx';
 import {getView} from '../team/editors.tsx';
 import {teamHref,addPlans} from '../team/Hub.tsx';
@@ -72,7 +73,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
     if(e.key==='/'&&!typing&&!e.metaKey&&!e.ctrlKey){e.preventDefault();setOpen(true);}else if(e.key==='Escape'&&open&&!document.querySelector('dialog[open]'))setOpen(false);};addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey);},[open]);
   if(!open)return <button className={'dock-toggle'+(pending?' busy':'')} onClick={()=>setOpen(true)} title="Ask Frontier Brain (press /)"><Px icon={Sparkles}/>Ask Frontier Brain{pending&&<span className="dot" aria-label="working"/>}</button>;
   return <aside className="dock" aria-label="Ask Frontier Brain">
-    <header className="dock-head"><h2><Px icon={Sparkles}/>Ask Frontier Brain</h2><div className="button-row"><ModelPicker tier="chat"/>{turns.length>0&&!pending&&<button className="icon" title="New chat" aria-label="New chat" onClick={()=>save([])}><Px icon={Trash}/></button>}<button className="icon" aria-label="Close" title="Close (Esc)" onClick={()=>setOpen(false)}><Px icon={Close}/></button></div></header>
+    <header className="dock-head"><h2><Px icon={Sparkles}/>Ask Frontier Brain</h2><div className="button-row"><AIKeySettings onChange={()=>location.reload()}/><ModelPicker tier="chat"/>{turns.length>0&&!pending&&<button className="icon" title="New chat" aria-label="New chat" onClick={()=>save([])}><Px icon={Trash}/></button>}<button className="icon" aria-label="Close" title="Close (Esc)" onClick={()=>setOpen(false)}><Px icon={Close}/></button></div></header>
     <div className="dock-log">{!turns.length&&<div className="chat-empty"><p>Ask anything about {team.name}. Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.</p></div>}
       {turns.map((t,ti)=>t.jobId&&!t.proposals&&!t.failed?<div key={ti} className="chat-turn assistant working"><p><Px icon={Sparkles}/>{steps.length?`${stepNames[steps.at(-1).name]??steps.at(-1).name}${steps.at(-1).input?`: ${steps.at(-1).input}`:''}`:'Starting…'} <span className="muted">· {steps.length} step{steps.length===1?'':'s'}</span></p>
           <div className="button-row"><button className="text-button" onClick={()=>setShowSteps(!showSteps)}>{showSteps?'Hide':'Show'} steps</button><button className="text-button" onClick={()=>void cancel()}>Cancel</button></div>{showSteps&&<ol className="steps">{steps.map((s,i)=><li key={i} className={s.error?'error':''}>{stepNames[s.name]??s.name}{s.input?`: ${s.input}`:''}</li>)}</ol>}</div>
@@ -104,7 +105,7 @@ let modelList:Promise<string[]>|null=null;
 export function ModelPicker({tier}:{tier:'chat'|'build'}){
   const [models,setModels]=useState<any>(null),[list,setList]=useState<string[]>([]);
   useEffect(()=>{api('/settings').then(r=>setModels(r.models)).catch(()=>{});(modelList??=api('/models').catch(()=>[])).then(setList);},[]);
-  if(!models)return null;const current=models[tier].model;const options=[...new Set([current,'gpt-6-luna','gpt-6-sol','gpt-6-astra',...list.filter(m=>m.startsWith('gpt-6'))])];
+  if(!models)return null;const current=models[tier].model;const claude=models.provider==='anthropic';const options=[...new Set([current,...(claude?['claude-haiku-4-5','claude-sonnet-5-5','claude-opus-5-5',...list.filter(m=>m.startsWith('claude'))]:['gpt-6-luna','gpt-6-sol','gpt-6-astra',...list.filter(m=>m.startsWith('gpt-6'))])])];
   const choose=async(model:string)=>{try{setModels((await api('/settings',{models:{[tier]:{...models[tier],model}}})).models);}catch{}};
-  return <label className="model-picker" title="Which OpenAI model answers"><span className="sr-only">Model</span><select value={current} onChange={e=>void choose(e.target.value)}>{options.map(m=><option key={m} value={m}>{m.replace('gpt-','')}</option>)}</select></label>;
+  return <label className="model-picker" title="Which model answers"><span className="sr-only">Model</span><select value={current} onChange={e=>void choose(e.target.value)}>{options.map(m=><option key={m} value={m}>{m.replace('gpt-','').replace('claude-','')}</option>)}</select></label>;
 }

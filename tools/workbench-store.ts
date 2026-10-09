@@ -1,7 +1,7 @@
 import {readFile,mkdir,writeFile,rename,rm,readdir,copyFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {randomUUID} from 'node:crypto';
-import {ROOT} from './io.ts';
+import {ROOT,dataContext} from './io.ts';
 import {dex,points,finalStats,validateTeam,FORMAT,damage,speed,spreadSearch} from './mechanics.ts';
 import {importText,exportText} from './teams.ts';
 import type {Workbench,Slot,SetNotes,SetRevision,PokemonSet,Formula,Configuration,TeamCoaching} from '../shared/workbench.ts';
@@ -158,7 +158,10 @@ export function validateStoreReferences(db:Workbench){
 }
 // The atomically published journal is the commit point. Readers see its complete
 // snapshot until materialization finishes, never a mixture of record revisions.
+// On the hosted site the whole workspace is one row per user (see tools/hosted.ts); locally it is the file layout below.
+export interface StoreBackend {read():Promise<Workbench>;mutate<T>(revision:number,fn:(db:Workbench)=>T|Promise<T>):Promise<{db:Workbench;result:Awaited<T>}>}
 export async function readStore(storageRoot=ROOT):Promise<Workbench>{
+  const hostedStore=storageRoot===ROOT?dataContext().store:undefined;if(hostedStore)return hostedStore.read();
   const pending=await optionalFile<{db:Workbench}>(resolve(storageRoot,'.cache/coach-transaction.json'));if(pending)return pending.db;
   const manifest=await optionalFile<any>(resolve(storageRoot,'teams/index.json'));if(!manifest)return await optionalFile<Workbench>(resolve(storageRoot,'teams/workbench.json'))??emptyStore();
   const bank=await Promise.all(manifest.pokemonIds.map(async(id:string)=>{const path=`pokemon/${recordId(id)}`;const {revisionIds,benchmarkIds,...meta}=JSON.parse(await readFile(resolve(storageRoot,path,'pokemon.json'),'utf8'));return {...meta,revisions:await Promise.all(revisionIds.map((rid:string)=>optionalFile(resolve(storageRoot,path,'revisions',recordId(rid)+'.json'))))};}));
@@ -193,9 +196,11 @@ async function withStoreLock<T>(root:string,fn:()=>Promise<T>):Promise<T>{
   await writeFile(resolve(lock,'pid'),String(process.pid));try{return await fn();}finally{await rm(lock,{recursive:true});}
 }
 export async function mutateStore(revision:number,fn:(db:Workbench)=>unknown|Promise<unknown>,storageRoot=ROOT){
+  const hostedStore=storageRoot===ROOT?dataContext().store:undefined;if(hostedStore)return hostedStore.mutate(revision,fn);
   return withStoreLock(storageRoot,async()=>{const pending=await optionalFile<{db:Workbench}>(resolve(storageRoot,'.cache/coach-transaction.json'));if(pending)await materialize(pending.db,storageRoot);const db=await readStore(storageRoot);if(db.revision!==revision)throw new Conflict('Workspace changed since you opened it. Reload before saving.');const result=await fn(db);db.revision++;await commit(db,storageRoot);return {db,result};});
 }
 export async function legacyTeams(storageRoot=ROOT){
+  if(storageRoot===ROOT&&dataContext().hosted)return [];
   const names=await readdir(resolve(storageRoot,'teams')).catch(()=>[] as string[]);const output=[];
   for(const name of names){try{const record=JSON.parse(await readFile(resolve(storageRoot,'teams',name,'team.json'),'utf8'));if(record.sets&&record.id)output.push(record);}catch(e){if(!['ENOENT','ENOTDIR'].includes((e as NodeJS.ErrnoException).code??''))throw e;}}return output;
 }

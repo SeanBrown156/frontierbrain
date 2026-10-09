@@ -2,7 +2,7 @@
 // the pinned Champions engine (mechanics.ts) or labelled standard sets (meta-sets.ts). The model never
 // computes damage itself. Transcripts stay local in reports/chats/.
 import {randomUUID} from 'node:crypto';
-import {ROOT,CODE,save,config} from './io.ts';
+import {ROOT,CODE,save,config,requestAI,environmentAI,hosted,type AIProvider} from './io.ts';
 import {damage,speed,spreadSearch,finalStats,dex} from './mechanics.ts';
 import {metaSets,standardSet,type MetaSource} from './meta-sets.ts';
 import {poolSets,poolOverview} from './pool.ts';
@@ -10,7 +10,7 @@ import {readStore,currentTeam} from './workbench-store.ts';
 import type {Workbench} from '../shared/workbench.ts';
 
 export const DEFAULT_MODEL='gpt-6-astra';
-import {supportsReasoning} from './models.ts';
+import {supportsReasoning,defaultModel} from './models.ts';
 export interface ChatContext {teamId?:string;versionId?:string;configurationId?:string;slot?:number;page?:string;}
 export interface ChatTurn {role:'user'|'assistant';content:string;}
 export interface ToolEvent {name:string;input:any;output?:any;error?:string;}
@@ -82,39 +82,74 @@ async function streamedResponse(r:Response){
 async function withRetry(call:()=>Promise<Response>,tries=3):Promise<Response>{
   for(let i=1;;i++){try{const r=await call();if((r.status===429||r.status>=500)&&i<tries){await new Promise(ok=>setTimeout(ok,1500*i));continue;}return r;}catch(e){const cause=(e as any).cause;if(i>=tries)throw new Error(`OpenAI request failed after ${tries} attempts: ${(e as Error).message}${cause?` (${cause.code??''} ${cause.message??''})`.trimEnd():''}`);await new Promise(ok=>setTimeout(ok,1500*i));}}
 }
-export interface ChatOptions {apiKey?:string;model?:string;fetchImpl?:typeof fetch;root?:string;maxSteps?:number;keepTranscript?:boolean;extraInstructions?:string;effort?:'minimal'|'low'|'medium'|'high';signal?:AbortSignal;}
+export interface ChatOptions {apiKey?:string;provider?:AIProvider;model?:string;fetchImpl?:typeof fetch;root?:string;maxSteps?:number;keepTranscript?:boolean;extraInstructions?:string;effort?:'minimal'|'low'|'medium'|'high';signal?:AbortSignal;}
 const outputText=(data:any)=>(data.output??[]).filter((o:any)=>o.type==='message').flatMap((o:any)=>o.content??[]).filter((c:any)=>c.type==='output_text').map((c:any)=>c.text).join('\n').trim();
+const deadline=(opts:ChatOptions)=>opts.signal?AbortSignal.any([opts.signal,AbortSignal.timeout(900000)]):AbortSignal.timeout(900000);
 // One Responses API call. Transient network failures and 429/5xx get two retries with backoff; long reasoning turns
 // get 15 minutes. If a model rejects the reasoning setting, the call is repeated once without it.
 async function respond(body:any,opts:ChatOptions,apiKey:string){
-  const f=opts.fetchImpl??fetch;const signal=opts.signal?AbortSignal.any([opts.signal,AbortSignal.timeout(900000)]):AbortSignal.timeout(900000);
+  const f=opts.fetchImpl??fetch;const signal=deadline(opts);
   const send=(b:any)=>withRetry(()=>f('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${apiKey}`},signal,body:JSON.stringify({...b,store:false,stream:true})}));
   let r=await send(body);let data:any=r.ok?await streamedResponse(r):await r.json().catch(()=>({}));
   if(!r.ok&&r.status===400&&body.reasoning&&/reasoning|effort/i.test(data?.error?.message??'')){const {reasoning,...rest}=body;r=await send(rest);data=r.ok?await streamedResponse(r):await r.json().catch(()=>({}));}
   if(!r.ok)throw new Error(`OpenAI ${r.status}: ${data?.error?.message??'request failed'}${r.status===404?` — model ${body.model} isn't available to this key; pick another in Settings`:''}`);
   return data;
 }
+// One Anthropic Messages API call (non-streaming; replies are capped well below the long-request limit).
+async function anthropicRespond(body:any,opts:ChatOptions,apiKey:string){
+  const f=opts.fetchImpl??fetch;
+  const r=await withRetry(()=>f('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},signal:deadline(opts),body:JSON.stringify(body)}));
+  const data:any=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(`Anthropic ${r.status}: ${data?.error?.message??'request failed'}${r.status===404?` — model ${body.model} isn't available to this key; pick another in Settings`:''}`);
+  return data;
+}
+// A provider-neutral conversation: each step returns the model's text and any tool calls; results go back in.
+interface Step {text:string;calls:{id:string;name:string;args:string}[]}
+interface Conversation {step(toolsOn:boolean,jsonOnly?:boolean):Promise<Step>;results(results:{id:string;output:string}[]):void;user(text:string):void}
+function openAIConversation(system:string,model:string,messages:ChatTurn[],opts:ChatOptions,apiKey:string):Conversation{
+  const input:any[]=messages.map(m=>({role:m.role,content:m.content}));let last:any=null;
+  const base={model,instructions:system,...(opts.effort&&supportsReasoning(model)?{reasoning:{effort:opts.effort}}:{})};
+  return {
+    async step(toolsOn,jsonOnly){const data=await respond({...base,input,...toolsOn?{tools}:{},...jsonOnly?{text:{format:{type:'json_object'}}}:{}},opts,apiKey);last=data;
+      const calls=(data.output??[]).filter((o:any)=>o.type==='function_call');if(calls.length)input.push(...data.output);
+      return {text:outputText(data),calls:calls.map((c:any)=>({id:c.call_id,name:c.name,args:c.arguments||'{}'}))};},
+    results(results){for(const r of results)input.push({type:'function_call_output',call_id:r.id,output:r.output});},
+    user(text){if(last)input.push(...(last.output??[]).filter((o:any)=>o.type!=='reasoning'));last=null;input.push({role:'user',content:text});},
+  };
+}
+const anthropicTools=tools.map(t=>({name:t.name,description:t.description,input_schema:t.parameters}));
+function anthropicConversation(system:string,model:string,messages:ChatTurn[],opts:ChatOptions,apiKey:string):Conversation{
+  const history:any[]=messages.map(m=>({role:m.role,content:m.content}));let pending:any=null;
+  return {
+    async step(toolsOn){const data=await anthropicRespond({model,system,max_tokens:16000,messages:history,tools:anthropicTools,...toolsOn?{}:{tool_choice:{type:'none'}}},opts,apiKey);
+      const blocks=data.content??[];const calls=blocks.filter((b:any)=>b.type==='tool_use');pending=blocks;if(calls.length){history.push({role:'assistant',content:blocks});pending=null;}
+      return {text:blocks.filter((b:any)=>b.type==='text').map((b:any)=>b.text).join('\n').trim(),calls:calls.map((c:any)=>({id:c.id,name:c.name,args:JSON.stringify(c.input??{})}))};},
+    results(results){history.push({role:'user',content:results.map(r=>({type:'tool_result',tool_use_id:r.id,content:r.output}))});},
+    user(text){if(pending)history.push({role:'assistant',content:pending});pending=null;history.push({role:'user',content:text});},
+  };
+}
 export async function chat(messages:ChatTurn[],ctx:ChatContext,emit:Emit,opts:ChatOptions={}){
-  if(!opts.apiKey&&!process.env.OPENAI_API_KEY){try{process.loadEnvFile(`${opts.root??CODE}/.env`);}catch{}}
-  const apiKey=opts.apiKey??process.env.OPENAI_API_KEY;if(!apiKey)throw new Error('OPENAI_API_KEY is not set. Add OPENAI_API_KEY=… to .env in the workspace root, then ask again.');
-  const model=opts.model??process.env.OPENAI_MODEL??DEFAULT_MODEL;const db=await readStore(opts.root??ROOT);
+  const creds=opts.apiKey?{provider:opts.provider??'openai' as AIProvider,key:opts.apiKey}:requestAI()??environmentAI(opts.root??CODE);
+  if(!creds)throw new Error(hosted()?'Add your own OpenAI or Anthropic key in Settings (it stays in your browser), or connect Claude or ChatGPT.':'OPENAI_API_KEY is not set. Add OPENAI_API_KEY=… (or ANTHROPIC_API_KEY=…) to .env in the workspace root, then ask again.');
+  const model=opts.model??(creds.provider==='openai'?process.env.OPENAI_MODEL:undefined)??defaultModel(creds.provider,'chat');const db=await readStore(opts.root??ROOT);
   if(!Array.isArray(messages)||!messages.length||messages.length>60)throw new Error('Send 1–60 chat turns');
-  const input:any[]=messages.map(m=>{if(!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>8000)throw new Error('Invalid chat turn');return {role:m.role,content:m.content};});
+  for(const m of messages)if(!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>8000)throw new Error('Invalid chat turn');
   const context=teamPayload(db,ctx);const toolLog:ToolEvent[]=[];
   const profile=await config();
-  const base={model,instructions:`${instructions}${profile.player?`\nPlayer: ${profile.player}.`:''}${profile.coachingLevel?` Coaching level: ${profile.coachingLevel}.`:''}${opts.extraInstructions?`\n\n${opts.extraInstructions}`:''}\nOpen context: ${'error'in context?'none':`${context.team} ${context.version}${context.focus?`, focused on ${context.focus}`:''}`}.`,...(opts.effort&&supportsReasoning(model)?{reasoning:{effort:opts.effort}}:{})};
+  const system=`${instructions}${profile.player?`\nPlayer: ${profile.player}.`:''}${profile.coachingLevel?` Coaching level: ${profile.coachingLevel}.`:''}${opts.extraInstructions?`\n\n${opts.extraInstructions}`:''}\nOpen context: ${'error'in context?'none':`${context.team} ${context.version}${context.focus?`, focused on ${context.focus}`:''}`}.`;
+  const talk=(creds.provider==='anthropic'?anthropicConversation:openAIConversation)(system,model,messages,opts,creds.key);
   for(let step=0;step<(opts.maxSteps??12);step++){
-    const data=await respond({...base,input,tools},opts,apiKey);
-    const calls=(data.output??[]).filter((o:any)=>o.type==='function_call');
-    if(!calls.length){const text=outputText(data);
+    const turn=await talk.step(true);
+    if(!turn.calls.length){const text=turn.text;
       emit('message',{text,model});if(opts.keepTranscript!==false)await saveTranscript(messages,text,toolLog,ctx,model);
       // `repair` re-asks for the final answer only (no tools), reusing everything researched so far.
-      const repair=async(feedback:string)=>{input.push(...(data.output??[]).filter((o:any)=>o.type!=='reasoning'),{role:'user',content:feedback});const d=await respond({...base,input,text:{format:{type:'json_object'}}},opts,apiKey);return outputText(d);};
+      const repair=async(feedback:string)=>{talk.user(feedback);return (await talk.step(false,true)).text;};
       return {text,tools:toolLog,repair};}
-    input.push(...data.output);
-    for(const call of calls){let args:any={};const event:ToolEvent={name:call.name,input:args};
-      try{args=JSON.parse(call.arguments||'{}');event.input=args;event.output=await runTool(call.name,args,ctx,db);}catch(e){event.error=(e as Error).message;}
-      toolLog.push(event);emit('tool',event);input.push({type:'function_call_output',call_id:call.call_id,output:JSON.stringify(event.error?{error:event.error}:event.output)});}
+    const results=[];
+    for(const call of turn.calls){let args:any={};const event:ToolEvent={name:call.name,input:args};
+      try{args=JSON.parse(call.args);event.input=args;event.output=await runTool(call.name,args,ctx,db);}catch(e){event.error=(e as Error).message;}
+      toolLog.push(event);emit('tool',event);results.push({id:call.id,output:JSON.stringify(event.error?{error:event.error}:event.output)});}
+    talk.results(results);
   }
   throw new Error('Stopped after too many tool steps; narrow the question.');
 }

@@ -1,5 +1,5 @@
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Modal,date,pct} from '../ui.tsx';
+import {api,Art,Modal,date,pct,downloadOriginal} from '../ui.tsx';
 import {Px,Upload,Sparkles,Reload} from '../icons.tsx';
 import SpeciesPicker from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
@@ -66,7 +66,7 @@ function GameDrawer({g,s,team,data,load,notify,close,resummarise}:{g:any;s:any;t
   const v=team.versions.find((x:any)=>x.id===g.association?.versionId);const config=v?.configurations.findIndex((c:any)=>c.id===g.association?.configurationId);
   const lines=log.split('\n');
   return <Modal title={`${g.result==='win'?'Win':g.result==='loss'?'Loss':g.result} vs ${g.players[o].name}`} onClose={close}><div className="game-drawer">
-    <p className="muted">{g.date?date(g.date):''} · {v?versionName(v):'no version'}{g.association?.certainty==='exact'&&config>=0?` · exact sets (edit ${config+1})`:' · sets not confirmed'} · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <a className="text-button" href={'/api/original?id='+encodeURIComponent(g.id)}>Original replay ↓</a></p>
+    <p className="muted">{g.date?date(g.date):''} · {v?versionName(v):'no version'}{g.association?.certainty==='exact'&&config>=0?` · exact sets (edit ${config+1})`:' · sets not confirmed'} · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <button className="text-button" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</button></p>
     <div className="selections">{[[g.ownSide,'You'],[o,'Opponent']].map(([side,label])=><div key={side}><span className="eyebrow">{label}</span><div className="six">{g.preview[side].map((m:string)=><span key={m} className={g.leads[side].includes(m)?'lead':g.revealed[side].includes(m)?'brought':'benched'} title={m}><Art name={m} art={data.art} small/></span>)}</div></div>)}<p className="footnote">Leads are outlined; faded Pokémon weren't seen in battle.</p></div>
     {s?<><p className="game-summary big">{s.summary}</p>
       {s.workOn.length>0&&<><h3>Work on</h3><ul className="work-on full">{s.workOn.map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span><b>{w.title}</b>{w.turn&&<button className="text-button" onClick={()=>setTurn(w.turn)}>turn {w.turn}</button>}<p>{w.detail}</p></li>)}</ul></>}

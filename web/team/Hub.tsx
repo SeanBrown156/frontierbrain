@@ -88,9 +88,10 @@ function Versions({team,data,games,mutate}:{team:any;data:any;games:any[];mutate
   </div>;
 }
 
-export function TeamsLanding({data,onImport,onReview}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void}){
+export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void;reload?:()=>Promise<void>}){
   const inbox=data.games.filter((g:any)=>!g.association);
   return <div className="teams-landing"><div className="landing-head"><div><p className="eyebrow">POKÉMON CHAMPIONS / REGULATION M-C</p><h1>Your teams</h1></div><button className="primary" onClick={onImport}><Px icon={Plus}/>New team</button></div>
+    {!data.profile?.player&&<ShowdownName reload={reload}/>}
     <BuildJobs onReview={onReview} art={data.art}/>
     <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3><span className="tag">V{t.view.version.number}{t.view.version.label?` · ${t.view.version.label}`:''}</span></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span/><span>{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}</span></div></a>;})}</div>
     {inbox.length>0?<Notice>{inbox.length} replay(s) aren't linked to a team. <a href="#inbox">Open the inbox →</a></Notice>:null}
@@ -107,4 +108,14 @@ function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>voi
       {j.status==='running'&&<p className="muted">{j.steps.length} research step(s){last?` · ${buildSteps[last.name]??last.name}${last.input?`: ${last.input}`:''}`:' · starting'}</p>}
       {team&&<div className="team-six">{team.sets.map((s:any)=><Art key={s.species} name={s.species} art={art} small/>)}</div>}{j.error&&<p className="error">{j.error}</p>}</div>
     <div className="button-row">{team&&<button className="primary" onClick={()=>onReview({jobId:j.id,proposal:team})}>Review draft</button>}{j.status!=='running'&&<button onClick={()=>void api('/ai-job-dismiss',{id:j.id}).then(()=>setJobs(jobs.filter(x=>x.id!==j.id)))}>Dismiss</button>}</div></article>;})}</div>;
+}
+
+// Replays are read from the player's side, so Frontier Brain needs their Showdown name (and any alts).
+function ShowdownName({reload}:{reload?:()=>Promise<void>}){
+  const [name,setName]=useState(''),[aliases,setAliases]=useState(''),[error,setError]=useState('');
+  const save=async()=>{try{await api('/profile',{player:name,aliases:aliases.split(',').map(a=>a.trim()).filter(Boolean)});await reload?.();}catch(e){setError((e as Error).message);}};
+  return <form className="profile-card" onSubmit={e=>{e.preventDefault();void save();}}><div><h3>What's your Showdown name?</h3><p className="muted">Replays are reviewed from your side, so Frontier Brain needs to know which player is you.</p></div>
+    <label>Showdown name<input required value={name} onChange={e=>setName(e.target.value)} placeholder="YourName"/></label>
+    <label>Other names (optional)<input value={aliases} onChange={e=>setAliases(e.target.value)} placeholder="alt1, alt2"/></label>
+    <button className="primary" disabled={!name.trim()}>Save</button>{error&&<p className="error">{error}</p>}</form>;
 }

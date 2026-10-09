@@ -1,9 +1,8 @@
 // Every "Ask AI" request runs as a background job inside the local API, so the player can keep working (or leave the
 // page) while the model researches. The UI polls job status; finished jobs persist in reports/ai-jobs/.
 import {randomUUID} from 'node:crypto';
-import {readdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ROOT,optionalJSON,save} from './io.ts';
+import {optionalJSON,save,listDir} from './io.ts';
 import {assist,type Area} from './assist.ts';
 import type {ChatTurn,ChatContext} from './chat.ts';
 
@@ -28,7 +27,7 @@ export function startJob(area:Area,messages:ChatTurn[],context:ChatContext={}):A
 // Short labels for progress lists; full tool inputs stay in the finished job's tools.
 function summary(d:any){const i=d.input??{};return i.species??i.move??(i.attacker?`${i.attacker.species} → ${i.defender?.species}`:undefined)??(i.a?`${i.a.species} vs ${i.b?.species}`:undefined)??(i.attempt?`attempt ${i.attempt}`:undefined);}
 export async function listJobs(limit=30){
-  const files=await readdir(resolve(ROOT,DIR)).catch(()=>[] as string[]);
+  const files=await listDir(DIR);
   for(const f of files.filter(f=>f.endsWith('.json'))){const id=f.slice(0,-5);if(jobs.has(id))continue;const j=await optionalJSON<AiJob|null>(`${DIR}/${f}`,null);if(!j)continue;if(j.status==='running'){j.status='interrupted';j.error='The local API restarted while this was running. Ask again.';}jobs.set(id,j);}
   return [...jobs.values()].sort((a,b)=>b.startedAt.localeCompare(a.startedAt)).slice(0,limit);
 }

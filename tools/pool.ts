@@ -7,9 +7,8 @@
 // event) is merged into that team: the verified list gains exact spreads and the paste is not counted twice.
 // Mirrors (StatCrusher, MunchStats' Showdown tabs, Top Cut Explorer) and composites (Suckerpunch, Pikalytics,
 // LabMaus) are never ingested. Output: knowledge/pool/teams.json and knowledge/pool/status.json.
-import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ROOT,optionalJSON,save} from './io.ts';
+import {optionalJSON,save,readText,modifiedAt} from './io.ts';
 import {fetchText} from './research.ts';
 import {dex} from './mechanics.ts';
 import {recentEvents,standings,teamList} from './limitless.ts';
@@ -48,7 +47,7 @@ async function onlineTeams(log:Log,minPlayers:number):Promise<PoolTeam[]>{
       out.push({id:`online:${t.id}:${playerKey(r.player??r.name)}`,lane:'online',event:t.name,eventId:t.id,date:t.date.slice(0,10),players:t.players,player:r.name??r.player,placing:r.placing??null,record:r.record?`${r.record.wins}-${r.record.losses}${r.record.ties?'-'+r.record.ties:''}`:null,pokemon:sets.map((s:PoolSet)=>s.species),sets,sources:[{name:'Limitless online',url:`https://play.limitlesstcg.com/tournament/${t.id}/standings`}]});}}
   log(`Online · ${list.length} M-C tournaments listed, ${list.filter(t=>t.players>=minPlayers).length} with ≥${minPlayers} players (${read} newly read)`);return out;
 }
-async function pasteText(id:string){const path=`knowledge/metagame/vgcpastes/pastes/${id}.txt`;try{return await readFile(resolve(ROOT,path),'utf8');}catch{const {text}=await fetchText(`https://pokepast.es/${id}/raw`,200_000);await save(path,text);await sleep(150);return text;}}
+async function pasteText(id:string){const path=`knowledge/metagame/vgcpastes/pastes/${id}.txt`;try{return await readText(path);}catch{const {text}=await fetchText(`https://pokepast.es/${id}/raw`,200_000);await save(path,text);await sleep(150);return text;}}
 async function sharedTeams(log:Log):Promise<PoolTeam[]>{
   const index=await pasteIndex();const out:PoolTeam[]=[];let failed=0;
   for(const r of index.rows.filter(r=>r.hasSpreads)){const id=r.paste.match(/pokepast\.es\/([a-f0-9]{8,32})/)?.[1];if(!id)continue;

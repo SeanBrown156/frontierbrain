@@ -1,7 +1,13 @@
 import {useEffect,useRef,useState,useId,type ReactNode} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-export async function api(path:string,input?:unknown){const response=await fetch('/api'+path,input===undefined?undefined:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});const data=await response.json();if(!response.ok)throw new Error(data.error??`Request failed (${response.status})`);return data;}
+import {accessToken} from './auth.tsx';
+import {aiHeaders} from './ai/keys.tsx';
+// Every request carries the session token on the hosted site (accounts and guests); locally there is none.
+async function headers(json:boolean){const h:Record<string,string>={...json?{'Content-Type':'application/json'}:{},...aiHeaders()};const token=await accessToken();if(token)h.Authorization=`Bearer ${token}`;return h;}
+export async function api(path:string,input?:unknown){const response=await fetch('/api'+path,input===undefined?{headers:await headers(false)}:{method:'POST',headers:await headers(true),body:JSON.stringify(input)});const data=await response.json();if(!response.ok)throw new Error(data.error??`Request failed (${response.status})`);return data;}
+// Saved replay originals download through the API with the session token (plain links can't send it).
+export async function downloadOriginal(id:string){const response=await fetch('/api/original?id='+encodeURIComponent(id),{headers:await headers(false)});if(!response.ok)throw new Error(`Download failed (${response.status})`);const url=URL.createObjectURL(await response.blob());const a=document.createElement('a');a.href=url;a.download=`${id}.html`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 export const speciesId=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
 export const date=(s:string)=>new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}).format(new Date(s.length===10?s+'T12:00:00Z':s));
 export const pct=(wins:number,games:number)=>games?`${(100*wins/games).toFixed(1)}%`:'—';

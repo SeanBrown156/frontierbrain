@@ -179,3 +179,21 @@ button.icon{min-height:32px;padding:0 7px}.modal>header button,.toast button,.ti
 .stat-name{font-weight:600;color:var(--muted);white-space:nowrap}.nat{font-weight:700;margin-left:2px}.nat.up,.stat-final.up{color:#3f6b3e}.nat.down,.stat-final.down{color:var(--red)}
 .stat-bar{display:flex;height:12px;background:#e6e3d3;border-radius:3px;overflow:hidden}.stat-bar>span{height:100%;transition:width .15s}.stat-bar .sp{opacity:.9}
 .stat-base{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.stat-row input{min-height:30px;padding:3px 6px;text-align:center;font-variant-numeric:tabular-nums}.stat-final{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* Hosted sign-in: welcome screen and account menu */
+.welcome{min-height:100vh;display:grid;place-items:center;padding:24px 16px}
+.welcome-card{width:min(440px,100%);display:grid;gap:14px;justify-items:start;padding:28px;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+.welcome-card h1{margin:0;font-size:28px}
+.welcome-tag{margin:0;color:var(--muted);line-height:1.5}
+.welcome-actions{display:grid;gap:8px;width:100%}
+.welcome-actions button{width:100%}
+.welcome-form{display:grid;gap:10px;width:100%}
+.welcome-form label{display:grid;gap:4px}
+.account-menu{position:relative;margin-left:auto;margin-right:10px}
+.account-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;width:min(320px,90vw);display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:6px;background:var(--paper);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.account-pop p{margin:0;line-height:1.45}
+.ai-key{position:relative}
+.ai-key .account-pop label{display:grid;gap:4px}
+.profile-card{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:16px;padding:16px;border:1px solid var(--gold);border-radius:6px;background:var(--paper)}
+.profile-card h3{margin:0 0 4px}.profile-card p{margin:0}.profile-card label{display:grid;gap:4px}
+@media (min-width:720px){.profile-card{grid-template-columns:2fr 1fr 1fr auto;align-items:end}}

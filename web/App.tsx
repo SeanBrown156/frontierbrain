@@ -8,10 +8,11 @@ import PokemonWorkspace from './team/PokemonWorkspace.tsx';
 import NewTeam from './team/NewTeam.tsx';
 import DataPool from './DataPool.tsx';
 import Coach from './Coach.tsx';
+import {AccountMenu,type Account} from './auth.tsx';
 
 // Old Pokémon links carried a configuration id (#team/<id>/mon/<version>/<config>/<slot>); they now open the current set.
 const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[2]==='mon'&&p[4]?.startsWith('config-')?[...p.slice(0,4),p[5]].join('/'):hash;};
-export default function App(){
+export default function App({account}:{account:Account}){
   const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||'teams'),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
   // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
@@ -31,11 +32,11 @@ export default function App(){
   const parts=route.split('/');const team=parts[0]==='team'?data?.teams.find((t:any)=>t.id===parts[1]):null;const pageData=data?{...data,jobs}:null;
   const dock:DockContext|null=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:null;
   const withDock=!!dock&&dockOpen;
-  return <div className={'shell'+(withDock?' with-dock':'')}>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className="masthead"><a href="#teams" className="brand"><img className="brand-logo" src="/favicon.svg" alt="" width={32} height={32}/><span>Frontier Brain</span></a>{data&&<QuickLinks sources={data.sources}/>}<span className="masthead-spacer"/><SavePill/></header>
+  return <div className={'shell'+(withDock?' with-dock':'')}>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className="masthead"><a href="#teams" className="brand"><img className="brand-logo" src="/favicon.svg" alt="" width={32} height={32}/><span>Frontier Brain</span></a>{data&&<QuickLinks sources={data.sources}/>}<span className="masthead-spacer"/><AccountMenu account={account}/><SavePill/></header>
     <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button aria-label="Dismiss notification" onClick={()=>setMessage(null)}>×</button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
     {!data?<Empty>Opening Frontier Brain…</Empty>:<>
       {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
-      {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
+      {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} reload={load} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
       {team&&parts[2]!=='mon'&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
       {route==='inbox'&&<><a href="#teams" className="text-button">← Teams</a><Coach data={pageData} notify={notify} load={load} run={run} initialTeam="inbox"/></>}
