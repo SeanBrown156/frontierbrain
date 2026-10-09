@@ -5,6 +5,7 @@
 // only with the server's secret key. Row-level security keys every user row on auth.uid(), and user requests
 // use the caller's own access token, so one user can never read another's data.
 import type {IncomingMessage,ServerResponse} from 'node:http';
+import {gzipSync,gunzipSync} from 'node:zlib';
 import {createClient,type SupabaseClient} from '@supabase/supabase-js';
 import {CODE,fileBackend,withData,type DataBackend} from './io.ts';
 import {emptyStore,validateStoreReferences,Conflict,type StoreBackend} from './workbench-store.ts';
@@ -16,8 +17,9 @@ export function hostedConfig(env=process.env):HostedConfig|null{
   return url&&publishableKey?{url,publishableKey,secretKey:env.SUPABASE_SECRET_KEY}:null;
 }
 const noSession={auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}};
-const asBuffer=(row:{body:string;encoding:string})=>Buffer.from(row.body,row.encoding==='base64'?'base64':'utf8');
-const encode=(data:string|Buffer)=>typeof data==='string'?{body:data,encoding:'utf8'}:{body:data.toString('base64'),encoding:'base64'};
+// Small files are stored as text; anything over 256 KB is gzip-compressed (the 19 MB pool becomes ~1.5 MB).
+const asBuffer=(row:{body:string;encoding:string})=>row.encoding==='gzip'?gunzipSync(Buffer.from(row.body,'base64')):Buffer.from(row.body,row.encoding==='base64'?'base64':'utf8');
+const encode=(data:string|Buffer)=>{const bytes=typeof data==='string'?Buffer.from(data):data;if(bytes.length>256*1024)return {body:gzipSync(bytes).toString('base64'),encoding:'gzip'};return typeof data==='string'?{body:data,encoding:'utf8'}:{body:data.toString('base64'),encoding:'base64'};};
 const children=(dir:string,paths:string[])=>{const prefix=dir.replace(/\/$/,'')+'/';return [...new Set(paths.filter(p=>p.startsWith(prefix)).map(p=>p.slice(prefix.length).split('/')[0]).filter(Boolean))].sort();};
 function check<T>(r:{data:T;error:any}):T{if(r.error)throw new Error(`Storage error: ${r.error.message}`);return r.data;}
 

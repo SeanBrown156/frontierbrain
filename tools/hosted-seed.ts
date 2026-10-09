@@ -5,6 +5,7 @@ import {readFile,readdir,stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {createClient} from '@supabase/supabase-js';
 import {ROOT,CODE} from './io.ts';
+import {sharedFiles} from './hosted.ts';
 
 const dry=process.argv.includes('--dry-run');
 try{process.loadEnvFile(resolve(CODE,'.env'));}catch{}
@@ -21,6 +22,7 @@ const present=[];for(const f of files){try{const s=await stat(resolve(ROOT,f));p
 console.log(`${present.length} files, ${(present.reduce((n,f)=>n+f.size,0)/1e6).toFixed(1)} MB`);
 if(dry){for(const f of present)console.log(f.path,f.size);process.exit(0);}
 const client=createClient(url!,secret!,{auth:{persistSession:false,autoRefreshToken:false}});
-for(const f of present){const bytes=await readFile(resolve(ROOT,f.path));const binary=f.path.endsWith('.png');
-  const {error}=await client.from('shared_files').upsert({path:f.path,body:binary?bytes.toString('base64'):bytes.toString('utf8'),encoding:binary?'base64':'utf8',updated_at:new Date().toISOString()});
+const shared=sharedFiles(client,client);
+for(const f of present){const bytes=await readFile(resolve(ROOT,f.path));let error:Error|null=null;
+  try{await shared.write(f.path,f.path.endsWith('.png')?bytes:bytes.toString('utf8'));}catch(e){error=e as Error;}
   console.log(error?`FAILED ${f.path}: ${error.message}`:`ok ${f.path}`);}
