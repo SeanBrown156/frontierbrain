@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -23,4 +24,11 @@ test('A new hosted workspace gets the sample teams once; deleting a team keeps i
     assert.equal(r.unlinked,0);assert.equal(db.teams.length,3);assert.ok(db.bank.length>0,'sets stay in the library');
     assert.throws(()=>applyAction(db,{type:'team-delete',teamId:'nope'}),/not found/);
   });}finally{await rm(root,{recursive:true});}
+});
+
+test('A team\'s format can be changed to a known format only',()=>{
+  const db=emptyStore();const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;
+  const team:any=applyAction(db,{type:'import',name:'T',paste} as any);const id=team.id??db.teams[0].id;
+  applyAction(db,{type:'team-format',teamId:id,format:'gen9championsvgc2026regmb'} as any);assert.equal(db.teams[0].format,'gen9championsvgc2026regmb');
+  assert.throws(()=>applyAction(db,{type:'team-format',teamId:id,format:'gen9ou'} as any),/Unknown format/);
 });

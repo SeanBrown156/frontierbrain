@@ -1,3 +1,4 @@
+import {FORMATS} from '../shared/formats.ts';
 import {readFile,mkdir,writeFile,rename,rm,readdir,copyFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {randomUUID} from 'node:crypto';
@@ -120,6 +121,8 @@ export function applyAction(db:Workbench,action:any):unknown {
   }
   // Strategy notes describe a version; editing them does not change any set, so they are updated in place.
   if(action.type==='version-notes'){const team=db.teams.find(t=>t.id===action.teamId);const v=team?.versions.find(v=>v.id===action.versionId);if(!v)throw new Error('Version not found');v.notes=checkText(action.notes);return v;}
+  // The format is part of the team (legality checks use it); changing it doesn't touch any set.
+  if(action.type==='team-format'){const team=db.teams.find(t=>t.id===action.teamId);if(!team)throw new Error('Team not found');if(!FORMATS.some(f=>f.id===action.format))throw new Error('Unknown format');team.format=action.format;return team;}
   if(action.type==='team-rename'){const team=db.teams.find(t=>t.id===action.teamId);if(!team)throw new Error('Team not found');team.name=checkText(action.name,120).trim();if(!team.name)throw new Error('Name is required');return team;}
   // A milestone the player chooses ("Save as V2"): the current six become a new version, which becomes the active team.
   // With fromVersionId, an older version's sets come back as the new version ("Make V1 the current team").

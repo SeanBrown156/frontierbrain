@@ -69,7 +69,7 @@ function SavePill(){const {status,dirty}=useSaveState();const time=(t?:number)=>
 function Ticker({weeks,openNews}:{weeks:any[];openNews:()=>void}){
   const items=weeks.flatMap((w:any)=>[...(w.signals??[]).map((s:any)=>({text:s.title,tag:s.kind==='measured'?'DATA':s.kind==='community'?'CHATTER':'REPORT',url:w.articles.find((a:any)=>s.articleIds?.includes(a.id))?.url})),...w.articles.map((a:any)=>({text:a.title,tag:a.source,url:a.url}))]).slice(0,16);
   if(!items.length)return null;const row=(copy:string)=>items.map((x:any,i:number)=>x.url?<a key={copy+i} href={x.url} target="_blank" rel="noreferrer" onClick={e=>e.stopPropagation()}><b>{x.tag}</b> {x.text} ↗</a>:<span key={copy+i}><b>{x.tag}</b> {x.text}</span>);
-  return <div className="ticker" role="button" tabIndex={0} aria-label="Open this week's news briefing" onClick={openNews} onKeyDown={e=>{if(e.key==='Enter')openNews();}}><span className="ticker-label"><Px icon={Zap} size={12}/>BREAKING</span><span className="ticker-track"><span className="ticker-run">{row('a')}<span aria-hidden="true" className="ticker-copy">{row('b')}</span></span></span><span className="ticker-more"><Px icon={Notes} size={12}/>This week</span></div>;
+  return <div className="ticker"><button className="ticker-label" onClick={openNews} aria-label="Open this week's news"><Px icon={Zap} size={12}/>THIS WEEK'S NEWS</button><span className="ticker-track"><span className="ticker-run">{row('a')}<span aria-hidden="true" className="ticker-copy">{row('b')}</span></span></span></div>;
 }
 // Reference links in a few dropdown groups. Calculators and team builders are deliberately absent.
 const barGroups=[['data','Data',Chart],['results','Results',Trophy],['learn','Learn',BookOpen],['community','Community',Users]] as const;

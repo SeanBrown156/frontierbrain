@@ -1,6 +1,7 @@
+import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect} from 'react';
 import {api,Art,Panel,Modal,Notice,date,Markdown} from '../ui.tsx';
-import {Px,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye} from '../icons.tsx';
+import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
 import {getView,versionName,stats} from './editors.tsx';
@@ -26,8 +27,9 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     <a href="#teams" className="text-button"><Px icon={ArrowLeft} size={12}/>Teams</a>
     <div className="hub-head"><div className="hub-title">{renaming?<input className="rename" aria-label="Team name" autoFocus value={name} onChange={e=>setName(e.target.value)} onBlur={()=>void rename()} onKeyDown={e=>{if(e.key==='Enter')void rename();if(e.key==='Escape'){setName(team.name);setRenaming(false);}}}/>
         :<h1><button className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></button></h1>}
-        <span className="muted">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'no games yet'}</span></div>
-      <div className="hub-actions"><Milestone team={team} mutate={mutate}/><button onClick={()=>void paste()}><Px icon={Download}/>Export</button></div></div>
+        <span className="muted">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'no games yet'}</span>
+        <label className="format-picker"><span>Format</span><select value={team.format} onChange={e=>void mutate({type:'team-format',teamId:team.id,format:e.target.value}).catch(()=>{})}>{FORMATS.some(f=>f.id===team.format)?null:<option value={team.format}>{team.format}</option>}{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label></div>
+      <div className="hub-actions"><Milestone team={team} mutate={mutate}/><button onClick={()=>void paste()}><Px icon={Share}/>Export</button></div></div>
     <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav>
       <label className="version-select"><span className="sr-only">Version</span><select value={all?'all':versionId} onChange={e=>{location.hash=teamHref(team.id,tab,e.target.value);}}><option value="all">{team.versions.length>1?'All versions':versionName(team.versions[0])}</option>{team.versions.map((v:any)=><option key={v.id} value={v.id}>{versionName(v)}{v.id===team.activeVersionId?' (current)':''} · {record(teamGames.filter((x:any)=>x.association?.versionId===v.id)).label}</option>)}</select></label></div>
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
@@ -44,8 +46,8 @@ function Overview({team,data,version,mutate}:{team:any;data:any;version:any;muta
     {version.source==='observed'&&<p className="footnote">Rebuilt from replays: <b>bold</b> moves were seen in battle; anything tagged “guess” is an assumption.</p>}
     <div className="six-grid">{view.revisions.map(({revision},i)=>{const s=revision.set;const obs=revision.provenance==='observed';return <a key={i} className={'mon-card'+(active?'':' read-only')} href={monHref(team.id,version.id,i)} aria-label={`${s.species}: open set and calc`}>
       <div className="mon-card-head"><Art name={s.species} art={data.art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}</h3><span>{s.item?'@ '+s.item:'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}</span><p>{s.ability} · {s.nature}</p></div></div>
-      <ul className="move-list">{s.moves?.map(m=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}><span>▸</span>{m}</li>)}</ul>
       <p className="sp-line">{stats.filter(k=>(s.statPoints?.[k]??0)>0).map(k=><span key={k}>{statLabel[k]} {s.statPoints![k]}</span>)}{!stats.some(k=>(s.statPoints?.[k]??0)>0)&&'No stat points'}</p>
+      <ul className="move-list">{s.moves?.map(m=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
       {active&&<span className="card-swap" role="button" tabIndex={0} onClick={e=>{e.preventDefault();location.hash=monHref(team.id,version.id,i,true);}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();location.hash=monHref(team.id,version.id,i,true);}}}>Swap</span>}</a>;})}</div>
   </div>;
 }
@@ -90,8 +92,6 @@ function Versions({team,data,games,mutate}:{team:any;data:any;games:any[];mutate
   </div>;
 }
 
-// "gen9championsvgc2026regmc" → "Champions M-C"; anything unrecognised is shown as stored.
-export const formatLabel=(f:string)=>{const m=/champions.*reg([a-z])([a-z])?$/.exec(f??'');return m?`Champions ${m[1].toUpperCase()}${m[2]?'-'+m[2].toUpperCase():''}`:f||'Unknown format';};
 export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void;reload?:()=>Promise<void>}){
   const inbox=data.games.filter((g:any)=>!g.association);
   return <div className="teams-landing"><div className="landing-head"><h1>Your teams</h1></div>
