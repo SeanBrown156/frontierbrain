@@ -19,6 +19,11 @@ test('A new hosted workspace gets the sample teams once; deleting a team keeps i
   try{await withData({user:fileBackend(root),shared:fileBackend(root,CODE),store,hosted:true},async()=>{
     assert.equal(await seedNewWorkspace(),true);
     assert.equal(store.db.teams.length,4);assert.ok(store.db.teams.every(t=>t.name.startsWith('Sample · ')));
+    for(const t of store.db.teams){const notes=t.versions.find(v=>v.id===t.activeVersionId)!.notes;const c=store.db.coaching?.[t.id];
+      assert.match(notes,/## Game plan/);assert.ok(notes.split(/\s+/).length>250,`${t.name}: strategy notes`);assert.ok(c,`${t.name}: coaching saved`);
+      assert.ok(c.leads.filter(l=>l.status==='active').length>=3&&c.matchups.filter(m=>m.status==='active').length>=4,`${t.name}: active plans`);
+      const mons=new Set(t.versions[0].configurations[0].slots.map(s=>store.db.bank.find(b=>b.id===s.bankId)!.revisions.find(r=>r.id===s.revisionId)!.set.species));
+      for(const p of [...c.leads,...c.matchups]){assert.deepEqual([p.calcIds,p.versionIds],[[],[]]);for(const n of 'bring' in p?p.bring:[...p.lead,...p.back])assert.ok(mons.has(n),`${t.name}: ${n} is on the team`);}}
     assert.equal(await seedNewWorkspace(),false,'never seeds twice');assert.deepEqual(await addSamples(),{added:0});
     const db=structuredClone(store.db);const r:any=applyAction(db,{type:'team-delete',teamId:db.teams[0].id});
     assert.equal(r.unlinked,0);assert.equal(db.teams.length,3);assert.ok(db.bank.length>0,'sets stay in the library');
