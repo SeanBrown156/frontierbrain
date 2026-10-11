@@ -47,6 +47,17 @@
     "notes": "Paste host. Not a destination; Frontier Brain imports team info directly from pokepast.es links."
   },
   {
+    "id": "champions-game",
+    "name": "Pokémon Champions",
+    "url": "https://champions.pokemon.com/en-us/",
+    "categories": [
+      "official"
+    ],
+    "notes": "The game: free on Nintendo Switch, iPhone/iPad and Android. Download links on the official site.",
+    "bar": "play",
+    "barOrder": 0
+  },
+  {
     "id": "showdown",
     "name": "Showdown!",
     "url": "https://play.pokemonshowdown.com/",
@@ -56,7 +67,18 @@
     ],
     "notes": "Use Champions VGC M-C or M-C Bo3, not SV VGC or Champions singles.",
     "bar": "play",
-    "barOrder": 0
+    "barOrder": 1
+  },
+  {
+    "id": "showdown-replays",
+    "name": "Showdown Replays",
+    "url": "https://replay.pokemonshowdown.com/",
+    "categories": [
+      "replays"
+    ],
+    "notes": "Search and watch saved Showdown battles; paste links into a team's Replays tab.",
+    "bar": "play",
+    "barOrder": 2
   },
   {
     "id": "limitless",
