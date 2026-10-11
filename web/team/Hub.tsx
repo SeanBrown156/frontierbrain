@@ -11,7 +11,7 @@ import SetTile from '../ai/SetTile.tsx';
 export const teamHref=(teamId:string,tab:string,versionId='all')=>`#team/${teamId}/${tab}/${versionId}`;
 export const monHref=(teamId:string,versionId:string,slot:number,swap=false)=>`#team/${teamId}/mon/${versionId}/${slot}${swap?'/swap':''}`;
 export function record(games:any[]){const w=games.filter(g=>g.result==='win').length,l=games.filter(g=>g.result==='loss').length;return {w,l,n:games.length,label:games.length?`${w}–${l}`:'no games'};}
-const tabs=[['overview','Overview',Home],['strategy','Strategy',Target],['replays','Replays',Play],['history','Versions',Clock]] as const;
+const tabs=[['overview','Overview',Home],['strategy','Strategy',Target],['replays','Replays',Play],['history','History',Clock]] as const;
 const statLabel:Record<string,string>={hp:'HP',atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
 export const sourceName=(v:any)=>v.source==='observed'?'from replays':v.source==='paste'||v.number===1?'from paste':v.configurations?.[0]?.summary?.startsWith('Restored')?v.configurations[0].summary.toLowerCase():'saved version';
 
@@ -27,7 +27,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     <div className="hub-head"><div className="hub-title">{renaming?<input className="rename" aria-label="Team name" autoFocus value={name} onChange={e=>setName(e.target.value)} onBlur={()=>void rename()} onKeyDown={e=>{if(e.key==='Enter')void rename();if(e.key==='Escape'){setName(team.name);setRenaming(false);}}}/>
         :<h1><button className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></button></h1>}</div></div>
     <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav>
-      <div className="version-bar"><label className="format-picker"><span className="sr-only">Format</span><select title="Format" value={team.format} onChange={e=>void mutate({type:'team-format',teamId:team.id,format:e.target.value}).catch(()=>{})}>{FORMATS.some(f=>f.id===team.format)?null:<option value={team.format}>{team.format}</option>}{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><VersionPicker team={team} tab={tab} versionId={versionId} all={all} games={teamGames} mutate={mutate}/><button onClick={()=>void paste()}><Px icon={Share}/>Export</button></div></div>
+      <div className="version-bar"><label className="format-picker"><span className="sr-only">Format</span><select title="Format" value={team.format} onChange={e=>void mutate({type:'team-format',teamId:team.id,format:e.target.value}).catch(()=>{})}>{FORMATS.some(f=>f.id===team.format)?null:<option value={team.format}>{team.format}</option>}{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button onClick={()=>void paste()}><Px icon={Share}/>Export</button></div></div>
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
     {tab==='replays'&&<Replays team={team} data={data} versionId={all?'all':versionId} load={load} notify={notify}/>}
@@ -78,18 +78,22 @@ function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:strin
     <option value="new">{busy?`Saving V${next}…`:`Save as new version (V${next})`}</option></select></label></>;
 }
 // Every version, newest first, each with its edit log. Older edits can be viewed and restored; nothing is overwritten.
-function Versions({team,data,games,mutate}:{team:any;data:any;games:any[];mutate:(a:any)=>Promise<any>}){
-  const [viewing,setViewing]=useState<{version:any;config:any;n:number}|null>(null);
-  const restore=async(version:any,config:any,n:number)=>{if(!confirm(`Restore edit ${n} of ${versionName(version)}? Its six sets become the current ones; every edit stays in the log.`))return;
-    await mutate({type:'team-configure',teamId:team.id,versionId:version.id,parentConfigurationId:version.currentConfigurationId,slots:config.slots,summary:`Restored edit ${n}`}).catch(()=>{});};
-  return <div className="versions">{[...team.versions].reverse().map((v:any)=>{const g=record(games.filter(x=>x.association?.versionId===v.id));const view=getView(team,data.db,v.id);const current=v.id===team.activeVersionId;
-    return <section key={v.id} className="version-card panel"><header><div><h2><a href={teamHref(team.id,'overview',v.id)}>{versionName(v)}</a></h2><span className="muted">{sourceName(v)} · {date(v.createdAt)} · {g.label}</span></div>
-      {current?<span className="tag ok">Current</span>:<button onClick={()=>{if(confirm(`Bring back ${versionName(v)}'s six as V${team.versions.length+1}?`))void mutate({type:'team-milestone',teamId:team.id,fromVersionId:v.id}).catch(()=>{});}}>Make it the current team</button>}</header>
-      <div className="team-six">{view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div>
-      {v.configurations.length>1&&<details><summary>Edit log ({v.configurations.length-1} edit{v.configurations.length===2?'':'s'})</summary><ol className="changes">{[...v.configurations].map((c:any,i:number)=>({c,n:i})).reverse().map(({c,n})=><li key={c.id} className={c.id===v.currentConfigurationId?'current':''}><span className="when">{date(c.createdAt)}</span><span className="what">{n===0?'Saved':c.summary||'Edit'}</span>
-        {c.id===v.currentConfigurationId?<span className="tag">Now</span>:<span className="button-row"><button className="text-button" onClick={()=>setViewing({version:v,config:c,n})}><Px icon={Eye} size={12}/>View</button>{current&&<button className="text-button" onClick={()=>void restore(v,c,n)}>Restore</button>}</span>}</li>)}</ol></details>}</section>;})}
-    {viewing&&<Modal title={`${versionName(viewing.version)} · edit ${viewing.n}`} onClose={()=>setViewing(null)}><p className="muted">{viewing.config.summary} · {date(viewing.config.createdAt)}</p><div className="proposals">{getView(team,data.db,viewing.version.id,viewing.config.id).sets.map((s:any,i:number)=><SetTile key={i} set={s} art={data.art}/>)}</div></Modal>}
-    <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Removes the team, its versions and strategy. Its sets stay in your Pokémon library and its replays stay saved, just unlinked.</p></div>
+// History: every saved change, newest first, across the team's whole life. Versions are kept in the data (and older
+// milestones still exist) but the player never manages them; restoring an edit records it as a new change.
+function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:(a:any)=>Promise<any>}){
+  const [viewing,setViewing]=useState<{version:any;config:any}|null>(null);
+  const active=team.versions.find((v:any)=>v.id===team.activeVersionId);
+  const entries=team.versions.flatMap((v:any)=>v.configurations.map((c:any,n:number)=>({v,c,first:n===0}))).sort((a:any,b:any)=>b.c.createdAt.localeCompare(a.c.createdAt));
+  const label=(e:any)=>e.first?(e.v.number===1?'Team created':`Saved as V${e.v.number}${e.v.label?`: ${e.v.label}`:''}`):e.c.summary||'Edit';
+  const restore=async(e:any)=>{if(!confirm(`Restore the team as it was on ${date(e.c.createdAt)}? The current sets are kept in history.`))return;
+    await mutate({type:'team-configure',teamId:team.id,versionId:active.id,parentConfigurationId:active.currentConfigurationId,slots:e.c.slots,summary:`Restored from ${date(e.c.createdAt)}`}).catch(()=>{});};
+  return <div className="versions history">
+    <ol className="history-list">{entries.map((e:any)=>{const now=e.c.id===active.currentConfigurationId;const sets=getView(team,data.db,e.v.id,e.c.id).sets;
+      return <li key={e.c.id} className={now?'current':''}><span className="when">{date(e.c.createdAt)}</span><span className="what">{label(e)}</span>
+        <span className="team-six mini">{sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</span>
+        {now?<span className="tag ok">Current</span>:<span className="button-row"><button className="compact" onClick={()=>setViewing({version:e.v,config:e.c})}><Px icon={Eye} size={12}/>View</button><button className="compact" onClick={()=>void restore(e)}>Restore</button></span>}</li>;})}</ol>
+    {viewing&&<Modal title={`Team on ${date(viewing.config.createdAt)}`} onClose={()=>setViewing(null)}><p className="muted">{viewing.config.summary||'Saved'}</p><div className="proposals">{getView(team,data.db,viewing.version.id,viewing.config.id).sets.map((s:any,i:number)=><SetTile key={i} set={s} art={data.art}/>)}</div></Modal>}
+    <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Removes the team, its history and strategy. Its sets stay in your Pokémon library and its replays stay saved, just unlinked.</p></div>
       <button className="danger" onClick={()=>{if(confirm(`Delete “${team.name}”? This can't be undone.`))void mutate({type:'team-delete',teamId:team.id}).then(()=>{location.hash='#teams';}).catch(()=>{});}}>Delete team</button></section>
   </div>;
 }

@@ -89,7 +89,7 @@ function AddReplays({team,versionId,load,notify,after}:{team:any;versionId:strin
   return <section className="add-replays"><div className="add-row"><textarea rows={links.includes('\n')?3:1} value={links} onChange={e=>setLinks(e.target.value)} placeholder="Paste Showdown replay links (one per line)" aria-label="Showdown replay links"/>
       <label className="button file-button"><Px icon={Upload}/>{files.length?`${files.length} file${files.length===1?'':'s'}`:'HTML files'}<input className="file-input" type="file" multiple accept=".html,.htm" onChange={e=>setFiles([...(e.target.files??[])])}/></label>
       <button className="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</button></div>
-    <label className="radio exact"><input type="checkbox" checked={exact} onChange={e=>setExact(e.target.checked)}/>I played exactly the current {versionName(v)} sets</label>
+    <label className="radio exact"><input type="checkbox" checked={exact} onChange={e=>setExact(e.target.checked)}/>I played exactly these sets</label>
     {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?`linked by team only (${r.note})`:r.error}</p>)}
   </section>;
 }
