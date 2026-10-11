@@ -570,3 +570,132 @@ html.jade .benchmarks li.broken{border-color:color-mix(in srgb,var(--hot) 45%,tr
 /* a button beside labelled fields lines up with the fields, not the labels */
 html.jade :is(form,.settings-form,.settings-row,.form-grid,.button-row)>label~:is(button,.button){align-self:flex-end;height:40px;margin-bottom:16px}
 html.jade .settings-form{align-items:flex-end;gap:0 12px}
+
+/* =====================================================================================================
+   Calc round 3: attacker over defender, effects where they belong, Mega switch, HP drain, speed race
+   ===================================================================================================== */
+/* the two columns start on the same line */
+html.jade .workspace-grid{align-items:start}
+html.jade .workspace-grid>*{margin-top:0!important}
+html.jade .set-card{top:96px!important}
+
+/* toggles: small pills that light up emerald */
+html.jade .toggles{display:flex;flex-wrap:wrap;gap:8px}
+html.jade .toggle{height:32px;padding:0 12px!important;border-radius:999px!important;font-size:12.5px!important;font-weight:600;background:transparent!important;border:1px solid var(--ln-2)!important;color:var(--mu)!important;box-shadow:none!important;backdrop-filter:none;transform:none!important}
+html.jade .toggle:hover{color:var(--tx)!important;border-color:color-mix(in srgb,var(--ac) 55%,var(--ln-2))!important}
+html.jade .toggle.on{background:color-mix(in srgb,var(--ac) 16%,transparent)!important;border-color:color-mix(in srgb,var(--ac) 60%,transparent)!important;color:var(--tx)!important}
+html.jade .toggle.on::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ac);margin-right:2px}
+.ctx{display:grid;gap:8px;padding:12px 0 4px;border-top:1px dashed var(--ln)}
+.ctx-label{font:600 10.5px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--gd)}
+.ctx .ctx-label:not(:first-child){margin-top:8px}
+html.jade .move-chips{display:flex;flex-wrap:wrap;gap:8px}
+html.jade .move-input{margin:0!important}
+html.jade .move-input input{height:36px;min-height:36px}
+html.jade .move-context{display:flex;gap:12px;flex-wrap:wrap}
+html.jade .move-context label{margin:0}
+
+/* the cards: the attacker gets an emerald edge, the defender a quiet one */
+html.jade .matchup{background:transparent;border:0;overflow:visible;gap:0}
+html.jade .combatant{border:1px solid var(--ln);border-radius:var(--r);background:var(--sunk);position:relative}
+html.jade .combatant.attacking{border-color:color-mix(in srgb,var(--ac) 45%,var(--ln));background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 50%),var(--sunk)}
+html.jade .combatant.attacking .eyebrow{color:var(--ac)}
+html.jade .combatant-main{gap:12px}
+html.jade .combatant-edit{border-top:1px dashed var(--ln);padding-top:4px;margin:0}
+html.jade .combatant-edit+.combatant-edit{border-top:0;padding-top:0}
+/* Mega switch under the render */
+.combatant-art{display:flex;flex-direction:column;align-items:center;gap:12px;height:auto!important}
+html.jade .mega-switch{height:28px;padding:0 10px 0 4px!important;border-radius:999px!important;gap:8px;font:700 11px var(--fm)!important;letter-spacing:.1em;text-transform:uppercase;background:var(--sunk)!important;border:1px solid var(--ln-2)!important;color:var(--mu)!important;box-shadow:none!important;transform:none!important}
+html.jade .mega-switch .knob{width:20px;height:20px;border-radius:50%;background:var(--ln-2);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s}
+html.jade .mega-switch.on{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important;background:color-mix(in srgb,var(--gd) 12%,transparent)!important}
+html.jade .mega-switch.on .knob{background:radial-gradient(circle at 35% 35%,#fff7,transparent 45%),conic-gradient(from 0deg,#ff6b8b,#ffd56b,#6bffb8,#6bb8ff,#c46bff,#ff6b8b);box-shadow:0 0 10px color-mix(in srgb,var(--gd) 70%,transparent)}
+html.jade .mega-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font:700 10px var(--fm);letter-spacing:.1em;text-transform:uppercase;vertical-align:middle;color:var(--gd);border:1px solid color-mix(in srgb,var(--gd) 50%,transparent)}
+/* the axis between them: who attacks, then the field everyone shares */
+.matchup-axis{display:grid!important;justify-items:center;gap:12px;height:auto!important;padding:16px 0!important;position:relative}
+.matchup-axis::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed var(--ln-2)!important;border-top:0!important;z-index:0}
+.matchup-axis>*{position:relative;z-index:1}
+html.jade .direction{background:var(--bg)!important}
+html.jade .direction>span{display:inline-block}
+.field-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 12px;border-radius:14px;background:var(--bg);border:1px solid var(--ln)}
+html.jade .field-row label{margin:0!important}
+html.jade .field-row select{height:36px;min-width:150px}
+html.jade .field-flags{justify-content:center;max-width:560px;padding:0 8px;background:var(--bg);border-radius:12px}
+.matchup-axis .footnote{max-width:520px;text-align:center;margin:0;background:var(--bg);padding:0 8px}
+.from-ask{display:inline-flex;align-items:center;gap:8px;justify-self:start;margin:0;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);animation:jPop .35s cubic-bezier(.2,.8,.2,1)}
+
+/* the result box: the visual first, then the save action inside it */
+html.jade .lab-result{background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 14%,transparent),transparent 60%),var(--glass)!important;border:1px solid color-mix(in srgb,var(--ac) 35%,var(--ln))!important;border-radius:var(--r)!important;gap:16px!important;transition:opacity .2s}
+html.jade .lab-result.busy{opacity:.6}
+.result-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--ln)}
+.dmg{display:grid;gap:16px}
+.dmg-head{display:grid;gap:8px}
+.verdict{justify-self:start;padding:4px 12px;border-radius:999px;font:700 12px var(--fm);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu)}
+.verdict.maybe{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 55%,transparent)}
+.verdict.ko{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 55%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent)}
+.dmg-target{display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;align-items:center}
+html.jade .dmg-art .art{width:64px!important;height:64px!important}
+.hp-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
+.hp-head b{font:800 18px var(--fd);text-transform:uppercase;letter-spacing:.02em}
+.hp-head span{font:800 15px var(--fdot)}
+.hp-track{position:relative;height:16px;border-radius:99px;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--ln);overflow:hidden}
+.hp-track i{position:absolute;top:0;bottom:0;transition:width .9s cubic-bezier(.2,.8,.2,1),left .9s cubic-bezier(.2,.8,.2,1),background .4s}
+.hp-left{left:0;border-radius:99px 0 0 99px;background:linear-gradient(180deg,#5ff0ae,#1FD08A)}
+.hp-track.warn .hp-left{background:linear-gradient(180deg,#ffe07a,#F4C443)}
+.hp-track.low .hp-left{background:linear-gradient(180deg,#ff8a96,#FF3D50)}
+.hp-band{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--gd) 85%,transparent) 0 5px,color-mix(in srgb,var(--gd) 45%,transparent) 5px 10px)}
+.hp-lost{background:color-mix(in srgb,var(--hot) 22%,transparent)}
+.hp-mark{width:1px;background:color-mix(in srgb,var(--tx) 30%,transparent);transition:none!important}
+.hp-scale{position:relative;height:16px;margin-top:4px;font:600 10px var(--fm);color:var(--mu)}
+.hp-scale span{position:absolute;left:0;transform:translateX(0)}
+.hp-scale span[style]{transform:translateX(-50%)}
+.hp-scale .end{left:auto;right:0}
+.rolls{position:relative;display:flex;align-items:flex-end;gap:4px;height:56px;padding:0 0 18px}
+.rolls i{flex:1;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--ac-2),color-mix(in srgb,var(--ac) 50%,transparent));transition:height .6s cubic-bezier(.2,.8,.2,1)}
+.rolls i.ko{background:linear-gradient(180deg,#ff8a96,var(--hot))}
+.rolls-label{position:absolute;left:0;bottom:0;font:600 10px var(--fm);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+/* speed race */
+.race{display:grid;gap:12px}
+.lane{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:center}
+.track{position:relative;height:72px;border-radius:14px;background:repeating-linear-gradient(90deg,transparent 0 47px,color-mix(in srgb,var(--tx) 7%,transparent) 47px 48px),var(--sunk);box-shadow:inset 0 0 0 1px var(--ln);overflow:hidden}
+.track .finish{position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-conic-gradient(var(--tx) 0 25%,transparent 0 50%) 0 0/10px 10px;opacity:.35}
+.track .runner{position:absolute;top:0;width:72px;height:72px;transition-property:left;transition-timing-function:cubic-bezier(.45,.05,.3,1)}
+html.jade .track .runner .art{width:72px!important;height:72px!important}
+.lane.wins .track{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 50%,transparent)}
+.lane-stat{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lane-stat b{font:900 30px/1 var(--fdot)}
+.lane-stat span{font-size:12.5px;color:var(--mu)}
+.lane-stat em{font:800 11px var(--fm);font-style:normal;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--ac);color:var(--on);animation:jPop .3s cubic-bezier(.2,.8,.2,1) both}
+.race.tr .track{background:repeating-linear-gradient(90deg,transparent 0 47px,color-mix(in srgb,#c46bff 14%,transparent) 47px 48px),var(--sunk)}
+.race-verdict{font-weight:600;margin:0}
+
+/* Strategy guide under the Pokémon */
+html.jade .set-guide .markdown{font-size:15px}
+html.jade .set-guide .markdown h2{font-size:18px;margin:24px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--ln);color:var(--ac)}
+html.jade .set-guide .markdown h2:first-child{margin-top:0}
+html.jade .set-notes-edit .footnote{display:block;margin-top:8px}
+html.jade .set-notes .panel-heading{align-items:center}
+
+@media (max-width:620px){
+ .lane{grid-template-columns:minmax(0,1fr) 92px}
+ .track,.track .runner,html.jade .track .runner .art{height:56px!important;width:auto}.track .runner{width:56px}html.jade .track .runner .art{width:56px!important}
+ /* the Pokémon you're inspecting is already above: its calc card stays compact */
+ html.jade .combatant.is-mine{grid-template-columns:minmax(0,1fr)!important}
+ html.jade .combatant.is-mine .combatant-art{flex-direction:row;justify-content:flex-start}
+ html.jade .combatant.is-mine .combatant-art .art{width:48px!important;height:48px!important}
+ html.jade .combatant.is-mine .combatant-head h3{font-size:18px}
+ html.jade .field-row select{min-width:0}
+}
+/* one Field box between the cards */
+.field-box{display:grid;justify-items:center;gap:12px;padding:16px;border-radius:var(--r);background:var(--bg);border:1px solid var(--ln);max-width:600px;width:100%}
+html.jade .field-box .field-row{background:transparent;border:0;padding:0}
+html.jade .field-box .field-flags{background:transparent;padding:0}
+html.jade .field-box .footnote{background:transparent;padding:0;font-size:12px}
+.matchup-axis::before{border-left-style:solid!important;opacity:.6}
+.track .runner{transition-timing-function:cubic-bezier(.3,.1,.25,1)!important}
+/* with Ask open, the Pokémon page stacks (set above calc) until there's room for both columns */
+@media (max-width:1900px){html.jade .with-dock .workspace-grid{grid-template-columns:minmax(0,1fr)!important}html.jade .with-dock .set-card{position:static!important}}
+@media (max-width:1180px){html.jade .workspace-grid{grid-template-columns:minmax(0,1fr)!important}html.jade .set-card{position:static!important}}
+html.jade label.stat-row .stat-bar{min-width:48px}
+html.jade .set-card{top:0!important}
+html.jade .set-guide .markdown,html.jade .set-guide .markdown :is(p,li){font-size:15px!important;line-height:1.7;color:var(--tx)}
+html.jade .set-guide .markdown>*{max-width:80ch}
+html.jade .set-guide .markdown h2{max-width:none}

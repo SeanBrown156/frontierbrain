@@ -1,6 +1,6 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Panel,Modal,Notice,date,Markdown,TypeBadges,ItemIcon,useDex} from '../ui.tsx';
+import {api,Art,Panel,Modal,Notice,date,Markdown,TypeBadges,ItemIcon,useDex,useBattleForm} from '../ui.tsx';
 import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye,Check,WarningDiamond} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
@@ -41,14 +41,19 @@ function Overview({team,data,version,mutate}:{team:any;data:any;version:any;muta
   return <div className="hub-overview">
     {!active&&<div className="notice warn">Viewing {versionName(version)}, an older version (read-only). <a className="button" href={teamHref(team.id,'overview',team.activeVersionId)}>Back to {versionName(current)}</a><button onClick={()=>{if(confirm(`Bring back ${versionName(version)}'s six as a new version (V${team.versions.length+1})? Nothing is deleted.`))void mutate({type:'team-milestone',teamId:team.id,fromVersionId:version.id}).then(r=>{location.hash=teamHref(team.id,'overview',r.result.versionId);}).catch(()=>{});}}>Make it the current team</button></div>}
     {version.source==='observed'&&<p className="footnote">Rebuilt from replays: <b>bold</b> moves were seen in battle; anything tagged “guess” is an assumption.</p>}
-    <div className="six-grid">{view.revisions.map(({revision},i)=>{const s=revision.set;const obs=revision.provenance==='observed';return <a key={i} className={'mon-card'+(active?'':' read-only')} href={monHref(team.id,version.id,i)} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
-      <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
-      <div className="mon-card-head"><Art name={s.species} art={data.art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}</h3><TypeBadges species={s.species}/></div></div>
-      <p className="mon-item"><ItemIcon item={s.item}/>{s.item||'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}<span className="mon-meta">{s.ability} · {s.nature}</span></p>
-      <SpBars species={s.species} points={s.statPoints??{}}/>
-      <ul className="move-list">{s.moves?.map(m=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
-</a>;})}</div>
+    <div className="six-grid">{view.revisions.map(({revision},i)=><MonCard key={i} i={i} revision={revision} href={monHref(team.id,version.id,i)} active={active} art={data.art}/>)}</div>
   </div>;
+}
+// One of the six. A Mega Stone holder shows its Mega (render and types), since that's what it battles as.
+function MonCard({i,revision,href,active,art}:{i:number;revision:any;href:string;active:boolean;art:any}){
+  const s=revision.set;const obs=revision.provenance==='observed';const form=useBattleForm(s.species,s.item);
+  return <a className={'mon-card'+(active?'':' read-only')} href={href} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
+      <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
+      <div className="mon-card-head"><Art name={form} fallback={s.species} art={art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}{form!==s.species&&<span className="mega-tag">Mega</span>}</h3><TypeBadges species={form}/></div></div>
+      <p className="mon-item"><ItemIcon item={s.item}/>{s.item||'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}<span className="mon-meta">{s.ability} · {s.nature}</span></p>
+      <SpBars species={form} points={s.statPoints??{}}/>
+      <ul className="move-list">{s.moves?.map((m:string)=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
+</a>;
 }
 // Card stat bars: the species' base stat with the set's stat points stacked on the end (the same drawing as the
 // Pokémon page). Final stats live on the Pokémon page, where they come from the stat tool.

@@ -39,10 +39,13 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   const save=(next:Turn[]|((prev:Turn[])=>Turn[]))=>setTurns(prev=>{const value=typeof next==='function'?next(prev):next;try{localStorage.setItem(key,JSON.stringify(value.slice(-40)));}catch{}return value;});
   useEffect(()=>{end.current?.scrollIntoView({block:'nearest'});},[turns.length,steps.length,open]);
   useEffect(()=>{if(open)setTimeout(()=>input.current?.focus(),50);},[open]);
-  useEffect(()=>{if(!pending)return;let alive=true;const tick=async()=>{try{const job=await api('/ai-job?id='+pending);if(!alive)return;setSteps(job.steps);
+  useEffect(()=>{if(!pending)return;let alive=true;const tick=async()=>{try{const job=await api('/ai-job?id='+pending);if(!alive)return;setSteps(job.steps);showCalcs(job.steps);
       if(job.status!=='running'){const seconds=job.finishedAt?Math.round((Date.parse(job.finishedAt)-Date.parse(job.startedAt))/1000):undefined;
         save(prev=>prev.map(t=>t.jobId!==pending?t:job.status==='done'?{role:'assistant',content:job.result.reply||'Here is what I found.',proposals:job.result.proposals,model:job.model,seconds,note:job.modelNote}:{role:'assistant',content:job.error??'The request failed.',failed:true,model:job.model,seconds}));setSteps([]);}}catch{}};
     void tick();const t=setInterval(()=>void tick(),1500);return()=>{alive=false;clearInterval(t);};},[pending]);
+  // On a Pokémon page, each damage or speed calc the assistant runs is replayed in the calc panel beside the chat.
+  const shownCalcs=useRef(0);useEffect(()=>{shownCalcs.current=0;},[pending]);
+  const showCalcs=(list:any[])=>{if(context.page!=='slot'||!team)return;const calcs=list.filter(x=>x.calc);for(const c of calcs.slice(shownCalcs.current))offer(`calc:${team.id}:${context.slot}`,{...c.calc,from:'Ask Frontier Brain'});shownCalcs.current=calcs.length;};
   const send=async(text:string,history=turns)=>{if(!text.trim()||pending)return;if(!ai){setDraft(text);requireAccount('Sign in for free to ask questions with your preferred AI tool.');return;}const next=[...history,{role:'user' as const,content:text.trim(),page:pageLabel}];
     try{const {id}=await api('/ai-jobs',{area:'assist',context:team?{teamId:team.id,versionId,configurationId:view!.version.currentConfigurationId,slot:context.slot,page:context.page}:{page:'general'},messages:next.filter(t=>!t.failed&&!t.jobId).slice(-10).map(asMessage)});save([...next,{role:'assistant',content:'',jobId:id}]);setDraft('');}
     catch(e){save([...next,{role:'assistant',content:(e as Error).message,failed:true}]);}};

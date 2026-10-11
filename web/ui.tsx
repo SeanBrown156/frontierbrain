@@ -30,18 +30,21 @@ export const date=(s:string)=>new Intl.DateTimeFormat(undefined,{day:'numeric',m
 export const pct=(wins:number,games:number)=>games?`${(100*wins/games).toFixed(1)}%`:'—';
 // Pokémon render: the HOME 3D model by default (soft, lit, consistent across forms), falling back to the official
 // illustration and then a placeholder. `kind="art"` asks for the illustration first.
-export function Art({name,art,small=false,kind='home'}:{name:string;art:any;small?:boolean;kind?:'home'|'art'}){
-  const record=art?.[speciesId(name)];const official=record?.state==='cached'?(hostedSite&&/^https:\/\/raw\.githubusercontent\.com\//.test(record.url??'')?record.url:`/api/art?id=${speciesId(name)}`):null;
-  const sources=[...kind==='home'?[`/api/home?species=${encodeURIComponent(name)}`,official]:[official,`/api/home?species=${encodeURIComponent(name)}`]].filter(Boolean) as string[];
+export function Art({name,art,small=false,kind='home',fallback}:{name:string;art:any;small?:boolean;kind?:'home'|'art';fallback?:string}){
+  const urls=(n:string)=>{const record=art?.[speciesId(n)];const official=record?.state==='cached'?(hostedSite&&/^https:\/\/raw\.githubusercontent\.com\//.test(record.url??'')?record.url:`/api/art?id=${speciesId(n)}`):null;const home=`/api/home?species=${encodeURIComponent(n)}`;return kind==='home'?[home,official]:[official,home];};
+  const sources=[...urls(name),...fallback&&fallback!==name?urls(fallback):[]].filter(Boolean) as string[];
   const [step,setStep]=useState(0);useEffect(()=>setStep(0),[name]);const src=sources[step];
   return <span className={'art '+(small?'small':'')} title={name}>{src?<img key={src} src={src} alt={name} loading="lazy" onError={()=>setStep(step+1)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
 // Species types and item sheet positions, fetched once per name and shared by every card on the page.
-const dexCache={types:{} as Record<string,string[]>,base:{} as Record<string,Record<string,number>>,items:{} as Record<string,number>};let dexWaiting:Promise<void>|null=null;const dexWant={species:new Set<string>(),items:new Set<string>()};
+export type MegaForm={name:string;item:string;types:string[];ability:string;baseStats:Record<string,number>};
+const dexCache={types:{} as Record<string,string[]>,base:{} as Record<string,Record<string,number>>,megas:{} as Record<string,MegaForm[]>,items:{} as Record<string,number>};let dexWaiting:Promise<void>|null=null;const dexWant={species:new Set<string>(),items:new Set<string>()};
 function requestDex(){return dexWaiting??=new Promise<void>(r=>setTimeout(r,30)).then(async()=>{const species=[...dexWant.species].filter(n=>!(n in dexCache.types)),items=[...dexWant.items].filter(n=>!(n in dexCache.items));dexWant.species.clear();dexWant.items.clear();
-  if(species.length||items.length){try{const r=await api(`/dex-info?species=${encodeURIComponent(species.join('|'))}&items=${encodeURIComponent(items.join('|'))}`);Object.assign(dexCache.types,r.types);Object.assign(dexCache.base,r.base);Object.assign(dexCache.items,r.items);}catch{for(const n of species)dexCache.types[n]=[];for(const n of items)dexCache.items[n]=0;}}}).finally(()=>{dexWaiting=null;});}
+  if(species.length||items.length){try{const r=await api(`/dex-info?species=${encodeURIComponent(species.join('|'))}&items=${encodeURIComponent(items.join('|'))}`);Object.assign(dexCache.types,r.types);Object.assign(dexCache.base,r.base);Object.assign(dexCache.megas,r.megas??{});Object.assign(dexCache.items,r.items);}catch{for(const n of species)dexCache.types[n]=[];for(const n of items)dexCache.items[n]=0;}}}).finally(()=>{dexWaiting=null;});}
 export function useDex(species:string[],items:string[]){const [,tick]=useState(0);const key=species.join('|')+'#'+items.join('|');
   useEffect(()=>{const missing=species.some(n=>!(n in dexCache.types))||items.some(n=>!(n in dexCache.items));if(!missing)return;let alive=true;species.forEach(n=>dexWant.species.add(n));items.forEach(n=>dexWant.items.add(n));void requestDex().then(()=>{if(alive)tick(x=>x+1);});return()=>{alive=false;};},[key]);
   return dexCache;}
+// The form a set battles as: its Mega when it holds that Mega's stone, otherwise the species itself.
+export function useBattleForm(species:string,item?:string){const m=(useDex([species],[]).megas[species]??[]).find(x=>x.item===item);return m?.name??species;}
 export const TYPE_COLOURS:Record<string,string>={Normal:'#9a9a7c',Fire:'#ef6a3a',Water:'#4b8ff0',Electric:'#f2c531',Grass:'#4fb05a',Ice:'#5cc9d6',Fighting:'#d0443e',Poison:'#a557c4',Ground:'#d29a4a',Flying:'#8aa4ec',Psychic:'#ef5a8c',Bug:'#93b02c',Rock:'#b8a35a',Ghost:'#6f5ca8',Dragon:'#5f5ae0',Dark:'#5d5068',Steel:'#7fa2b4',Fairy:'#e58fc8',Stellar:'#40b5a5'};
 export function TypeBadges({species}:{species:string}){const d=useDex([species],[]);const types=d.types[species]??[];
   return types.length?<span className="type-badges">{types.map(t=><span key={t} className="type-badge" style={{'--type':TYPE_COLOURS[t]??'#888'} as any}>{t}</span>)}</span>:null;}

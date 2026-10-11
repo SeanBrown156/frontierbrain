@@ -8,7 +8,7 @@ import {assist,type Area} from './assist.ts';
 import type {ChatTurn,ChatContext} from './chat.ts';
 
 export interface AiJob {id:string;area:Area|'replay-summary'|'team-digest';context:ChatContext;messages:ChatTurn[];title:string;status:'running'|'done'|'failed'|'interrupted'|'cancelled';startedAt:string;finishedAt?:string;
-  steps:{name:string;input?:any;error?:string}[];result?:{reply:string;proposals:any[]};tools?:any[];error?:string;dismissed?:boolean;model?:string;modelNote?:string;}
+  steps:{name:string;input?:any;error?:string;calc?:{kind:'damage'|'speed';input:any}}[];result?:{reply:string;proposals:any[]};tools?:any[];error?:string;dismissed?:boolean;model?:string;modelNote?:string;}
 // In-memory jobs are kept per owner (the signed-in or guest user on the hosted site; 'local' otherwise), so one
 // user's jobs are never listed, read or cancelled by another on a shared server instance.
 const owners=new Map<string,Map<string,AiJob>>();const controllers=new Map<string,AbortController>();const DIR='reports/ai-jobs';
@@ -18,7 +18,7 @@ const persist=(job:AiJob)=>save(`${DIR}/${job.id}.json`,job);
 type Runner=(emit:(event:any,data:any)=>void,signal:AbortSignal)=>Promise<{value:any;tools?:any[];model?:string;modelNote?:string}>;
 export function startTask(area:AiJob['area'],title:string,context:ChatContext,messages:ChatTurn[],run:Runner):AiJob{
   const job:AiJob={id:randomUUID(),area,context,messages,title:title.slice(0,140),status:'running',startedAt:new Date().toISOString(),steps:[]};mine().set(job.id,job);void persist(job);const controller=new AbortController();controllers.set(job.id,controller);
-  keepAlive(run((event,data:any)=>{if(event==='tool')job.steps.push({name:data.name,input:summary(data),error:data.error});},controller.signal)
+  keepAlive(run((event,data:any)=>{if(event==='tool')job.steps.push({name:data.name,input:summary(data),error:data.error,...calcStep(data)});},controller.signal)
     .then(r=>{job.status='done';job.result=r.value;job.tools=r.tools;job.model=r.model;job.modelNote=r.modelNote;})
     .catch(e=>{if(job.status==='cancelled')return;job.status='failed';job.error=(e as Error).message;})
     .finally(()=>{controllers.delete(job.id);job.finishedAt??=new Date().toISOString();return persist(job);}));
@@ -29,6 +29,8 @@ export function startJob(area:Area,messages:ChatTurn[],context:ChatContext={}):A
   return startTask(area,last,context,messages,(emit,signal)=>assist(area,messages,context,emit,{signal}));
 }
 // Short labels for progress lists; full tool inputs stay in the finished job's tools.
+// A damage or speed calc the assistant ran keeps its exact input, so the page can show it in the calc panel.
+function calcStep(d:any){return !d.error&&(d.name==='calc_damage'||d.name==='calc_speed')&&d.input?{calc:{kind:d.name==='calc_damage'?'damage' as const:'speed' as const,input:d.input}}:{};}
 function summary(d:any){const i=d.input??{};return i.species??i.move??(i.attacker?`${i.attacker.species} → ${i.defender?.species}`:undefined)??(i.a?`${i.a.species} vs ${i.b?.species}`:undefined)??(i.attempt?`attempt ${i.attempt}`:undefined);}
 export async function listJobs(limit=30){
   const jobs=mine();const files=await listDir(DIR);
