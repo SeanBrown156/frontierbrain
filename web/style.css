@@ -427,3 +427,33 @@ button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:720px){.masthead .quickbar-play,.masthead .quickbar-all{display:inline-flex!important;width:100%;justify-content:center;box-sizing:border-box}}
 .masthead .quickbar-play,.masthead .quickbar-all{margin:0!important}
 @media(max-width:720px){.masthead-nav .account-button{width:100%;justify-content:center}}
+/* ===== Masthead, final layout =====
+   Desktop: brand (+ save status) on top; nav row below with the avatar pinned right.
+   Mobile: one compact bar (brand · avatar · ☰); the ☰ opens a drawer with the nav and this week's news. */
+.masthead{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"brand save" "nav account";align-items:center;gap:var(--s3) var(--s4)!important;flex-direction:unset!important}
+.masthead .brand{grid-area:brand;margin:0}
+.masthead .save-pill{grid-area:save;justify-self:end}
+.masthead .account-menu{grid-area:account;justify-self:end;margin:0!important;width:auto!important}
+.masthead-nav{grid-area:nav;display:flex;align-items:center;gap:var(--s2);min-width:0;flex-basis:auto;order:0}
+.masthead-nav .quickbar{display:flex!important;flex-wrap:wrap;justify-content:flex-start!important}
+.menu-toggle,.drawer-news{display:none!important}
+@media(max-width:720px){
+ .ticker{display:none!important}
+ .masthead{grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:"brand account toggle" "save save save" "nav nav nav";padding:var(--s3) var(--s4)!important;margin-top:var(--s4);gap:var(--s2) var(--s2)!important}
+ .masthead .brand{font-size:20px}.masthead .brand-logo{width:28px;height:28px}
+ .masthead .save-pill{justify-self:start}
+ .masthead .account-button{width:auto!important}.masthead .account-button>span:not(.avatar){display:none}
+ .menu-toggle{grid-area:toggle;display:inline-flex!important;width:var(--control-height);padding:0!important;background:transparent!important;color:var(--inverse)!important;border:1px solid #fffdf3b3!important;box-shadow:1px 2px 0 #00000033!important}
+ .masthead-nav{display:none;flex-direction:column;align-items:stretch;padding-top:var(--s3);border-top:1px solid #fffdf355}
+ .menu-open .masthead-nav{display:flex}
+ .masthead-nav .quickbar{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:var(--s2)!important;width:100%!important}
+ .masthead .quickbar-group>button,.masthead .quickbar-play,.masthead .quickbar-all,.drawer-news{width:100%;justify-content:flex-start!important}
+ .masthead .quickbar-group>button .px-icon:last-child{margin-left:auto}
+ .drawer-news{display:inline-flex!important;height:var(--control-height);align-items:center;gap:var(--s2);padding:0 var(--s3)!important;background:transparent!important;color:var(--inverse)!important;border:1px solid #fffdf3b3!important;box-shadow:1px 2px 0 #00000033!important;font:600 14px/1.2 var(--font)}
+ .masthead .quickbar-menu{position:static!important;width:100%!important;max-height:none!important;margin-top:var(--s2);left:auto;right:auto;top:auto}
+ .account-pop{position:fixed!important;left:16px!important;right:16px!important;top:72px!important;width:auto!important}
+}
+@media(max-width:720px){
+ .masthead{position:sticky!important;top:0;z-index:50;margin:0 calc(-1 * var(--s4)) var(--s2)!important;border-width:0 0 2px!important;box-shadow:0 2px 0 var(--shadow)}
+ .menu-open .masthead-nav{max-height:calc(100dvh - 72px);overflow-y:auto;overscroll-behavior:contain}
+}
