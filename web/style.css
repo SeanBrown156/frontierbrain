@@ -498,3 +498,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .hub-tabs a{padding:0 var(--s4)!important;gap:var(--s2)!important;justify-content:center}
 button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.quickbar-all .px-icon,.drawer-news .px-icon,.ticker-label .px-icon{margin-right:0!important}
 .modal:has(.save-version){width:min(520px,95vw)}.save-version{max-width:none}
+/* The team title is editable: a pixel pencil always shows beside it. */
+.title-button .px-icon,.title-button svg{opacity:1!important;color:var(--emerald-deep);flex:none}
+.title-button:hover .px-icon,.title-button:hover svg{color:var(--emerald-shade)}

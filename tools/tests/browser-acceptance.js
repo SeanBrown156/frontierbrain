@@ -32,7 +32,7 @@ async page => {
   await page.getByText('In My sets as “Acceptance preset”').waitFor();
   await species.click();await page.getByRole('option',{name:/★ Acceptance preset/}).waitFor();await species.press('Escape');
   // Versions are milestones: "Save as new version" in the version picker makes V2 the current team; V1 stays, read-only.
-  await page.goto(`http://127.0.0.1:5173/#team/${team.id}/overview/all`);await page.getByLabel('Version',{exact:true}).selectOption('new');await page.getByLabel('Version name').fill('Acceptance');await page.getByRole('button',{name:'Save V2'}).click();
+  await page.goto(`http://127.0.0.1:5173/#team/${team.id}/overview/all`);await page.getByLabel('Version',{exact:true}).selectOption('new');
   await page.waitForURL(/overview\/formula-/);now=await page.request.get(fixture+'/api/dashboard').then(r=>r.json());t=now.teams.find(x=>x.id===team.id);
   check(t.versions.length===team.versions.length+1,'No V2');check(t.activeVersionId!==activeBefore,'V2 is not current');
   await page.goto(`http://127.0.0.1:5173/#team/${team.id}/overview/${activeBefore}`);await page.getByText(/an older version \(read-only\)/).waitFor();
