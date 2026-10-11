@@ -36,6 +36,8 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const prompts=(await client.listPrompts()).prompts.map(p=>p.name);assert.ok(prompts.includes('build_around'));
     const pr=await client.getPrompt({name:'build_around',arguments:{pokemon:'Mega Chimecho, Trevenant'}});assert.match((pr.messages[0].content as any).text,/pokemon_profile/);
     assert.match(client.getInstructions()??'',/collaborator/);
+    const rules=await text('format_rules',{});assert.equal(rules.bring,4);assert.equal(rules.megaEvolutionPerBattle,1);assert.match(rules.primer,/several Mega Stone holders/);
+    assert.match(client.getInstructions()??'',/one Mega Evolution per battle/i);
     const profile=await text('pokemon_profile',{species:'Chimecho',top:10});assert.ok(profile.forms.some((f:any)=>f.name==='Chimecho-Mega'));assert.ok(profile.roles['speed control'].includes('Trick Room'));assert.equal(profile.metaSheet.summary.length,profile.forms.length);
     const bad:any=await client.callTool({name:'nope',arguments:{}});assert.ok(bad.isError);
   }finally{await client.close();server.close();await rm(root,{recursive:true});}

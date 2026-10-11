@@ -2,6 +2,7 @@
 // the pinned Champions engine (mechanics.ts) or labelled standard sets (meta-sets.ts). The model never
 // computes damage itself. Transcripts stay local in reports/chats/.
 import {pokemonProfile} from './profile.ts';
+import {formatPrimer,formatRules} from './format.ts';
 import {randomUUID} from 'node:crypto';
 import {ROOT,CODE,save,config,requestAI,environmentAI,hosted,type AIProvider} from './io.ts';
 import {damage,speed,spreadSearch,finalStats,dex} from './mechanics.ts';
@@ -33,6 +34,7 @@ export const tools=[
     parameters:{type:'object',properties:{species:{type:'string'},ability:{type:'string'},item:{type:'string'},natures:{type:'array',items:{type:'string'}},minStats:{type:'object'},fixedPoints:{type:'object'},budget:{type:'integer'},benchmarks:{type:'array',items:{type:'object'}}},required:['species','natures']}},
   {type:'function',name:'team_pool_sets',description:'PRIMARY data for real usage: Frontier Brain\'s deduplicated team pool (Limitless official Day 2 lists + Limitless online tournaments + VGCPastes spreads merged into the matching team). For one species: usage share, items, abilities, natures, moves, teammates, exact spreads, and the best-placed example sets with player, event and placing. lanes filters to official/online/shared.',parameters:{type:'object',properties:{species:{type:'string'},lanes:{type:'array',items:{type:'string',enum:['official','online','shared']}},sinceDays:{type:'integer',minimum:7,maximum:365}},required:['species']}},
   {type:'function',name:'meta_overview',description:'Team-pool overview: most-used Pokémon and pairs across all pooled teams, plus recent top-4 teams (official and online). Use for meta context, threat lists and team building.',parameters:{type:'object',properties:{lanes:{type:'array',items:{type:'string',enum:['official','online','shared']}},sinceDays:{type:'integer',minimum:7,maximum:365},top:{type:'integer',minimum:5,maximum:60}}}},
+  {type:'function',name:'format_rules',description:'The rules of a format from the pinned validator and the verified regulation record: team size and how many you bring, level, species/item clauses, bans, Mega Evolutions per battle, open team sheets, Bo1/Bo3, timers and the regulation period, plus a plain-language primer. Defaults to the current regulation.',parameters:{type:'object',properties:{format:{type:'string',description:'Showdown format id, e.g. gen9championsvgc2026regmc (a team\'s format from get_team)'}}}},
   {type:'function',name:'pokemon_profile',description:'What makes a Pokémon distinctive in Champions doubles: its forms (incl. Mega stats/abilities), support, speed-control, disruption and spread moves it can learn, strongest STAB moves, coverage, how often the pool uses it, and a type + base-Speed sheet against the most-used Pokémon (who it threatens, who threatens it, what it outspeeds, what it beats under Trick Room). Use it before suggesting a Pokémon; when the player names Pokémon to build around, profile each and discuss what makes them distinctive before proposing a team.',parameters:{type:'object',properties:{species:{type:'string'},top:{type:'integer',minimum:5,maximum:40,description:'How many top pool Pokémon to compare against (default 20)'}},required:['species']}},
   {type:'function',name:'dex_lookup',description:'Champions dex entry: types, base stats, legal abilities.',parameters:{type:'object',properties:{species:{type:'string'}},required:['species']}},
 ];
@@ -45,7 +47,10 @@ Rules:
 - Report damage as % range and KO chance from the tool, plus the conditions (field, items, abilities, boosts). Mention Intimidate, spread-move reduction or terrain only if they were in the calc input.
 - A Pokémon holding its Mega Stone (e.g. Gengar @ Gengarite) fights as its Mega form once evolved: calc species "Gengar-Mega" unless the question is about the turn before Mega Evolution, and say which form you used.
 - If the engine rejects an input, say so plainly; do not approximate. Multi-hit moves report per-hit rolls and an exact KO chance; set moveOptions.hits when the hit count matters. Rage Fist, Last Respects, Stomping Tantrum, Avalanche, Assurance and Payback take moveOptions.context ({timesHit}, {faintedAllies}, {lastMoveFailed}, {hitFirst}, {targetDamaged}, {movesLast}); state the battle state you assumed.
-- Distinguish observations, assumptions and hypotheses. No win probabilities.`;
+- Distinguish observations, assumptions and hypotheses. No win probabilities.
+- A team's own format (get_team / list_teams) wins over this default; call format_rules for it when it differs.
+
+${formatPrimer()}`;
 
 function teamPayload(db:Workbench,ctx:ChatContext){
   const team=db.teams.find(t=>t.id===ctx.teamId);if(!team)return {error:'No team is open in this chat context.'};
@@ -68,6 +73,7 @@ export async function runTool(name:string,input:any,ctx:ChatContext,db:Workbench
     case 'spread_search':{const r=spreadSearch(input);return {...r,solutions:r.solutions.map((s:any)=>({nature:s.nature,statPoints:s.statPoints,stats:s.stats,spent:s.spent,unused:s.unused,benchmarks:s.benchmarks.map(brief)}))};}
     case 'team_pool_sets':{const m=await poolSets(input.species,{lanes:input.lanes,sinceDays:input.sinceDays});return {population:m.population,period:m.period,sample:m.sample,items:m.items.slice(0,8),abilities:m.abilities,natures:m.natures.slice(0,6),moves:m.moves.slice(0,12),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,10),examples:(m.examples??[]).slice(0,8),notes:m.notes};}
     case 'meta_overview':return poolOverview({lanes:input.lanes,sinceDays:input.sinceDays,top:input.top});
+    case 'format_rules':return {...formatRules(input.format||undefined),primer:formatPrimer(input.format||undefined)};
     case 'pokemon_profile':return pokemonProfile(input.species,{top:input.top});
     case 'dex_lookup':{const s=dex.species.get(input.species);if(!s.exists)throw new Error(`Unknown species ${input.species}`);return {name:s.name,types:s.types,baseStats:s.baseStats,abilities:Object.values(s.abilities)};}
   }
