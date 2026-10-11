@@ -23,6 +23,8 @@ export async function api(path:string,input?:unknown,{retries=input===undefined?
 }
 // Saved replay originals download through the API with the session token (plain links can't send it).
 export async function downloadOriginal(id:string){const response=await fetch('/api/original?id='+encodeURIComponent(id),{headers:await headers(false)});if(!response.ok)throw new Error(`Download failed (${response.status})`);const url=URL.createObjectURL(await response.blob());const a=document.createElement('a');a.href=url;a.download=`${id}.html`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+// Long summaries read better a sentence at a time: split on sentence ends (not decimals like 85.5% or initials).
+export const sentences=(text:string)=>text.split(/(?<=[.!?])\s+(?=[A-Z0-9“"(])/).map(t=>t.trim()).filter(Boolean);
 export const speciesId=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
 export const date=(s:string)=>new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}).format(new Date(s.length===10?s+'T12:00:00Z':s));
 export const pct=(wins:number,games:number)=>games?`${(100*wins/games).toFixed(1)}%`:'—';

@@ -1,7 +1,7 @@
 import ShowdownName from './ShowdownName.tsx';
 import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Modal,date,pct,downloadOriginal} from '../ui.tsx';
+import {api,Art,Modal,date,pct,downloadOriginal,sentences} from '../ui.tsx';
 import {Px,Upload,Sparkles,Reload} from '../icons.tsx';
 import SpeciesPicker from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
@@ -56,7 +56,7 @@ function GameCard({g,s,pending,art,open}:{g:any;s:any;pending:boolean;art:any;op
   return <article className={'game '+g.result} onClick={open} onKeyDown={e=>{if(e.key==='Enter')open();}} tabIndex={0} role="button" aria-label={`${g.result} vs ${g.players[o].name}`}>
     <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.players[o].name}</span>{s?.stale&&<span className="tag">link changed</span>}</div>
     <div className="game-teams"><div className="six">{g.preview[o].map((m:string)=><span key={m} className={g.leads[o].includes(m)?'lead':g.revealed[o].includes(m)?'brought':'benched'} title={m}><Art name={m} art={art} small/></span>)}</div></div>
-    {s?<><p className="game-summary">{s.summary}</p>{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
+    {s?<><div className="game-summary">{sentences(s.summary).map((t,i)=><p key={i} className={i?'game-rest':'game-lead'}>{t}</p>)}</div>{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
       {s.opponentStyle.length>0&&<div className="chip-row">{s.opponentStyle.map((t:string)=><span key={t} className="chip small">{t}</span>)}</div>}</>
       :<p className="muted">{pending?'Summarising…':'No summary yet.'}</p>}
   </article>;

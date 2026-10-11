@@ -13,6 +13,9 @@ Chosen from the Round 3 lookbook: Sky Pillar inside a clear emerald shell. It su
 - **Motion.** Cards rise in sequence, bars grow, renders float and the selected tab pulses its LED. Everything stops for `prefers-reduced-motion`.
 - **Logo.** An original emerald-cut gem, read as a Battle Frontier symbol, with a circuit "brain" and a red LED node in its table facet (`public/favicon.svg`). No Pokémon artwork is used in the mark.
 - **Front door.** `#welcome` is shown once on a first visit and linked from the footer. It uses the player's first team, or an example core before they have a team, on a glass stage that leans toward the pointer.
+- **Polish pass (owner feedback, 12 Oct).** Selects draw their own chevron, inset 12px. The flashing red LEDs on selected tabs are gone. Everything sits on a 4px spacing rhythm, with real paragraph and list spacing in prose and replay summaries split into a lead sentence plus short follow-ons. The Ask dock title uses the display font, with its controls on one 40px row.
+- **Calc.** One matchup card. Your side picks Current set, a starred My set, or a theoretical custom set (never saved; benchmarks save only from the current set). An attack-direction switch sits between the sides. The opponent side has a species picker (with My sets) plus one set dropdown (sourced spreads and My sets) and a source selector, kept labelled and never blended. Set editors use the same base-plus-stat-points bars, with the gold +SP beside each bar.
+- **Pokémon page.** A favourite star sits on the top-left corner of the render. Benchmarks, then a single Notes field, sit full width below both columns; older split notes show merged under headings and save merged on the next edit.
 - **Avoid.** Sports-betting cues: odds chips, slanted score bars, loud tickers. The news strip is kept quiet: mono type, no red.
 
 ## Round 2 history: Frontier Brain × Emerald

@@ -65,31 +65,35 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
   // "My sets": star the set as saved (saving any pending edits first).
   const star=async()=>{await flush();try{await mutate({type:'set-star',teamId:team.id,versionId:view.version.id,slot,label:starLabel});setStarring(false);setStarLabel('');}catch{}};
   const inferred=(k:keyof NonNullable<SetRevision['fields']>)=>revision.provenance==='observed'&&revision.fields?.[k]==='inferred'&&JSON.stringify(revision.set[k])===JSON.stringify(set[k]);
-  const pending=d.dirty&&!readOnly&&(problems[0]??error);
-  return <div className="workspace-grid">
+  const pending=d.dirty&&!readOnly&&(problems[0]??error);const isStarred=!!revision.starred&&!d.dirty;
+  // One notes field. Older records split notes into four; they show here merged under headings, and the first edit saves the merged text.
+  const notesText=mergeNotes(d.draft.notes);
+  return <><div className="workspace-grid">
     <section className={'set-card panel'+(readOnly?' read-only':'')} aria-label={`${set.species} set`}>
       {readOnly&&<div className="notice warn">This is {versionName(view.version)}, an older version (read-only). <a href={monHref(team.id,team.activeVersionId,slot)}>Edit the current team →</a></div>}
       <fieldset className="plain" disabled={readOnly}>
       {d.changedElsewhere&&<div className="notice warn">This Pokémon was changed elsewhere (e.g. accepted from Ask Frontier Brain). <span className="button-row"><button onClick={d.loadLatest}>Load latest</button><button onClick={d.keepMine}>Keep my edits</button></span></div>}
-      <div className="set-card-head"><Art name={set.species} art={data.art}/><div className="grow">
+      <div className="set-card-head"><div className="art-wrap"><Art name={set.species} art={data.art}/>
+        {!readOnly&&<button type="button" className={'fav'+(isStarred?' on':'')} aria-pressed={isStarred} aria-label={isStarred?`In My sets as “${revision.starred!.label}”. Remove from My sets`:'Save to My sets'} title={isStarred?`In My sets: ${revision.starred!.label} (click to remove)`:'Save to My sets'}
+          onClick={()=>{if(isStarred)void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{});else setStarring(!starring);}}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg></button>}
+        {starring&&!isStarred&&<div className="fav-pop" role="dialog" aria-label="Save to My sets"><label>Name for My sets<input autoFocus placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/></label><div className="button-row"><button className="primary" onClick={()=>void star()} disabled={problems.length>0||!starLabel.trim()}>Save</button><button onClick={()=>setStarring(false)}>Cancel</button></div>{problems.length>0&&<p className="footnote">Finish the set first: {problems[0]}</p>}</div>}</div><div className="grow">
         <SpeciesPicker label="Species" value={set.species} onPick={sp=>void pickSpecies(sp)} onPickSaved={o=>replace(o.value.set,{reuse:true,basis:[`Reusing your saved set: ${o.label}.`]})} disabled={others.map((s:any)=>s.species)} saved={savedSets} autoFocus={swap}/>
-        <div className="set-types"><TypeBadges species={set.species}/></div>
+        <div className="set-types"><TypeBadges species={set.species}/>{isStarred&&<span className="fav-label">★ {revision.starred!.label}</span>}</div>
         {loading&&<p className="muted">Loading the most common {loading} set…</p>}
         <input className="nickname" aria-label="Nickname" placeholder="Nickname (optional)" value={set.nickname??''} onChange={e=>update({nickname:e.target.value||undefined})}/></div></div>
       {(meta.basis||meta.why)&&<ul className="basis">{meta.why&&<li>AI: {meta.why}</li>}{meta.basis?.map((b,i)=><li key={i}>{b}</li>)}</ul>}
       {pending&&<p className="set-pending" role="status"><Px icon={WarningDiamond} size={12}/>Not saved yet: {pending}</p>}
       <SetFields set={set} update={update} inferred={inferred} others={others}/>
-      <Benchmarks entry={entry} set={set} data={data} mutate={mutate}/>
-      <label className="set-notes-edit">Notes<textarea rows={3} placeholder="Role, game plan, anything worth remembering" value={d.draft.notes.role} onChange={e=>d.setDraft(x=>({...x,notes:{...x.notes,role:e.target.value}}))}/></label>
-      {(['benchmarks','partners','matchups'] as const).some(k=>d.draft.notes[k])&&<details className="set-notes-edit"><summary>Earlier notes</summary>{(['benchmarks','partners','matchups'] as const).filter(k=>d.draft.notes[k]).map(k=><label key={k}>{noteTitles[k]}<textarea rows={2} value={d.draft.notes[k]} onChange={e=>d.setDraft(x=>({...x,notes:{...x.notes,[k]:e.target.value}}))}/></label>)}</details>}
       <History entry={entry} revision={revision} load={r=>replace(r.set,{reuse:true,basis:[`Restored the ${date(r.createdAt)} set.`]})}/>
-      {!readOnly&&(revision.starred&&!d.dirty?<p className="my-set">★ In My sets as “{revision.starred.label}” <button className="text-button" onClick={()=>void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{})}>Remove</button></p>
-        :starring?<div className="star-form"><input autoFocus aria-label="Name for My sets" placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/><button className="primary" onClick={()=>void star()} disabled={problems.length>0}>Add</button><button onClick={()=>setStarring(false)}>Cancel</button></div>
-        :<button className="text-button star-button" onClick={()=>setStarring(true)}>☆ Save to My sets</button>)}
       </fieldset>
     </section>
     <BenchmarkLab entry={entry} revision={revision} own={set} data={data} mutate={mutate} onUseSpread={(nature,statPoints)=>update({nature,statPoints})}/>
-  </div>;
+  </div>
+  <div className="set-extras">
+    <section className="panel set-benchmarks"><Benchmarks entry={entry} set={set} data={data} mutate={mutate}/></section>
+    <section className="panel set-notes"><header className="panel-heading"><h2>Notes</h2></header>
+      <label className="set-notes-edit"><span className="sr-only">Notes for {set.species}</span><textarea rows={Math.max(6,notesText.split("\n").length+2)} disabled={readOnly} placeholder="Role, game plan, partners, matchups, anything worth remembering" value={notesText} onChange={e=>d.setDraft(x=>({...x,notes:{role:e.target.value,benchmarks:'',partners:'',matchups:''}}))}/></label></section>
+  </div></>;
 }
 
 // The set's fields. Fields guessed from replays (observed sets) carry a "guess" tag until edited.
@@ -130,7 +134,7 @@ function StatBars({base,final,points,setPoint,head}:{base?:Record<string,number>
     {stats.map(k=>{const b=base?.[k]??0,sp=points[k]??0,f=final?.[k];const nat=k==='hp'||f==null||!base?0:Math.sign(f-(b+sp+20));
       return <label key={k} className="stat-row"><span className="stat-name">{statLabel[k]}{nat>0?<b className="nat up" title="Nature +10%">↑</b>:nat<0?<b className="nat down" title="Nature −10%">↓</b>:null}</span>
         <span className="stat-bar" title={base?`Base ${b} + ${sp} stat points${nat?`, nature ${nat>0?'+':'−'}10%`:''} = ${f??'…'}`:''}><span className="base" style={{width:barWidth(b),background:baseColour(b)}}/><span className="sp" style={{width:barWidth(sp)}}/></span>
-        <span className="stat-base">{base?b:'—'}</span>
+        <span className="stat-base">{base?b:'—'}{sp>0&&<b className="stat-plus">+{sp}</b>}</span>
         <input type="number" min="0" max="32" aria-label={`${statLabel[k]} stat points`} value={sp} onChange={e=>setPoint(k,Math.max(0,Math.min(32,Number(e.target.value)||0)))}/>
         <output className={'stat-final'+(nat>0?' up':nat<0?' down':'')}>{f??'—'}</output></label>;})}
   </div>;
@@ -142,6 +146,7 @@ function History({entry,revision,load}:{entry:BankEntry;revision:SetRevision;loa
     {r.id===revision.id?<span className="muted">now</span>:<button className="text-button" onClick={()=>load(r)}>Go back to this</button>}</li>)}</ol></details>;
 }
 
+const mergeNotes=(n:SetNotes)=>[n.role,...(['benchmarks','partners','matchups'] as const).filter(k=>n[k]?.trim()).map(k=>`${noteTitles[k]}\n${n[k].trim()}`)].filter(t=>t?.trim()).join('\n\n');
 export function checkSet(set:PokemonSet,others:PokemonSet[]){
   const out:string[]=[];const moves=(set.moves??[]).filter(m=>m.trim());
   if(!set.species)out.push('Choose a Pokémon.');if(moves.length!==4)out.push('Give it four moves.');else if(new Set(moves).size!==4)out.push('Moves must be different.');

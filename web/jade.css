@@ -335,3 +335,238 @@ html.jade .dock-head h2{font-size:20px}
 html.jade .dock-log>.chat-empty,html.jade .chat-turn{background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:inset 0 1px 0 var(--hi)!important;outline:0!important}
 html.jade .chat-turn.user{background:color-mix(in srgb,var(--ac) 14%,transparent)!important;border-color:color-mix(in srgb,var(--ac) 35%,transparent)!important}
 html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user),.welcome-tag)::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--hot);box-shadow:0 0 8px var(--hot);right:12px;bottom:10px;animation:jPulse 1.6s ease-in-out infinite}
+
+/* =====================================================================================================
+   Round 2 polish (owner feedback): chevrons, no LED noise, consolidated calc, favourite star, Ask dock,
+   and a spacing pass on a strict 4px grid so prose and controls breathe.
+   ===================================================================================================== */
+
+/* ---------- selects: our own chevron, inset 12px, never floating at the edge ---------- */
+html.jade{--chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%234C6A5B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+@media (prefers-color-scheme:dark){html.jade:not([data-theme=light]){--chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%2386A797' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
+html.jade[data-theme=dark]{--chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%2386A797' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html.jade select{-webkit-appearance:none;appearance:none;background-image:var(--chev)!important;background-repeat:no-repeat!important;background-position:right 12px center!important;background-size:12px 12px!important;padding:0 36px 0 12px!important;height:40px;line-height:38px;text-overflow:ellipsis;cursor:pointer}
+html.jade select:hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
+html.jade select:disabled{opacity:.55;cursor:default}
+
+/* ---------- no flashing LEDs on selected states ---------- */
+html.jade .hub-tabs a.selected::before{display:none!important}
+html.jade .mon-switcher a.selected::after{background:var(--ac);box-shadow:0 0 8px var(--glow)}
+html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user),.welcome-tag)::after{display:none!important}
+
+/* ---------- spacing: one 4px rhythm everywhere ---------- */
+html.jade body{line-height:1.6}
+html.jade p{margin:0 0 12px}
+html.jade :is(p,li):last-child{margin-bottom:0}
+html.jade .panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--ln)}
+html.jade .panel-heading h2{margin:0}
+html.jade .panel-heading .eyebrow{display:block;margin-bottom:4px}
+html.jade .panel+.panel,html.jade .panel+section,html.jade section+.panel{margin-top:24px}
+html.jade label{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;font-size:13px;font-weight:600;color:var(--tx)}
+html.jade label.radio{flex-direction:row;align-items:center;gap:8px;margin:0 0 8px;font-weight:500}
+html.jade label.radio input{width:16px;height:16px;margin:0;accent-color:var(--ac)}
+html.jade :is(input,textarea){padding:8px 12px;min-height:40px;font-size:14px}
+html.jade textarea{line-height:1.6;padding:12px}
+html.jade .form-grid{gap:0 16px!important}
+html.jade fieldset{padding:16px 20px 20px!important;margin:0 0 20px!important}
+html.jade legend{padding:0 8px;margin-left:-8px}
+html.jade details>summary{cursor:pointer;padding:8px 0;color:var(--ac);font-weight:600;font-size:13px}
+html.jade details[open]>summary{margin-bottom:12px}
+html.jade .button-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+html.jade .notice{padding:12px 16px!important;margin:12px 0!important;line-height:1.55}
+html.jade .footnote{font-size:12.5px;line-height:1.55;color:var(--mu);margin:8px 0}
+html.jade .muted{line-height:1.55}
+html.jade :is(td,th){padding:12px 16px!important;vertical-align:middle}
+html.jade th{font:600 10.5px var(--fm);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+html.jade .chip,html.jade .chip-row>*{padding:4px 12px!important;border-radius:999px!important;font-size:12px!important;line-height:20px}
+html.jade .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+html.jade .hub-nav{padding-bottom:16px;margin-bottom:24px!important;gap:16px!important}
+html.jade .hub-head{margin:8px 0 16px!important}
+html.jade .back-link{margin:24px 0 8px!important}
+html.jade .workspace-grid{gap:24px!important}
+html.jade .team-list{margin-top:8px}
+html.jade .landing-head{margin-bottom:24px}
+/* reading prose: paragraphs, lists and headings get real separation, and lines stop at a readable length */
+html.jade .markdown{line-height:1.7;font-size:15px}
+html.jade .markdown>*{max-width:76ch}
+html.jade .markdown :is(p,ul,ol,blockquote,pre,.table-scroll){margin:0 0 16px}
+html.jade .markdown :is(ul,ol){padding-left:24px}
+html.jade .markdown li{margin:0 0 8px;padding-left:4px}
+html.jade .markdown li>p{margin:0 0 8px}
+html.jade .markdown :is(h1,h2,h3,h4){font-family:var(--fd);text-transform:uppercase;letter-spacing:.02em;line-height:1.15;margin:32px 0 12px}
+html.jade .markdown>:first-child{margin-top:0}
+html.jade .markdown h2{font-size:22px}html.jade .markdown h3{font-size:18px}html.jade .markdown h4{font-size:15px}
+html.jade .markdown .table-scroll{max-width:100%}
+html.jade .markdown table{border-collapse:separate;border-spacing:0;border:1px solid var(--ln);border-radius:12px;overflow:hidden}
+html.jade .markdown th{background:var(--sunk)}
+html.jade .markdown strong{color:var(--tx);font-weight:700}
+html.jade .strategy-block{padding:24px!important;margin-top:24px!important}
+html.jade .strategy-head{display:flex;align-items:center;gap:12px;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--ln)}
+html.jade .strategy-head h2{margin:0}
+/* plan cards and coaching */
+html.jade .plan-card{padding:20px!important;display:grid;gap:12px}
+html.jade .plan-card header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+html.jade .plan-card footer{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--ln)}
+html.jade :is(.coaching-bar,.objective-form){gap:12px!important;margin-bottom:16px!important}
+
+/* ---------- replay cards: glass, a calm result pill, readable summaries ---------- */
+html.jade article.game{background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 9%,transparent),transparent 55%),var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r)!important;padding:20px!important;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 1px 0 var(--hi);transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;cursor:pointer}
+html.jade article.game:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--ac) 50%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi),0 22px 44px -26px var(--glow)}
+html.jade .game-top{display:flex;align-items:center;gap:12px;margin:0!important}
+html.jade .result{border-radius:999px!important;padding:2px 12px!important;font-size:10.5px!important;border:1px solid var(--ln)!important;background:var(--sunk)!important;color:var(--mu)!important}
+html.jade .result.win{color:var(--ac)!important;border-color:color-mix(in srgb,var(--ac) 40%,transparent)!important}
+html.jade .result.loss{color:var(--tx)!important}
+html.jade .game-teams .six{display:flex;gap:4px;margin:0!important}
+html.jade .game-teams .six>span{border:0!important;background:none!important;border-radius:12px;padding:2px;position:relative;transition:opacity .2s}
+html.jade .game-teams .six>span.benched{opacity:.35;filter:grayscale(.6)}
+html.jade .game-teams .six>span.lead{background:color-mix(in srgb,var(--ac) 14%,transparent)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 45%,transparent)}
+html.jade .game-teams .art.small{width:44px!important;height:44px!important}
+html.jade .game-lead{margin:0;font-weight:600;line-height:1.5}
+html.jade .game-rest{margin:0;color:var(--mu);font-size:13.5px;line-height:1.6}
+html.jade .game-rest+.game-rest{margin-top:4px}
+html.jade .work-on{display:grid;gap:8px;margin:4px 0 0!important;padding:12px 0 0!important;border-top:1px solid var(--ln);list-style:none}
+html.jade .work-on li{display:flex;align-items:baseline;gap:8px;margin:0!important;line-height:1.45;font-size:13.5px}
+html.jade .work-on .cat{flex:none;font:600 10px var(--fm);letter-spacing:.1em;color:var(--gd)}
+html.jade .game .chip-row{margin-top:auto;padding-top:4px}
+
+/* ---------- the calc: one matchup, two sides ---------- */
+html.jade .lab{display:grid;gap:20px}
+html.jade .lab>.tabs{margin:0!important;display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln);justify-self:start}
+html.jade .lab>.tabs button{border:0!important;background:transparent!important;box-shadow:none!important;color:var(--mu)!important;min-width:96px;height:36px;border-radius:9px!important;backdrop-filter:none}
+html.jade .lab>.tabs button.selected{background:var(--glass-2)!important;color:var(--tx)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--shade)!important}
+.matchup{display:grid;border:1px solid var(--ln);border-radius:var(--r);background:var(--sunk);overflow:hidden}
+.combatant{display:grid;grid-template-columns:112px minmax(0,1fr);gap:20px;padding:20px;align-items:start}
+.combatant-art{position:relative;width:112px;height:112px}
+html.jade .combatant-art .art{width:112px!important;height:112px!important}
+.combatant-art::after{content:'';position:absolute;left:14%;right:14%;bottom:0;height:12px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
+.combatant-main{display:grid;gap:12px;min-width:0}
+.combatant-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.combatant-head .eyebrow{flex-basis:100%;margin:0}
+html.jade .combatant-head h3{margin:0;font:800 24px/1.1 var(--fd);text-transform:uppercase;letter-spacing:.02em}
+html.jade .combatant-head .combo{flex:1 1 220px;max-width:320px}
+html.jade .combatant-head .combo input{font:700 15px var(--fb);height:40px}
+html.jade .combatant-pick{margin:0!important;display:block}
+html.jade .combatant-pick.two{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:8px}
+html.jade .combatant-pick.two label{margin:0}
+html.jade .combatant-pick select{width:100%}
+.combatant-sum{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;margin:0!important;font-size:13px;color:var(--mu)}
+.combatant-sum>span:not(.item-icon){display:inline-flex;align-items:center}
+.combatant-sum>span:nth-child(2){color:var(--tx);font-weight:600;margin-left:-4px}
+.combatant-sum .mono{font:600 12px var(--fm);color:var(--tx)}
+html.jade .combatant .footnote{margin:0}
+html.jade .combatant-edit{border-top:1px dashed var(--ln);padding-top:4px}
+html.jade .combatant-edit>summary{font-size:12.5px}
+.matchup-axis{display:flex;align-items:center;justify-content:center;position:relative;padding:0 20px;height:0}
+.matchup-axis::before{content:'';position:absolute;left:20px;right:20px;top:0;border-top:1px solid var(--ln)}
+html.jade .direction{position:relative;z-index:1;height:36px;padding:0 8px 0 12px;border-radius:999px;gap:8px;font-size:13px;background:var(--bg)!important;border:1px solid var(--ln-2);box-shadow:0 8px 20px -12px var(--shade)}
+html.jade .direction>span{font-size:16px;color:var(--ac);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+html.jade .direction:hover>span{transform:scaleY(-1)}
+html.jade .direction small{font:600 10px var(--fm);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);padding:2px 8px;border-radius:999px;background:var(--sunk)}
+html.jade .direction.static{display:inline-flex;align-items:center;font-weight:600;cursor:default}
+.lab-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 12px}
+html.jade .lab-row label{margin-bottom:12px}
+html.jade .set-edit{display:grid;gap:4px;padding-top:8px}
+html.jade .set-edit .sp-grid{gap:8px!important;margin:4px 0 8px}
+html.jade .set-edit .sp-grid label{margin:0;gap:4px}
+html.jade .set-edit .sp-grid small{font:800 13px var(--fdot);color:var(--tx)}
+html.jade .lab-sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+html.jade .lab-sides fieldset{margin:0!important}
+html.jade .lab-flags{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:12px}
+html.jade .lab-more>summary{font-size:13px}
+html.jade .lab-result{margin:0!important;padding:20px!important;display:grid;gap:12px}
+html.jade .lab-result p{margin:0}
+.lab-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
+.lab-big b{font:900 40px/1 var(--fdot);color:var(--tx)}
+.lab-big span{font:600 13px var(--fm);color:var(--mu)}
+.lab-big span+b{margin-left:12px}
+.lab-hp{display:flex;height:10px;border-radius:99px;background:color-mix(in srgb,var(--hot) 22%,transparent);overflow:hidden;box-shadow:inset 0 0 0 1px var(--ln)}
+.lab-hp i{background:linear-gradient(90deg,var(--ac),var(--ac-2));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.lab-hp i.roll{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--gd) 80%,transparent) 0 4px,color-mix(in srgb,var(--gd) 40%,transparent) 4px 8px)}
+.lab-ko{font-weight:600}
+.lab-desc{font-size:13px;color:var(--mu)}
+html.jade .lab-result>button{justify-self:start}
+html.jade .benchmark-save{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0!important}
+@media (max-width:620px){.combatant{grid-template-columns:72px minmax(0,1fr);gap:12px;padding:16px}.combatant-art,html.jade .combatant-art .art{width:72px!important;height:72px!important}html.jade .combatant-pick.two{grid-template-columns:minmax(0,1fr)}}
+
+/* ---------- favourite star on the Pokémon's image ---------- */
+html.jade .art-wrap{position:relative;flex:none}
+html.jade .fav{position:absolute;top:-4px;right:-4px;width:36px;height:36px;padding:0;border-radius:50%;background:var(--bg)!important;border:1px solid var(--ln-2);box-shadow:0 8px 18px -10px var(--shade);z-index:2;color:var(--mu)}
+html.jade .fav svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;transition:transform .35s cubic-bezier(.2,.8,.2,1),fill .2s}
+html.jade .fav:hover{color:var(--gd)!important;border-color:var(--gd)}
+html.jade .fav:hover svg{transform:rotate(-12deg) scale(1.1)}
+html.jade .fav.on{color:var(--gd)!important;border-color:color-mix(in srgb,var(--gd) 55%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--gd) 14%,transparent),0 8px 18px -10px var(--shade)}
+html.jade .fav.on svg{fill:currentColor;animation:jStar .45s cubic-bezier(.2,.8,.2,1)}
+html.jade .fav-pop{position:absolute;top:40px;left:0;z-index:20;width:280px;padding:16px;border-radius:14px;background:var(--bg);border:1px solid var(--ln-2);box-shadow:0 30px 60px -20px var(--shade);animation:jPop .25s cubic-bezier(.2,.8,.2,1)}
+html.jade .fav-pop label{margin-bottom:12px}
+html.jade .fav-label{display:inline-flex;align-items:center;margin-left:8px;font-size:12px;font-weight:600;color:var(--gd)}
+html.jade .set-card-head{gap:20px!important;margin-bottom:20px!important}
+html.jade .set-types{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:8px 0}
+@keyframes jStar{0%{transform:scale(.6) rotate(-30deg)}60%{transform:scale(1.25)}100%{transform:none}}
+
+/* ---------- Ask Frontier Brain ---------- */
+html.jade .dock-toggle{font:800 16px/1 var(--fd)!important;text-transform:uppercase;letter-spacing:.06em;height:52px;padding:0 24px 0 16px!important;gap:12px;
+ box-shadow:0 0 0 1px color-mix(in srgb,var(--ac-2) 60%,transparent),0 0 0 6px color-mix(in srgb,var(--ac) 14%,transparent),0 18px 40px -12px var(--glow)!important;animation:jRise .6s cubic-bezier(.2,.8,.2,1) both}
+html.jade .dock-toggle:hover{transform:translateY(-2px)}
+html.jade .dock-toggle .dock-mark{width:24px;height:24px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
+html.jade .dock-head{display:grid!important;grid-template-columns:minmax(0,1fr) 40px;grid-template-areas:"title close" "controls controls";align-items:center;gap:16px 12px;padding:20px 20px 16px!important}
+html.jade .dock-head h2{grid-area:title;display:flex;align-items:center;gap:12px;margin:0;font:800 26px/1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em}
+html.jade .dock-head .dock-mark{width:32px;height:32px;filter:drop-shadow(0 4px 10px var(--glow))}
+html.jade .dock-close{grid-area:close;width:40px;height:40px;padding:0!important;border-radius:12px}
+html.jade .dock-controls{grid-area:controls;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px}
+html.jade .dock-controls>:is(.button,button,.model-picker){height:40px!important;min-height:40px;margin:0!important;border-radius:10px!important;font-size:13px!important}
+html.jade .dock-controls .button{display:inline-flex;align-items:center;justify-content:center;padding:0 12px!important}
+html.jade .dock-controls .model-picker{display:block}
+html.jade .dock-controls .model-picker select{width:100%;height:40px}
+html.jade .dock-controls button.icon{width:40px;padding:0!important}
+html.jade .dock-controls:not(:has(button.icon)){grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+html.jade .dock-log{padding:16px 20px!important;display:grid;gap:12px;align-content:start}
+html.jade .dock-log>.chat-empty,html.jade .chat-turn{padding:16px!important;line-height:1.6}
+html.jade .chat-suggestions{display:grid!important;gap:8px!important;padding:0 20px 16px!important}
+html.jade .chat-suggestions button{width:100%;min-height:48px;justify-content:flex-start!important;text-align:left;padding:12px 16px!important;line-height:1.4;white-space:normal;font-weight:500;border-radius:12px}
+html.jade .dock form,html.jade .dock-foot,html.jade .dock-compose{gap:8px}
+html.jade .set-card-head .art-wrap>.art{width:140px!important;height:140px!important;position:relative;animation:jFloat 6s ease-in-out infinite}
+html.jade .set-card-head .art-wrap>.art::after{content:'';position:absolute;left:12%;right:12%;bottom:-2px;height:16px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
+html.jade .set-card-head .fav{top:0;right:0}
+html.jade .set-fields .moves .form-grid{gap:8px!important}
+html.jade .set-fields .moves input{margin:0}
+html.jade .set-fields .moves label{margin:0}
+@media (max-width:620px){html.jade .set-card-head .art-wrap>.art{width:104px!important;height:104px!important}}
+/* stat rows are labels: keep them as their own grid, not the stacked label layout */
+html.jade label.stat-row{display:grid!important;flex-direction:unset;grid-template-columns:40px minmax(0,1fr) 64px 56px 44px!important;align-items:center;gap:12px!important;margin:0 0 8px!important;font-weight:500}
+html.jade label.stat-row input{min-height:36px;height:36px;padding:0 8px;text-align:center;font:600 13px var(--fm)}
+html.jade .stat-base{display:flex;align-items:baseline;justify-content:flex-end;gap:4px;font-size:13px;white-space:nowrap}
+html.jade .stat-plus{font:800 13px var(--fdot);color:var(--gd)}
+html.jade .stat-final{text-align:right}
+html.jade .stat-bars-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+html.jade .sp-edit .stat-bars-head b{font:800 15px var(--fdot)}
+html.jade .sp-edit{margin:8px 0 12px}
+@media (max-width:620px){html.jade label.stat-row{grid-template-columns:36px minmax(0,1fr) 52px 48px 40px!important;gap:8px!important}}
+/* round buttons stay round */
+html.jade :is(.theme-toggle,.fav){flex:none!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px;padding:0!important;aspect-ratio:1;border-radius:50%!important;display:inline-grid!important;place-items:center;line-height:0}
+html.jade :is(.theme-toggle,.fav) svg{width:18px;height:18px;flex:none;margin:0!important}
+html.jade .set-card-head .fav{top:-4px!important;left:-4px!important;right:auto!important}
+html.jade .fav-pop{top:44px;left:0}
+/* the attack direction gets its own row between the two sides */
+.matchup-axis{height:auto!important;padding:16px 20px!important}
+.matchup-axis::before{top:50%!important}
+html.jade .direction{height:40px!important;padding:0 12px 0 16px!important}
+.combatant{padding:24px!important}
+/* below both columns: saved benchmarks, then notes */
+html.jade .set-extras{display:grid;gap:24px;margin-top:24px}
+html.jade .set-benchmarks .benchmarks>h3{font:700 24px/1.15 var(--fd);text-transform:uppercase;margin:0 0 16px;padding-bottom:16px;border-bottom:1px solid var(--ln)}
+html.jade .benchmarks ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+html.jade .benchmarks li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .benchmarks li .what{display:grid;gap:4px}
+html.jade .benchmarks li .what small{color:var(--mu);font-size:12.5px}
+html.jade .benchmarks li.ok .mark{color:var(--ac)}html.jade .benchmarks li.broken .mark{color:var(--hot)}
+html.jade .benchmarks li .mark{font-weight:800;text-align:center}
+html.jade .set-notes-edit{margin:0!important}
+html.jade .set-notes-edit textarea{min-height:160px;font-size:14.5px;line-height:1.7}
+html.jade .set-extras>.panel{display:block!important}
+html.jade .set-extras .benchmarks{margin:0!important;padding:0!important;border:0!important}
+html.jade .set-extras .set-notes-edit{display:block!important;width:100%}
+html.jade .set-extras .set-notes-edit textarea{width:100%;display:block}
+html.jade .benchmarks li.broken{border-color:color-mix(in srgb,var(--hot) 45%,transparent)!important;background:color-mix(in srgb,var(--hot) 8%,transparent)!important}
+/* a button beside labelled fields lines up with the fields, not the labels */
+html.jade :is(form,.settings-form,.settings-row,.form-grid,.button-row)>label~:is(button,.button){align-self:flex-end;height:40px;margin-bottom:16px}
+html.jade .settings-form{align-items:flex-end;gap:0 12px}
