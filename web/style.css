@@ -570,3 +570,17 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.q
  .dock-toggle{right:16px!important;bottom:16px!important;height:48px!important;padding:0 var(--s4)!important}
 }
 .dock-head h2{justify-content:flex-start!important}
+/* Settings page */
+.settings{display:grid;gap:var(--s6);padding-bottom:var(--s8)}
+.settings>h1{margin:var(--s4) 0 0;text-align:left}
+.settings .panel{margin:0}
+.settings-row{display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}.settings-row p{margin:0;flex:1;min-width:240px}
+.settings-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:var(--s3);align-items:end;margin:var(--s3) 0}
+.settings-form label{display:grid;gap:var(--s1);margin:0}.settings-form button{margin:0}
+.settings-actions{display:flex;gap:var(--s2);flex-wrap:wrap}
+.ai-explainer{padding:var(--s4);margin:0 0 var(--s4);border:1px solid var(--line);background:var(--tint)}
+.ai-explainer>p{margin:0 0 var(--s3)}
+.privacy-points{margin:0;padding-left:var(--s6);display:grid;gap:var(--s2)}.privacy-points li{line-height:1.5}
+.key-saved{display:flex;align-items:center;gap:var(--s2);color:var(--emerald-deep);font-weight:600;margin:0 0 var(--s2)}
+a.account-button{text-decoration:none}
+@media(max-width:720px){.settings-form{grid-template-columns:minmax(0,1fr)}}

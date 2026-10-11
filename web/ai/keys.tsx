@@ -4,7 +4,7 @@ import {useState} from 'react';
 export type AIKey={provider:'openai'|'anthropic';key:string};
 const STORE='frontierbrain.ai';
 export function aiKey():AIKey|null{try{const v=JSON.parse(localStorage.getItem(STORE)??'null');return v&&typeof v.key==='string'&&['openai','anthropic'].includes(v.provider)?v:null;}catch{return null;}}
-function setAIKey(v:AIKey|null){try{if(v)localStorage.setItem(STORE,JSON.stringify(v));else localStorage.removeItem(STORE);}catch{}}
+export function setAIKey(v:AIKey|null){try{if(v)localStorage.setItem(STORE,JSON.stringify(v));else localStorage.removeItem(STORE);}catch{}}
 export function aiHeaders():Record<string,string>{const k=aiKey();return k?{'X-AI-Provider':k.provider,'X-AI-Key':k.key}:{};}
 
 export function AIKeySettings({onChange}:{onChange?:()=>void}){
