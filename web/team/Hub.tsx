@@ -71,12 +71,16 @@ function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:strin
   const current=team.versions.find((v:any)=>v.id===team.activeVersionId);const edits=current.configurations.length-1;const next=team.versions.length+1;
   const [saving,setSaving]=useState(false),[label,setLabel]=useState(''),[busy,setBusy]=useState(false);
   const save=async()=>{setBusy(true);try{const r=await mutate({type:'team-milestone',teamId:team.id,parentConfigurationId:current.currentConfigurationId,label});setSaving(false);setLabel('');location.hash=teamHref(team.id,'overview',r.result.versionId);}catch{}finally{setBusy(false);}};
-  const describe=(v:any)=>`${versionName(v)}${v.id===team.activeVersionId?` (current${edits?` · ${edits} edit${edits===1?'':'s'}`:''})`:''}${(r=>r.n?` · ${r.label}`:'')(record(games.filter((x:any)=>x.association?.versionId===v.id)))}`;
-  if(saving)return <span className="milestone-form"><input autoFocus aria-label="Version name" placeholder={`V${next} name (optional)`} value={label} onChange={e=>setLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void save();if(e.key==='Escape')setSaving(false);}}/><button className="primary" disabled={busy} onClick={()=>void save()}>Save V{next}</button><button onClick={()=>setSaving(false)}>Cancel</button></span>;
-  return <label className="version-select"><span className="sr-only">Version</span><select value={all?'all':versionId} onChange={e=>{if(e.target.value==='new')return setSaving(true);location.hash=teamHref(team.id,tab,e.target.value);}}>
+  const describe=(v:any)=>`V${v.number}${v.label?`: ${v.label}`:''}${v.id===team.activeVersionId?` (current${edits?` · ${edits} edit${edits===1?'':'s'}`:''})`:''}${(r=>r.n?` · ${r.label}`:'')(record(games.filter((x:any)=>x.association?.versionId===v.id)))}`;
+  return <><label className="version-select"><span className="sr-only">Version</span><select value={all?'all':versionId} onChange={e=>{if(e.target.value==='new')return setSaving(true);location.hash=teamHref(team.id,tab,e.target.value);}}>
     {team.versions.length>1&&<option value="all">All versions</option>}
     {team.versions.map((v:any)=><option key={v.id} value={team.versions.length>1?v.id:'all'}>{describe(v)}</option>)}
-    <option value="new">Save as new version (V{next})…</option></select></label>;
+    <option disabled>──────────</option>
+    <option value="new">Save as new version…</option></select></label>
+    {saving&&<Modal title={`Save as V${next}`} onClose={()=>setSaving(false)}><form className="save-version" onSubmit={e=>{e.preventDefault();void save();}}>
+      <p className="muted">Keeps the current six as V{next} so you can come back to it, e.g. before a tournament. V{next} becomes the current team; earlier versions stay as they are.</p>
+      <label>Name (optional)<input autoFocus aria-label="Version name" placeholder="e.g. Pre-Regional" value={label} onChange={e=>setLabel(e.target.value)}/></label>
+      <div className="button-row"><button className="primary" disabled={busy}>Save V{next}</button><button type="button" onClick={()=>setSaving(false)}>Cancel</button></div></form></Modal>}</>;
 }
 // Every version, newest first, each with its edit log. Older edits can be viewed and restored; nothing is overwritten.
 function Versions({team,data,games,mutate}:{team:any;data:any;games:any[];mutate:(a:any)=>Promise<any>}){

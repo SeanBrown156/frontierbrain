@@ -493,3 +493,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .team-hub .hub-nav{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap;gap:var(--s3)!important;width:100%}
 .team-hub .hub-tabs{justify-content:flex-start!important;margin:0!important}
 @media(max-width:720px){.team-hub .hub-nav{flex-direction:column!important;align-items:stretch!important}.team-hub .hub-tabs{display:grid!important;grid-template-columns:1fr 1fr;gap:var(--s2)}}
+.save-version{display:grid;gap:var(--s4);max-width:480px}.save-version label{display:grid;gap:var(--s1)}.save-version .button-row{justify-content:flex-start;margin:0}
+/* Even spacing: tabs no longer reserve room for a cursor; icons in flex controls rely on the gap only. */
+.hub-tabs a{padding:0 var(--s4)!important;gap:var(--s2)!important;justify-content:center}
+button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.quickbar-all .px-icon,.drawer-news .px-icon,.ticker-label .px-icon{margin-right:0!important}
+.modal:has(.save-version){width:min(520px,95vw)}.save-version{max-width:none}
