@@ -585,3 +585,12 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.q
 a.account-button{text-decoration:none}
 @media(max-width:720px){.settings-form{grid-template-columns:minmax(0,1fr)}}
 .ai-mode{display:grid!important;grid-template-columns:1fr 1fr;width:100%;margin:0 0 var(--s4)!important}.ai-mode button{height:var(--control-height)!important;min-height:var(--control-height)!important;font-size:14px!important;border-radius:0!important}.panel-heading h2 .px-icon{vertical-align:-2px}
+.consent{text-align:left;justify-items:start}.consent h1{font-size:24px!important}.consent .button-row{justify-content:flex-start}
+/* Settings › Connect Claude or ChatGPT */
+.connectors{display:grid;gap:var(--s4)}
+.connector-url{display:grid;gap:var(--s1);margin:0}
+.copy-line{display:flex;align-items:center;gap:var(--s2);margin:var(--s2) 0;padding:var(--s2) var(--s2) var(--s2) var(--s3);border:1px solid var(--line);background:var(--field)}
+.copy-line code{flex:1;min-width:0;font:13px var(--mono);overflow-x:auto;white-space:nowrap}
+.copy-line button{flex:none}
+.client-tabs{display:flex!important;flex-wrap:wrap;width:100%;gap:0}.client-tabs button{flex:1 1 auto;height:var(--compact-height)!important;min-height:var(--compact-height)!important;font-size:13px!important}
+.steps{margin:0;padding-left:var(--s6);display:grid;gap:var(--s3)}.steps li{line-height:1.55}.steps code{font:13px var(--mono);background:var(--surface);padding:0 var(--s1)}

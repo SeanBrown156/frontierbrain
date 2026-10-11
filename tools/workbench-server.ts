@@ -25,6 +25,7 @@ import {hostedConfig,hostedHandler} from './hosted.ts';
 import {addSamples,seedNewWorkspace} from './samples.ts';
 import {searchPoolTeams,poolTeamDraft} from './pool-import.ts';
 import {createBackup,restoreBackup} from './backup.ts';
+import {handleMcp} from './mcp.ts';
 
 function respond(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
 const WEB_PORT=Number(process.env.WEB_PORT??5173),API_PORT=Number(process.env.API_PORT??5174);
@@ -66,6 +67,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
   if(!hostedMode&&!allowedRequest(req,apiPort))return respond(res,403,{error:'Local UI requests only'});
   const url=new URL(req.url??'/',`http://${req.headers.host}`);const path=url.pathname;
   try{
+    if(path==='/api/mcp')return handleMcp(req,res,req.method==='POST'?await body(req):undefined);
     if(req.method==='GET'&&path==='/api/dashboard'){if(storageRoot===ROOT)await seedNewWorkspace().catch(e=>console.error('Sample teams not added:',(e as Error).message));return respond(res,200,await dashboard(storageRoot));}
     if(req.method==='GET'&&path==='/api/pool-teams'){const lane=url.searchParams.get('lane');return respond(res,200,await searchPoolTeams({q:url.searchParams.get('q')??'',lane:['official','online','shared'].includes(lane??'')?lane as any:undefined,limit:Number(url.searchParams.get('limit')??40)}));}
     if(req.method==='GET'&&path==='/api/pool-team')return respond(res,200,await poolTeamDraft(url.searchParams.get('id')??''));

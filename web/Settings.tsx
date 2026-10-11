@@ -43,19 +43,36 @@ function AIPanel(){
     {mode==='key'?<AIKey/>:<Connectors/>}
   </Panel>;
 }
-// MCP connector: Claude or ChatGPT uses Frontier Brain's tools (your teams, calcs, pool data) with your own subscription.
+// MCP connector: Claude, ChatGPT or a coding agent uses Frontier Brain's tools (teams, calcs, pool data) on the
+// player's own subscription. Hosted, it signs in with your Frontier Brain account (OAuth); locally there's no sign-in.
+const CLIENTS=['Claude','ChatGPT','Claude Code','Codex CLI','Cursor & VS Code'] as const;
+function Copy({text}:{text:string}){const [done,setDone]=useState(false);return <div className="copy-line"><code>{text}</code><button className="compact" onClick={()=>{void navigator.clipboard.writeText(text).then(()=>{setDone(true);setTimeout(()=>setDone(false),1500);});}}>{done?'Copied':'Copy'}</button></div>;}
 function Connectors(){
-  const account=useAccount();
-  return <div className="ai-explainer">
-    <p><b>Use Frontier Brain from Claude or ChatGPT.</b> Add Frontier Brain as a connector and your own assistant can read your teams, run exact calcs, look up the data pool and save changes you approve. It runs on your Claude or ChatGPT subscription, with no API key needed.</p>
-    <ul className="privacy-points">
-      <li><b>You approve access.</b> Connecting asks you to sign in to Frontier Brain and allow it. You can disconnect at any time.</li>
-      <li><b>Only your workspace.</b> The connector sees your teams and replays, nobody else's.</li>
-      <li><b>Changes stay proposals.</b> Anything it suggests waits for you to accept, like it does here.</li>
-    </ul>
-    <p className="notice">Coming next: connectors aren't switched on yet.{account.kind==='guest'?' They will need a free account.':' This is where you\'ll find the address to add in Claude or ChatGPT.'}</p>
+  const account=useAccount();const url=`${location.origin}/api/mcp`;const [client,setClient]=useState<typeof CLIENTS[number]>('Claude');
+  const local=!hostedSite;const web=client==='Claude'||client==='ChatGPT';
+  return <div className="connectors">
+    <div className="ai-explainer">
+      <p><b>Use Frontier Brain from Claude, ChatGPT or your coding agent.</b> Add it as a connector and your assistant can read your teams, run exact calcs, look up the data pool, create teams and propose plans. It runs on your own subscription, with no API key needed.</p>
+      <ul className="privacy-points">
+        <li><b>You approve access.</b> {local?'Locally, only apps on this computer can connect.':'Connecting opens Frontier Brain so you can sign in and click Allow. Disconnect any time from the app you connected.'}</li>
+        <li><b>Only your workspace.</b> The connector sees your teams and replays, nobody else's.</li>
+        <li><b>Changes wait for you.</b> New plans arrive as proposals in the team's Strategy tab; nothing about an existing team changes until you accept it.</li>
+      </ul>
+    </div>
+    {account.kind==='guest'?<div className="settings-row"><p>Connectors need a free account.</p><button className="primary" onClick={()=>requireAccount('Sign in for free to connect Claude or ChatGPT.')}>Sign in</button></div>:<>
+      <label className="connector-url">Connector address<Copy text={url}/></label>
+      <div className="segmented client-tabs" role="tablist">{CLIENTS.map(c=><button key={c} role="tab" aria-selected={client===c} className={client===c?'on':''} onClick={()=>setClient(c)}>{c}</button>)}</div>
+      {local&&web?<p className="notice">{client} connects to sites on the internet, not to this computer. Use the hosted site (frontierbrain.vercel.app) to connect {client}, or use Claude Code, Codex or Cursor here.</p>
+      :client==='Claude'?<ol className="steps"><li>In Claude (web or desktop), open <b>Customize → Connectors</b>, click <b>+</b> and choose <b>Add custom connector</b>.</li><li>Name it <b>Frontier Brain</b> and paste the connector address above. Leave the advanced OAuth fields empty.</li><li>Click <b>Add</b>, then <b>Connect</b>. Frontier Brain opens: sign in if asked and click <b>Allow</b>.</li><li>In a chat, click <b>+ → Connectors</b> and switch on Frontier Brain. Try: “List my Frontier Brain teams.”</li></ol>
+      :client==='ChatGPT'?<ol className="steps"><li>In ChatGPT, open <b>Settings → Apps & Connectors → Advanced settings</b> and turn on <b>Developer mode</b> (Plus, Pro, Business, Enterprise or Edu).</li><li>Back in <b>Apps & Connectors</b>, click <b>Create</b>. Name it <b>Frontier Brain</b>, paste the connector address and choose <b>OAuth</b>.</li><li>Save. Frontier Brain opens: sign in if asked and click <b>Allow</b>.</li><li>Start a chat with the connector enabled and ask: “List my Frontier Brain teams.”</li></ol>
+      :client==='Claude Code'?<ol className="steps"><li>Add the connector:<Copy text={`claude mcp add --transport http frontier-brain ${url}`}/></li>{!local&&<li>In Claude Code, run <code>/mcp</code>, pick <b>frontier-brain</b> and authenticate. Frontier Brain opens in your browser: click <b>Allow</b>.</li>}<li>Ask: “Use frontier-brain to list my teams.”</li></ol>
+      :client==='Codex CLI'?<ol className="steps"><li>Add the connector:<Copy text={`codex mcp add frontier-brain --url ${url}`}/></li>{!local&&<li>Sign in:<Copy text="codex mcp login frontier-brain"/>Frontier Brain opens in your browser: click <b>Allow</b>.</li>}<li>Ask Codex to use frontier-brain to list your teams.</li></ol>
+      :<ol className="steps"><li>Cursor: add to <code>~/.cursor/mcp.json</code><Copy text={JSON.stringify({mcpServers:{'frontier-brain':{url}}})}/></li><li>VS Code: add to <code>.vscode/mcp.json</code><Copy text={JSON.stringify({servers:{'frontier-brain':{type:'http',url}}})}/></li>{!local&&<li>When the editor asks you to sign in, Frontier Brain opens: click <b>Allow</b>.</li>}</ol>}
+      <p className="footnote">Tools: list_teams, get_team, list_replays, replay_transcript, calc_damage, calc_speed, spread_search, standard_set, usage_data, team_pool_sets, meta_overview, dex_lookup, import_team, propose_plans.</p>
+    </>}
   </div>;
 }
+
 function AIKey(){
   const account=useAccount();const [saved,setSaved]=useState<AIKey|null>(()=>aiKey());const [provider,setProvider]=useState<AIKey['provider']>(saved?.provider??'openai'),[key,setKey]=useState(''),[status,setStatus]=useState('');
   const locked=account.kind==='guest';

@@ -19,7 +19,8 @@ export const canUseAI=(a:Account)=>a.kind!=='guest';
 let openDialog:(reason?:string)=>void=()=>{};
 export function requireAccount(reason?:string){openDialog(reason);}
 
-const redirectTo=()=>location.origin+location.pathname;
+// Back to the same page after Google; the connector consent page also needs its ?authorization_id.
+const redirectTo=()=>location.origin+location.pathname+(location.pathname.startsWith('/oauth/')?location.search:'');
 // Signing in to an account that already exists from a guest session switches users. The guest's own teams
 // (not the samples) travel with a backup kept in this browser and are merged into the account after sign-in.
 const CARRY='frontierbrain.carry';

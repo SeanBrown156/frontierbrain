@@ -73,11 +73,16 @@ export function hostedHandler(config:HostedConfig,inner:(req:IncomingMessage,res
   const deny=(res:ServerResponse,status:number,error:string)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify({error}));};
   return async(req:IncomingMessage,res:ServerResponse)=>{
     const path=new URL(req.url??'/','http://x').pathname;
+    // MCP discovery (RFC 9728): the connector endpoint names Supabase Auth as its OAuth server.
+    const origin=`${req.headers['x-forwarded-proto']??(/^(127\.0\.0\.1|localhost)/.test(req.headers.host??'')?'http':'https')}://${req.headers['x-forwarded-host']??req.headers.host}`;
+    if(path.startsWith('/.well-known/oauth-protected-resource')){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'public, max-age=3600','Access-Control-Allow-Origin':'*'});res.end(JSON.stringify({resource:`${origin}/api/mcp`,authorization_servers:[`${config.url}/auth/v1`],bearer_methods_supported:['header'],resource_name:'Frontier Brain'}));return;}
     if(LOCAL_ONLY.has(path)&&!(path==='/api/jobs'&&req.method==='GET'))return deny(res,404,'Not available on the hosted site');
     const token=/^Bearer (.+)$/.exec(req.headers.authorization??'')?.[1];
+    if(!token&&path==='/api/mcp'){res.writeHead(401,{'Content-Type':'application/json','WWW-Authenticate':`Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource"`});res.end(JSON.stringify({error:'Connect your Frontier Brain account to use this connector.'}));return;}
     if(!token){if(!PUBLIC.has(path))return deny(res,401,'Sign in or continue as a guest');return withData({user:nobody,shared,hosted:true},()=>inner(req,res));}
     const {data,error}=await auth.auth.getClaims(token);const userId=data?.claims?.sub;
     if(error||!userId)return deny(res,401,'Your session has expired. Sign in again.');
+    if(data.claims.is_anonymous&&path==='/api/mcp')return deny(res,403,'Connectors need a free Frontier Brain account. Sign in on the site first.');
     if(data.claims.is_anonymous){if(AI.has(path)&&req.method==='POST'||path==='/api/models')return deny(res,403,'Sign in to use AI features. Your guest work is kept.');delete req.headers['x-ai-key'];}
     const client=createClient(config.url,config.publishableKey,{...noSession,global:{headers:{Authorization:`Bearer ${token}`}}});
     return withData({user:userFiles(client,userId),shared,store:workspaceStore(client,userId),userId,hosted:true},()=>inner(req,res));
