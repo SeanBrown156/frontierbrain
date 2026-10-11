@@ -501,3 +501,26 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.q
 /* The team title is editable: a pixel pencil always shows beside it. */
 .title-button .px-icon,.title-button svg{opacity:1!important;color:var(--emerald-deep);flex:none}
 .title-button:hover .px-icon,.title-button:hover svg{color:var(--emerald-shade)}
+.version-bar .format-picker{display:inline-flex!important;margin:0!important}
+.version-bar .format-picker select,.version-bar .version-select select{height:var(--control-height)!important;font:14px var(--font)!important;padding:0 var(--s6) 0 var(--s3)!important;margin:0!important}
+.version-bar .format-picker select{width:auto!important;max-width:240px!important}
+.version-bar .version-select select{max-width:300px!important}
+@media(max-width:720px){.version-bar .format-picker{flex:1 1 100%}.version-bar .format-picker select{width:100%!important;max-width:none!important}}
+.replays>.profile-card,.profile-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto!important;align-items:end!important;text-align:left!important;justify-items:stretch!important}
+.profile-card>div{grid-column:1/-1}
+.profile-card>button{justify-self:start!important;align-self:end!important;margin:0!important}
+.profile-card>.error{grid-column:1/-1}
+@media(max-width:720px){.replays>.profile-card,.profile-card{grid-template-columns:minmax(0,1fr)!important}}
+.team-hub .hub-nav{flex-wrap:nowrap!important}.team-hub .hub-tabs{flex-wrap:nowrap!important;flex:none}
+.version-bar{flex:0 1 auto;min-width:0}
+.version-bar .format-picker select{max-width:200px!important}.version-bar .version-select{min-width:0}.version-bar .version-select select{max-width:220px!important;min-width:0;text-overflow:ellipsis}
+@media(max-width:1100px){.team-hub .hub-nav{flex-wrap:wrap!important}}
+.profile-card>button{grid-column:3!important;grid-row:2!important;width:auto!important}
+.profile-card>label{grid-row:2}
+@media(max-width:720px){.profile-card>button{grid-column:1!important;grid-row:auto!important}.profile-card>label{grid-row:auto}}
+/* Replay upload row: one height, one baseline. */
+.add-row{display:flex!important;align-items:stretch!important;gap:var(--s2)!important}
+.add-row textarea{height:var(--control-height)!important;min-height:var(--control-height)!important;padding:var(--s2) var(--s3)!important;line-height:1.5;resize:vertical;margin:0!important}
+.add-row>button,.add-row .file-button{height:var(--control-height)!important;min-height:var(--control-height)!important;align-self:flex-start!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;gap:var(--s2);box-sizing:border-box}
+@media(max-width:720px){.add-row{display:grid!important;grid-template-columns:1fr 1fr}.add-row textarea{grid-column:1/-1}}
+.version-bar .format-picker select{min-width:220px;max-width:none!important}
