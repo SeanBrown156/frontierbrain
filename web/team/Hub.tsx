@@ -1,10 +1,10 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Panel,Modal,Notice,date,Markdown,TypeBadges,ItemIcon,useDex,useBattleForm} from '../ui.tsx';
+import {api,Art,Panel,Modal,Notice,date,Markdown,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge} from '../ui.tsx';
 import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye,Check,WarningDiamond} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
-import {getView,versionName,stats} from './editors.tsx';
+import {getView,versionName,stats,natureEffect} from './editors.tsx';
 import {useDraft,useOffers,takeOffer} from '../save-state.ts';
 import SetTile from '../ai/SetTile.tsx';
 import type {Mutate} from './PokemonWorkspace.tsx';
@@ -49,18 +49,18 @@ function MonCard({i,revision,href,active,art}:{i:number;revision:any;href:string
   const s=revision.set;const obs=revision.provenance==='observed';const form=useBattleForm(s.species,s.item);
   return <a className={'mon-card'+(active?'':' read-only')} href={href} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
       <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
-      <div className="mon-card-head"><Art name={form} fallback={s.species} art={art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}{form!==s.species&&<span className="mega-tag">Mega</span>}</h3><TypeBadges species={form}/></div></div>
+      <div className="mon-card-head"><Art name={form} fallback={s.species} art={art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}</h3><div className="mon-tags">{form!==s.species&&<MegaBadge/>}<TypeBadges species={form}/></div></div></div>
       <p className="mon-item"><ItemIcon item={s.item}/>{s.item||'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}<span className="mon-meta">{s.ability} · {s.nature}</span></p>
-      <SpBars species={form} points={s.statPoints??{}}/>
+      <SpBars species={form} points={s.statPoints??{}} nature={s.nature}/>
       <ul className="move-list">{s.moves?.map((m:string)=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
 </a>;
 }
 // Card stat bars: the species' base stat with the set's stat points stacked on the end (the same drawing as the
 // Pokémon page). Final stats live on the Pokémon page, where they come from the stat tool.
-function SpBars({species,points}:{species:string;points:Record<string,number>}){
+function SpBars({species,points,nature}:{species:string;points:Record<string,number>;nature?:string}){
   const base=useDex([species],[]).base[species];const scale=(v:number)=>`${Math.min(100,100*v/200)}%`;
   return <div className="sp-bars" aria-label="Base stats and stat points">{stats.map(k=>{const b=base?.[k]??0,sp=points[k]??0;
-    return <div key={k} className={'sp-bar'+(sp?' has-sp':'')}><span className="k">{statLabel[k]}</span><span className="track"><i className="b" style={{width:scale(b)}}/><i className="p" style={{width:scale(sp)}}/></span><span className="v">{base?b:'—'}{sp>0&&<b>+{sp}</b>}</span></div>;})}</div>;
+    return <div key={k} className={'sp-bar'+(sp?' has-sp':'')}><span className="k">{statLabel[k]}{natureEffect(nature,k)>0?<b className="nat up" title={`${nature}: +10%`}>↑</b>:natureEffect(nature,k)<0?<b className="nat down" title={`${nature}: −10%`}>↓</b>:null}</span><span className="track"><i className="b" style={{width:scale(b)}}/><i className="p" style={{width:scale(sp)}}/></span><span className="v">{base?b:'—'}{sp>0&&<b>+{sp}</b>}</span></div>;})}</div>;
 }
 // Lead and matchup drafts that came with an AI team are added to Coaching as proposals to accept there.
 export async function addPlans(team:any,data:any,mutate:Mutate,p:any,versionId:string){
@@ -110,7 +110,7 @@ function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:Muta
   return <div className="versions history">
     <ol className="history-list">{entries.map((e:any)=>{const now=e.c.id===active.currentConfigurationId;const sets=getView(team,data.db,e.v.id,e.c.id).sets;
       return <li key={e.c.id} className={now?'current':''}><span className="when">{date(e.c.createdAt)}</span><span className="what">{label(e)}</span>
-        <span className="team-six mini">{sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</span>
+        <span className="team-six mini">{sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</span>
         {now?<span className="tag ok">Current</span>:<span className="button-row"><button className="compact" onClick={()=>setViewing({version:e.v,config:e.c})}><Px icon={Eye} size={12}/>View</button><button className="compact" onClick={()=>void restore(e)}>Restore</button></span>}</li>;})}</ol>
     {viewing&&<Modal title={`Team on ${date(viewing.config.createdAt)}`} onClose={()=>setViewing(null)}><p className="muted">{viewing.config.summary||'Saved'}</p><div className="proposals">{getView(team,data.db,viewing.version.id,viewing.config.id).sets.map((s:any,i:number)=><SetTile key={i} set={s} art={data.art}/>)}</div></Modal>}
     <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Deletes the team, its history, strategy, replays and their analysis. Its sets stay in your Pokémon library.</p></div>
@@ -121,7 +121,7 @@ function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:Muta
 export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void;reload?:()=>Promise<void>}){
   return <div className="teams-landing"><div className="landing-head"><h1>Your teams</h1></div>
     <BuildJobs onReview={onReview} art={data.art}/>
-    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span>{r.n>0&&<span className="card-record">{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
+    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span>{r.n>0&&<span className="card-record">{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
     <SampleTeams data={data} reload={reload}/>
     </div>;
 }
@@ -135,7 +135,7 @@ function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>voi
   if(!jobs.length)return null;
   return <div className="build-jobs">{jobs.map(j=>{const team=j.result?.proposals?.find((p:any)=>p.kind==='team');const last=j.steps.at(-1);return <article key={j.id} className={'build-job '+j.status}><div><span className="eyebrow">{j.status==='running'?'BUILDING…':j.status==='done'?'DRAFT READY':j.status==='failed'?'BUILD FAILED':'INTERRUPTED'}</span><h3>{team?.name??j.title}</h3>
       {j.status==='running'&&<p className="muted">{j.steps.length} research step(s){last?` · ${buildSteps[last.name]??last.name}${last.input?`: ${last.input}`:''}`:' · starting'}</p>}
-      {team&&<div className="team-six">{team.sets.map((s:any)=><Art key={s.species} name={s.species} art={art} small/>)}</div>}{j.error&&<p className="error">{j.error}</p>}</div>
+      {team&&<div className="team-six">{team.sets.map((s:any)=><SetArt key={s.species} set={s} art={art} small/>)}</div>}{j.error&&<p className="error">{j.error}</p>}</div>
     <div className="button-row">{team&&<button className="primary" onClick={()=>onReview({jobId:j.id,proposal:team})}>Review draft</button>}{j.status!=='running'&&<button onClick={()=>void api('/ai-job-dismiss',{id:j.id}).then(()=>setJobs(jobs.filter(x=>x.id!==j.id)))}>Dismiss</button>}</div></article>;})}</div>;
 }
 

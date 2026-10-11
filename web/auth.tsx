@@ -1,6 +1,7 @@
 import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
 import {createClient,type Session} from '@supabase/supabase-js';
-import {Sparkles} from 'pixelarticons/react';
+import {Sparkles} from './icons.tsx';
+import {X} from 'lucide-react';
 
 // Hosted site only: Supabase Auth. Without VITE_SUPABASE_URL the app runs in local mode with no sign-in at all.
 // Nobody is asked to sign in up front: a first visit starts an anonymous guest session, so work saves straight away.
@@ -68,7 +69,7 @@ function SignInDialog({reason,onClose}:{reason?:string;onClose:()=>void}){
   useEffect(()=>{const d=ref.current!;d.showModal();return()=>d.close();},[]);
   const google=async()=>{await stashGuestWork();await supabase!.auth.linkIdentity({provider:'google',options:{redirectTo:redirectTo()}});};
   return <dialog ref={ref} className="modal signin-dialog" aria-labelledby="signin-title" onCancel={onClose}>
-    <header><h2 id="signin-title">Sign in to Frontier Brain</h2><button aria-label="Close" onClick={onClose}>×</button></header>
+    <header><h2 id="signin-title">Sign in to Frontier Brain</h2><button className="icon dialog-close" aria-label="Close" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>
     <div className="signin-body">
       {reason&&<p className="notice">{reason}</p>}
       <p>An account keeps your teams on any device and unlocks AI: Ask Frontier Brain, AI team builds, replay summaries, and connecting Claude or ChatGPT. Everything you've done as a guest comes with you.</p>

@@ -1,6 +1,6 @@
 import {useState,useEffect,useCallback,useRef} from 'react';
-import {api,ApiError,Panel,Modal,Markdown,Empty,date,Notice,JobStatus} from './ui.tsx';
-import {Px,ArrowLeft,Close,Menu as MenuIcon,Chart,Trophy,BookOpen,Users,Play,Bookmark,ChevronDown,Zap,Notes,Check,WarningDiamond} from './icons.tsx';
+import {api,ApiError,Panel,Modal,Markdown,Empty,date,Notice,JobStatus,SiteIcon} from './ui.tsx';
+import {Px,ArrowLeft,Close,Close as CloseIcon,Menu as MenuIcon,Chart,Trophy,BookOpen,Users,Play,Bookmark,ChevronDown,Zap,Notes,Check,WarningDiamond} from './icons.tsx';
 import AssistDock,{type DockContext} from './ai/AssistDock.tsx';
 import {useSaveState,saving,saved,failed,hasDirty,confirmDiscard} from './save-state.ts';
 import TeamHub,{TeamsLanding} from './team/Hub.tsx';
@@ -65,7 +65,7 @@ export default function App(){
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>
-    <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button aria-label="Dismiss notification" onClick={()=>setMessage(null)}>×</button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
+    <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button className="icon" aria-label="Dismiss notification" onClick={()=>setMessage(null)}><Px icon={CloseIcon} size={16}/></button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
     {!data?<Empty>Opening Frontier Brain…</Empty>:<>
       {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
       {route==='welcome'&&<Welcome data={data}/>}
@@ -106,7 +106,7 @@ const barGroups=[['data','Data',Chart],['results','Results',Trophy],['learn','Le
 function QuickLinks({sources}:{sources:any[]}){
   const host=(u:string)=>{try{return new URL(u).hostname;}catch{return '';}};const [open,setOpen]=useState('');
   useEffect(()=>{const close=()=>setOpen('');addEventListener('click',close);return()=>removeEventListener('click',close);},[]);
-  const link=(s:any)=><a key={s.id} href={s.url} target="_blank" rel="noreferrer" title={s.notes}><img src={s.icon??`https://${host(s.url)}/favicon.ico`} alt="" loading="lazy" width={18} height={18} onError={e=>{e.currentTarget.style.visibility='hidden';}}/><span>{s.name}<small>{s.notes}</small></span></a>;
+  const link=(s:any)=><a key={s.id} href={s.url} target="_blank" rel="noreferrer" title={s.notes}><SiteIcon url={s.url} icon={s.icon} size={18}/><span>{s.name}<small>{s.notes}</small></span></a>;
   return <nav className="quickbar" aria-label="Quick links" onClick={e=>e.stopPropagation()}>{barGroups.map(([key,label,icon])=>{const rows=sources.filter(s=>s.bar===key).sort((a,b)=>a.barOrder-b.barOrder);return <div key={key} className={'quickbar-group'+(open===key?' open':'')}><button aria-expanded={open===key} onClick={()=>setOpen(open===key?'':key)}><Px icon={icon}/>{label}<Px icon={ChevronDown} size={12}/></button>{open===key&&<div className="quickbar-menu">{key==='data'&&<a href="#data" className="pool-link" onClick={()=>setOpen('')}><img src="/favicon.svg" alt="" width={18} height={18}/><span>Frontier Brain data pool<small>Every source combined into one deduplicated set of teams</small></span></a>}{rows.map(link)}</div>}</div>;})}
 <a className="quickbar-all" href="#references"><Px icon={Bookmark}/>All references</a></nav>;
 }
@@ -117,7 +117,7 @@ const catalogueGroups=[['data','Data'],['results','Results'],['learn','Learn'],[
 function ReferenceGroups({sources}:{sources:any[];compact?:boolean}){
   const host=(u:string)=>{try{return new URL(u).hostname.replace(/^www\./,'');}catch{return '';}};
   const behind=sources.filter(s=>s.behind);
-  const card=(s:any)=><article key={s.id} className="source-card"><a href={s.url} target="_blank" rel="noreferrer"><img src={s.icon??`https://${host(s.url)}/favicon.ico`} alt="" width={18} height={18} onError={e=>{e.currentTarget.style.visibility='hidden';}}/>{s.name} ↗</a><p>{s.notes}</p><span className="muted tiny">{host(s.url)}</span></article>;
+  const card=(s:any)=><article key={s.id} className="source-card"><a href={s.url} target="_blank" rel="noreferrer"><SiteIcon url={s.url} icon={s.icon} size={18}/>{s.name} ↗</a><p>{s.notes}</p><span className="muted tiny">{host(s.url)}</span></article>;
   return <div className="reference-groups">{catalogueGroups.map(([key,title])=>{const rows=sources.filter(s=>s.bar===key).sort((a,b)=>a.barOrder-b.barOrder);return rows.length?<section key={key}><h3>{title}</h3><div className="source-grid">{rows.map(card)}</div></section>:null;})}
     <section><h3>Behind Frontier Brain</h3><p className="muted">Rules, raw datasets and engine sources the app itself relies on.</p><div className="source-grid">{behind.map(card)}</div></section></div>;
 }

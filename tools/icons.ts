@@ -61,3 +61,15 @@ export function dexInfo(species:string[],items:string[]){
     megas:Object.fromEntries(known.filter(([,s])=>s.exists).map(([n,s])=>[n,(s.otherFormes??[]).map((f:string)=>dex.species.get(f)).filter((f:any)=>f.isMega&&f.requiredItem).map((f:any)=>({name:f.name,item:f.requiredItem,types:f.types,ability:Object.values(f.abilities)[0],baseStats:f.baseStats}))])),
     items:Object.fromEntries(items.slice(0,60).map(n=>{const i=dex.items.get(n);return [n,i.exists?i.spritenum??0:0];}))};
 }
+
+// Site icons for the reference links: fetched once per host from Google's favicon service (which resolves each site's
+// real icon at a consistent 64px) and cached, so the menus never wait on dozens of third-party /favicon.ico requests.
+export const faviconURL=(host:string)=>`https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+export const validHost=(host:string)=>/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(host)&&host.length<=253;
+export async function favicon(host:string):Promise<Buffer|null>{
+  if(!validHost(host))return null;const file=`knowledge/artwork/favicons/${host.toLowerCase()}.png`;
+  try{return await readBytes(file);}catch{}
+  const res=await fetch(faviconURL(host),{signal:AbortSignal.timeout(8000)}).catch(()=>null);if(!res?.ok)return null;
+  const bytes=Buffer.from(await res.arrayBuffer());if(bytes.length>200_000||!bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])))return null;
+  await save(file,bytes);return bytes;
+}

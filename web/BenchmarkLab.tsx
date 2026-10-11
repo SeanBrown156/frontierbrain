@@ -1,6 +1,6 @@
 import {useState,useEffect,useLayoutEffect,useRef,type ReactNode} from 'react';
 import type {BankEntry,SetRevision,PokemonSet} from '../shared/workbench.ts';
-import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,type MegaForm} from './ui.tsx';
+import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,MegaBadge,type MegaForm} from './ui.tsx';
 import SpeciesPicker,{type SavedOption} from './ai/SpeciesPicker.tsx';
 import {offer,useOffers} from './save-state.ts';
 const stats=['hp','atk','def','spa','spd','spe'] as const;
@@ -154,7 +154,7 @@ function Combatant({side,cardRef,role,set,art,mega,megaOn,setMega,species,picker
   const shown=mega&&megaOn?mega.name:set.species;
   return <section ref={cardRef} className={'combatant is-'+side+(role.includes('attacking')?' attacking':role.includes('defending')?' defending':'')}>
     <div className="combatant-art"><Art name={shown} fallback={set.species} art={art}/>{mega&&<button type="button" className={'mega-switch'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}: switch off to use ${set.species}`:`Switch on to battle as ${formName(mega.name)}`}><span className="knob"/>Mega</button>}</div>
-    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span>{species??<h3>{formName(shown)}</h3>}<TypeBadges species={shown}/></div>
+    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span>{species??<h3>{formName(shown)}</h3>}{mega&&megaOn&&<MegaBadge/>}<TypeBadges species={shown}/></div>
       {picker}
       <p className="combatant-sum"><ItemIcon item={set.item}/><span>{set.item||'No item'}</span><span>{mega&&megaOn?mega.ability:set.ability||'—'}</span><span>{set.nature}</span><span className="mono">{spLine(set)}</span></p>
       {note&&<p className="footnote">{note}</p>}

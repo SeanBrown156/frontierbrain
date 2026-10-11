@@ -46,7 +46,7 @@ export function validateTeamProposal(p:any){
   const paste=text(p.paste,20000);const sets=importText(paste).map(s=>checkSet(s));if(sets.length!==6)throw new Error(`Team paste has ${sets.length} Pokémon; it needs six`);validateTeam(sets);
   const items=sets.map(s=>s.item).filter(Boolean);if(new Set(items).size!==items.length)throw new Error('Duplicate held items');
   return {kind:'team' as const,name:text(p.name,120)||'New team',strategy:text(p.strategy,12000),paste,sets,roles:(Array.isArray(p.roles)?p.roles:[]).slice(0,6).map((r:any)=>({species:text(r.species,60),role:text(r.role,500),notes:text(r.notes,3000)})),
-    leads:(Array.isArray(p.leads)?p.leads:[]).slice(0,4).map((l:any)=>({lead:names(l.lead,2),back:names(l.back,4),when:text(l.when,1000),plan:text(l.plan,3000)})),
+    leads:(Array.isArray(p.leads)?p.leads:[]).slice(0,4).map((l:any)=>({lead:names(l.lead,2),back:names(l.back,4),...(['core','situational','niche'].includes(l.role)?{role:l.role}:{}),when:text(l.when,1000),plan:text(l.plan,3000)})),
     matchups:(Array.isArray(p.matchups)?p.matchups:[]).slice(0,6).map((m:any)=>({opponent:text(m.opponent,200),threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring,4),plan:text(m.plan,3000)}))};
 }
 export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,focus?:number,page?:Page):{reply:string;proposals:Proposal[]}{
@@ -58,7 +58,7 @@ export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,foc
       // forSpecies records what the slot held when proposed, so a late Accept can warn if it has changed since.
       return {kind:'set',slot,set,why:text(p.why,1500),forSpecies:team?.[slot]?.species};}
     case 'team':return validateTeamProposal(p);
-    case 'lead':return {kind:'lead',lead:names(p.lead,2).map(member),back:names(p.back,4).map(member),when:text(p.when,1000),plan:text(p.plan,3000)};
+    case 'lead':return {kind:'lead',lead:names(p.lead,2).map(member),back:names(p.back,4).map(member),...(['core','situational','niche'].includes(p.role)?{role:p.role}:{}),when:text(p.when,1000),plan:text(p.plan,3000)};
     case 'matchup':return {kind:'matchup',opponent:text(p.opponent,200),threat:['low','medium','high'].includes(p.threat)?p.threat:'medium',bring:names(p.bring,4).map(member),plan:text(p.plan,3000)};
     case 'objective':return {kind:'objective',type:p.type==='todo'?'todo':'test',text:text(p.text,1000)};
     case 'strategy':return {kind:'strategy',text:text(p.text,12000)};

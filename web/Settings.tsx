@@ -124,7 +124,7 @@ function AIKey(){
         <label>{saved?'Replace key':'API key'}<input type="password" autoComplete="off" spellCheck={false} placeholder={provider==='openai'?'sk-…':'sk-ant-…'} value={key} onChange={e=>setKey(e.target.value)}/></label>
         <button className="primary" disabled={!key.trim()}>Save key</button>
       </form>
-      <p className="footnote">Get a key at {provider==='openai'?<a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">platform.openai.com ↗</a>:<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">console.anthropic.com ↗</a>}.{!hostedSite&&' Locally, a key in .env is used when none is saved here.'}</p>
+      <p className="footnote">Get a key at {provider==='openai'?<a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">platform.openai.com ↗</a>:<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">console.anthropic.com ↗</a>}. Spending limits and usage live with your provider, not here: {provider==='openai'?<><a href="https://platform.openai.com/settings/organization/limits" target="_blank" rel="noreferrer">set a monthly budget ↗</a> · <a href="https://platform.openai.com/usage" target="_blank" rel="noreferrer">see usage ↗</a></>:<><a href="https://console.anthropic.com/settings/limits" target="_blank" rel="noreferrer">set a spend limit ↗</a> · <a href="https://console.anthropic.com/usage" target="_blank" rel="noreferrer">see usage ↗</a></>}.{!hostedSite&&' Locally, a key in .env is used when none is saved here.'}</p>
       {status&&<p className="notice">{status}</p>}
       {saved&&<button className="danger" onClick={remove}>Remove key from this browser</button>}
     </>}

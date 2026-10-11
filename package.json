@@ -29,7 +29,7 @@
     "@supabase/supabase-js": "^2.117.3",
     "@vercel/functions": "^3.9.11",
     "@vitejs/plugin-react": "^6.1.2",
-    "pixelarticons": "^2.4.2",
+    "lucide-react": "^0.460.0",
     "pokemon-showdown": "https://codeload.github.com/smogon/pokemon-showdown/tar.gz/c046106cbe075931b1ff8d8b800ff5be47a85f96",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

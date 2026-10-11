@@ -1,6 +1,6 @@
 import {useState,useEffect,useRef,type ReactNode} from 'react';
 import type {SetRevision,SetNotes,PokemonSet,BankEntry} from '../../shared/workbench.ts';
-import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown} from '../ui.tsx';
+import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown,SetArt,MegaBadge} from '../ui.tsx';
 import {Px as Icon,Pencil,Check} from '../icons.tsx';
 import {Px,ArrowLeft,WarningDiamond} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
@@ -21,8 +21,8 @@ export default function PokemonWorkspace({team,data,mutate,versionId,slot,swap}:
   const view=getView(team,data.db,versionId);const current=view.revisions[slot];
   if(!current?.revision)return <Empty>That Pokémon slot doesn't exist. <a href={teamHref(team.id,'overview',versionId)}>Back to the team.</a></Empty>;
   return <div className="workspace">
-    <div className="hub-head"><a href={teamHref(team.id,'overview',view.version.id)} className="text-button back-link"><Px icon={ArrowLeft} size={12}/>{team.name}</a>
-      <nav className="mon-switcher" aria-label="Team members">{view.revisions.map((r,i)=><a key={i} href={monHref(team.id,view.version.id,i)} className={i===slot?'selected':''} title={r.revision.set.species} aria-current={i===slot?'page':undefined}><Art name={r.revision.set.species} art={data.art} small/></a>)}</nav></div>
+    <div className="hub-head"><a href={teamHref(team.id,'overview',view.version.id)} className="text-button back-link"><Px icon={ArrowLeft} size={14}/>{team.name}</a></div>
+    <nav className="mon-switcher" aria-label="Team members">{view.revisions.map((r,i)=><a key={i} href={monHref(team.id,view.version.id,i)} className={i===slot?'selected':''} aria-current={i===slot?'page':undefined}><span className="slot-no">{String(i+1).padStart(2,'0')}</span><SetArt set={r.revision.set} art={data.art} small/><span className="slot-name">{r.revision.set.species}</span></a>)}</nav>
     <SetWorkspace key={`${view.version.id}-${slot}`} team={team} data={data} mutate={mutate} view={view} slot={slot} swap={swap}/>
   </div>;
 }
@@ -80,7 +80,7 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
           onClick={()=>{if(isStarred)void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{});else setStarring(!starring);}}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg></button>}
         {starring&&!isStarred&&<div className="fav-pop" role="dialog" aria-label="Save to My sets"><label>Name for My sets<input autoFocus placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/></label><div className="button-row"><button className="primary" onClick={()=>void star()} disabled={problems.length>0||!starLabel.trim()}>Save</button><button onClick={()=>setStarring(false)}>Cancel</button></div>{problems.length>0&&<p className="footnote">Finish the set first: {problems[0]}</p>}</div>}</div><div className="grow">
         <SpeciesPicker label="Species" value={set.species} onPick={sp=>void pickSpecies(sp)} onPickSaved={o=>replace(o.value.set,{reuse:true,basis:[`Reusing your saved set: ${o.label}.`]})} disabled={others.map((s:any)=>s.species)} saved={savedSets} autoFocus={swap}/>
-        <div className="set-types"><TypeBadges species={megaForm?.name??set.species}/>{isStarred&&<span className="fav-label">★ {revision.starred!.label}</span>}</div>
+        <div className="set-types">{megaForm&&<MegaBadge title={`Battles as Mega ${set.species}`}/>}<TypeBadges species={megaForm?.name??set.species}/>{isStarred&&<span className="fav-label">★ {revision.starred!.label}</span>}</div>
         {loading&&<p className="muted">Loading the most common {loading} set…</p>}
         <input className="nickname" aria-label="Nickname" placeholder="Nickname (optional)" value={set.nickname??''} onChange={e=>update({nickname:e.target.value||undefined})}/></div></div>
       {(meta.basis||meta.why)&&<ul className="basis">{meta.why&&<li>AI: {meta.why}</li>}{meta.basis?.map((b,i)=><li key={i}>{b}</li>)}</ul>}

@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState,useId,type ReactNode} from 'react';
 import ReactMarkdown from 'react-markdown';
+import {X} from 'lucide-react';
 import remarkGfm from 'remark-gfm';
 import {accessToken} from './auth.tsx';
 import {aiHeaders} from './ai/keys.tsx';
@@ -45,16 +46,28 @@ export function useDex(species:string[],items:string[]){const [,tick]=useState(0
   return dexCache;}
 // The form a set battles as: its Mega when it holds that Mega's stone, otherwise the species itself.
 export function useBattleForm(species:string,item?:string){const m=(useDex([species],[]).megas[species]??[]).find(x=>x.item===item);return m?.name??species;}
+// A set's render: its Mega when it holds that Mega's stone (what it battles as), else the species.
+export function SetArt({set,art,small=false}:{set:{species:string;item?:string};art:any;small?:boolean}){const form=useBattleForm(set.species,set.item);return <span className={'set-art'+(form!==set.species?' is-mega':'')}><Art name={form} fallback={set.species} art={art} small={small}/>{form!==set.species&&small&&<MegaOrb size={14}/>}</span>;}
+// Mega marker: an original rainbow keystone orb (not the official Mega Evolution mark), alone or with the word.
+export function MegaOrb({size=16}:{size?:number}){return <span className="mega-orb" style={{width:size,height:size}} aria-hidden="true"/>;}
+export function MegaBadge({title}:{title?:string}){return <span className="mega-badge" title={title??'Battles as its Mega'}><MegaOrb size={14}/>Mega</span>;}
 export const TYPE_COLOURS:Record<string,string>={Normal:'#9a9a7c',Fire:'#ef6a3a',Water:'#4b8ff0',Electric:'#f2c531',Grass:'#4fb05a',Ice:'#5cc9d6',Fighting:'#d0443e',Poison:'#a557c4',Ground:'#d29a4a',Flying:'#8aa4ec',Psychic:'#ef5a8c',Bug:'#93b02c',Rock:'#b8a35a',Ghost:'#6f5ca8',Dragon:'#5f5ae0',Dark:'#5d5068',Steel:'#7fa2b4',Fairy:'#e58fc8',Stellar:'#40b5a5'};
 export function TypeBadges({species}:{species:string}){const d=useDex([species],[]);const types=d.types[species]??[];
   return types.length?<span className="type-badges">{types.map(t=><span key={t} className="type-badge" style={{'--type':TYPE_COLOURS[t]??'#888'} as any}>{t}</span>)}</span>:null;}
 // Held item icon from Showdown's item sheet (16 columns of 24×24).
 export function ItemIcon({item}:{item?:string}){const d=useDex([],item?[item]:[]);const n=item?d.items[item]:undefined;
   return <span className="item-icon" aria-hidden="true" style={n?{backgroundPosition:`-${(n%16)*24}px -${Math.floor(n/16)*24}px`}:{backgroundImage:'none'}}/>;}
+// A site's icon for reference links: the curated one in /public/icons if there is one, else its favicon through the
+// local cache; while loading or if none exists, a tidy monogram tile in the same footprint.
+export function SiteIcon({url,icon,size=20}:{url:string;icon?:string;size?:number}){
+  let host='';try{host=new URL(url).hostname.replace(/^www\./,'');}catch{}
+  const [failed,setFailed]=useState(false),[loaded,setLoaded]=useState(false);const src=icon??(host?`/api/favicon?host=${encodeURIComponent(host)}`:'');
+  return <span className={'site-icon'+(loaded&&!failed?' loaded':'')} style={{width:size,height:size}} aria-hidden="true"><span className="mono-tile">{(host[0]??'?').toUpperCase()}</span>{src&&!failed&&<img src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onLoad={()=>setLoaded(true)} onError={()=>setFailed(true)}/>}</span>;
+}
 // Box icon from the locally cached Showdown sheet (12 columns of 40×30); blank cell when unknown.
 export function PokeIcon({n}:{n?:number}){return <span className="poke-icon" aria-hidden="true" style={n?{backgroundPosition:`-${(n%12)*40}px -${Math.floor(n/12)*30}px`}:{backgroundImage:'none'}}/>;}
 export function Panel({title,kicker,children,className='',action}:{title:ReactNode;kicker?:string;children:ReactNode;className?:string;action?:ReactNode}){return <section className={'panel '+className}><header className="panel-heading"><div>{kicker&&<span className="eyebrow">{kicker}</span>}<h2>{title}</h2></div>{action}</header>{children}</section>;}
-export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);return <dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button aria-label="Close dialog" onClick={onClose}>×</button></header>{children}</dialog>;}
+export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);return <dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button className="icon dialog-close" aria-label="Close dialog" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>{children}</dialog>;}
 export function Markdown({text}:{text:string}){return <div className="markdown"><ReactMarkdown skipHtml remarkPlugins={[remarkGfm]} components={{table:({children})=><div className="table-scroll"><table>{children}</table></div>,a:({href,children})=>{if(href?.startsWith('http://')||href?.startsWith('https://'))return <a href={href} target="_blank" rel="noreferrer">{children} ↗</a>;return <span>{children}</span>;}}}>{text}</ReactMarkdown></div>;}
 export function Empty({children}:{children:ReactNode}){return <div className="empty">{children}</div>;}
 export function Tabs({tabs,value,onChange,icons={}}:{tabs:string[];value:string;onChange:(s:string)=>void;icons?:Record<string,ReactNode>}){return <div className="tabs" role="tablist">{tabs.map(t=><button key={t} role="tab" aria-selected={t===value} className={value===t?'selected':''} onClick={()=>onChange(t)}>{icons[t]}{t}</button>)}</div>;}

@@ -1,6 +1,6 @@
 import {useState,useEffect,useRef} from 'react';
 import type {PokemonSet} from '../../shared/workbench.ts';
-import {api,Art,Markdown} from '../ui.tsx';
+import {api,Art,Markdown,SetArt} from '../ui.tsx';
 import {Px,Sparkles,Message,Trash,Close} from '../icons.tsx';
 import {aiKey} from './keys.tsx';
 import {useAccount,canUseAI,requireAccount,SignInForAI} from '../auth.tsx';
@@ -79,7 +79,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
     if(e.key==='/'&&!typing&&!e.metaKey&&!e.ctrlKey){e.preventDefault();setOpen(true);}else if(e.key==='Escape'&&open&&!document.querySelector('dialog[open]'))setOpen(false);};addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey);},[open]);
   if(!open)return <button className={'dock-toggle'+(pending?' busy':'')} onClick={()=>setOpen(true)} title="Ask Frontier Brain (press /)"><img className="dock-mark" src="/favicon.svg" alt="" width={22} height={22}/>Ask Frontier Brain{pending&&<span className="dot" aria-label="working"/>}</button>;
   return <aside className="dock" aria-label="Ask Frontier Brain">
-    <header className="dock-head"><h2><img className="dock-mark" src="/favicon.svg" alt="" width={28} height={28}/>Ask Frontier Brain</h2><button className="icon dock-close" aria-label="Close" title="Close (Esc)" onClick={()=>setOpen(false)}><Px icon={Close}/></button><div className="button-row dock-controls">{ai&&<><a className="button compact" href="#account" title="Your AI key lives in Settings">{aiKey()?'AI key ✓':'Add AI key'}</a><ModelPicker tier="chat"/></>}{turns.length>0&&!pending&&<button className="icon" title="New chat" aria-label="New chat" onClick={()=>save([])}><Px icon={Trash}/></button>}</div></header>
+    <header className="dock-head"><h2><img className="dock-mark" src="/favicon.svg" alt="" width={28} height={28}/>Ask Frontier Brain</h2><button className="icon dock-close" aria-label="Close" title="Close (Esc)" onClick={()=>setOpen(false)}><Px icon={Close}/></button><div className="button-row dock-controls">{ai&&<KeyOrModel/>}{turns.length>0&&!pending&&<button className="icon" title="New chat" aria-label="New chat" onClick={()=>save([])}><Px icon={Trash}/></button>}</div></header>
     <div className={"dock-body"+(ai?"":" locked")}><div className="dock-log" {...(ai?{}:{inert:true} as any)}>{!turns.length&&<div className="chat-empty"><p>{team?<>Ask anything about {team.name}.{' Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.'}</>:'Ask about the metagame, sets, spreads and calcs. Open a team to ask about it or change it.'}</p></div>}
       {turns.map((t,ti)=>t.jobId&&!t.proposals&&!t.failed?<div key={ti} className="chat-turn assistant working"><p><Px icon={Sparkles}/>{steps.length?`${stepNames[steps.at(-1).name]??steps.at(-1).name}${steps.at(-1).input?`: ${steps.at(-1).input}`:''}`:'Starting…'} <span className="muted">· {steps.length} step{steps.length===1?'':'s'}</span></p>
           <div className="button-row"><button className="text-button" onClick={()=>setShowSteps(!showSteps)}>{showSteps?'Hide':'Show'} steps</button><button className="text-button" onClick={()=>void cancel()}>Cancel</button></div>{showSteps&&<ol className="steps">{steps.map((s,i)=><li key={i} className={s.error?'error':''}>{stepNames[s.name]??s.name}{s.input?`: ${s.input}`:''}</li>)}</ol>}</div>
@@ -99,7 +99,7 @@ function ProposalCard({p,art,current,decide}:{p:Proposal;art:any;current:(slot:n
   const note=p.error&&<p className={p.status==='accepted'?'muted':'error'}>{p.error}</p>;
   const foot=<>{note}<div className="button-row">{actions}</div></>;
   if(p.kind==='set')return <SetTile set={p.set} current={current(p.slot)} art={art} note={p.why} actions={<>{note}{actions}</>}/>;
-  if(p.kind==='team')return <article className="proposal-card"><h3>{p.name}</h3><div className="team-six">{p.sets.map((s:PokemonSet)=><Art key={s.species} name={s.species} art={art} small/>)}</div><details><summary>Sets, strategy and plans</summary><pre className="paste">{p.paste}</pre><Markdown text={p.strategy}/><p className="muted">{p.leads.length} lead plan(s) and {p.matchups.length} matchup plan(s) come with it as drafts.</p></details><p className="muted">Accepting saves it as a new version; your current version stays active.</p>{foot}</article>;
+  if(p.kind==='team')return <article className="proposal-card"><h3>{p.name}</h3><div className="team-six">{p.sets.map((s:PokemonSet)=><SetArt key={s.species} set={s} art={art} small/>)}</div><details><summary>Sets, strategy and plans</summary><pre className="paste">{p.paste}</pre><Markdown text={p.strategy}/><p className="muted">{p.leads.length} lead plan(s) and {p.matchups.length} matchup plan(s) come with it as drafts.</p></details><p className="muted">Accepting saves it as a new version; your current version stays active.</p>{foot}</article>;
   if(p.kind==='lead')return <article className="proposal-card"><div className="pair">{p.lead.map((m:string)=><Art key={m} name={m} art={art} small/>)}<h3>{p.lead.join(' + ')}</h3></div>{p.back?.length>0&&<p className="muted">Back: {p.back.join(', ')}</p>}{p.when&&<p><b>When:</b> {p.when}</p>}<Markdown text={p.plan}/>{foot}</article>;
   if(p.kind==='matchup')return <article className="proposal-card"><h3><span className={'threat '+p.threat}>{p.threat}</span> {p.opponent}</h3><div className="pair">{p.bring.map((m:string)=><Art key={m} name={m} art={art} small/>)}</div><Markdown text={p.plan}/>{foot}</article>;
   if(p.kind==='objective')return <article className="proposal-card"><p>{p.type==='test'?'Test:':'To-do:'} {p.text}</p>{foot}</article>;
@@ -108,10 +108,14 @@ function ProposalCard({p,art,current,decide}:{p:Proposal;art:any;current:(slot:n
 
 // Which model answers. Saved locally (settings.json); chats default to gpt-6-luna, team builds to gpt-6-astra.
 let modelList:Promise<string[]>|null=null;
+// Before a key works there's nothing to choose between: show "Add AI key". Once the provider lists models (a key in
+// Settings, or the local .env key), show the model picker instead.
+function KeyOrModel(){const [list,setList]=useState<string[]|null>(null);useEffect(()=>{(modelList??=api('/models').catch(()=>[])).then(l=>{if(!l.length)modelList=null;setList(l);});},[]);
+  if(list===null)return null;return list.length?<ModelPicker tier="chat"/>:<a className="button compact" href="#account" title="Your AI key lives in Account">Add AI key</a>;}
 export function ModelPicker({tier}:{tier:'chat'|'build'}){
   const [models,setModels]=useState<any>(null),[list,setList]=useState<string[]>([]);
   useEffect(()=>{api('/settings').then(r=>setModels(r.models)).catch(()=>{});(modelList??=api('/models').catch(()=>[])).then(setList);},[]);
-  if(!models)return null;const current=models[tier].model;const claude=models.provider==='anthropic';const options=[...new Set([current,...(claude?['claude-haiku-4-5','claude-sonnet-5-5','claude-opus-5-5',...list.filter(m=>m.startsWith('claude'))]:['gpt-6-luna','gpt-6-sol','gpt-6-astra',...list.filter(m=>m.startsWith('gpt-6'))])])];
+  if(!models||!list.length)return null;const current=models[tier].model;const claude=models.provider==='anthropic';const options=[...new Set([current,...(claude?['claude-haiku-4-5','claude-sonnet-5-5','claude-opus-5-5',...list.filter(m=>m.startsWith('claude'))]:['gpt-6-luna','gpt-6-sol','gpt-6-astra',...list.filter(m=>m.startsWith('gpt-6'))])])];
   const choose=async(model:string)=>{try{setModels((await api('/settings',{models:{[tier]:{...models[tier],model}}})).models);}catch{}};
   return <label className="model-picker" title="Which model answers"><span className="sr-only">Model</span><select value={current} onChange={e=>void choose(e.target.value)}>{options.map(m=><option key={m} value={m}>{m.replace('gpt-','').replace('claude-','')}</option>)}</select></label>;
 }

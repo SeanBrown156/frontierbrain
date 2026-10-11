@@ -16,7 +16,7 @@ import {metaSets,type MetaSource} from './meta-sets.ts';
 import {showdownReplayHTML} from './replay-links.ts';
 import {fetchText} from './research.ts';
 import {refreshPool,poolStatus,poolOverview,poolTeams} from './pool.ts';
-import {iconIndex,iconNumber,iconSheet,homeSprite,homeSpriteId,homeSpriteURL,dexInfo,itemSheet,ITEM_SHEET_URL} from './icons.ts';
+import {iconIndex,iconNumber,iconSheet,homeSprite,homeSpriteId,homeSpriteURL,dexInfo,itemSheet,ITEM_SHEET_URL,favicon,faviconURL,validHost} from './icons.ts';
 import {startJob,listJobs,getJob,dismissJob,cancelJob} from './ai-jobs.ts';
 import {modelSettings,saveModelSettings,availableModels} from './models.ts';
 import {queueSummaries,readSummary,readDigest,isStale,runningFor,transcript,readGame} from './replay-summary.ts';
@@ -152,6 +152,10 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       const bytes=await homeSprite(name);if(!bytes)return respond(res,404,{error:'No HOME render for this form'});
       res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(bytes);return;
     }
+    if(req.method==='GET'&&path==='/api/favicon'){const host=(url.searchParams.get('host')??'').replace(/^www\./,'');if(!validHost(host))return respond(res,400,{error:'Invalid host'});
+      if(hostedMode){res.writeHead(302,{Location:faviconURL(host),'Cache-Control':'public, max-age=604800'});res.end();return;}
+      const bytes=await favicon(host);if(!bytes)return respond(res,404,{error:'No icon for this site'});
+      res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(bytes);return;}
     if(req.method==='GET'&&path==='/api/dex-info'){const list=(k:string)=>(url.searchParams.get(k)??'').split('|').filter(Boolean);return respond(res,200,dexInfo(list('species'),list('items')));}
     if(req.method==='GET'&&path==='/api/item-sheet'){if(hostedMode){res.writeHead(302,{Location:ITEM_SHEET_URL,'Cache-Control':'public, max-age=604800'});res.end();return;}
       res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(await itemSheet());return;}
@@ -196,11 +200,15 @@ async function serve(req:IncomingMessage,res:ServerResponse){
 let poolRefreshing=false;
 function startPoolRefresh(){if(poolRefreshing)return;poolRefreshing=true;refreshPool({log:()=>{}}).catch(e=>console.error('Pool refresh failed:',e.message)).finally(()=>{poolRefreshing=false;});}
 async function schedulePool(){const s=await poolStatus().catch(()=>null);if(!s||Date.now()-Date.parse(s.refreshedAt)>12*3600_000)startPoolRefresh();setInterval(startPoolRefresh,12*3600_000).unref();}
+// Reference-link icons are fetched once into the local cache on start, so the menus open with them already there.
+async function warmFavicons(){const c=await json('knowledge/sources/catalogue.json').catch(()=>null);const list:any[]=Array.isArray(c)?c:c?.sources??[];
+  const hosts=[...new Set(list.filter(s=>!s.icon).map(s=>{try{return new URL(s.url).hostname.replace(/^www\./,'');}catch{return '';}}).filter(validHost))];
+  for(const h of hosts)await favicon(h).catch(()=>null);}
 export const handler=createWorkbenchHandler();
 // Hosted mode (SUPABASE_URL and a publishable key in the environment): every request is a signed-in or guest user.
 export function startServer(){
   try{process.loadEnvFile(resolve(CODE,'.env'));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}
-  const cloud=hostedConfig();if(!cloud)void schedulePool();
+  const cloud=hostedConfig();if(!cloud){void schedulePool();void warmFavicons();}
   const server=createServer(cloud?hostedHandler(cloud,createWorkbenchHandler(ROOT,API_PORT,{hostedMode:true})):handler);
   server.listen(API_PORT,'127.0.0.1',()=>console.log(`VGC ${cloud?'hosted-mode (Supabase)':'local'} API http://127.0.0.1:${API_PORT}`));server.requestTimeout=30000;return server;
 }
