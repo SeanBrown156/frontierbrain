@@ -666,3 +666,13 @@ main{padding-top:var(--s6)}
   .panel-heading{justify-content:space-between!important;text-align:left!important}
   .ai-mode{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.ai-mode button{white-space:normal;line-height:1.2;padding:0 var(--s2)!important}
 }
+
+/* About you (Settings) and the team brief (Strategy): stacked labelled fields, full width */
+.settings-form.about-you,.settings-form.brief-form{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.about-you textarea,.brief-form textarea,.brief-form label:nth-child(3),.about-you label:last-child{grid-column:1/-1}
+.about-you .field{display:grid;gap:var(--s1)}.about-you .field>span{font-size:13px}
+.about-you .segmented{margin:0;display:flex}.about-you .segmented button{flex:1}
+.brief{margin-bottom:var(--s4)}.brief-goal{font-size:1.05em;font-weight:600;margin:0 0 var(--s3)}
+.brief-core{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3);margin-bottom:var(--s3)}.brief-core .pair{display:inline-flex;align-items:center;gap:var(--s1)}
+.brief-empty{margin:0 0 var(--s4)}
+@media(max-width:720px){.settings-form.about-you,.settings-form.brief-form{grid-template-columns:minmax(0,1fr)}}

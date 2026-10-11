@@ -15,6 +15,7 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
         :<p className="muted">Local workspace on this computer. No account needed.</p>}
     </Panel>
     <ShowdownName profile={profile} reload={reload} notify={notify}/>
+    <AboutYou/>
     <AIPanel/>
     <Backup reload={reload} notify={notify}/>
   </div>;
@@ -31,6 +32,32 @@ function ShowdownName({profile,reload,notify}:{profile?:any;reload:()=>Promise<v
       <label>Other names (optional)<input value={aliases} onChange={e=>setAliases(e.target.value)} placeholder="alt1, alt2"/></label>
       <button className="primary" disabled={busy||!dirty||!name.trim()}>{busy?'Saving…':!dirty&&profile?.player?<><Px icon={Check}/>Saved</>:'Save'}</button>
     </form></Panel>;
+}
+
+// What Frontier Brain remembers about you. Claude, ChatGPT and the in-app assistant all read it (and save what you
+// tell them), so no app asks twice. Edits save themselves.
+const listText=(v:string[])=>v.join(', ');const toList=(t:string)=>t.split(',').map(x=>x.trim()).filter(Boolean);
+function AboutYou(){
+  const [p,setP]=useState<any>(null),[state,setState]=useState<''|'saved'|'error'>('');const touched=useRef(false);
+  // Only your edits are saved, and a slow first load never overwrites what you've started typing.
+  useEffect(()=>{api('/preferences').then(r=>touched.current?undefined:setP({...r,likes:listText(r.likes),dislikes:listText(r.dislikes),hateFacing:listText(r.hateFacing),notes:r.notes.join('\n')})).catch(()=>setP(null));},[]);
+  useEffect(()=>{if(!p||!touched.current)return;const t=setTimeout(()=>{
+    api('/preferences',{playstyle:p.playstyle,formats:p.formats,explain:p.explain,goals:p.goals,likes:toList(p.likes),dislikes:toList(p.dislikes),hateFacing:toList(p.hateFacing),notes:p.notes.split('\n').map((x:string)=>x.trim()).filter(Boolean)})
+      .then(()=>setState('saved'),()=>setState('error'));},700);return()=>clearTimeout(t);},[p&&JSON.stringify(p)]);
+  if(!p)return null;const set=(k:string)=>(e:any)=>{touched.current=true;setState('');setP({...p,[k]:e.target.value});};
+  const choice=(k:string,options:[string,string][])=><div className="segmented" role="group">{options.map(([v,l])=><button key={v} type="button" className={p[k]===v?'on':''} aria-pressed={p[k]===v} onClick={()=>{touched.current=true;setState('');setP({...p,[k]:p[k]===v?'':v});}}>{l}</button>)}</div>;
+  return <Panel title="About you" action={state==='saved'?<span className="muted"><Px icon={Check} size={12}/> Saved</span>:state==='error'?<span className="error">Couldn't save</span>:undefined}>
+    <p className="muted">What Frontier Brain remembers about how you play. Claude, ChatGPT and Ask Frontier Brain all read this and add what you tell them, so you only say it once. Preferences, not rules.</p>
+    <div className="settings-form about-you">
+      <label>Playstyle<input value={p.playstyle} onChange={set('playstyle')} placeholder="e.g. bulky balance, hyper offense, Trick Room"/></label>
+      <div className="field"><span>I play</span>{choice('formats',[['Bo1','Bo1 ladder'],['Bo3','Bo3 tournaments'],['both','Both']])}</div>
+      <div className="field"><span>Explanations</span>{choice('explain',[['brief','Brief'],['standard','Standard'],['detailed','Detailed']])}</div>
+      <label>Goals<input value={p.goals} onChange={set('goals')} placeholder="e.g. reach 1800 on ladder, top cut a regional"/></label>
+      <label>Pokémon I like using<input value={p.likes} onChange={set('likes')} placeholder="Comma separated"/></label>
+      <label>Pokémon I'd rather not use<input value={p.dislikes} onChange={set('dislikes')} placeholder="Comma separated"/></label>
+      <label>I hate facing<input value={p.hateFacing} onChange={set('hateFacing')} placeholder="Pokémon or strategies, comma separated"/></label>
+      <label>Notes<textarea rows={3} value={p.notes} onChange={set('notes')} placeholder="One per line"/></label>
+    </div></Panel>;
 }
 
 // The key lives only in this browser. Each AI request carries it to our server, which passes it to OpenAI or

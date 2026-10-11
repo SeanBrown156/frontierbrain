@@ -1,10 +1,10 @@
-import {useState,useEffect} from 'react';
-import type {TeamCoaching,LeadPlan,MatchupPlan,Objective} from '../../shared/workbench.ts';
+import {useState,useEffect,useRef} from 'react';
+import type {TeamCoaching,LeadPlan,MatchupPlan,Objective,TeamBrief} from '../../shared/workbench.ts';
 import {api,Art,Panel,Modal,Notice,pct,Markdown} from '../ui.tsx';
 import {useDirty} from '../save-state.ts';
 import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {versionName} from './editors.tsx';
-import {Px,Plus} from '../icons.tsx';
+import {Px,Plus,Pencil,Check} from '../icons.tsx';
 
 const newId=()=>Math.random().toString(36).slice(2,12);
 const empty=(teamId:string):TeamCoaching=>({teamId,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]});
@@ -22,6 +22,7 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
   const scopeIds=versionId?[versionId]:[];const versionLabel=(ids:string[])=>ids.length?ids.map(id=>{const v=team.versions.find((v:any)=>v.id===id);return v?`V${v.number}`:'?';}).join(', '):'All versions';
   const leads=Object.entries<any>(stats?.leads??{}).sort((a,b)=>b[1].games-a[1].games);const opponents=Object.entries<any>(stats?.matchups??{}).sort((a,b)=>b[1].preview-a[1].preview);
   return <div className="coaching">
+    <Brief team={team} brief={coaching.brief} art={data.art} mutate={mutate}/>
     <div className="team-detail-grid">
       <Panel title="Lead strategy" action={<button onClick={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
         {coaching.leads.filter(inScope).map(l=><article key={l.id} className={'plan-card '+l.status}><header><div className="pair">{l.lead.map(p=><Art key={p} name={p} art={data.art} small/>)}<h3>{l.lead.join(' + ')}</h3>{l.back.length>0&&<span className="muted">back: {l.back.join(', ')}</span>}</div>{l.status==='proposed'&&<span className="tag">AI draft</span>}</header>
@@ -65,4 +66,31 @@ export function coachingUpdate(teamId:string,before:Pick<TeamCoaching,'leads'|'m
   for(const k of ['leads','matchups','objectives'] as const){const old=new Map<string,any>(before[k].map((x:any)=>[x.id,x]));const now=new Set(after[k].map((x:any)=>x.id));
     upsert[k]=after[k].filter((x:any)=>JSON.stringify(old.get(x.id))!==JSON.stringify(x));remove[k]=before[k].filter((x:any)=>!now.has(x.id)).map((x:any)=>x.id);}
   return {type:'coaching-update',teamId,upsert,remove};
+}
+
+// The team brief: why the team exists, agreed while building it (with Claude, ChatGPT or by hand). Every assistant
+// reads it. Edits save themselves.
+function Brief({team,brief,art,mutate}:{team:any;brief?:TeamBrief;art:any;mutate:(a:any,o?:any)=>Promise<any>}){
+  const [editing,setEditing]=useState(false),[b,setB]=useState(()=>({goal:brief?.goal??'',core:(brief?.core??[]).join(', '),gamePlan:brief?.gamePlan??'',ruledOut:brief?.ruledOut??''}));
+  const touched=useRef(false);
+  useEffect(()=>{if(!editing&&brief){setB({goal:brief?.goal??'',core:(brief?.core??[]).join(', '),gamePlan:brief?.gamePlan??'',ruledOut:brief?.ruledOut??''});}},[brief?.updatedAt,editing]);
+  const core=(t:string)=>t.split(',').map(x=>x.trim()).filter(Boolean).slice(0,6);
+  const save=()=>{if(!touched.current)return;touched.current=false;void mutate({type:'coaching-update',teamId:team.id,brief:{...b,core:core(b.core)}},{quiet:true}).catch(()=>{});};
+  useEffect(()=>{if(!editing||!touched.current)return;const t=setTimeout(save,800);return()=>clearTimeout(t);},[JSON.stringify(b)]);
+  // Until the save lands, show what was just written rather than flicking back to the empty state.
+  const shown:TeamBrief|undefined=brief??(b.goal||b.gamePlan||b.core?{goal:b.goal,core:core(b.core),gamePlan:b.gamePlan,ruledOut:b.ruledOut,updatedAt:''}:undefined);
+  const set=(k:string)=>(e:any)=>{touched.current=true;setB({...b,[k]:e.target.value});};
+  if(!shown&&!editing)return <p className="brief-empty muted">No team brief yet: why this team exists, what it's built around and how it wins. <button className="text-button" onClick={()=>{touched.current=false;setEditing(true);}}>Write one</button> or build it with Claude or ChatGPT and they'll save it.</p>;
+  return <section className="brief panel"><header className="panel-heading"><h2>Team brief</h2>{editing?<button onClick={()=>{save();setEditing(false);}}><Px icon={Check}/>Done</button>:<button onClick={()=>{touched.current=false;setEditing(true);}}><Px icon={Pencil}/>Edit</button>}</header>
+    {editing?<div className="settings-form brief-form">
+      <label>Why this team<input value={b.goal} onChange={set('goal')} placeholder="e.g. a Trick Room team that still beats Tailwind"/></label>
+      <label>Built around<input value={b.core} onChange={set('core')} placeholder="Pokémon, comma separated"/></label>
+      <label>Game plan<textarea rows={4} value={b.gamePlan} onChange={set('gamePlan')} placeholder="Modes, leads, win conditions"/></label>
+      <label>Ruled out<input value={b.ruledOut} onChange={set('ruledOut')} placeholder="What you considered and why not"/></label></div>
+    :<div className="brief-body">
+      {shown!.goal&&<p className="brief-goal">{shown!.goal}</p>}
+      {shown!.core.length>0&&<div className="brief-core"><span className="muted">Built around</span>{shown!.core.map(c=><span key={c} className="pair"><Art name={c} art={art} small/>{c}</span>)}</div>}
+      {shown!.gamePlan&&<Markdown text={shown!.gamePlan}/>}
+      {shown!.ruledOut&&<p className="muted"><b>Ruled out:</b> {shown!.ruledOut}</p>}</div>}
+  </section>;
 }

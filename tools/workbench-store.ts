@@ -115,7 +115,7 @@ export function applyAction(db:Workbench,action:any):unknown {
   if(action.type==='coaching-update'){
     const team=db.teams.find(t=>t.id===action.teamId);if(!team)throw new Error('Team not found');const current=(db.coaching??={})[team.id]??{teamId:team.id,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]};
     const merge=(list:any[],upsert:any[]=[],remove:string[]=[])=>{const out=list.filter(x=>!remove.includes(x.id));for(const item of upsert){const i=out.findIndex(x=>x.id===item.id);if(i<0)out.push(item);else out[i]=item;}return out;};
-    const next={leads:merge(current.leads,action.upsert?.leads,action.remove?.leads),matchups:merge(current.matchups,action.upsert?.matchups,action.remove?.matchups),objectives:merge(current.objectives,action.upsert?.objectives,action.remove?.objectives)};
+    const next={leads:merge(current.leads,action.upsert?.leads,action.remove?.leads),matchups:merge(current.matchups,action.upsert?.matchups,action.remove?.matchups),objectives:merge(current.objectives,action.upsert?.objectives,action.remove?.objectives),brief:action.brief?{...action.brief,updatedAt:now()}:current.brief};
     const coaching=cleanCoaching(team.id,next,current.version+1);db.coaching[team.id]=coaching;return coaching;
   }
   // Replace one or more slots with new sets (slot swap, AI set, AI team). Same species → a new revision of that
@@ -177,12 +177,14 @@ export function applyAction(db:Workbench,action:any):unknown {
 }
 const shortId=(value:unknown)=>{const v=checkText(value??uid('c'),80);if(!/^[a-zA-Z0-9_-]+$/.test(v))throw new Error('Invalid coaching identifier');return v;};
 const names=(value:unknown,max=6)=>{if(!Array.isArray(value)||value.length>max)throw new Error('Expected a short list of Pokémon');return value.map(v=>checkText(v,100));};
+export function cleanBrief(b:any){return {goal:checkText(b?.goal??'',1000),core:names(b?.core??[],6),gamePlan:checkText(b?.gamePlan??'',4000),ruledOut:checkText(b?.ruledOut??'',1000),updatedAt:typeof b?.updatedAt==='string'?b.updatedAt:now()};}
 export function cleanCoaching(teamId:string,input:any,version:number):TeamCoaching{
   const status=(v:unknown)=>v==='proposed'?'proposed' as const:'active' as const;const ids=(v:unknown)=>names(v??[],40).map(shortId);
   return {teamId,version,updatedAt:now(),
     leads:(input?.leads??[]).slice(0,40).map((l:any)=>({id:shortId(l.id),lead:names(l.lead,2),back:names(l.back??[],4),when:checkText(l.when??'',4000),plan:checkText(l.plan??'',8000),calcIds:ids(l.calcIds),versionIds:ids(l.versionIds),status:status(l.status)})),
     matchups:(input?.matchups??[]).slice(0,80).map((m:any)=>({id:shortId(m.id),opponent:checkText(m.opponent,300),threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring??[],4),...m.leadId?{leadId:shortId(m.leadId)}:{},plan:checkText(m.plan??'',8000),calcIds:ids(m.calcIds),versionIds:ids(m.versionIds),status:status(m.status)})),
-    objectives:(input?.objectives??[]).slice(0,100).map((o:any)=>({id:shortId(o.id),kind:o.kind==='todo'?'todo' as const:'test' as const,text:checkText(o.text,2000),done:o.done===true}))};
+    objectives:(input?.objectives??[]).slice(0,100).map((o:any)=>({id:shortId(o.id),kind:o.kind==='todo'?'todo' as const:'test' as const,text:checkText(o.text,2000),done:o.done===true})),
+    ...input?.brief?{brief:cleanBrief(input.brief)}:{}};
 }
 const recordId=(value:string)=>{if(!/^[a-zA-Z0-9_-]+$/.test(value))throw new Error('Invalid storage identifier');return value;};
 async function optionalFile<T>(path:string):Promise<T|null>{try{return JSON.parse(await readFile(path,'utf8'));}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}}

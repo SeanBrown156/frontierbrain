@@ -3,6 +3,8 @@
 // computes damage itself. Transcripts stay local in reports/chats/.
 import {pokemonProfile} from './profile.ts';
 import {formatPrimer,formatRules} from './format.ts';
+import {readPreferences,updatePreferences,preferencesText} from './player.ts';
+import {playbook,playbookPrimer} from './playbook.ts';
 import {randomUUID} from 'node:crypto';
 import {ROOT,CODE,save,config,requestAI,environmentAI,hosted,type AIProvider} from './io.ts';
 import {damage,speed,spreadSearch,finalStats,dex} from './mechanics.ts';
@@ -34,6 +36,9 @@ export const tools=[
     parameters:{type:'object',properties:{species:{type:'string'},ability:{type:'string'},item:{type:'string'},natures:{type:'array',items:{type:'string'}},minStats:{type:'object'},fixedPoints:{type:'object'},budget:{type:'integer'},benchmarks:{type:'array',items:{type:'object'}}},required:['species','natures']}},
   {type:'function',name:'team_pool_sets',description:'PRIMARY data for real usage: Frontier Brain\'s deduplicated team pool (Limitless official Day 2 lists + Limitless online tournaments + VGCPastes spreads merged into the matching team). For one species: usage share, items, abilities, natures, moves, teammates, exact spreads, and the best-placed example sets with player, event and placing. lanes filters to official/online/shared.',parameters:{type:'object',properties:{species:{type:'string'},lanes:{type:'array',items:{type:'string',enum:['official','online','shared']}},sinceDays:{type:'integer',minimum:7,maximum:365}},required:['species']}},
   {type:'function',name:'meta_overview',description:'Team-pool overview: most-used Pokémon and pairs across all pooled teams, plus recent top-4 teams (official and online). Use for meta context, threat lists and team building.',parameters:{type:'object',properties:{lanes:{type:'array',items:{type:'string',enum:['official','online','shared']}},sinceDays:{type:'integer',minimum:7,maximum:365},top:{type:'integer',minimum:5,maximum:60}}}},
+  {type:'function',name:'get_player_profile',description:'What the player has told Frontier Brain about themselves, kept across every chat and app: playstyle, Bo1/Bo3, how much explanation they want, goals, Pokémon they like or avoid, what they hate facing, notes. Read it before building or coaching; don\'t re-ask what is there.',parameters:{type:'object',properties:{}}},
+  {type:'function',name:'update_player_profile',description:'Save something the player told you about themselves (only what they actually said). Send just the fields to replace; lists replace the whole list, so read first and include existing items you keep. They can see and edit this in Settings.',parameters:{type:'object',properties:{playstyle:{type:'string'},formats:{type:'string',enum:['Bo1','Bo3','both']},explain:{type:'string',enum:['brief','standard','detailed']},goals:{type:'string'},likes:{type:'array',items:{type:'string'}},dislikes:{type:'array',items:{type:'string'}},hateFacing:{type:'array',items:{type:'string'}},notes:{type:'array',items:{type:'string'}}}}},
+  {type:'function',name:'vgc_playbook',description:'Doubles fundamentals adapted to Champions, paraphrased from classic community guides (Nugget Bridge, VGCGuide, Smogon) with links: thinking in fours and team preview, speed control and modes, Fake Out/redirection/Intimidate/positioning, damage and benchmarks, building around a Pokémon, Megas as modes, matchup planning, Bo1 vs Bo3 and open sheets, playtesting, playing well, collaborating. Call with no section for the list.',parameters:{type:'object',properties:{section:{type:'string',description:'Section number or a word from its title, e.g. "3" or "speed control"'}}}},
   {type:'function',name:'format_rules',description:'The rules of a format from the pinned validator and the verified regulation record: team size and how many you bring, level, species/item clauses, bans, Mega Evolutions per battle, open team sheets, Bo1/Bo3, timers and the regulation period, plus a plain-language primer. Defaults to the current regulation.',parameters:{type:'object',properties:{format:{type:'string',description:'Showdown format id, e.g. gen9championsvgc2026regmc (a team\'s format from get_team)'}}}},
   {type:'function',name:'pokemon_profile',description:'What makes a Pokémon distinctive in Champions doubles: its forms (incl. Mega stats/abilities), support, speed-control, disruption and spread moves it can learn, strongest STAB moves, coverage, how often the pool uses it, and a type + base-Speed sheet against the most-used Pokémon (who it threatens, who threatens it, what it outspeeds, what it beats under Trick Room). Use it before suggesting a Pokémon; when the player names Pokémon to build around, profile each and discuss what makes them distinctive before proposing a team.',parameters:{type:'object',properties:{species:{type:'string'},top:{type:'integer',minimum:5,maximum:40,description:'How many top pool Pokémon to compare against (default 20)'}},required:['species']}},
   {type:'function',name:'dex_lookup',description:'Champions dex entry: types, base stats, legal abilities.',parameters:{type:'object',properties:{species:{type:'string'}},required:['species']}},
@@ -50,12 +55,16 @@ Rules:
 - Distinguish observations, assumptions and hypotheses. No win probabilities.
 - A team's own format (get_team / list_teams) wins over this default; call format_rules for it when it differs.
 
-${formatPrimer()}`;
+${formatPrimer()}
+
+Doubles fundamentals (paraphrased community guidance; look up detail with vgc_playbook):
+${playbookPrimer()}`;
 
 function teamPayload(db:Workbench,ctx:ChatContext){
   const team=db.teams.find(t=>t.id===ctx.teamId);if(!team)return {error:'No team is open in this chat context.'};
   const view=currentTeam(db,team,ctx.versionId,ctx.configurationId);
-  return {team:team.name,version:`V${view.version.number}${view.version.label?` · ${view.version.label}`:''}`,focus:ctx.slot!==undefined?view.sets[ctx.slot]?.species:undefined,
+  const brief=db.coaching?.[team.id]?.brief;
+  return {team:team.name,format:team.format,...brief?{brief}:{},version:`V${view.version.number}${view.version.label?` · ${view.version.label}`:''}`,focus:ctx.slot!==undefined?view.sets[ctx.slot]?.species:undefined,
     sets:view.configuration.slots.map((slot,i)=>{const r=db.bank.find(b=>b.id===slot.bankId)!.revisions.find(r=>r.id===slot.revisionId)!;return {slot:i,...r.set,finalStats:finalStats(r.set),provenance:r.provenance??'paste',fields:r.fields,knownMoves:r.knownMoves};})};
 }
 const trim=(m:any)=>({source:m.source,species:m.species,period:m.period,population:m.population,sample:m.sample,url:m.url,notes:m.notes,moves:m.moves.slice(0,10),items:m.items.slice(0,8),abilities:m.abilities.slice(0,4),natures:m.natures.slice(0,6),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,8)});
@@ -73,6 +82,9 @@ export async function runTool(name:string,input:any,ctx:ChatContext,db:Workbench
     case 'spread_search':{const r=spreadSearch(input);return {...r,solutions:r.solutions.map((s:any)=>({nature:s.nature,statPoints:s.statPoints,stats:s.stats,spent:s.spent,unused:s.unused,benchmarks:s.benchmarks.map(brief)}))};}
     case 'team_pool_sets':{const m=await poolSets(input.species,{lanes:input.lanes,sinceDays:input.sinceDays});return {population:m.population,period:m.period,sample:m.sample,items:m.items.slice(0,8),abilities:m.abilities,natures:m.natures.slice(0,6),moves:m.moves.slice(0,12),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,10),examples:(m.examples??[]).slice(0,8),notes:m.notes};}
     case 'meta_overview':return poolOverview({lanes:input.lanes,sinceDays:input.sinceDays,top:input.top});
+    case 'get_player_profile':return readPreferences();
+    case 'update_player_profile':return {saved:await updatePreferences(input??{})};
+    case 'vgc_playbook':return playbook(input.section);
     case 'format_rules':return {...formatRules(input.format||undefined),primer:formatPrimer(input.format||undefined)};
     case 'pokemon_profile':return pokemonProfile(input.species,{top:input.top});
     case 'dex_lookup':{const s=dex.species.get(input.species);if(!s.exists)throw new Error(`Unknown species ${input.species}`);return {name:s.name,types:s.types,baseStats:s.baseStats,abilities:Object.values(s.abilities)};}
@@ -144,8 +156,8 @@ export async function chat(messages:ChatTurn[],ctx:ChatContext,emit:Emit,opts:Ch
   if(!Array.isArray(messages)||!messages.length||messages.length>60)throw new Error('Send 1–60 chat turns');
   for(const m of messages)if(!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>8000)throw new Error('Invalid chat turn');
   const context=teamPayload(db,ctx);const toolLog:ToolEvent[]=[];
-  const profile=await config();
-  const system=`${instructions}${profile.player?`\nPlayer: ${profile.player}.`:''}${profile.coachingLevel?` Coaching level: ${profile.coachingLevel}.`:''}${opts.extraInstructions?`\n\n${opts.extraInstructions}`:''}\nOpen context: ${'error'in context?'none':`${context.team} ${context.version}${context.focus?`, focused on ${context.focus}`:''}`}.`;
+  const profile=await config();const prefs=preferencesText(await readPreferences());
+  const system=`${instructions}${profile.player?`\nPlayer: ${profile.player}.`:''}${profile.coachingLevel?` Coaching level: ${profile.coachingLevel}.`:''}\n${prefs}${opts.extraInstructions?`\n\n${opts.extraInstructions}`:''}\nOpen context: ${'error'in context?'none':`${context.team} ${context.version}${context.focus?`, focused on ${context.focus}`:''}`}.`;
   const talk=(creds.provider==='anthropic'?anthropicConversation:openAIConversation)(system,model,messages,opts,creds.key);
   for(let step=0;step<(opts.maxSteps??12);step++){
     const turn=await talk.step(true);

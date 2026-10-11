@@ -26,6 +26,7 @@ import {addSamples,seedNewWorkspace} from './samples.ts';
 import {searchPoolTeams,poolTeamDraft} from './pool-import.ts';
 import {createBackup,restoreBackup} from './backup.ts';
 import {handleMcp} from './mcp.ts';
+import {readPreferences,updatePreferences} from './player.ts';
 
 function respond(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
 const WEB_PORT=Number(process.env.WEB_PORT??5173),API_PORT=Number(process.env.API_PORT??5174);
@@ -159,6 +160,8 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='POST'&&path==='/api/profile'){const input=await body(req);const current=await optionalJSON<any>('config.json',{});
       const player=typeof input.player==='string'?input.player.trim().slice(0,30):current.player;const aliases=Array.isArray(input.aliases)?input.aliases.filter((a:any)=>typeof a==='string'&&a.trim()).map((a:string)=>a.trim().slice(0,30)).slice(0,10):current.aliases;
       await save('config.json',{...current,player,aliases});return respond(res,200,await profile());}
+    if(req.method==='GET'&&path==='/api/preferences')return respond(res,200,await readPreferences());
+    if(req.method==='POST'&&path==='/api/preferences')return respond(res,200,await updatePreferences(await body(req)));
     if(req.method==='GET'&&path==='/api/settings')return respond(res,200,{models:await modelSettings()});
     if(req.method==='POST'&&path==='/api/settings'){const input=await body(req);return respond(res,200,{models:await saveModelSettings(input.models)});}
     if(req.method==='GET'&&path==='/api/models')return respond(res,200,await availableModels());

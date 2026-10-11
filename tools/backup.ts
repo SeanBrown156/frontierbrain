@@ -7,7 +7,7 @@ import type {Workbench} from '../shared/workbench.ts';
 
 export const BACKUP_FORMAT='frontierbrain-backup';
 const DIRS=['replays/originals','replays/parsed','reports/replay-summaries','reports/replay-digests'];
-const FILES=['config.json','context/player.md'];
+const FILES=['config.json','context/player.md','context/preferences.json'];
 export interface Backup {format:typeof BACKUP_FORMAT;version:1;createdAt:string;store:Omit<Workbench,'revision'>;games:any[];files:Record<string,string>}
 
 async function filesIn(dir:string):Promise<string[]>{const out:string[]=[];for(const name of await listDir(dir).catch(()=>[])){const path=`${dir}/${name}`;if(/\.(json|html|md)$/.test(name))out.push(path);else out.push(...await filesIn(path));}return out;}

@@ -1,0 +1,15 @@
+# VGC doubles primer (Champions M-C)
+
+Paraphrased fundamentals, not rules or numbers. Doubles; register 6, bring 4; level 50; stat points 0–32 per stat, 66 total (not EVs/IVs); one Mega Evolution per battle (several Mega Stone holders allowed); item and species clauses; open team sheets show species, abilities, items and moves, not stat points. No Tera, Dynamax or Z-moves. Every number comes from the tools (`calc_damage`, `calc_speed`, `pokemon_profile`, pool/meta tools), with its source.
+
+- **Think in fours.** Judge a team by its best four against each likely opponent. At preview, choose who sits out, then who leads. Leads need a turn-1 job; the backline escapes bad leads and closes. In Bo1, the four you bring must handle all six they show.
+- **Speed control decides tempo.** Tailwind, Trick Room (one usable turn less than listed), speed drops (reset on switch), paralysis, priority. Pick a primary mode and fallback; check speeds with and without it. Set Speed stat points to a named benchmark.
+- **Board control buys safe turns.** Fake Out (first turn only, resets on switch), redirection (spread moves ignore it), Intimidate cycling, Wide/Quick Guard, Protect (scouts, stalls field turns, wastes double-targets; consecutive uses usually fail). Ask what happens next turn.
+- **Momentum.** The side with more active threats leads. Every turn should create or use a threat. A KO that gives a free switch into their win condition can be worse than removing the key piece. After bad luck, find the remaining route to win.
+- **Damage.** Spread moves trade power for coverage. Doubling up secures KOs but loses both actions to a Protect. Set defensive benchmarks (survive a named attack) first. Report damage as ranges; never estimate in prose.
+- **Building around a Pokémon.** Say what makes it distinctive, cover its weaknesses with a core, and name at least two win conditions. If the sixth slot must fix everything, the first five are the problem.
+- **Megas are modes.** Only one evolves. Check how each holder performs un-Megaed, and benchmark the correct form.
+- **Matchups.** Use evidence-based threat lists and plans for common leads. Answer threats with generally strong Pokémon, not single-purpose techs.
+- **Bo1 vs Bo3.** Bo1 rewards safe previews and surprise in spreads and selection. Bo3 rewards consistency, multiple modes and adapting between games. Open sheets reveal your moves and items.
+- **Revising.** Respect sample size; separate ladder/tournament, Bo1/Bo3, and misplays from team flaws. Change the smallest thing first (play and leads, spread, moves and items, one slot, the core), one at a time. Low use doesn't prove a move is expendable. Changes are proposals, never silently adopted.
+- **Collaborate.** Ask about centrepiece, format, style and losses (with game counts). Decide calc-backed spreads and legality yourself. Offer trade-offs on moves, items, the last slot and the Mega. Ask before changing the core or archetype. Lead with a verdict and mark assumptions.

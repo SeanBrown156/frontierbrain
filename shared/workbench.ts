@@ -17,7 +17,9 @@ export interface CoachingReview {id:string;createdAt:string;scope:ReviewScope;as
 export interface LeadPlan {id:string;lead:string[];back:string[];when:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
 export interface MatchupPlan {id:string;opponent:string;threat:'low'|'medium'|'high';bring:string[];leadId?:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
 export interface Objective {id:string;kind:'test'|'todo';text:string;done:boolean;}
-export interface TeamCoaching {teamId:string;version:number;updatedAt:string;leads:LeadPlan[];matchups:MatchupPlan[];objectives:Objective[];}
+// Why the team exists, agreed with the player while building it (with an assistant or by hand).
+export interface TeamBrief {goal:string;core:string[];gamePlan:string;ruledOut:string;updatedAt:string;}
+export interface TeamCoaching {teamId:string;version:number;updatedAt:string;leads:LeadPlan[];matchups:MatchupPlan[];objectives:Objective[];brief?:TeamBrief;}
 export interface Workbench {schemaVersion:1;revision:number;bank:BankEntry[];teams:Formula[];associations:Record<string,ReplayAssociation>;matches:MatchRecord[];benchmarks?:Benchmark[];coaching?:Record<string,TeamCoaching>;}
 export interface Article {id:string;title:string;url:string;source:string;publishedAt:string;category:'tournament'|'report'|'official'|'community';format:string;summary:string;}
 // News describes the week's metagame only. It never refers to the player's teams, replays or workspace data.
