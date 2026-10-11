@@ -10,7 +10,7 @@ export interface Formula {id:string;name:string;format:string;activeVersionId:st
 // basis 'auto': linked by tools/replay-link.ts (consistent with the game, never proof of spreads); 'player': confirmed by the player.
 export interface ReplayAssociation {teamId:string;versionId?:string;configurationId?:string;certainty:'family'|'exact';basis?:'auto'|'player';note?:string;}
 export interface MatchRecord {id:string;replayIds:string[];notes:string;}
-export interface Benchmark {id:string;bankId:string;revisionId:string;createdAt:string;title:string;kind:'damage'|'speed'|'spread';input:any;result:any;context:string;sources:string[];}
+export interface Benchmark {id:string;bankId:string;revisionId:string;createdAt:string;title:string;kind:'damage'|'speed'|'spread';input:any;result:any;context:string;sources:string[];side?:'attacker'|'defender'|'a';}
 export interface ReviewScope {teamId?:string;versionId?:string;configurationId?:string;replayIds:string[];}
 export interface CoachingFinding {category:'play'|'building'|'variance';title:string;detail:string;confidence:'high'|'medium'|'low';evidence:{replayId:string;turn:number;line:number}[];practiceGoal:string;experiment?:string;}
 export interface CoachingReview {id:string;createdAt:string;scope:ReviewScope;associationFingerprint:string;status:'complete'|'partial';findings:CoachingFinding[];limitations:string[];report:string;}

@@ -1,3 +1,4 @@
+import {ownSide,autoTitle} from '../shared/benchmarks.ts';
 import {autoLink} from './replay-link.ts';
 import {FORMATS} from '../shared/formats.ts';
 import {readFile,mkdir,writeFile,rename,rm,readdir,copyFile} from 'node:fs/promises';
@@ -63,7 +64,10 @@ export function applyAction(db:Workbench,action:any):unknown {
     const methods={damage,speed,spread:spreadSearch};if(!Object.hasOwn(methods,action.kind))throw new Error('Unknown benchmark kind');
     const result=methods[action.kind as keyof typeof methods](action.input);
     const sources=(action.sources??[]).map((s:unknown)=>{const url=checkText(s,2000);if(!/^https?:\/\//.test(url))throw new Error('Source must be an HTTP URL');return url;});
-    const benchmark={id:uid('benchmark'),bankId:entry.id,revisionId:action.revisionId,createdAt:now(),title:checkText(action.title,200),kind:action.kind,input:structuredClone(action.input),result,context:checkText(action.context??''),sources};(db.benchmarks??=[]).push(benchmark);return benchmark;
+    const species=entry.revisions.find(r=>r.id===action.revisionId)!.set.species;const side=action.side??ownSide({kind:action.kind,input:action.input},species);if(!['attacker','defender','a'].includes(side))throw new Error('Unknown benchmark side');
+    const benchmark={id:uid('benchmark'),bankId:entry.id,revisionId:action.revisionId,createdAt:now(),title:checkText(action.title||autoTitle(action.kind,side,action.input),200),kind:action.kind,input:structuredClone(action.input),result,context:checkText(action.context??''),sources,side};(db.benchmarks??=[]).push(benchmark);return benchmark;
+  }
+  if(action.type==='benchmark-delete'){const before=(db.benchmarks??[]).length;db.benchmarks=(db.benchmarks??[]).filter(b=>b.id!==action.benchmarkId);if(db.benchmarks.length===before)throw new Error('Benchmark not found');return {deleted:action.benchmarkId};
   }
   // Deleting a team removes it with its versions, strategy and replay links. Its sets stay in the Pokémon library
   // and the replays stay saved (unlinked), so nothing played is lost.

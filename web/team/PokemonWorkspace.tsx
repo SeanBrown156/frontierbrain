@@ -3,6 +3,7 @@ import type {SetRevision,SetNotes,PokemonSet,BankEntry} from '../../shared/workb
 import {api,Art,Notice,Empty,date} from '../ui.tsx';
 import {Px,ArrowLeft} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
+import Benchmarks from './Benchmarks.tsx';
 import SpeciesPicker,{type SavedOption} from '../ai/SpeciesPicker.tsx';
 import {getView,versionName,stats,statLabel,noteTitles} from './editors.tsx';
 import {teamHref,monHref} from './Hub.tsx';
@@ -54,7 +55,9 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
         <input className="nickname" aria-label="Nickname" placeholder="Nickname (optional)" value={set.nickname??''} onChange={e=>update({nickname:e.target.value||undefined})}/></div></div>
       {(d.draft.basis||d.draft.why)&&<ul className="basis">{d.draft.why&&<li>AI: {d.draft.why}</li>}{d.draft.basis?.map((b,i)=><li key={i}>{b}</li>)}</ul>}
       <SetFields set={set} update={update} inferred={inferred} others={others}/>
-      <details className="set-notes-edit"><summary>Notes</summary>{(Object.keys(noteTitles) as (keyof SetNotes)[]).map(k=><label key={k}>{noteTitles[k]}<textarea rows={2} value={d.draft.notes[k]} onChange={e=>d.setDraft(x=>({...x,notes:{...x.notes,[k]:e.target.value}}))}/></label>)}</details>
+      <Benchmarks entry={entry} set={set} data={data} mutate={mutate}/>
+      <label className="set-notes-edit">Notes<textarea rows={3} placeholder="Role, game plan, anything worth remembering" value={d.draft.notes.role} onChange={e=>d.setDraft(x=>({...x,notes:{...x.notes,role:e.target.value}}))}/></label>
+      {(['benchmarks','partners','matchups'] as const).some(k=>d.draft.notes[k])&&<details className="set-notes-edit"><summary>Earlier notes</summary>{(['benchmarks','partners','matchups'] as const).filter(k=>d.draft.notes[k]).map(k=><label key={k}>{noteTitles[k]}<textarea rows={2} value={d.draft.notes[k]} onChange={e=>d.setDraft(x=>({...x,notes:{...x.notes,[k]:e.target.value}}))}/></label>)}</details>}
       <History entry={entry} revision={revision} load={r=>d.setDraft(x=>({...x,set:structuredClone(r.set),reuse:true,basis:[`Restoring the ${date(r.createdAt)} set.`]}))}/>
       {!readOnly&&(revision.starred&&!d.dirty?<p className="my-set">★ In My sets as “{revision.starred.label}” <button className="text-button" onClick={()=>void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{})}>Remove</button></p>
         :starring?<div className="star-form"><input autoFocus aria-label="Name for My sets" placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/><button className="primary" onClick={()=>void star()} disabled={busy||problems.length>0}>{d.dirty?'Save & add':'Add'}</button><button onClick={()=>setStarring(false)}>Cancel</button></div>

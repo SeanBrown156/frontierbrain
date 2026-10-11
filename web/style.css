@@ -539,3 +539,14 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.q
 .dock-body.locked .dock-log,.dock-body.locked .dock-rest{filter:grayscale(1);opacity:.45;pointer-events:none;user-select:none}
 .dock-lock{position:absolute;inset:0;display:grid;place-items:center;padding:var(--s4)}
 .dock-lock .signin-for-ai{background:var(--paper);border-style:solid;box-shadow:2px 2px 0 var(--shadow);max-width:320px}
+/* Benchmarks on the set card: saved calcs that re-check against the current set. */
+.benchmarks{margin:var(--s4) 0;padding-top:var(--s4);border-top:1px solid var(--line)}
+.benchmarks h3{margin:0 0 var(--s2);font:600 15px var(--display)}
+.benchmarks ul{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
+.benchmarks li{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:var(--s2);padding:var(--s2) var(--s3);border:1px solid var(--line);background:var(--paper)}
+.benchmarks li.ok .mark{color:var(--emerald-deep)}.benchmarks li.broken{border-color:var(--red-ink);background:var(--danger-tint)}.benchmarks li.broken .mark{color:var(--red-ink)}
+.benchmarks .mark{font:700 16px var(--font);text-align:center}
+.benchmarks .what{display:grid;min-width:0}.benchmarks .what b{font-size:13.5px;overflow-wrap:anywhere}.benchmarks .what small{color:var(--muted);font-size:12.5px}
+.benchmarks li button.icon{width:32px;min-width:32px;height:32px;min-height:32px}
+.set-notes-edit textarea{width:100%}
+.benchmark-save{display:flex;justify-content:flex-start;margin:var(--s4) 0}
