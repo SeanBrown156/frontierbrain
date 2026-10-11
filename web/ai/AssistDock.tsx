@@ -3,7 +3,7 @@ import type {PokemonSet} from '../../shared/workbench.ts';
 import {api,Art,Markdown} from '../ui.tsx';
 import {Px,Sparkles,Message,Trash,Close} from '../icons.tsx';
 import {AIKeySettings} from './keys.tsx';
-import {useAccount,canUseAI,SignInForAI} from '../auth.tsx';
+import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
 import SetTile from './SetTile.tsx';
 import {getView} from '../team/editors.tsx';
 import {teamHref,addPlans} from '../team/Hub.tsx';
@@ -41,7 +41,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
       if(job.status!=='running'){const seconds=job.finishedAt?Math.round((Date.parse(job.finishedAt)-Date.parse(job.startedAt))/1000):undefined;
         save(prev=>prev.map(t=>t.jobId!==pending?t:job.status==='done'?{role:'assistant',content:job.result.reply||'Here is what I found.',proposals:job.result.proposals,model:job.model,seconds,note:job.modelNote}:{role:'assistant',content:job.error??'The request failed.',failed:true,model:job.model,seconds}));setSteps([]);}}catch{}};
     void tick();const t=setInterval(()=>void tick(),1500);return()=>{alive=false;clearInterval(t);};},[pending]);
-  const send=async(text:string,history=turns)=>{if(!text.trim()||pending)return;const next=[...history,{role:'user' as const,content:text.trim(),page:pageLabel}];
+  const send=async(text:string,history=turns)=>{if(!text.trim()||pending)return;if(!ai){setDraft(text);requireAccount('Sign in for free to ask questions with your preferred AI tool.');return;}const next=[...history,{role:'user' as const,content:text.trim(),page:pageLabel}];
     try{const {id}=await api('/ai-jobs',{area:'assist',context:{teamId:team.id,versionId,configurationId:view.version.currentConfigurationId,slot:context.slot,page:context.page},messages:next.filter(t=>!t.failed&&!t.jobId).slice(-10).map(asMessage)});save([...next,{role:'assistant',content:'',jobId:id}]);setDraft('');}
     catch(e){save([...next,{role:'assistant',content:(e as Error).message,failed:true}]);}};
   const retry=(ti:number)=>{const question=[...turns.slice(0,ti)].reverse().find(t=>t.role==='user');if(!question)return;const history=turns.slice(0,turns.lastIndexOf(question));void send(question.content,history);};
@@ -83,7 +83,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
           {t.proposals?.length?<div className="proposals">{t.proposals.map((p,pi)=><ProposalCard key={pi} p={p} art={data.art} current={slot=>view.sets[slot]} decide={yes=>void decide(ti,pi,yes)}/>)}</div>:null}
           {(t.proposals?.filter(p=>!p.status&&['lead','matchup'].includes(p.kind)).length??0)>1&&<button className="primary" onClick={()=>void acceptAll(ti)}>Accept all plans</button>}
           {t.role==='assistant'&&(t.model||t.note)&&<p className="model-line">{t.model}{t.seconds!==undefined?` · ${t.seconds} s`:''}{t.note?` · ${t.note}`:''}</p>}</div>)}<div ref={end}/></div>
-    {!ai?<SignInForAI verb="ask questions"/>:<>{!turns.length&&<div className="chat-suggestions">{suggestionsFor(context.page,species).map(s=><button key={s} onClick={()=>void send(s)}>{s}</button>)}</div>}
+    {<>{!turns.length&&<div className="chat-suggestions">{suggestionsFor(context.page,species).map(s=><button key={s} onClick={()=>void send(s)}>{s}</button>)}</div>}
     <form className="dock-input" onSubmit={e=>{e.preventDefault();void send(draft);}}><span className="context-chip" title="What Frontier Brain is looking at">Looking at: {pageLabel}</span>
       <div className="chat-input"><textarea ref={input} rows={2} value={draft} placeholder={context.page==='slot'?`e.g. Make ${species} survive a typical Mega Gengar Shadow Ball`:'Ask about this team…'} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void send(draft);}}}/><button className="primary" disabled={!!pending||!draft.trim()} aria-label="Send"><Px icon={Message}/></button></div></form></>}
   </aside>;
