@@ -19,7 +19,7 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
   useEffect(()=>{void refresh();},[team.id,games.length]);
   useEffect(()=>{if(!info.running.length)return;const t=setInterval(()=>void refresh(),3000);return()=>clearInterval(t);},[info.running.length]);
   const ai=canUseAI(useAccount());
-  const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in to get AI summaries of your replays.');try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
+  const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in for free to summarise replays with your preferred AI tool.');try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
   const shown=games.filter((g:any)=>(!result||g.result===result)&&mons.every(m=>g.preview[other(g)].includes(m))&&styles.every(s=>info.summaries[g.id]?.opponentStyle?.includes(s)));
   const styleOptions=[...new Set(Object.values<any>(info.summaries).flatMap(s=>s.opponentStyle))];
   const missing=games.filter((g:any)=>!info.summaries[g.id]).map((g:any)=>g.id);const busy=info.running.length>0;

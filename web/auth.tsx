@@ -95,7 +95,8 @@ function EmailForm({mode,onBack,onDone}:{mode:'create'|'signin';onBack:()=>void;
   </form>;
 }
 
-// Shown in place of an AI control for guests.
-export function SignInForAI({what='AI features'}:{what?:string}){
-  return <div className="signin-for-ai"><p><Sparkles width={16} height={16} aria-hidden="true" className="px-icon"/> {what} need an account. Your guest work comes with you.</p><button className="primary" onClick={()=>requireAccount(`Sign in to use ${what}.`)}>Sign in</button></div>;
+// Shown in place of an AI control for guests. `verb` completes "Sign in for free to … with your preferred AI tool."
+export function SignInForAI({verb='do this'}:{verb?:string}){
+  const text=`Sign in for free to ${verb} with your preferred AI tool.`;
+  return <div className="signin-for-ai"><p><Sparkles width={16} height={16} aria-hidden="true" className="px-icon"/> {text}</p><button className="primary" onClick={()=>requireAccount(text)}>Sign in</button></div>;
 }
