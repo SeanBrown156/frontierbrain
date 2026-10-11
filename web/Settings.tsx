@@ -15,7 +15,7 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
         :<p className="muted">Local workspace on this computer. No account needed.</p>}
     </Panel>
     <ShowdownName profile={profile} reload={reload} notify={notify}/>
-    <AIKeyPanel/>
+    <AIPanel/>
     <Backup reload={reload} notify={notify}/>
   </div>;
 }
@@ -35,13 +35,34 @@ function ShowdownName({profile,reload,notify}:{profile?:any;reload:()=>Promise<v
 
 // The key lives only in this browser. Each AI request carries it to our server, which passes it to OpenAI or
 // Anthropic for that one request and drops it: never written to the database or logs. The code is public to check.
-function AIKeyPanel(){
+// Two ways to use AI: your own API key inside Frontier Brain, or your Claude/ChatGPT subscription connected over MCP.
+function AIPanel(){
+  const [mode,setMode]=useState<'key'|'mcp'>('key');
+  return <Panel title={<><Px icon={Sparkles}/> AI</>}>
+    <div className="segmented ai-mode" role="tablist"><button role="tab" aria-selected={mode==='key'} className={mode==='key'?'on':''} onClick={()=>setMode('key')}>Your API key</button><button role="tab" aria-selected={mode==='mcp'} className={mode==='mcp'?'on':''} onClick={()=>setMode('mcp')}>Connect Claude or ChatGPT</button></div>
+    {mode==='key'?<AIKey/>:<Connectors/>}
+  </Panel>;
+}
+// MCP connector: Claude or ChatGPT uses Frontier Brain's tools (your teams, calcs, pool data) with your own subscription.
+function Connectors(){
+  const account=useAccount();
+  return <div className="ai-explainer">
+    <p><b>Use Frontier Brain from Claude or ChatGPT.</b> Add Frontier Brain as a connector and your own assistant can read your teams, run exact calcs, look up the data pool and save changes you approve. It runs on your Claude or ChatGPT subscription, with no API key needed.</p>
+    <ul className="privacy-points">
+      <li><b>You approve access.</b> Connecting asks you to sign in to Frontier Brain and allow it. You can disconnect at any time.</li>
+      <li><b>Only your workspace.</b> The connector sees your teams and replays, nobody else's.</li>
+      <li><b>Changes stay proposals.</b> Anything it suggests waits for you to accept, like it does here.</li>
+    </ul>
+    <p className="notice">Coming next: connectors aren't switched on yet.{account.kind==='guest'?' They will need a free account.':' This is where you\'ll find the address to add in Claude or ChatGPT.'}</p>
+  </div>;
+}
+function AIKey(){
   const account=useAccount();const [saved,setSaved]=useState<AIKey|null>(()=>aiKey());const [provider,setProvider]=useState<AIKey['provider']>(saved?.provider??'openai'),[key,setKey]=useState(''),[status,setStatus]=useState('');
   const locked=account.kind==='guest';
   const save=async()=>{const next={provider,key:key.trim()};setAIKey(next);setSaved(next);setKey('');setStatus('Checking the key…');
     try{const models=await api('/models');setStatus(models.length?`Key works: ${models.length} models available.`:'Saved, but the provider didn’t accept it. Check the key and try again.');}catch(e){setStatus((e as Error).message);}};
   const remove=()=>{setAIKey(null);setSaved(null);setStatus('Key removed from this browser.');};
-  return <Panel title="AI key">
+  return <>
     <div className="ai-explainer">
       <p><Px icon={Sparkles}/> <b>AI runs on your own OpenAI or Anthropic (Claude) key, so you pay the provider directly for what you use.</b> Frontier Brain never charges you and never pays for anyone else's usage.</p>
       <ul className="privacy-points">
@@ -63,7 +84,7 @@ function AIKeyPanel(){
       {status&&<p className="notice">{status}</p>}
       {saved&&<button className="danger" onClick={remove}>Remove key from this browser</button>}
     </>}
-  </Panel>;
+  </>;
 }
 
 function Backup({reload,notify}:{reload:()=>Promise<void>;notify:(t:string,e?:boolean)=>void}){
