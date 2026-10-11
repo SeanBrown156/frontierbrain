@@ -3,7 +3,7 @@ import type {PokemonSet} from '../../shared/workbench.ts';
 import {api,Art,Markdown} from '../ui.tsx';
 import {Px,Sparkles,Message,Trash,Close} from '../icons.tsx';
 import {AIKeySettings} from './keys.tsx';
-import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
+import {useAccount,canUseAI,requireAccount,SignInForAI} from '../auth.tsx';
 import SetTile from './SetTile.tsx';
 import {getView} from '../team/editors.tsx';
 import {teamHref,addPlans} from '../team/Hub.tsx';
@@ -75,7 +75,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   if(!open)return <button className={'dock-toggle'+(pending?' busy':'')} onClick={()=>setOpen(true)} title="Ask Frontier Brain (press /)"><Px icon={Sparkles}/>Ask Frontier Brain{pending&&<span className="dot" aria-label="working"/>}</button>;
   return <aside className="dock" aria-label="Ask Frontier Brain">
     <header className="dock-head"><h2><Px icon={Sparkles}/>Ask Frontier Brain</h2><div className="button-row">{ai&&<><AIKeySettings onChange={()=>location.reload()}/><ModelPicker tier="chat"/></>}{turns.length>0&&!pending&&<button className="icon" title="New chat" aria-label="New chat" onClick={()=>save([])}><Px icon={Trash}/></button>}<button className="icon" aria-label="Close" title="Close (Esc)" onClick={()=>setOpen(false)}><Px icon={Close}/></button></div></header>
-    <div className="dock-log">{!turns.length&&<div className="chat-empty"><p>Ask anything about {team.name}. Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.</p></div>}
+    <div className={"dock-body"+(ai?"":" locked")}><div className="dock-log" {...(ai?{}:{inert:true} as any)}>{!turns.length&&<div className="chat-empty"><p>Ask anything about {team.name}. Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.</p></div>}
       {turns.map((t,ti)=>t.jobId&&!t.proposals&&!t.failed?<div key={ti} className="chat-turn assistant working"><p><Px icon={Sparkles}/>{steps.length?`${stepNames[steps.at(-1).name]??steps.at(-1).name}${steps.at(-1).input?`: ${steps.at(-1).input}`:''}`:'Starting…'} <span className="muted">· {steps.length} step{steps.length===1?'':'s'}</span></p>
           <div className="button-row"><button className="text-button" onClick={()=>setShowSteps(!showSteps)}>{showSteps?'Hide':'Show'} steps</button><button className="text-button" onClick={()=>void cancel()}>Cancel</button></div>{showSteps&&<ol className="steps">{steps.map((s,i)=><li key={i} className={s.error?'error':''}>{stepNames[s.name]??s.name}{s.input?`: ${s.input}`:''}</li>)}</ol>}</div>
         :<div key={ti} className={'chat-turn '+t.role+(t.failed?' error':'')}>{t.role==='user'&&t.page&&<span className="asked-from">{t.page}</span>}{t.role==='assistant'&&!t.failed?<Markdown text={t.content}/>:<p>{t.content}</p>}
@@ -83,9 +83,9 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
           {t.proposals?.length?<div className="proposals">{t.proposals.map((p,pi)=><ProposalCard key={pi} p={p} art={data.art} current={slot=>view.sets[slot]} decide={yes=>void decide(ti,pi,yes)}/>)}</div>:null}
           {(t.proposals?.filter(p=>!p.status&&['lead','matchup'].includes(p.kind)).length??0)>1&&<button className="primary" onClick={()=>void acceptAll(ti)}>Accept all plans</button>}
           {t.role==='assistant'&&(t.model||t.note)&&<p className="model-line">{t.model}{t.seconds!==undefined?` · ${t.seconds} s`:''}{t.note?` · ${t.note}`:''}</p>}</div>)}<div ref={end}/></div>
-    {<>{!turns.length&&<div className="chat-suggestions">{suggestionsFor(context.page,species).map(s=><button key={s} onClick={()=>void send(s)}>{s}</button>)}</div>}
+    {<div className="dock-rest" {...(ai?{}:{inert:true} as any)}>{!turns.length&&<div className="chat-suggestions">{suggestionsFor(context.page,species).map(s=><button key={s} onClick={()=>void send(s)}>{s}</button>)}</div>}
     <form className="dock-input" onSubmit={e=>{e.preventDefault();void send(draft);}}><span className="context-chip" title="What Frontier Brain is looking at">Looking at: {pageLabel}</span>
-      <div className="chat-input"><textarea ref={input} rows={2} value={draft} placeholder={context.page==='slot'?`e.g. Make ${species} survive a typical Mega Gengar Shadow Ball`:'Ask about this team…'} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void send(draft);}}}/><button className="primary" disabled={!!pending||!draft.trim()} aria-label="Send"><Px icon={Message}/></button></div></form></>}
+      <div className="chat-input"><textarea ref={input} rows={2} value={draft} placeholder={context.page==='slot'?`e.g. Make ${species} survive a typical Mega Gengar Shadow Ball`:'Ask about this team…'} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void send(draft);}}}/><button className="primary" disabled={!!pending||!draft.trim()} aria-label="Send"><Px icon={Message}/></button></div></form></div>}{!ai&&<div className="dock-lock"><SignInForAI verb="ask questions"/></div>}</div>
   </aside>;
 }
 

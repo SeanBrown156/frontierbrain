@@ -532,3 +532,10 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.q
 /* Calc: Damage / Speed tabs span the panel. */
 .lab>.tabs{display:grid!important;grid-template-columns:1fr 1fr;gap:var(--s2)!important;width:100%;margin:0 0 var(--s6)!important}
 .lab>.tabs button{width:100%;height:var(--control-height)!important;min-height:var(--control-height)!important;max-height:none!important;font-size:14px!important}
+/* Guests: the Ask drawer is visible but frozen under a sign-in prompt. */
+.dock-body{position:relative;display:flex;flex-direction:column;flex:1;min-height:0}
+.dock-body .dock-log{flex:1}
+.dock-rest{display:flex;flex-direction:column}
+.dock-body.locked .dock-log,.dock-body.locked .dock-rest{filter:grayscale(1);opacity:.45;pointer-events:none;user-select:none}
+.dock-lock{position:absolute;inset:0;display:grid;place-items:center;padding:var(--s4)}
+.dock-lock .signin-for-ai{background:var(--paper);border-style:solid;box-shadow:2px 2px 0 var(--shadow);max-width:320px}
