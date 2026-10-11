@@ -1,30 +1,690 @@
 {
   "version": 1,
-  "builtAt": "2026-10-09T03:55:13.801Z",
+  "builtAt": "2026-10-11T06:37:33.142Z",
   "teams": [
     {
       "key": "official:443:1:ericrios",
       "name": "Sample · Eric Rios, 1st Frankfurt Regional",
       "paste": "Gholdengo @ Life Orb  \nAbility: Good as Gold  \nLevel: 50  \nEVs: 17 HP / 7 SpA / 22 SpD / 20 Spe  \nModest Nature  \n- Protect  \n- Shadow Ball  \n- Nasty Plot  \n- Make It Rain  \n\nVolcarona @ Rocky Helmet  \nAbility: Flame Body  \nLevel: 50  \nEVs: 13 HP / 30 Def / 23 Spe  \nTimid Nature  \n- Overheat  \n- Struggle Bug  \n- Rage Powder  \n- Tailwind  \n\nGarchomp @ Garchompite Z  \nAbility: Rough Skin  \nLevel: 50  \nEVs: 4 Def / 30 SpA / 32 Spe  \nModest Nature  \n- Dragon Pulse  \n- Earth Power  \n- Power Gem  \n- Protect  \n\nIncineroar @ Sitrus Berry  \nAbility: Intimidate  \nLevel: 50  \nEVs: 30 HP / 20 Def / 14 SpD / 2 Spe  \nImpish Nature  \n- Parting Shot  \n- Fake Out  \n- Flare Blitz  \n- Darkest Lariat  \n\nRillaboom @ Miracle Seed  \nAbility: Grassy Surge  \nLevel: 50  \nEVs: 26 HP / 30 Atk / 1 Def / 4 SpD / 5 Spe  \nAdamant Nature  \n- Grassy Glide  \n- Wood Hammer  \n- Fake Out  \n- U-turn  \n\nRaichu @ Raichunite Y  \nAbility: Lightning Rod  \nLevel: 50  \nEVs: 32 HP / 11 Def / 23 Spe  \nTimid Nature  \n- Zap Cannon  \n- Focus Blast  \n- Fake Out  \n- Protect  \n\n",
-      "notes": "Sample team: Eric Rios's 1st-place team from Regional Frankfurt (26 Sept 2026, 1,129 players).\n\nTeam list: https://limitlessvgc.com/teams/7038. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/0e35fd9cd52d7552).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
+      "coaching": {
+        "leads": [
+          {
+            "id": "lead-volc-ghold",
+            "lead": [
+              "Volcarona",
+              "Gholdengo"
+            ],
+            "back": [
+              "Rillaboom",
+              "Incineroar"
+            ],
+            "when": "Default into slower balance and special teams without Kingambit or heavy Fire (no Charizard-Mega-Y, no Arcanine-Hisui).",
+            "plan": "T1: Volcarona uses Rage Powder (or Tailwind if their side is faster), and Gholdengo uses Nasty Plot. A Fake Out into Volcarona eats Rocky Helmet and a Flame Body roll. Remember that a Grass-type attacker (Rillaboom) ignores Rage Powder.\nT2: Volcarona uses Tailwind or Struggle Bug, and Gholdengo uses Make It Rain into the spread board (+2 vs std Rillaboom: 90.8–108.2%), with Shadow Ball as a single-target finisher. If Gholdengo gets low, pivot to Incineroar to reset with Intimidate and Parting Shot.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-rilla-raichu",
+            "lead": [
+              "Rillaboom",
+              "Raichu"
+            ],
+            "back": [
+              "Gholdengo",
+              "Volcarona"
+            ],
+            "when": "Into fast offense and rain (Pelipper, Basculegion), or when you want two Fake Outs to control turn 1.",
+            "plan": "T1: Mega Evolve Raichu. Fake Out the bigger threat, and Raichu uses Zap Cannon on the other (it always hits and always paralyses). Into Pelipper, Zap Cannon vs std Focus Sash Pelipper is 394.2–467.2%, so the sash is the only thing keeping it alive.\nT2: Use Grassy Glide or Wood Hammer, and Focus Blast on Kingambit or Incineroar (std Kingambit 146.9–173.9%, std Incineroar 51.5–61.4%). U-turn into Gholdengo once the opposing Fake Outs are spent.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-incin-chomp",
+            "lead": [
+              "Incineroar",
+              "Garchomp"
+            ],
+            "back": [
+              "Gholdengo",
+              "Volcarona"
+            ],
+            "when": "Into Salamence-Mega and Tailwind offense, Charizard-Mega-Y, and Dragon-heavy teams.",
+            "plan": "T1: Mega Evolve Garchomp. Incineroar uses Fake Out on the Tailwind setter or the biggest attacker, and Garchomp uses Dragon Pulse on Salamence-Mega (108.1–126.7%) or Power Gem on Charizard-Mega-Y (101.6–121.1%). Intimidate blunts physical leads.\nT2: Parting Shot brings in Gholdengo or Volcarona safely, and Garchomp keeps attacking. Earth Power vs std Gholdengo does 78.0–92.7%, so pair it with chip.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-raichu-ghold",
+            "lead": [
+              "Raichu",
+              "Gholdengo"
+            ],
+            "back": [
+              "Volcarona",
+              "Rillaboom"
+            ],
+            "when": "Into Sneasler + Kingambit.",
+            "plan": "T1: Mega Evolve Raichu. Fake Out Kingambit, and Gholdengo uses Nasty Plot. Sneasler's STABs can't touch Gholdengo, so Kingambit's Sucker Punch (101.7–121.8%) is the only immediate danger.\nT2: Raichu uses Focus Blast on Kingambit (146.9–173.9% vs std), and Gholdengo uses Make It Rain. Expect Sneasler Close Combat into Raichu (94.0–111.4% vs std), so Protect Raichu if Kingambit has already gone down.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ],
+        "matchups": [
+          {
+            "id": "mu-sneasler-gambit",
+            "opponent": "Sneasler + Kingambit (Sneasler 39.4%, Kingambit 30.8% of official Day 2 teams)",
+            "threat": "high",
+            "bring": [
+              "Raichu",
+              "Gholdengo",
+              "Volcarona",
+              "Rillaboom"
+            ],
+            "leadId": "lead-raichu-ghold",
+            "plan": "Kingambit is the one Pokémon that punishes Gholdengo: std Life Orb Sucker Punch does 101.7–121.8%. Remove it first with Raichu Focus Blast (146.9–173.9%) or Volcarona Overheat (102.4–121.7%). Gholdengo walls Sneasler outright. Volcarona takes Close Combat well (34.1–39.9%), and its Rocky Helmet and Flame Body punish contact. Leave Incineroar home: its Intimidate triggers Defiant, and std Sneasler Close Combat does 94.0–112.0% to it.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-rilla-incin",
+            "opponent": "Rillaboom + Incineroar Fake Out balance (Rillaboom 53%, Incineroar 33.6%)",
+            "threat": "medium",
+            "bring": [
+              "Volcarona",
+              "Gholdengo",
+              "Incineroar",
+              "Garchomp"
+            ],
+            "leadId": "lead-volc-ghold",
+            "plan": "Their Fake Outs and Parting Shots are aimed at stopping Nasty Plot, and Good as Gold blocks Parting Shot. Rillaboom isn't redirected by Rage Powder, so expect Grassy Glide or Wood Hammer into Gholdengo (resisted) or Volcarona. Volcarona Overheat vs std Rillaboom does 89.9–107.2%. +2 Make It Rain chunks both: Rillaboom 90.8–108.2%, Incineroar 36.6–43.6%. Use Garchomp Earth Power on Incineroar (45.5–54.5%) to remove the Intimidate cycler late.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-trick-room",
+            "opponent": "Trick Room: Farigiraf (12.4%) / Indeedee (19.7%)",
+            "threat": "medium",
+            "bring": [
+              "Rillaboom",
+              "Gholdengo",
+              "Raichu",
+              "Incineroar"
+            ],
+            "plan": "Armor Tail blocks Fake Out and Grassy Glide into Farigiraf and its partner, and Psychic Terrain blocks priority into grounded targets. Shadow Ball doesn't affect Farigiraf (Normal). Put damage into the setter instead: Rillaboom Wood Hammer vs std Bold 32 HP / 32 Def Farigiraf 66.5–78.4%, Make It Rain 55.5–65.6% (spread, unboosted), Focus Blast 39.2–46.3%. Protect or Parting Shot through Trick Room turns, and let Incineroar soak hits. Tailwind doesn't help under Trick Room.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-sun",
+            "opponent": "Charizard-Mega-Y sun (16.4%)",
+            "threat": "high",
+            "bring": [
+              "Garchomp",
+              "Volcarona",
+              "Incineroar",
+              "Raichu"
+            ],
+            "leadId": "lead-incin-chomp",
+            "plan": "Sun Heat Wave does 98.3–117.3% to Gholdengo and also threatens Rillaboom, so both usually stay home. Garchomp-Mega-Z outspeeds and Power Gems Charizard (101.6–121.1% vs std). Volcarona and Incineroar resist Fire. Raichu's Zap Cannon paralysis is the backup speed control. If Charizard Protects turn 1, Fake Out its partner and attack into the Protect slot next turn.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-rain",
+            "opponent": "Rain: Pelipper (10.6%) + Archaludon (16.7%) / Basculegion (12.6%)",
+            "threat": "medium",
+            "bring": [
+              "Raichu",
+              "Rillaboom",
+              "Gholdengo",
+              "Incineroar"
+            ],
+            "leadId": "lead-rilla-raichu",
+            "plan": "Raichu removes Pelipper: Zap Cannon vs std Focus Sash Pelipper does 394.2–467.2%, so break the sash with Fake Out chip first. Grassy Glide OHKOs std Choice Scarf Basculegion (110.8–130.3%). In rain, std Archaludon's +1 Electro Shot fires immediately and does 65.4–77.1% to Gholdengo and 71.7–85.0% to Volcarona, so keep Volcarona home. Raichu Focus Blast does 71.1–84.3% to std Archaludon and Garchomp Earth Power 62.9–74.1%, so a doubled target goes down.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-salamence",
+            "opponent": "Salamence-Mega Tailwind offense (24.7%)",
+            "threat": "medium",
+            "bring": [
+              "Garchomp",
+              "Incineroar",
+              "Gholdengo",
+              "Volcarona"
+            ],
+            "leadId": "lead-incin-chomp",
+            "plan": "Garchomp-Mega-Z (203) outspeeds std Salamence-Mega (189), and Dragon Pulse KOs it (108.1–126.7%). Raichu-Mega-Y also outspeeds it by one point if you go the Raichu route. Hyper Voice does 16.2–19.6% to Gholdengo and 72.8–86.7% to Volcarona, so Gholdengo is the safer setup partner. Fake Out the Tailwind turn, or answer with your own Tailwind from Volcarona.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ]
+      },
+      "notes": "## Game plan\nThis is balance built around **Gholdengo**. It sets up Nasty Plot behind Volcarona's Rage Powder and Tailwind, while the **Rillaboom + Incineroar** Fake Out/pivot core keeps the board stable. There are two Mega options, and M-C allows one Mega per battle, so pick at team preview: **Garchomp-Mega-Z** (fast special Dragon with Levitate) or **Raichu-Mega-Y** (No Guard makes Zap Cannon's paralysis and Focus Blast never miss).\n\n## Win conditions\n- **+2 Gholdengo** cleaning up with Make It Rain. +2 Make It Rain (spread) vs std Adamant 32 HP / 32 SpD Rillaboom: 90.8–108.2% (50% to KO). Vs std Careful 32 HP / 32 SpD Incineroar it does only 36.6–43.6%, so Incineroar needs chip first. Make It Rain lowers Gholdengo's SpA, so alternate it with Shadow Ball.\n- **Fast Mega pressure** once Fake Out users and Intimidate are gone.\n\n## What each Pokémon does\n- **Gholdengo**: win condition. It's immune to both of Sneasler's STABs (Fighting into Ghost, Poison into Steel), and Good as Gold blocks Parting Shot, Encore and sleep.\n- **Volcarona**: Rage Powder, Tailwind and Struggle Bug, with Rocky Helmet and Flame Body to punish contact. It takes 34.1–39.9% from std Sneasler Close Combat. Overheat vs std Kingambit: 102.4–121.7%. Grass types (Rillaboom) ignore Rage Powder.\n- **Garchomp-Mega-Z**: 203 Speed outspeeds std Salamence-Mega (189), std Raichu-Mega-Y (200) and std Sneasler (172) before Unburden, but not after it (344). Dragon Pulse vs std Salamence-Mega: 108.1–126.7%. Power Gem vs std Charizard-Mega-Y: 101.6–121.1%.\n- **Raichu-Mega-Y**: Fake Out plus Zap Cannon that always hits. Focus Blast vs std Kingambit: 146.9–173.9%. At 190 Speed it outspeeds std Salamence-Mega (189) by one point.\n- **Rillaboom**: Fake Out, Grassy Glide priority and U-turn. Grassy Glide vs std Choice Scarf Basculegion: 110.8–130.3%.\n- **Incineroar**: Intimidate, Fake Out and Parting Shot. Std Sneasler Close Combat does 94.0–112.0% to it, so don't leave it in front of an active Sneasler.\n\n## Key threats\n- **Kingambit**: std Life Orb Sucker Punch does 101.7–121.8% to Gholdengo, so never click Nasty Plot into an unpressured Kingambit. Intimidate and Parting Shot trigger Defiant.\n- **Charizard-Mega-Y**: sun Heat Wave does 98.3–117.3% to Gholdengo.\n- **Arcanine-Hisui**: Head Smash OHKOs Volcarona.\n- **Trick Room**: Farigiraf's Armor Tail blocks Fake Out and Grassy Glide, and Shadow Ball can't touch it (Normal type).\n\n---\n\n**Evidence.** Damage and Speed: Frontier Brain's pinned Champions engine (@smogon/calc 0.12.0, Champions mod) using this team's exact spreads. \"std\" opponents use the most common PokéBase M-C tournament spread paired with the most common nature (published 2026-10-08), holding the most common item in the team pool. Spread moves include the doubles spread reduction. Usage figures come from the team pool's official lane (396 Day 2 teams from 4 M-C Regionals, refreshed 2026-10-10). These plans are curated coaching opinions, not the original player's notes.\n\nSample team: Eric Rios's 1st-place team from Regional Frankfurt (26 Sept 2026, 1,129 players).\n\nTeam list: https://limitlessvgc.com/teams/7038. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/0e35fd9cd52d7552).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
     },
     {
       "key": "official:442:1:kiransingh",
       "name": "Sample · Kiran Singh, 1st Brisbane Regional",
       "paste": "Archaludon @ Leftovers  \nAbility: Stamina  \nLevel: 50  \nEVs: 32 HP / 8 Def / 1 SpA / 25 SpD  \nCalm Nature  \n- Electro Shot  \n- Flash Cannon  \n- Dragon Pulse  \n- Protect  \n\nPelipper @ Sitrus Berry  \nAbility: Drizzle  \nLevel: 50  \nEVs: 31 HP / 16 SpD / 19 Spe  \nBold Nature  \n- Hurricane  \n- Weather Ball  \n- Tailwind  \n- Wide Guard  \n\nGrimmsnarl (M) @ Light Clay  \nAbility: Prankster  \nLevel: 50  \nEVs: 29 HP / 22 Def / 15 SpD  \nSassy Nature  \n- Spirit Break  \n- Light Screen  \n- Reflect  \n- Parting Shot  \n\nCharizard @ Charizardite Y  \nAbility: Blaze  \nLevel: 50  \nEVs: 16 HP / 18 Def / 6 SpA / 26 Spe  \nTimid Nature  \n- Heat Wave  \n- Weather Ball  \n- Hurricane  \n- Protect  \n\nGarchomp @ Garchompite Z  \nAbility: Rough Skin  \nLevel: 50  \nEVs: 1 HP / 1 Def / 32 SpA / 32 Spe  \nModest Nature  \n- Draco Meteor  \n- Earth Power  \n- Power Gem  \n- Protect  \n\nVenusaur @ Focus Sash  \nAbility: Chlorophyll  \nLevel: 50  \nEVs: 1 HP / 32 SpA / 1 SpD / 32 Spe  \nModest Nature  \n- Leaf Storm  \n- Sludge Bomb  \n- Sleep Powder  \n- Protect  \n\n",
-      "notes": "Sample team: Kiran Singh's 1st-place team from Regional Brisbane (26 Sept 2026, 327 players).\n\nTeam list: https://limitlessvgc.com/teams/6998. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/4d8ac07e6e8ba093).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
+      "coaching": {
+        "leads": [
+          {
+            "id": "lead-rain",
+            "lead": [
+              "Pelipper",
+              "Archaludon"
+            ],
+            "back": [
+              "Grimmsnarl",
+              "Garchomp"
+            ],
+            "when": "Default rain mode into Kingambit, Gholdengo, Basculegion and opposing rain. Careful into Raichu: until it Mega Evolves, Lightning Rod absorbs Electro Shot.",
+            "plan": "T1: Pelipper uses Tailwind (or Wide Guard if you expect Rock Slide, Heat Wave or Make It Rain), and Archaludon uses Electro Shot, which fires immediately in rain at +1. Vs std Gholdengo that's 78.7–92.7%.\nT2: Pelipper uses Hurricane (it can't miss in rain), and Archaludon keeps using Electro Shot. Bring in Grimmsnarl for screens when Pelipper drops, then keep Garchomp for the Tailwind-speed endgame.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-sun",
+            "lead": [
+              "Charizard",
+              "Venusaur"
+            ],
+            "back": [
+              "Grimmsnarl",
+              "Archaludon"
+            ],
+            "when": "Into Steel and Grass balance (Gholdengo, Kingambit, Rillaboom), Trick Room setters, and teams without fast Rock or Water answers.",
+            "plan": "T1: Mega Evolve Charizard. Use Heat Wave (std Gholdengo 122.0–143.9%, std Kingambit 99.5–118.8%), and Venusaur uses Sleep Powder on the non-Grass threat. Protect Venusaur instead if you expect Fake Out plus a Fire move.\nT2: Venusaur uses Leaf Storm or Sludge Bomb at 264 Speed. Vs std Rillaboom, Sludge Bomb does 67.6–81.2%. Bring in Grimmsnarl for screens when Venusaur falls.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-screens-chomp",
+            "lead": [
+              "Grimmsnarl",
+              "Garchomp"
+            ],
+            "back": [
+              "Pelipper",
+              "Archaludon"
+            ],
+            "when": "Into physical offense (Sneasler, Kingambit, Arcanine-Hisui) and Salamence-Mega, when you want screens up before committing to weather.",
+            "plan": "T1: Grimmsnarl uses Reflect (or Light Screen into special leads), and Garchomp Mega Evolves and uses Draco Meteor or Earth Power. Draco vs std Salamence-Mega: 165.1–195.3%.\nT2: Grimmsnarl sets the second screen or uses Parting Shot into Pelipper to start rain under screens. Parting Shot fails into Dark-type targets because of Prankster.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-screens-zard",
+            "lead": [
+              "Grimmsnarl",
+              "Charizard"
+            ],
+            "back": [
+              "Venusaur",
+              "Archaludon"
+            ],
+            "when": "Into Sneasler + Kingambit and Gholdengo cores, where Heat Wave hits both slots hard.",
+            "plan": "T1: Mega Evolve Charizard and use Heat Wave. Grimmsnarl uses Reflect into physical leads. Under Reflect, Sneasler Close Combat on Archaludon drops to 57.4–69.0%.\nT2: Charizard uses Weather Ball on Sneasler (100.0–118.5% vs std in sun) or keeps using Heat Wave. Parting Shot into Venusaur to start the Chlorophyll sweep.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ],
+        "matchups": [
+          {
+            "id": "mu-sneasler-gambit",
+            "opponent": "Sneasler + Kingambit (Sneasler 39.4%, Kingambit 30.8%)",
+            "threat": "high",
+            "bring": [
+              "Charizard",
+              "Grimmsnarl",
+              "Pelipper",
+              "Archaludon"
+            ],
+            "leadId": "lead-screens-zard",
+            "plan": "Sun answers both. Weather Ball vs std Sneasler does 100.0–118.5%, and Heat Wave vs std Kingambit 99.5–118.8%. Hurricane has only 50% accuracy in sun, so prefer Weather Ball there. Std Sneasler Close Combat does 86.3–103.6% to Archaludon, cut to 57.4–69.0% under Reflect. Std Kingambit Iron Head OHKOs Grimmsnarl (113.6–134.7%), so set screens and Parting Shot out early. Pelipper's job is Tailwind and Wide Guard against Rock Slide.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-rilla-incin",
+            "opponent": "Rillaboom + Incineroar Fake Out balance (Rillaboom 53%, Incineroar 33.6%)",
+            "threat": "medium",
+            "bring": [
+              "Charizard",
+              "Grimmsnarl",
+              "Archaludon",
+              "Pelipper"
+            ],
+            "leadId": "lead-screens-zard",
+            "plan": "Rillaboom is immune to Sleep Powder and Wood Hammers Pelipper (77.7–92.2% vs std), so Venusaur and rain lose value here. Sun Heat Wave hits Rillaboom for 89.9–105.3%. Incineroar is bulky into Weather Ball (25.2–29.7%) and Leaf Storm (19.3–23.3%), so chip it with Heat Wave and Archaludon. Grassy Glide does 6.1–7.6% to Archaludon, so Archaludon is a safe switch-in.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-ghold-raichu",
+            "opponent": "Gholdengo + Raichu-Mega-Y (Gholdengo 30.6%, Raichu 28%)",
+            "threat": "medium",
+            "bring": [
+              "Charizard",
+              "Garchomp",
+              "Grimmsnarl",
+              "Archaludon"
+            ],
+            "plan": "Only one Mega. Use Charizard when Gholdengo is the main problem: sun Heat Wave does 122.0–143.9% to it. Use Garchomp when Raichu is: Garchomp-Mega-Z (203) outspeeds std Raichu-Mega-Y (200), and Earth Power does 86.2–101.8%. Raichu's Zap Cannon OHKOs Pelipper even under Light Screen (184.9–218.7%), so Pelipper stays home. Pre-Mega Raichu's Lightning Rod redirects Electro Shot, so don't click it while base Raichu is on the field.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-trick-room",
+            "opponent": "Trick Room: Farigiraf (12.4%) / Indeedee (19.7%)",
+            "threat": "medium",
+            "bring": [
+              "Venusaur",
+              "Charizard",
+              "Grimmsnarl",
+              "Archaludon"
+            ],
+            "leadId": "lead-sun",
+            "plan": "Sleep the setter. Armor Tail and Psychic Terrain stop priority, not Sleep Powder, but Safety Goggles does. Sun Heat Wave vs std Farigiraf does 53.3–63.4%. If Trick Room goes up anyway, Archaludon (105 Speed) moves after std Farigiraf (80) under it, so stall the turns with screens, Protect and Parting Shot rather than trading into them.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-rain-mirror",
+            "opponent": "Opposing rain: Pelipper (10.6%) / Basculegion (12.6%) / Archaludon",
+            "threat": "medium",
+            "bring": [
+              "Pelipper",
+              "Archaludon",
+              "Garchomp",
+              "Grimmsnarl"
+            ],
+            "leadId": "lead-rain",
+            "plan": "Keep Charizard home: std Choice Scarf Basculegion's rain Wave Crash does 248.5–293.5% to it. Rain helps your Archaludon too. +1 Electro Shot KOs std Choice Scarf Basculegion (153.8–181.5%), and Garchomp Draco Meteor does 83.6–99.0% to it.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-salamence",
+            "opponent": "Salamence-Mega Tailwind (24.7%)",
+            "threat": "medium",
+            "bring": [
+              "Garchomp",
+              "Archaludon",
+              "Pelipper",
+              "Grimmsnarl"
+            ],
+            "leadId": "lead-screens-chomp",
+            "plan": "Garchomp-Mega-Z (203) outspeeds std Salamence-Mega (189), and Draco Meteor OHKOs (165.1–195.3%). Archaludon resists its Flying-type Hyper Voice. In rain, +1 Electro Shot does 75.6–89.0% and Dragon Pulse 74.4–88.4%. Charizard (160) is slower than it, so match its Tailwind with Pelipper's.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ]
+      },
+      "notes": "## Game plan\nThis is a dual-weather team with a **rain mode** and a **sun mode**, plus Prankster screens supporting both.\n- **Rain**: Pelipper's Drizzle lets Archaludon's Electro Shot fire immediately (with its +1 SpA), and Hurricane can't miss.\n- **Sun**: Charizard-Mega-Y's Drought gives Venusaur doubled Speed (Chlorophyll) for Sleep Powder and Leaf Storm.\n- **Grimmsnarl** sets Reflect and Light Screen (Light Clay, 8 turns) and uses Parting Shot to bring attackers in safely.\n- **Garchomp-Mega-Z** is the weather-neutral alternative Mega.\n\nM-C allows one Mega per battle, so Charizard and Garchomp compete at team preview. Charizard's Drought triggers when it Mega Evolves, so it can retake the weather that turn.\n\n## Win conditions\n- **Rain**: +1 Electro Shot vs std Gholdengo 78.7–92.7%, std Kingambit 64.7–76.3%, std Incineroar 45.5–54.0%.\n- **Sun**: Heat Wave (spread) vs std Gholdengo 122.0–143.9%, std Kingambit 99.5–118.8%, std Rillaboom 89.9–105.3%.\n- **Garchomp**: 203 Speed outspeeds std Raichu-Mega-Y (200) and std Sneasler (172) before Unburden. Draco Meteor vs std Salamence-Mega: 165.1–195.3%.\n\n## What each Pokémon does\n- **Archaludon**: bulky Electro Shot attacker. Stamina raises its Defence each time it's hit.\n- **Pelipper**: rain, Tailwind and Wide Guard. Hurricane vs std Sneasler in rain: 91.7–108.3%. Under Tailwind it reaches 208 Speed, above std Sneasler's 172.\n- **Grimmsnarl**: screens change key numbers. Under Reflect, std Sneasler Close Combat on Archaludon drops from 86.3–103.6% to 57.4–69.0%. Under Light Screen, std Gholdengo Make It Rain on Grimmsnarl drops from 109.5–130.7% to 73.4–86.9%. Prankster Parting Shot fails on Dark types.\n- **Charizard-Mega-Y**: sun nuke. At 160 Speed it outspeeds std Gholdengo (136) but not std Salamence-Mega (189).\n- **Venusaur**: in sun it reaches 264 Speed, above std Raichu-Mega-Y (200) and std Sneasler (172) but below Unburden Sneasler (344). Sleep Powder doesn't work on Grass types (Rillaboom) or Safety Goggles. Its Focus Sash only works from full HP: std Incineroar Flare Blitz does 115.4–135.9%.\n- **Garchomp-Mega-Z**: fast Dragon with Levitate. Earth Power vs std Gholdengo: 79.3–93.9%.\n\n## Key threats\n- **Rillaboom**: std Wood Hammer does 77.7–92.2% to Pelipper, and it's immune to Sleep Powder.\n- **Kingambit**: std Iron Head does 113.6–134.7% to Grimmsnarl.\n- **Raichu-Mega-Y**: Zap Cannon OHKOs Pelipper even through Light Screen (184.9–218.7%). Pre-Mega Raichu's Lightning Rod absorbs Electro Shot.\n- **Trick Room**, which reverses your Speed advantages.\n\n---\n\n**Evidence.** Damage and Speed: Frontier Brain's pinned Champions engine (@smogon/calc 0.12.0, Champions mod) using this team's exact spreads. \"std\" opponents use the most common PokéBase M-C tournament spread paired with the most common nature (published 2026-10-08), holding the most common item in the team pool. Spread moves include the doubles spread reduction. Usage figures come from the team pool's official lane (396 Day 2 teams from 4 M-C Regionals, refreshed 2026-10-10). These plans are curated coaching opinions, not the original player's notes.\n\nSample team: Kiran Singh's 1st-place team from Regional Brisbane (26 Sept 2026, 327 players).\n\nTeam list: https://limitlessvgc.com/teams/6998. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/4d8ac07e6e8ba093).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
     },
     {
       "key": "official:441:2:adityasubramanian",
       "name": "Sample · Aditya Subramanian, 2nd Baltimore, MD Regional",
       "paste": "Golisopod @ Golisopite  \nAbility: Emergency Exit  \nLevel: 50  \nEVs: 32 HP / 32 Atk / 1 SpD / 1 Spe  \nAdamant Nature  \n- Leech Life  \n- Drill Run  \n- Iron Head  \n- Protect  \n\nCharizard @ Charizardite Y  \nAbility: Blaze  \nLevel: 50  \nEVs: 16 HP / 18 Def / 3 SpA / 29 Spe  \nTimid Nature  \n- Heat Wave  \n- Hurricane  \n- Weather Ball  \n- Protect  \n\nPolitoed @ Mystic Water  \nAbility: Drizzle  \nLevel: 50  \nEVs: 32 HP / 30 SpA / 4 Spe  \nModest Nature  \n- Muddy Water  \n- Ice Beam  \n- Weather Ball  \n- Protect  \n\nArchaludon @ Leftovers  \nAbility: Stamina  \nLevel: 50  \nEVs: 32 HP / 1 Def / 24 SpD / 9 Spe  \nBold Nature  \n- Dragon Pulse  \n- Snarl  \n- Electro Shot  \n- Protect  \n\nGrimmsnarl (M) @ Light Clay  \nAbility: Prankster  \nLevel: 50  \nEVs: 32 HP / 14 Def / 20 SpD  \nSassy Nature  \n- Light Screen  \n- Reflect  \n- Parting Shot  \n- Spirit Break  \n\nFarigiraf @ Sitrus Berry  \nAbility: Armor Tail  \nLevel: 50  \nEVs: 29 HP / 20 Def / 17 SpD  \nBold Nature  \n- Psychic  \n- Trick Room  \n- Protect  \n- Grass Knot  \n\n",
-      "notes": "Sample team: Aditya Subramanian's 2nd-place team from Regional Baltimore, MD (19 Sept 2026, 1,081 players).\n\nTeam list: https://limitlessvgc.com/teams/6860. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/7c9c0663ef60180e).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
+      "coaching": {
+        "leads": [
+          {
+            "id": "lead-tr-screens",
+            "lead": [
+              "Farigiraf",
+              "Grimmsnarl"
+            ],
+            "back": [
+              "Golisopod",
+              "Archaludon"
+            ],
+            "when": "Default into Fake Out balance and physical offense: Rillaboom/Incineroar, Sneasler/Kingambit, Gholdengo/Raichu.",
+            "plan": "T1: Farigiraf uses Trick Room. Grimmsnarl uses Reflect into physical leads or Light Screen into special ones. Armor Tail means Fake Out can't hit either of them.\nT2: Grimmsnarl sets the second screen or uses Parting Shot into Golisopod. Farigiraf uses Psychic (Sneasler 170.7–201.3% vs std) or Protect. Mega Evolve Golisopod on its first action and sweep under Trick Room and screens.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-tr-golisopod",
+            "lead": [
+              "Farigiraf",
+              "Golisopod"
+            ],
+            "back": [
+              "Grimmsnarl",
+              "Politoed"
+            ],
+            "when": "Into slow or Trick Room-neutral teams without strong Fire attackers, when you want Golisopod attacking from turn 2.",
+            "plan": "T1: Mega Evolve Golisopod and Protect it (or attack if Farigiraf is safe). Farigiraf uses Trick Room.\nT2: Golisopod uses Leech Life on Rillaboom (114.0–136.2% vs std), Drill Run on Gholdengo, Raichu or Incineroar, or Iron Head on Fairies. Farigiraf uses Psychic or Grass Knot. Keep Grimmsnarl to reset Trick Room positioning with Parting Shot.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-rain",
+            "lead": [
+              "Politoed",
+              "Archaludon"
+            ],
+            "back": [
+              "Farigiraf",
+              "Grimmsnarl"
+            ],
+            "when": "Into Fire-heavy teams (Arcanine-Hisui, Charizard, Incineroar) and Salamence-Mega or Garchomp, where Golisopod is a liability early.",
+            "plan": "T1: Politoed uses Weather Ball on Incineroar (101.0–119.8% vs std) or Muddy Water into a Focus Sash lead to break it. Archaludon uses Electro Shot (fires immediately at +1).\nT2: Ice Beam Salamence-Mega (111.6–132.6%), Dragon Pulse Garchomp. Bring in Farigiraf for Trick Room late if the opponent turns out faster than expected.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-sun-screens",
+            "lead": [
+              "Charizard",
+              "Grimmsnarl"
+            ],
+            "back": [
+              "Archaludon",
+              "Farigiraf"
+            ],
+            "when": "Into Sneasler + Kingambit, Gholdengo, and Steel-heavy teams where Heat Wave covers both slots.",
+            "plan": "T1: Mega Evolve Charizard and use Heat Wave (std Kingambit 99.5–118.8%, std Gholdengo 120.7–142.7%). Grimmsnarl uses Reflect.\nT2: Charizard uses Hurricane on Sneasler (145.2–172.0% vs std, but only 50% accuracy in sun). Weather Ball or Heat Wave are the reliable options. Keep Farigiraf for a late Trick Room if Charizard falls.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ],
+        "matchups": [
+          {
+            "id": "mu-rilla-incin",
+            "opponent": "Rillaboom + Incineroar Fake Out balance (Rillaboom 53%, Incineroar 33.6%)",
+            "threat": "medium",
+            "bring": [
+              "Farigiraf",
+              "Grimmsnarl",
+              "Golisopod",
+              "Politoed"
+            ],
+            "leadId": "lead-tr-screens",
+            "plan": "Armor Tail blanks Fake Out and Grassy Glide into Farigiraf and Grimmsnarl, so Trick Room goes up cleanly. Golisopod Leech Life OHKOs std Rillaboom (114.0–136.2%) and takes only 11.5–13.7% from Wood Hammer. Std Incineroar Flare Blitz does 105.5–125.3% to Golisopod, so remove Incineroar with Politoed Weather Ball in rain (101.0–119.8%). Keep Politoed away from Rillaboom (180.7–214.2% Wood Hammer).",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-sneasler-gambit",
+            "opponent": "Sneasler + Kingambit (Sneasler 39.4%, Kingambit 30.8%)",
+            "threat": "medium",
+            "bring": [
+              "Farigiraf",
+              "Golisopod",
+              "Grimmsnarl",
+              "Archaludon"
+            ],
+            "leadId": "lead-tr-screens",
+            "plan": "Farigiraf Psychic OHKOs std Sneasler (170.7–201.3%), and Sneasler's Close Combat does 50.0–59.4% back. Under Trick Room, Golisopod (61) moves before std Kingambit (70). Drill Run does 59.9–71.5% to it, so pair it with a second hit. Std Kingambit Low Kick does 37.1–44.2% to Farigiraf. Grimmsnarl's Prankster Parting Shot fails on Kingambit, and lowering its stats triggers Defiant anyway.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-ghold-raichu",
+            "opponent": "Gholdengo + Raichu-Mega-Y on Rillaboom (Gholdengo 30.6%, Raichu 28%)",
+            "threat": "medium",
+            "bring": [
+              "Farigiraf",
+              "Golisopod",
+              "Grimmsnarl",
+              "Archaludon"
+            ],
+            "leadId": "lead-tr-golisopod",
+            "plan": "Golisopod-Mega handles both. Drill Run vs std Gholdengo does 92.7–109.8% and vs std Raichu-Mega-Y 135.3–159.3%. Their answers are weak: Shadow Ball 47.3–55.5%, Focus Blast 31.9–37.9%. Gholdengo's Shadow Ball can't hit Farigiraf. Raichu Zap Cannon OHKOs Politoed (103.6–122.8%), so leave Politoed home.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-fire",
+            "opponent": "Fire pressure: Arcanine-Hisui (20.5%), Charizard-Mega-Y (16.4%), Incineroar",
+            "threat": "high",
+            "bring": [
+              "Politoed",
+              "Archaludon",
+              "Farigiraf",
+              "Grimmsnarl"
+            ],
+            "leadId": "lead-rain",
+            "plan": "Fire is Golisopod's weakness: std Arcanine-Hisui Flare Blitz does 127.5–153.8%, and sun Heat Wave 167.0–200.0%. Bring it only as a late cleaner, or not at all. Rain halves Fire. Politoed Muddy Water vs std Arcanine-Hisui does 246.5–293.0%, but its Focus Sash survives the first hit from full, so plan a second hit. An opposing Charizard's Drought fires when it Mega Evolves, so switch Politoed back in to restore rain.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-dragons",
+            "opponent": "Salamence-Mega (24.7%) / Garchomp (24%)",
+            "threat": "medium",
+            "bring": [
+              "Politoed",
+              "Archaludon",
+              "Farigiraf",
+              "Golisopod"
+            ],
+            "leadId": "lead-rain",
+            "plan": "Politoed Ice Beam OHKOs std Salamence-Mega (111.6–132.6%) and does 55.1–64.9% to std Garchomp-Mega-Z. Archaludon Dragon Pulse does 72.4–85.4% to Garchomp-Mega-Z. Golisopod resists both: Hyper Voice does 30.2–36.3% and Earth Power 28.0–33.5%. Trick Room flips their Speed advantage.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-opp-tr",
+            "opponent": "Opposing Trick Room: Farigiraf / Indeedee",
+            "threat": "low",
+            "bring": [
+              "Golisopod",
+              "Farigiraf",
+              "Politoed",
+              "Archaludon"
+            ],
+            "plan": "Opposing Trick Room helps you. Golisopod-Mega (61) moves before std Farigiraf (80) under it. Let them set it, then attack: Golisopod Drill Run or Leech Life, and Politoed or Archaludon rain spam. If they Protect to stall, set your own Trick Room only when theirs is ending.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ]
+      },
+      "notes": "## Game plan\nThis is **Trick Room** with a rain/sun backup.\n- **Farigiraf** sets Trick Room, and Armor Tail stops Fake Out and other priority into it and its partner.\n- **Grimmsnarl** adds Reflect, Light Screen and Parting Shot.\n- **Golisopod-Mega** (Bug/Steel, Tough Claws, 61 Speed) is the Trick Room sweeper.\n- Outside Trick Room, **Politoed** rain powers Archaludon's Electro Shot (it fires immediately, +1 SpA) and Politoed's own Weather Ball.\n- **Charizard-Mega-Y** is the fast alternative Mega.\n\nOne Mega per battle, so commit at team preview. Pre-Mega Golisopod has Emergency Exit, which only matters if you don't Mega Evolve it.\n\n## Win conditions\n**Golisopod-Mega under Trick Room.** At 61 Speed it moves before std Kingambit (70), Farigiraf (80) and Incineroar (80) under Trick Room.\n- Leech Life vs std Rillaboom: 114.0–136.2%.\n- Iron Head vs std Floette-Mega: 103.9–123.8%; vs std Sylveon: 129.8–154.4%.\n- Drill Run vs std Gholdengo: 92.7–109.8% (56.3% to KO); vs std Raichu-Mega-Y: 135.3–159.3%.\n\nIt shrugs off many common hits: std Sneasler Close Combat 38.5–46.2%, std Rillaboom Wood Hammer 11.5–13.7%, std Garchomp-Mega-Z Earth Power 28.0–33.5%, std Salamence-Mega Hyper Voice 30.2–36.3%.\n\n## What each Pokémon does\n- **Farigiraf**: setter. Psychic vs std Sneasler: 170.7–201.3%. It takes 50.0–59.4% from std Sneasler Close Combat, and Ghost moves don't affect it.\n- **Grimmsnarl**: screens, and Parting Shot to bring Golisopod in. Prankster Parting Shot fails on Dark types.\n- **Politoed**: Mystic Water. In rain, Weather Ball vs std Incineroar does 101.0–119.8%, and Muddy Water (spread) 66.3–80.2%. Ice Beam vs std Salamence-Mega: 111.6–132.6%.\n- **Archaludon**: +1 Electro Shot in rain vs std Incineroar 45.0–53.5%. Dragon Pulse vs std Garchomp-Mega-Z: 72.4–85.4%.\n- **Charizard-Mega-Y**: fast mode. Sun Heat Wave vs std Gholdengo 120.7–142.7%, std Kingambit 99.5–118.8%.\n\n## Key threats\n- **Fire** breaks Golisopod: std Incineroar Flare Blitz 105.5–125.3%, std Arcanine-Hisui Flare Blitz 127.5–153.8%, opposing sun Heat Wave 167.0–200.0%. Rain halves Fire damage, so Politoed is its partner into Fire.\n- **Rillaboom**: Wood Hammer vs Politoed 180.7–214.2%.\n- **Raichu-Mega-Y**: Zap Cannon vs Politoed 103.6–122.8%.\n- **Taunt and Imprison** on setters are possible but not measured here. Check team sheets.\n\n---\n\n**Evidence.** Damage and Speed: Frontier Brain's pinned Champions engine (@smogon/calc 0.12.0, Champions mod) using this team's exact spreads. \"std\" opponents use the most common PokéBase M-C tournament spread paired with the most common nature (published 2026-10-08), holding the most common item in the team pool. Spread moves include the doubles spread reduction. Usage figures come from the team pool's official lane (396 Day 2 teams from 4 M-C Regionals, refreshed 2026-10-10). These plans are curated coaching opinions, not the original player's notes.\n\nSample team: Aditya Subramanian's 2nd-place team from Regional Baltimore, MD (19 Sept 2026, 1,081 players).\n\nTeam list: https://limitlessvgc.com/teams/6860. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/7c9c0663ef60180e).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
     },
     {
       "key": "official:441:3:bradysmith",
       "name": "Sample · Brady Smith, 3rd Baltimore, MD Regional",
       "paste": "Archaludon @ Leftovers  \nAbility: Stamina  \nLevel: 50  \nEVs: 32 HP / 1 Def / 1 SpA / 32 SpD  \nBold Nature  \n- Dragon Pulse  \n- Flash Cannon  \n- Electro Shot  \n- Protect  \n\nIncineroar @ Passho Berry  \nAbility: Intimidate  \nLevel: 50  \nEVs: 31 HP / 15 Def / 20 SpD  \nSassy Nature  \n- Fake Out  \n- Parting Shot  \n- Darkest Lariat  \n- Protect  \n\nPolitoed @ Sitrus Berry  \nAbility: Drizzle  \nLevel: 50  \nEVs: 32 HP / 22 Def / 10 SpD / 2 Spe  \nCalm Nature  \n- Perish Song  \n- Weather Ball  \n- Encore  \n- Protect  \n\nVivillon @ Focus Sash  \nAbility: Compound Eyes  \nLevel: 50  \nEVs: 2 Def / 32 SpA / 32 Spe  \nTimid Nature  \n- Sleep Powder  \n- Rage Powder  \n- Hurricane  \n- Protect  \n\nRillaboom @ Eject Button  \nAbility: Grassy Surge  \nLevel: 50  \nEVs: 32 HP / 1 Def / 32 SpD / 1 Spe  \nCareful Nature  \n- Fake Out  \n- Grassy Glide  \n- U-turn  \n- Protect  \n\nGengar @ Gengarite  \nAbility: Cursed Body  \nLevel: 50  \nEVs: 32 HP / 14 SpD / 20 Spe  \nModest Nature  \n- Shadow Ball  \n- Sludge Bomb  \n- Perish Song  \n- Protect  \n\n",
-      "notes": "Sample team: Brady Smith's 3rd-place team from Regional Baltimore, MD (19 Sept 2026, 1,081 players).\n\nTeam list: https://limitlessvgc.com/teams/6861. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/d8e589c174266e5f).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
+      "coaching": {
+        "leads": [
+          {
+            "id": "lead-perish",
+            "lead": [
+              "Gengar",
+              "Politoed"
+            ],
+            "back": [
+              "Archaludon",
+              "Incineroar"
+            ],
+            "when": "Into slower balance with few Ghost types: Rillaboom/Incineroar, Trick Room, Floette-Mega Calm Mind. Avoid it when Kingambit is visible and likely to lead.",
+            "plan": "T1: Mega Evolve Gengar (Shadow Tag traps both foes). Politoed uses Perish Song while Gengar attacks: Shadow Ball, or Sludge Bomb into Rillaboom or Floette. Or reverse it, with Gengar using Perish and Politoed using Encore on a Protect.\nT2–T3: Encore whatever Protect or setup they clicked, and Protect your own slots. Switch your Perished Pokémon out before the count hits 0 (switching resets your count). Archaludon and Incineroar come in to clean up.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-rain-sleep",
+            "lead": [
+              "Vivillon",
+              "Politoed"
+            ],
+            "back": [
+              "Gengar",
+              "Archaludon"
+            ],
+            "when": "Into Sneasler offense, Trick Room setters and Calm Mind teams without Grass types or Safety Goggles.",
+            "plan": "T1: Vivillon uses Sleep Powder on the biggest non-Grass threat (or Rage Powder to cover Politoed). Politoed uses Weather Ball, or Encore on a turn-1 Protect or Trick Room.\nT2: Vivillon uses Hurricane in rain (std Sneasler 112.1–133.8%) or Rage Powder again. When the board is asleep or locked, bring in Gengar to trap.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-fakeout-gengar",
+            "lead": [
+              "Rillaboom",
+              "Gengar"
+            ],
+            "back": [
+              "Politoed",
+              "Incineroar"
+            ],
+            "when": "Into fast leads where Gengar needs a free turn: Gholdengo, Charizard-Mega-Y, Floette.",
+            "plan": "T1: Rillaboom uses Fake Out on the faster threat, and Gengar Mega Evolves and uses Shadow Ball on Gholdengo (103.7–124.4% vs std) or Sludge Bomb.\nT2: U-turn (or Eject Button on contact) brings in Politoed. Then use Perish Song with Shadow Tag active. Grassy Glide picks off chip in the meantime.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "lead-intimidate-rain",
+            "lead": [
+              "Incineroar",
+              "Archaludon"
+            ],
+            "back": [
+              "Politoed",
+              "Gengar"
+            ],
+            "when": "Into physical offense (Salamence-Mega, Arcanine-Hisui, Garchomp) when you want Intimidate first and rain from the back.",
+            "plan": "T1: Incineroar uses Fake Out on the main attacker, and Archaludon uses Dragon Pulse on Salamence-Mega (74.4–88.4% vs std) or Protects. Without rain, Electro Shot needs a charge turn.\nT2: Parting Shot into Politoed sets rain, so Electro Shot fires immediately next turn. Keep Gengar for the trap endgame.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ],
+        "matchups": [
+          {
+            "id": "mu-sneasler-gambit",
+            "opponent": "Sneasler + Kingambit (Sneasler 39.4%, Kingambit 30.8%)",
+            "threat": "high",
+            "bring": [
+              "Politoed",
+              "Vivillon",
+              "Archaludon",
+              "Rillaboom"
+            ],
+            "leadId": "lead-rain-sleep",
+            "plan": "Kingambit's Sucker Punch OHKOs Gengar-Mega (127.5–150.9% vs std), so Gengar stays home. Std Sneasler (172) outspeeds it anyway. Vivillon's rain Hurricane OHKOs std Sneasler (112.1–133.8%), and +1 Electro Shot does 64.7–76.3% to std Kingambit. Keep Incineroar's Intimidate and Parting Shot away from Kingambit (Defiant). Std Kingambit Low Kick does 50.3–59.4% to Archaludon.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-rilla-incin-ghold",
+            "opponent": "Rillaboom + Incineroar + Gholdengo balance (53%, 33.6%, 30.6%)",
+            "threat": "medium",
+            "bring": [
+              "Gengar",
+              "Politoed",
+              "Incineroar",
+              "Archaludon"
+            ],
+            "leadId": "lead-perish",
+            "plan": "Rillaboom ignores Sleep Powder and Rage Powder, so Vivillon is weak here. Gholdengo escapes Shadow Tag (Ghost) and threatens Gengar (112.0–132.3%), but Gengar is faster (170 vs 136) and Shadow Ball OHKOs std Gholdengo (103.7–124.4%). Trap Rillaboom and Incineroar with Perish once Gholdengo is gone. +1 Electro Shot does 45.5–54.0% to std Incineroar.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-trick-room",
+            "opponent": "Trick Room: Farigiraf (12.4%) / Indeedee (19.7%)",
+            "threat": "medium",
+            "bring": [
+              "Vivillon",
+              "Politoed",
+              "Gengar",
+              "Rillaboom"
+            ],
+            "leadId": "lead-rain-sleep",
+            "plan": "Sleep Powder or Encore the setter: Encore on a Pokémon that just used Trick Room makes it use Trick Room again, which ends it. Armor Tail and Psychic Terrain block priority, not powders. Gengar's Shadow Ball can't hit Farigiraf or Indeedee (both part Normal), so use Sludge Bomb (std Farigiraf 50.7–59.9%). Under Shadow Tag, Perish Song forces trapped Trick Room attackers to be KO'd before they get full value.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-fast-offense",
+            "opponent": "Salamence-Mega (24.7%) / Raichu-Mega-Y (28%) fast offense",
+            "threat": "high",
+            "bring": [
+              "Archaludon",
+              "Incineroar",
+              "Politoed",
+              "Gengar"
+            ],
+            "leadId": "lead-intimidate-rain",
+            "plan": "Both outspeed Gengar-Mega (189 and 200 vs 170). Salamence's Hyper Voice OHKOs Vivillon (143.2–170.3%), and Raichu's Zap Cannon OHKOs it too (224.5–264.5%), so Vivillon stays home. Archaludon resists Flying: +1 Electro Shot does 75.6–89.0% to Salamence-Mega in rain. Raichu Zap Cannon does 86.3–103.6% to Politoed, and pre-Mega Raichu's Lightning Rod eats Electro Shot.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-floette",
+            "opponent": "Floette-Mega Calm Mind (16.9%)",
+            "threat": "medium",
+            "bring": [
+              "Gengar",
+              "Politoed",
+              "Archaludon",
+              "Incineroar"
+            ],
+            "leadId": "lead-perish",
+            "plan": "Perish Song and Encore beat Calm Mind boosting. Trap with Gengar, Perish, then Encore the Calm Mind. Gengar Sludge Bomb does 70.7–84.0% to std Floette-Mega, and Archaludon Flash Cannon 44.2–53.0%. Its Dazzling Gleam does 19.8–24.0% to Gengar-Mega, so Gengar can stay in through the count.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          },
+          {
+            "id": "mu-rain-ghosts",
+            "opponent": "Rain with Basculegion (12.6%)",
+            "threat": "medium",
+            "bring": [
+              "Rillaboom",
+              "Incineroar",
+              "Archaludon",
+              "Politoed"
+            ],
+            "plan": "Basculegion is a Ghost, so Shadow Tag doesn't hold it. Pressure it directly instead. Grassy Glide does 68.7–83.1% to std Choice Scarf Basculegion and goes first through the Scarf. Incineroar's Passho Berry softens the first Wave Crash. Your Politoed's rain still powers Archaludon and Vivillon, so weather is shared rather than lost.",
+            "calcIds": [],
+            "versionIds": [],
+            "status": "active"
+          }
+        ]
+      },
+      "notes": "## Game plan\nThis is **Perish trap** on a rain balance shell.\n- **Gengar-Mega**'s Shadow Tag stops non-Ghost opponents from switching. Perish Song from Gengar or Politoed then forces KOs, and Politoed's Encore locks opponents into Protect or setup.\n- **Politoed** sets rain: Archaludon's Electro Shot fires immediately (+1 SpA), and Vivillon's Hurricane can't miss.\n- **Vivillon** (Compound Eyes) adds near-certain Sleep Powder and Rage Powder.\n- **Rillaboom** (Eject Button, U-turn, Fake Out) and **Incineroar** (Intimidate, Fake Out, Parting Shot) are the positioning pieces that bring Gengar or Politoed in safely.\n\n## Win conditions\n- **Perish trap.** Trap two non-Ghosts with Gengar, Perish Song, then Protect, Encore or switch your own Pokémon out to reset their counts.\n- **Rain damage**: +1 Electro Shot vs std Gholdengo 78.7–92.7%, std Kingambit 64.7–76.3%, std Salamence-Mega 75.6–89.0%. Vivillon Hurricane in rain vs std Sneasler: 112.1–133.8%.\n\n## What each Pokémon does\n- **Gengar-Mega**: at 170 Speed it outspeeds std Gholdengo (136) and std Charizard-Mega-Y (152), but not std Sneasler (172), std Salamence-Mega (189), std Raichu-Mega-Y (200) or std Garchomp-Mega-Z (203). Shadow Ball vs std Gholdengo: 103.7–124.4%. Sludge Bomb vs std Rillaboom 84.1–99.5%, std Floette-Mega 70.7–84.0%. It's immune to Fighting and Normal, so Close Combat and Fake Out do nothing.\n- **Politoed**: rain, Perish Song, and Encore on Protect, Trick Room or Calm Mind. Sitrus and Calm-nature bulk.\n- **Archaludon**: bulky rain attacker. Std Sneasler Close Combat does 83.2–98.5% to it.\n- **Vivillon**: Sleep Powder, Rage Powder and rain Hurricane. It's frail (std Salamence-Mega Hyper Voice 143.2–170.3%), so Focus Sash matters.\n- **Rillaboom**: Fake Out, Grassy Glide, and U-turn or Eject Button to bring in Gengar or Politoed for free.\n- **Incineroar**: Intimidate cycling. Passho Berry halves the first super-effective Water hit. Std Sneasler Close Combat still OHKOs it at full (108.5–128.4%) without an Intimidate drop.\n\n## Key threats\n- **Kingambit**: std Life Orb Sucker Punch OHKOs Gengar-Mega (127.5–150.9%). Intimidate and Parting Shot trigger Defiant.\n- **Ghost types** (Gholdengo, Basculegion) escape Shadow Tag. Std Gholdengo Shadow Ball does 112.0–132.3% to Gengar.\n- **Rillaboom** is immune to Sleep Powder and Rage Powder (Grass).\n- **Raichu-Mega-Y**: Zap Cannon OHKOs Vivillon (224.5–264.5%). Pre-Mega Raichu's Lightning Rod absorbs Electro Shot.\n\n---\n\n**Evidence.** Damage and Speed: Frontier Brain's pinned Champions engine (@smogon/calc 0.12.0, Champions mod) using this team's exact spreads. \"std\" opponents use the most common PokéBase M-C tournament spread paired with the most common nature (published 2026-10-08), holding the most common item in the team pool. Spread moves include the doubles spread reduction. Usage figures come from the team pool's official lane (396 Day 2 teams from 4 M-C Regionals, refreshed 2026-10-10). These plans are curated coaching opinions, not the original player's notes.\n\nSample team: Brady Smith's 3rd-place team from Regional Baltimore, MD (19 Sept 2026, 1,081 players).\n\nTeam list: https://limitlessvgc.com/teams/6861. Spreads, items and moves: the player's own shared paste on VGCPastes (https://pokepast.es/d8e589c174266e5f).\n\nThis is a starter example; edit it, copy ideas from it, or delete it."
     }
   ]
 }
