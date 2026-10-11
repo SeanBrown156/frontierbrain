@@ -8,7 +8,7 @@ import type {IncomingMessage,ServerResponse} from 'node:http';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {createClient,type SupabaseClient} from '@supabase/supabase-js';
 import {CODE,fileBackend,withData,type DataBackend} from './io.ts';
-import {emptyStore,validateStoreReferences,Conflict,type StoreBackend} from './workbench-store.ts';
+import {emptyStore,validateStoreReferences,StaleWorkspace,type StoreBackend} from './workbench-store.ts';
 import type {Workbench} from '../shared/workbench.ts';
 
 export interface HostedConfig {url:string;publishableKey:string;secretKey?:string}
@@ -53,10 +53,10 @@ export function workspaceStore(client:SupabaseClient,userId:string):StoreBackend
   return {
     async read(){return await load()??emptyStore();},
     async mutate(revision,fn){
-      const current=await load();const db=current??emptyStore();if(db.revision!==revision)throw new Conflict('Workspace changed since you opened it. Reload before saving.');
+      const current=await load();const db=current??emptyStore();if(db.revision!==revision)throw new StaleWorkspace('Workspace changed since you opened it. Reload before saving.');
       const result=await fn(db);validateStoreReferences(db);db.revision=revision+1;const {revision:next,...data}=db as any;
-      if(current){const rows=check(await client.from('workspaces').update({revision:next,data,updated_at:new Date().toISOString()}).eq('user_id',userId).eq('revision',revision).select('revision'));if(!rows?.length)throw new Conflict('Workspace changed since you opened it. Reload before saving.');}
-      else{const r=await client.from('workspaces').insert({user_id:userId,revision:next,data});if(r.error){if(r.error.code==='23505')throw new Conflict('Workspace changed since you opened it. Reload before saving.');throw new Error(`Storage error: ${r.error.message}`);}}
+      if(current){const rows=check(await client.from('workspaces').update({revision:next,data,updated_at:new Date().toISOString()}).eq('user_id',userId).eq('revision',revision).select('revision'));if(!rows?.length)throw new StaleWorkspace('Workspace changed since you opened it. Reload before saving.');}
+      else{const r=await client.from('workspaces').insert({user_id:userId,revision:next,data});if(r.error){if(r.error.code==='23505')throw new StaleWorkspace('Workspace changed since you opened it. Reload before saving.');throw new Error(`Storage error: ${r.error.message}`);}}
       return {db,result:result as any};
     },
   };

@@ -21,20 +21,27 @@ export function useDirty(key:string,isDirty:boolean,label:string){
 }
 const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
 // An editable copy of a saved value. `baseId` identifies the saved version (e.g. a revision id). When it changes
-// underneath a clean draft the draft follows it; under a dirty draft the player chooses (changedElsewhere).
-export function useDraft<T>(key:string,savedValue:T,baseId:string,label:string){
-  const [draft,setDraft]=useState<T>(()=>structuredClone(savedValue)),[origin,setOrigin]=useState<T>(()=>structuredClone(savedValue)),[base,setBase]=useState(baseId),[elsewhere,setElsewhere]=useState(false);const justSaved=useRef(false);
+// because of this editor's own save, typing carries on untouched. When something else changed it under a clean draft
+// the draft follows; under a dirty draft the player chooses (changedElsewhere). `guard` marks drafts that navigation
+// should warn about (autosaving editors only guard drafts they can't save yet).
+export function useDraft<T>(key:string,savedValue:T,baseId:string,label:string,{guard}:{guard?:boolean}={}){
+  const [draft,setDraft]=useState<T>(()=>structuredClone(savedValue)),[origin,setOrigin]=useState<T>(()=>structuredClone(savedValue)),[base,setBase]=useState(baseId),[elsewhere,setElsewhere]=useState(false);
+  const justSaved=useRef(false),own=useRef(new Set<string>()),draftRef=useRef(draft);draftRef.current=draft;
   const isDirty=!same(draft,origin);
   useEffect(()=>{if(baseId===base)return;
+    if(own.current.has(baseId)){ // our own save came back: the saved copy becomes the origin; anything typed since stays
+      if(same(draftRef.current,origin))setDraft(structuredClone(savedValue));setOrigin(structuredClone(savedValue));setBase(baseId);setElsewhere(false);justSaved.current=false;return;}
     if(!isDirty||justSaved.current||same(draft,savedValue)){justSaved.current=false;setDraft(structuredClone(savedValue));setOrigin(structuredClone(savedValue));setBase(baseId);setElsewhere(false);}
     else setElsewhere(true);},[baseId]);
-  useDirty(key,isDirty,label);
+  useDirty(key,guard??isDirty,label);
   return {draft,setDraft,dirty:isDirty,base,changedElsewhere:elsewhere,
     discard:()=>{setDraft(structuredClone(origin));},
     loadLatest:()=>{setDraft(structuredClone(savedValue));setOrigin(structuredClone(savedValue));setBase(baseId);setElsewhere(false);},
     keepMine:()=>{setOrigin(structuredClone(savedValue));setBase(baseId);setElsewhere(false);},
     // Call right before saving: the draft becomes the origin so the save's own reload doesn't look like a conflict.
-    markSaving:()=>{justSaved.current=true;clearDirty(key);setOrigin(structuredClone(draft));},
+    markSaving:(value:T=draftRef.current)=>{justSaved.current=true;setOrigin(structuredClone(value));},
+    // After a save: the ids it produced are this editor's own (their arrival never counts as "changed elsewhere").
+    markSaved:(id?:string)=>{if(id)own.current.add(id);},
     markFailed:()=>{justSaved.current=false;setOrigin(structuredClone(savedValue));}};
 }
 // Offers from the dock to whichever editor is open: `offer` returns false when nobody took it.

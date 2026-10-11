@@ -1,70 +1,91 @@
-import {useState,useEffect,type ReactNode} from 'react';
+import {useState,useEffect,useRef,type ReactNode} from 'react';
 import type {SetRevision,SetNotes,PokemonSet,BankEntry} from '../../shared/workbench.ts';
 import {api,Art,Notice,Empty,date} from '../ui.tsx';
-import {Px,ArrowLeft} from '../icons.tsx';
+import {Px,ArrowLeft,WarningDiamond} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
 import Benchmarks from './Benchmarks.tsx';
 import SpeciesPicker,{type SavedOption} from '../ai/SpeciesPicker.tsx';
 import {getView,versionName,stats,statLabel,noteTitles} from './editors.tsx';
 import {teamHref,monHref} from './Hub.tsx';
-import {useDraft,useOffers,takeOffer,saving} from '../save-state.ts';
+import {useDraft,useDirty,useOffers,takeOffer} from '../save-state.ts';
 
 const blank=():SetNotes=>({role:'',benchmarks:'',partners:'',matchups:''});
-type Draft={set:PokemonSet;notes:SetNotes;reuse?:boolean;basis?:string[];why?:string};
+type Draft={set:PokemonSet;notes:SetNotes};
+type Meta={reuse?:boolean;basis?:string[];why?:string;noted?:boolean};
+export type Mutate=(action:any,options?:{quiet?:boolean;before?:(result:any)=>void;optimistic?:(data:any)=>any})=>Promise<any>;
 // Team → Pokémon: one editable set card (species, item, ability, nature, moves, stat points, notes) and the calc.
-// Edits stay a draft until Save; saving updates the current team (logged as an edit; nothing earlier is lost).
+// Edits save automatically once the set is complete (logged in History; nothing earlier is lost).
 // Older versions open read-only.
-export default function PokemonWorkspace({team,data,mutate,versionId,slot,swap}:{team:any;data:any;mutate:(a:any)=>Promise<any>;versionId:string;slot:number;swap?:boolean}){
+export default function PokemonWorkspace({team,data,mutate,versionId,slot,swap}:{team:any;data:any;mutate:Mutate;versionId:string;slot:number;swap?:boolean}){
   const view=getView(team,data.db,versionId);const current=view.revisions[slot];
   if(!current?.revision)return <Empty>That Pokémon slot doesn't exist. <a href={teamHref(team.id,'overview',versionId)}>Back to the team.</a></Empty>;
   return <div className="workspace">
-    <div className="hub-head"><a href={teamHref(team.id,'overview',view.version.id)} className="text-button"><Px icon={ArrowLeft} size={12}/>{team.name}</a>
+    <div className="hub-head"><a href={teamHref(team.id,'overview',view.version.id)} className="text-button back-link"><Px icon={ArrowLeft} size={12}/>{team.name}</a>
       <nav className="mon-switcher" aria-label="Team members">{view.revisions.map((r,i)=><a key={i} href={monHref(team.id,view.version.id,i)} className={i===slot?'selected':''} title={r.revision.set.species} aria-current={i===slot?'page':undefined}><Art name={r.revision.set.species} art={data.art} small/></a>)}</nav></div>
     <SetWorkspace key={`${view.version.id}-${slot}`} team={team} data={data} mutate={mutate} view={view} slot={slot} swap={swap}/>
   </div>;
 }
 
-function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutate:(a:any)=>Promise<any>;view:any;slot:number;swap?:boolean}){
+function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutate:Mutate;view:any;slot:number;swap?:boolean}){
   const {entry,revision}=view.revisions[slot] as {entry:BankEntry;revision:SetRevision};
-  const d=useDraft<Draft>(`set-${team.id}-${slot}`,{set:revision.set,notes:revision.notes},revision.id,`${revision.set.species}`);
-  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[loading,setLoading]=useState('');
-  const set=d.draft.set;const others=view.sets.filter((_:any,i:number)=>i!==slot);
-  const update=(patch:Partial<PokemonSet>)=>d.setDraft(x=>({...x,set:{...x.set,...patch},reuse:false}));
+  const others=view.sets.filter((_:any,i:number)=>i!==slot);const readOnly=view.version.id!==team.activeVersionId;
+  // Where the current draft came from (an AI suggestion, a usage-data fill, a restored set). Recorded with the next save.
+  const [meta,setMeta]=useState<Meta>({});
+  const d=useDraft<Draft>(`set-${team.id}-${slot}`,{set:revision.set,notes:revision.notes},revision.id,`${revision.set.species}`,{guard:false});
+  const set=d.draft.set;const problems=checkSet(set,others);
+  useDirty(`set-${team.id}-${slot}`,d.dirty&&problems.length>0&&!readOnly,`${set.species} (not saved: ${problems[0]??''})`);
+  const [error,setError]=useState(''),[loading,setLoading]=useState('');
+  const update=(patch:Partial<PokemonSet>)=>{d.setDraft(x=>({...x,set:{...x.set,...patch}}));setMeta(m=>({...m,reuse:false}));};
+  const replace=(next:PokemonSet,m:Meta)=>{d.setDraft(x=>({...x,set:structuredClone(next)}));setMeta(m);};
   // Picking a species fills its most expected set from the data pool (items already on the team are skipped).
-  const pickSpecies=async(species:string)=>{setLoading(species);setError('');try{const avoid=others.map((s:any)=>s.item).filter(Boolean).join('|');const r=await api(`/typical-set?species=${encodeURIComponent(species)}&avoid=${encodeURIComponent(avoid)}`);d.setDraft(()=>({set:r.set,notes:blank(),basis:r.basis}));}
-    catch(e){d.setDraft(()=>({set:{species,ability:'',item:'',nature:'Serious',moves:[],statPoints:{}},notes:blank(),basis:[`No usage data for ${species}: fill the set in by hand. (${(e as Error).message})`]}));}finally{setLoading('');}};
+  const pickSpecies=async(species:string)=>{setLoading(species);setError('');try{const avoid=others.map((s:any)=>s.item).filter(Boolean).join('|');const r=await api(`/typical-set?species=${encodeURIComponent(species)}&avoid=${encodeURIComponent(avoid)}`);d.setDraft(()=>({set:r.set,notes:blank()}));setMeta({basis:r.basis});}
+    catch(e){d.setDraft(()=>({set:{species,ability:'',item:'',nature:'Serious',moves:[],statPoints:{}},notes:blank()}));setMeta({basis:[`No usage data for ${species}: fill the set in by hand. (${(e as Error).message})`]});}finally{setLoading('');}};
   const savedSets:SavedOption[]=data.db.bank.flatMap((b:BankEntry)=>b.revisions.filter(r=>r.starred).map(r=>({id:r.id,label:r.starred!.label,species:r.set.species,value:r})));
-  const readOnly=view.version.id!==team.activeVersionId;const [starring,setStarring]=useState(false),[starLabel,setStarLabel]=useState('');
-  useOffers(`set:${team.id}:${slot}`,p=>{d.setDraft(x=>({...x,set:p.set,why:p.why,basis:undefined,reuse:false}));scrollTo({top:0,behavior:'smooth'});return true;});
-  useEffect(()=>{const p=takeOffer(`set:${team.id}:${slot}`);if(p)d.setDraft(x=>({...x,set:p.set,why:p.why,reuse:false}));},[]);
-  const problems=checkSet(set,others);
-  const save=async()=>{if(readOnly)return false;if(problems.length){setError(problems.join(' '));return false;}setBusy(true);setError('');d.markSaving();saving();
-    try{const r=await mutate({type:'team-replace-sets',teamId:team.id,versionId:view.version.id,sets:[{slot,set,notes:d.draft.notes,baseRevisionId:d.base,reuse:!!d.draft.reuse,note:d.draft.why?`AI: ${d.draft.why}`:d.draft.basis?.join(' ')}],summary:summarise(revision.set,set)});return !!r;}
-    catch(e){d.markFailed();setError((e as Error).message);return false;}finally{setBusy(false);}};
-  // "My sets": star the set as saved (saving the draft first if needed).
-  const star=async()=>{if(d.dirty&&!(await save()))return;try{await mutate({type:'set-star',teamId:team.id,versionId:view.version.id,slot,label:starLabel});setStarring(false);setStarLabel('');}catch{}};
+  const [starring,setStarring]=useState(false),[starLabel,setStarLabel]=useState('');
+  useOffers(`set:${team.id}:${slot}`,p=>{replace(p.set,{why:p.why});scrollTo({top:0,behavior:'smooth'});return true;});
+  useEffect(()=>{const p=takeOffer(`set:${team.id}:${slot}`);if(p)replace(p.set,{why:p.why});},[]);
+
+  // Autosave: a moment after the last edit (or straight away when you leave), the set is saved if it's complete.
+  // One save at a time; edits made meanwhile go in the next one. A burst of edits amends one history entry.
+  const latest=useRef({draft:d.draft,meta,dirty:d.dirty,valid:!problems.length&&!readOnly});latest.current={draft:d.draft,meta,dirty:d.dirty,valid:!problems.length&&!readOnly};
+  const baseRef=useRef(d.base);useEffect(()=>{baseRef.current=d.base;},[d.base]);
+  const mine=useRef(new Set<string>()),start=useRef(revision.set),inflight=useRef<Promise<void>|null>(null),again=useRef(false);
+  const flush=():Promise<void>=>{if(inflight.current){again.current=true;return inflight.current;}
+    const {draft,meta:m,dirty,valid}=latest.current;if(!dirty||!valid)return Promise.resolve();
+    d.markSaving(draft);const base=baseRef.current;const note=m.why?`AI: ${m.why}`:m.basis?.join(' ');
+    const run=mutate({type:'team-replace-sets',teamId:team.id,versionId:view.version.id,sets:[{slot,set:draft.set,notes:draft.notes,baseRevisionId:base,reuse:!!m.reuse,amend:mine.current.has(base),note:m.noted?undefined:note}],summary:summarise(start.current,draft.set)},
+      {quiet:true,optimistic:data=>{const t=data.db.teams.find((x:any)=>x.id===team.id);const v=t?.versions.find((x:any)=>x.id===view.version.id);const c=v?.configurations.find((x:any)=>x.id===v.currentConfigurationId);const sl=c?.slots[slot];const r=data.db.bank.find((b:any)=>b.id===sl?.bankId)?.revisions.find((x:any)=>x.id===sl?.revisionId);if(r){r.set=structuredClone(draft.set);r.notes=structuredClone(draft.notes);}return data;},before:r=>{const id=r?.result?.revisionIds?.[slot];if(id){mine.current.add(id);baseRef.current=id;d.markSaved(id);}}})
+      .then(()=>{setError('');if(note)setMeta(x=>x===m?{...x,noted:true}:x);},e=>{d.markFailed();setError((e as Error).message);})
+      .finally(()=>{inflight.current=null;if(again.current){again.current=false;void flush();}});
+    inflight.current=run;return run;};
+  const draftKey=JSON.stringify(d.draft);
+  useEffect(()=>{if(!d.dirty||problems.length||readOnly)return;const t=setTimeout(()=>void flush(),800);return()=>clearTimeout(t);},[draftKey]);
+  useEffect(()=>{const leave=()=>void flush();addEventListener('pagehide',leave);return()=>{removeEventListener('pagehide',leave);leave();};},[]);
+
+  // "My sets": star the set as saved (saving any pending edits first).
+  const star=async()=>{await flush();try{await mutate({type:'set-star',teamId:team.id,versionId:view.version.id,slot,label:starLabel});setStarring(false);setStarLabel('');}catch{}};
   const inferred=(k:keyof NonNullable<SetRevision['fields']>)=>revision.provenance==='observed'&&revision.fields?.[k]==='inferred'&&JSON.stringify(revision.set[k])===JSON.stringify(set[k]);
+  const pending=d.dirty&&!readOnly&&(problems[0]??error);
   return <div className="workspace-grid">
-    <section className={'set-card panel'+(d.dirty?' dirty':'')+(readOnly?' read-only':'')} aria-label={`${set.species} set`}>
+    <section className={'set-card panel'+(readOnly?' read-only':'')} aria-label={`${set.species} set`}>
       {readOnly&&<div className="notice warn">This is {versionName(view.version)}, an older version (read-only). <a href={monHref(team.id,team.activeVersionId,slot)}>Edit the current team →</a></div>}
       <fieldset className="plain" disabled={readOnly}>
-      {d.changedElsewhere&&<div className="notice warn">This Pokémon was changed elsewhere (e.g. accepted from Ask Frontier Brain). <button onClick={d.loadLatest}>Load latest</button><button onClick={d.keepMine}>Keep my edits</button></div>}
+      {d.changedElsewhere&&<div className="notice warn">This Pokémon was changed elsewhere (e.g. accepted from Ask Frontier Brain). <span className="button-row"><button onClick={d.loadLatest}>Load latest</button><button onClick={d.keepMine}>Keep my edits</button></span></div>}
       <div className="set-card-head"><Art name={set.species} art={data.art}/><div className="grow">
-        <SpeciesPicker label="Species" value={set.species} onPick={sp=>void pickSpecies(sp)} onPickSaved={o=>d.setDraft(x=>({...x,set:structuredClone(o.value.set),reuse:true,basis:[`Reusing your saved set: ${o.label}.`]}))} disabled={others.map((s:any)=>s.species)} saved={savedSets} autoFocus={swap}/>
+        <SpeciesPicker label="Species" value={set.species} onPick={sp=>void pickSpecies(sp)} onPickSaved={o=>replace(o.value.set,{reuse:true,basis:[`Reusing your saved set: ${o.label}.`]})} disabled={others.map((s:any)=>s.species)} saved={savedSets} autoFocus={swap}/>
         {loading&&<p className="muted">Loading the most common {loading} set…</p>}
         <input className="nickname" aria-label="Nickname" placeholder="Nickname (optional)" value={set.nickname??''} onChange={e=>update({nickname:e.target.value||undefined})}/></div></div>
-      {(d.draft.basis||d.draft.why)&&<ul className="basis">{d.draft.why&&<li>AI: {d.draft.why}</li>}{d.draft.basis?.map((b,i)=><li key={i}>{b}</li>)}</ul>}
+      {(meta.basis||meta.why)&&<ul className="basis">{meta.why&&<li>AI: {meta.why}</li>}{meta.basis?.map((b,i)=><li key={i}>{b}</li>)}</ul>}
+      {pending&&<p className="set-pending" role="status"><Px icon={WarningDiamond} size={12}/>Not saved yet: {pending}</p>}
       <SetFields set={set} update={update} inferred={inferred} others={others}/>
       <Benchmarks entry={entry} set={set} data={data} mutate={mutate}/>
       <label className="set-notes-edit">Notes<textarea rows={3} placeholder="Role, game plan, anything worth remembering" value={d.draft.notes.role} onChange={e=>d.setDraft(x=>({...x,notes:{...x.notes,role:e.target.value}}))}/></label>
       {(['benchmarks','partners','matchups'] as const).some(k=>d.draft.notes[k])&&<details className="set-notes-edit"><summary>Earlier notes</summary>{(['benchmarks','partners','matchups'] as const).filter(k=>d.draft.notes[k]).map(k=><label key={k}>{noteTitles[k]}<textarea rows={2} value={d.draft.notes[k]} onChange={e=>d.setDraft(x=>({...x,notes:{...x.notes,[k]:e.target.value}}))}/></label>)}</details>}
-      <History entry={entry} revision={revision} load={r=>d.setDraft(x=>({...x,set:structuredClone(r.set),reuse:true,basis:[`Restoring the ${date(r.createdAt)} set.`]}))}/>
+      <History entry={entry} revision={revision} load={r=>replace(r.set,{reuse:true,basis:[`Restored the ${date(r.createdAt)} set.`]})}/>
       {!readOnly&&(revision.starred&&!d.dirty?<p className="my-set">★ In My sets as “{revision.starred.label}” <button className="text-button" onClick={()=>void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{})}>Remove</button></p>
-        :starring?<div className="star-form"><input autoFocus aria-label="Name for My sets" placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/><button className="primary" onClick={()=>void star()} disabled={busy||problems.length>0}>{d.dirty?'Save & add':'Add'}</button><button onClick={()=>setStarring(false)}>Cancel</button></div>
+        :starring?<div className="star-form"><input autoFocus aria-label="Name for My sets" placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/><button className="primary" onClick={()=>void star()} disabled={problems.length>0}>Add</button><button onClick={()=>setStarring(false)}>Cancel</button></div>
         :<button className="text-button star-button" onClick={()=>setStarring(true)}>☆ Save to My sets</button>)}
       </fieldset>
-      {(d.dirty||error)&&<div className="save-bar" role="region" aria-label="Unsaved changes">{error?<span className="error">{error}</span>:<span>{problems.length?<span className="error">{problems[0]}</span>:'Unsaved changes'}</span>}
-        <div className="button-row"><button onClick={()=>{d.discard();setError('');}} disabled={busy}>Discard</button><button className="primary" onClick={()=>void save()} disabled={busy||!d.dirty||readOnly}>{busy?'Saving…':'Save'}</button></div></div>}
     </section>
     <BenchmarkLab entry={entry} revision={revision} own={set} data={data} mutate={mutate} onUseSpread={(nature,statPoints)=>update({nature,statPoints})}/>
   </div>;

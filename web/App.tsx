@@ -1,6 +1,6 @@
 import {useState,useEffect,useCallback,useRef} from 'react';
-import {api,Panel,Modal,Markdown,Empty,date,Notice,JobStatus} from './ui.tsx';
-import {Px,Close,Menu as MenuIcon,Chart,Trophy,BookOpen,Users,Play,Bookmark,ChevronDown,Zap,Notes,Check,WarningDiamond} from './icons.tsx';
+import {api,ApiError,Panel,Modal,Markdown,Empty,date,Notice,JobStatus} from './ui.tsx';
+import {Px,ArrowLeft,Close,Menu as MenuIcon,Chart,Trophy,BookOpen,Users,Play,Bookmark,ChevronDown,Zap,Notes,Check,WarningDiamond} from './icons.tsx';
 import AssistDock,{type DockContext} from './ai/AssistDock.tsx';
 import {useSaveState,saving,saved,failed,hasDirty,confirmDiscard} from './save-state.ts';
 import TeamHub,{TeamsLanding} from './team/Hub.tsx';
@@ -19,19 +19,38 @@ export default function App(){
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
   // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
   const revision=useRef<number|null>(null);const dataRef=useRef<any>(null);const lastHash=useRef(location.hash);
-  const load=useCallback(async()=>{try{const d=await api('/dashboard');revision.current=d.db.revision;dataRef.current=d;setData(d);setError('');}catch(e){setError((e as Error).message);}},[]);
+  // Only the newest response is applied, so a slow reload never rolls the page back. Once the workspace is open, a failed
+  // background refresh stays quiet (the next one catches up); only a first load that fails shows an error.
+  const loadSeq=useRef(0),loadedAt=useRef(0);
+  const load=useCallback(async()=>{const seq=++loadSeq.current;try{const d=await api('/dashboard');if(seq!==loadSeq.current)return;revision.current=d.db.revision;dataRef.current=d;loadedAt.current=Date.now();setData(d);setError('');}catch(e){if(seq===loadSeq.current&&!dataRef.current)setError((e as Error).message);}},[]);
   // Leaving a page with an unsaved draft asks first; declining puts the address back without reloading anything.
   useEffect(()=>{void load();const handler=()=>{if(location.hash===lastHash.current)return;if(hasDirty()&&!confirmDiscard()){history.replaceState(null,'',lastHash.current||'#teams');return;}
-      const fixed=normalise(location.hash.slice(1));if(fixed!==location.hash.slice(1))history.replaceState(null,'','#'+fixed);lastHash.current=location.hash;setRoute(fixed||'teams');scrollTo({top:0});};
+      const fixed=normalise(location.hash.slice(1));if(fixed!==location.hash.slice(1))history.replaceState(null,'','#'+fixed);lastHash.current=location.hash;setRoute(fixed||'teams');scrollTo({top:0});if(Date.now()-loadedAt.current>3000)void load();};
     addEventListener('hashchange',handler);return()=>removeEventListener('hashchange',handler);},[load]);
   useEffect(()=>{let alive=true;const tick=async()=>{try{const result=await api('/jobs');if(alive)setJobs(result);}catch{}};void tick();
     // No constant polling: local background jobs are checked every 10 s (local only); the workspace reloads when you come back to the tab.
     const timer=hostedSite?undefined:setInterval(()=>void tick(),10000);let last=Date.now();
-    const back=()=>{if(document.visibilityState==='visible'&&Date.now()-last>30000){last=Date.now();void load();}};document.addEventListener('visibilitychange',back);
-    return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',back);};},[load]);
+    // Coming back to the tab picks up changes made elsewhere (another device, Claude or ChatGPT over the connector).
+    const back=()=>{if(document.visibilityState==='visible'&&Date.now()-last>5000){last=Date.now();void load();}};document.addEventListener('visibilitychange',back);addEventListener('focus',back);
+    return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',back);removeEventListener('focus',back);};},[load]);
   useEffect(()=>{if(!message||message.error)return;const t=setTimeout(()=>setMessage(null),4000);return()=>clearTimeout(t);},[message]);
   const notify=(text:string,isError=false)=>setMessage({text,error:isError});
-  const mutate=async(action:any)=>{saving();try{const result=await api('/action',{revision:revision.current??data.db.revision,action});revision.current=result.revision;await load();saved();return result;}catch(e){failed((e as Error).message);notify((e as Error).message,true);throw e;}};
+  // A save returns the saved teams: they replace the page's copy at once (replay links follow the new associations),
+  // then a quiet full refresh catches anything else (replays, summaries) once saving settles.
+  const apply=(w:any)=>{const d=dataRef.current;if(!w||!d)return;loadSeq.current++; // a reload already in flight would be older than this
+    const next={...d,db:w.db,teams:w.teams,games:d.games.map((g:any)=>({...g,association:w.db.associations[g.id]??null}))};dataRef.current=next;setData(next);};
+  const refreshTimer=useRef<any>(null);const refreshSoon=()=>{clearTimeout(refreshTimer.current);refreshTimer.current=setTimeout(()=>void load(),2500);};
+  // Saves run one at a time in order, apply to the latest workspace on the server, and retry dropped connections.
+  // They're silent: a save that truly fails (e.g. an illegal set, or a real clash) reports to the editor that made it.
+  const queue=useRef<Promise<unknown>>(Promise.resolve());
+  const mutate=(action:any,{quiet=false,before,optimistic}:{quiet?:boolean;before?:(result:any)=>void;optimistic?:(data:any)=>any}={})=>{
+    // An optimistic edit shows straight away; the saved workspace replaces it when the save lands (or a reload, if it fails).
+    if(optimistic&&dataRef.current){const next=optimistic(structuredClone(dataRef.current));loadSeq.current++;dataRef.current=next;setData(next);}
+    const run=async()=>{saving();
+      for(let attempt=0;;attempt++){try{const result=await api('/action',{revision:revision.current,action});revision.current=result.revision;before?.(result);apply(result.workspace);saved();refreshSoon();return result;}
+        catch(e){const status=(e as ApiError).status;if((status===0||status>=500)&&attempt<3){await new Promise(r=>setTimeout(r,500*(attempt+1)));continue;}
+          failed((e as Error).message);if(status===409||optimistic)void load();if(!quiet)notify((e as Error).message,true);throw e;}}};
+    const next=queue.current.then(run,run);queue.current=next.catch(()=>{});return next;};
   const run=async(kind:string)=>{try{await api('/jobs',{kind});setJobs(await api('/jobs'));notify('Started. Progress is shown beside this workflow.');}catch(e){notify((e as Error).message,true);}};
   const openReport=async(path:string)=>{try{setReport((await api('/report?path='+encodeURIComponent(path))).text);}catch(e){notify((e as Error).message,true);}};
   // Routes: teams · team/<id>/<tab>/<version|all> · team/<id>/mon/<version>/<slot>[/swap] · news · data · references
@@ -49,22 +68,19 @@ export default function App(){
       {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} reload={load} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
       {team&&parts[2]!=='mon'&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
-      {route==='account'&&<><a href="#teams" className="text-button">← Teams</a><Settings profile={data.profile} reload={load} notify={notify}/></>}
-      {route==='news'&&<><a href="#teams" className="text-button">← Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
-      {route==='data'&&<><a href="#teams" className="text-button">← Teams</a><DataPool art={data.art}/></>}
-      {route==='references'&&<><a href="#teams" className="text-button">← Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
+      {route==='account'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Settings profile={data.profile} reload={load} notify={notify}/></>}
+      {route==='news'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
+      {route==='data'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><DataPool art={data.art}/></>}
+      {route==='references'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
       {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
     </>}</main><footer className="footer"><span>FRONTIER BRAIN</span><span>Pokémon illustrations © Pokémon / Nintendo / Creatures / GAME FREAK. Unofficial, private tool.</span></footer>
     {pageData&&<AssistDock key={team?.id??'general'} team={team??null} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
     {importing&&<NewTeam mutate={mutate} load={load} notify={notify} review={importing.review} onClose={()=>setImporting(false)}/>} {newsOpen&&data&&<Modal title="This week in Champions VGC" onClose={()=>setNewsOpen(false)}><News weeks={data.news} jobs={jobs} run={run}/></Modal>} {report!==null&&<Modal title="Research notebook" onClose={()=>setReport(null)}><Markdown text={report}/></Modal>}
   </div>;
 }
-// Header status: unsaved drafts first, then the last save's outcome.
-function SavePill(){const {status,dirty}=useSaveState();const time=(t?:number)=>t?new Date(t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'';
-  if(dirty.length)return <span className="save-pill dirty" role="status"><i/>Unsaved: {[...new Set(dirty)].join(', ')}</span>;
-  if(status.state==='saving')return <span className="save-pill" role="status">Saving…</span>;
-  if(status.state==='error')return <span className="save-pill error" role="status" title={status.error}><Px icon={WarningDiamond} size={12}/>Save failed</span>;
-  return null; // saved is the normal state; only problems and pending work are shown
+// Saving is automatic and silent. The header only speaks up when a save failed; the next good save clears it.
+function SavePill(){const {status}=useSaveState();
+  return status.state==='error'?<span className="save-pill error" role="status" title={status.error}><Px icon={WarningDiamond} size={12}/>Couldn't save</span>:null;
 }
 // Headlines from the saved weekly briefings. A headline opens its source; anywhere else opens the week's briefing.
 function Ticker({weeks,openNews}:{weeks:any[];openNews:()=>void}){

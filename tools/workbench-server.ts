@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {ROOT,CODE,json,optionalJSON,save,hash,id,dataPath,listDir,readText,readBytes,removeFile,withData,dataContext,config as profile} from './io.ts';
 import {dashboard,cacheArtwork,backfillUsage,refreshEvents,coachStats} from './workbench-data.ts';
-import {readStore as readRootStore,mutateStore as mutateRootStore,applyAction,currentTeam,teamPaste,sameRoster,Conflict,legacyTeams as legacyRootTeams,makeTeam,associateReplay} from './workbench-store.ts';
+import {readStore as readRootStore,mutateStore as mutateRootStore,mutateLatest as mutateRootLatest,applyAction,currentTeam,teamPaste,sameRoster,Conflict,legacyTeams as legacyRootTeams,makeTeam,associateReplay} from './workbench-store.ts';
 import {parseReplay,addReplay,loadGames,deleteReplays} from './replays.ts';
 import {refreshResearch} from './research.ts';
 import {workflowLock} from './workbench-jobs.ts';
@@ -46,13 +46,15 @@ async function runJob(kind:string){
 }
 export function createWorkbenchHandler(storageRoot=ROOT,apiPort=API_PORT,{hostedMode=false}:{hostedMode?:boolean}={}){
 const readStore=()=>readRootStore(storageRoot);const mutateStore=(revision:number,fn:Parameters<typeof mutateRootStore>[1])=>mutateRootStore(revision,fn,storageRoot);const legacyTeams=()=>legacyRootTeams(storageRoot);
+// Saves apply to the latest workspace: the client's revision is only a hint, record-level checks guard real clashes.
+const mutateLatest=(fn:Parameters<typeof mutateRootStore>[1])=>mutateRootLatest(fn,storageRoot);
 async function saveReplay(html:string,associationInput:any,revision:number){
   const config=await profile();const parsed=parseReplay(html,'upload',config.player,config.aliases);
   return workflowLock(async()=>{
-    if(associationInput){const preview=await readStore();if(preview.revision!==revision)throw new Conflict('Workspace changed; reload before uploading');associateReplay(preview,parsed,associationInput);}
+    if(associationInput)associateReplay(await readStore(),parsed,associationInput);
     const saved=await addReplay(html,`${parsed.id}-${hash(html).slice(0,12)}.html`);parsed.id=saved.id;const outcome:any=saved.duplicate?{duplicate:true,id:saved.id}:{added:saved.added,id:saved.id};
     if(associationInput){
-      const changed=await mutateStore(revision,db=>associateReplay(db,parsed,associationInput));
+      const changed=await mutateLatest(db=>associateReplay(db,parsed,associationInput));
       if(storageRoot===ROOT){const latest=await json('replays/index.json');const entry=latest.games.find((g:any)=>g.logHash===parsed.logHash);entry.teamVersion=changed.db.associations[parsed.id]?.configurationId??null;entry.reviewedAt=null;entry.reviewPath=null;const g=await json(entry.parsed);g.teamVersion=entry.teamVersion;await save(entry.parsed,g);await save('replays/index.json',latest);}
     }
     return outcome;
@@ -78,12 +80,13 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='GET'&&path==='/api/coach-stats'){const ids=(url.searchParams.get('ids')??'').split(',');const games=await loadGames();return respond(res,200,coachStats(games.filter(g=>ids.includes(g.id))));}
     if(req.method==='POST'&&path==='/api/jobs'){const input=await body(req);return respond(res,202,await runJob(input.kind));}
     if(req.method==='POST'&&path==='/api/action'){
-      const input=await body(req);if(!Number.isInteger(input.revision))throw new Error('Workspace revision required');
+      const input=await body(req);
       if(input.action?.type==='match-save'){const games=await loadGames();const chosen=input.action.replayIds?.map((rid:string)=>games.find(g=>g.id===rid));if(!chosen?.every(Boolean)||new Set(chosen.map((g:any)=>g.players[g.ownSide==='p1'?'p2':'p1'].name)).size!==1||new Set(chosen.map((g:any)=>g.format)).size!==1)throw new Error('Choose games in one format against the same opponent');}
-      const result=await mutateStore(input.revision,db=>applyAction(db,input.action));
+      const result=await mutateLatest(db=>applyAction(db,input.action));
       // A deleted team takes its replays and their analysis with it.
       if(input.action?.type==='team-delete'){const r:any=result.result;await deleteReplays(r.replays??[]);await removeFile(`reports/replay-digests/${input.action.teamId}.json`).catch(()=>{});}
-      return respond(res,200,{revision:result.db.revision,result:result.result});
+      // The saved workspace comes back with the response, so the page updates at once without a full reload.
+      return respond(res,200,{revision:result.db.revision,result:result.result,workspace:{db:result.db,teams:result.db.teams.map(t=>({...t,view:currentTeam(result.db,t)}))}});
     }
     if(req.method==='POST'&&path==='/api/migrate-legacy'){const input=await body(req);const records=await legacyTeams();const result=await mutateStore(input.revision,db=>{for(const old of records){if(!db.teams.some(t=>t.name===old.id))makeTeam(db,old.id,exportText(old.sets,old.format),old.format);}return {imported:records.length};});return respond(res,200,{revision:result.db.revision,result:result.result});}
     if(req.method==='GET'&&path==='/api/legacy')return respond(res,200,await legacyTeams());
@@ -91,7 +94,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       const input=await body(req);if(!['family','exact','clear','auto'].includes(input.certainty))throw new Error('Association certainty required');
       const result=await workflowLock(async()=>{
         const games=await loadGames();const game=games.find(g=>g.id===input.replayId);if(!game)throw new Error('Replay not found');
-        const changed=await mutateStore(input.revision,db=>associateReplay(db,game,input));
+        const changed=await mutateLatest(db=>associateReplay(db,game,input));
         // Requeue exact-set changes for coaching. Preserve every original and historical report.
         if(storageRoot===ROOT&&(input.certainty==='exact'||game.teamVersion?.startsWith('config-'))){const index=await json('replays/index.json');const entry=index.games.find((g:any)=>g.id===game.id);entry.teamVersion=changed.db.associations[game.id]?.configurationId??null;entry.reviewedAt=null;entry.reviewPath=null;game.teamVersion=entry.teamVersion;await save(entry.parsed,game);await save('replays/index.json',index);}
         return changed;});

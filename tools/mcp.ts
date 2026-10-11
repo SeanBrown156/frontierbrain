@@ -7,9 +7,9 @@ import type {IncomingMessage,ServerResponse} from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {Server} from '@modelcontextprotocol/sdk/server/index.js';
 import {StreamableHTTPServerTransport} from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import {ListToolsRequestSchema,CallToolRequestSchema} from '@modelcontextprotocol/sdk/types.js';
+import {ListToolsRequestSchema,CallToolRequestSchema,ListPromptsRequestSchema,GetPromptRequestSchema} from '@modelcontextprotocol/sdk/types.js';
 import {tools as chatTools,runTool,instructions as chatInstructions} from './chat.ts';
-import {readStore,mutateStore,applyAction,currentTeam} from './workbench-store.ts';
+import {readStore,mutateLatest,applyAction,currentTeam} from './workbench-store.ts';
 import {loadGames} from './replays.ts';
 import {transcript,readGame,readSummary} from './replay-summary.ts';
 
@@ -22,7 +22,7 @@ const own=[
   {name:'list_teams',description:'The player\'s teams: id, name, format, the six Pokémon and the record from linked replays. Call this first.',parameters:{type:'object',properties:{}}},
   {name:'list_replays',description:'Replays linked to a team: id, date, result, opponent, both previews and the AI summary if there is one.',parameters:{type:'object',properties:teamId,required:['teamId']}},
   {name:'replay_transcript',description:'Turn-by-turn log of one replay. Judge decisions with the information available at that turn.',parameters:{type:'object',properties:{replayId:{type:'string'}},required:['replayId']}},
-  {name:'import_team',description:'Create a new team from a Showdown paste (Champions stat points on the "EVs:" line: 0–32 per stat, 66 total). Never changes an existing team.',parameters:{type:'object',properties:{name:{type:'string'},paste:{type:'string'},notes:{type:'string',description:'Optional game plan (markdown)'}},required:['name','paste']}},
+  {name:'import_team',description:'Create a new team from a Showdown paste (Champions stat points on the "EVs:" line: 0–32 per stat, 66 total). Never changes an existing team. Call it only once the player has agreed on all six; put the game plan and the reasoning behind key spreads in notes.',parameters:{type:'object',properties:{name:{type:'string'},paste:{type:'string'},notes:{type:'string',description:'Optional game plan (markdown)'}},required:['name','paste']}},
   {name:'propose_plans',description:'Add lead and matchup plans to a team as proposals. They appear in the team\'s Strategy tab for the player to accept or reject; nothing becomes active on its own.',parameters:{type:'object',properties:{...teamId,leads:{type:'array',items:plan},matchups:{type:'array',items:matchup}},required:['teamId']}},
 ];
 const all=[...own,...shared];
@@ -34,18 +34,37 @@ async function call(name:string,input:any){
   if(name==='list_replays'){const games=(await loadGames()).filter(g=>db.associations[g.id]?.teamId===input.teamId);
     return Promise.all(games.map(async g=>{const o=g.ownSide==='p1'?'p2':'p1';const s:any=await readSummary(g.id);return {id:g.id,date:g.date,result:g.result,opponent:g.players[o]?.name,yours:g.preview[g.ownSide],theirs:g.preview[o],summary:s?.summary??null};}));}
   if(name==='replay_transcript'){const g=await readGame(input.replayId);if(!db.associations[g.id])throw new Error('Replay not found');return {transcript:transcript(g)};}
-  if(name==='import_team'){const r=await mutateStore(db.revision,d=>applyAction(d,{type:'import',name:String(input.name).slice(0,120),paste:input.paste,notes:input.notes} as any));const t:any=r.result;return {created:t.id,name:t.name,note:'New team created. Open it in Frontier Brain to review.'};}
-  if(name==='propose_plans'){const team=db.teams.find(t=>t.id===input.teamId);if(!team)throw new Error('Team not found');const id=()=>randomUUID().slice(0,10);
-    const c=db.coaching?.[team.id]??{teamId:team.id,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]};
-    const leads=[...c.leads,...(input.leads??[]).slice(0,8).map((p:any)=>({id:id(),lead:p.lead,back:p.back??[],when:p.when??'',plan:p.plan,calcIds:[],versionIds:[],status:'proposed'}))];
-    const matchups=[...c.matchups,...(input.matchups??[]).slice(0,12).map((p:any)=>({id:id(),opponent:p.opponent,threat:p.threat??'medium',bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'}))];
-    await mutateStore(db.revision,d=>applyAction(d,{type:'coaching-save',teamId:team.id,parentVersion:c.version,coaching:{...c,leads,matchups}} as any));
-    return {proposed:{leads:leads.length-c.leads.length,matchups:matchups.length-c.matchups.length},note:'Saved as proposals in the team\'s Strategy tab for the player to accept.'};}
+  if(name==='import_team'){const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name).slice(0,120),paste:input.paste,notes:input.notes} as any));const t:any=r.result;return {created:t.id,name:t.name,note:'New team created. Open it in Frontier Brain to review.'};}
+  if(name==='propose_plans'){if(!db.teams.some(t=>t.id===input.teamId))throw new Error('Team not found');const id=()=>randomUUID().slice(0,10);
+    const leads=(input.leads??[]).slice(0,8).map((p:any)=>({id:id(),lead:p.lead,back:p.back??[],when:p.when??'',plan:p.plan,calcIds:[],versionIds:[],status:'proposed'}));
+    const matchups=(input.matchups??[]).slice(0,12).map((p:any)=>({id:id(),opponent:p.opponent,threat:p.threat??'medium',bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'}));
+    await mutateLatest(d=>applyAction(d,{type:'coaching-update',teamId:input.teamId,upsert:{leads,matchups}}));
+    return {proposed:{leads:leads.length,matchups:matchups.length},note:'Saved as proposals in the team\'s Strategy tab for the player to accept.'};}
   return runTool(name,input,name==='get_team'?{teamId:input.teamId}:{},db);
 }
 
+// How to work with the player: a teambuilding partner, not a team vending machine.
+const collaborate=`You are connected to the player's Frontier Brain workspace. Start with list_teams when their teams matter. Changes to teams are proposals the player accepts in the app.
+Work as a collaborator, in short turns, and hand choices back to the player:
+- When they name Pokémon to try or build around, first find out what makes each one distinctive: call pokemon_profile (and team_pool_sets if the pool has it). Say what is genuinely unusual — the Mega's typing, stats and ability, rare support or speed-control moves, which popular threats it hits or walls, how it fares under Trick Room — and what is awkward about it. A low pool share is a feature (opponents won't have a plan for it); say so.
+- Then offer two or three distinct directions built around their picks (core, game plan, main risk) and ask which they like. Ask about their preferences (playstyle, Bo1 or Bo3, what they hate facing) if you don't know them.
+- Build up from the core one or two slots at a time. Explain every pick by the job it does for this core: which threat it answers and why it beats the alternatives. Don't reach for meta staples (Incineroar, Rillaboom, Sneasler…) by reflex; when one fits, say why it fits this team specifically and name a less obvious option.
+- Test the plan with numbers before settling it: key calcs (calc_damage) and speed tiers (calc_speed) against labelled standard_set opponents, and spread_search for the spreads.
+- Only call import_team once the player has agreed on all six. Afterwards offer lead and matchup plans (propose_plans).
+- End a turn with a question whenever the next choice is theirs.`;
+const prompts=[
+  {name:'build_around',description:'Build a team together around Pokémon you want to use',arguments:[{name:'pokemon',description:'The Pokémon to build around, e.g. "Mega Chimecho, Trevenant, Kommo-o"',required:true},{name:'style',description:'Optional: playstyle or anything you already know you want',required:false}],
+    text:(a:any)=>`I want to build a Champions Regulation M-C doubles team around ${a.pokemon}.${a.style?` ${a.style}.`:''} Before building anything, profile each of them with pokemon_profile and tell me what makes them interesting in this meta and what's awkward, then pitch two or three directions and ask me which to take.`},
+  {name:'review_games',description:'Go through your recent games on a team and find what to work on',arguments:[{name:'team',description:'Team name (optional; asks if you have several)',required:false}],
+    text:(a:any)=>`Review my recent games${a.team?` on ${a.team}`:''}. Use list_teams, list_replays and replay_transcript; judge decisions with what I knew at each turn, show sample sizes, and end with two or three concrete things to practise.`},
+  {name:'tune_spread',description:'Tune one Pokémon\'s spread against real benchmarks',arguments:[{name:'pokemon',description:'Which Pokémon (and team, if several)',required:true}],
+    text:(a:any)=>`Help me tune the spread on my ${a.pokemon}. Read the set with get_team, ask me which hits it must survive and which KOs or speed tiers it needs, then use spread_search, calc_damage and calc_speed against labelled standard sets.`},
+];
 function server(){
-  const s=new Server({name:'frontier-brain',version:'1.0.0'},{capabilities:{tools:{}},instructions:`${chatInstructions}\nYou are connected to the player's Frontier Brain workspace. Start with list_teams. Changes to teams are proposals the player accepts in the app.`});
+  const s=new Server({name:'frontier-brain',version:'1.0.0'},{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}`});
+  s.setRequestHandler(ListPromptsRequestSchema,async()=>({prompts:prompts.map(({text,...p})=>p)}));
+  s.setRequestHandler(GetPromptRequestSchema,async req=>{const p=prompts.find(x=>x.name===req.params.name);if(!p)throw new Error(`Unknown prompt ${req.params.name}`);
+    return {description:p.description,messages:[{role:'user',content:{type:'text',text:p.text(req.params.arguments??{})}}]};});
   s.setRequestHandler(ListToolsRequestSchema,async()=>({tools:all.map(t=>({name:t.name,description:t.description,inputSchema:t.parameters as any}))}));
   s.setRequestHandler(CallToolRequestSchema,async req=>{
     if(!all.some(t=>t.name===req.params.name))return {isError:true,content:[{type:'text',text:`Unknown tool ${req.params.name}`}]};

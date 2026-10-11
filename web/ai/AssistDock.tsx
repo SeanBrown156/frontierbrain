@@ -7,6 +7,7 @@ import {useAccount,canUseAI,requireAccount,SignInForAI} from '../auth.tsx';
 import SetTile from './SetTile.tsx';
 import {getView} from '../team/editors.tsx';
 import {teamHref,addPlans} from '../team/Hub.tsx';
+import {coachingUpdate} from '../team/Coaching.tsx';
 import {offer,leaveOffer,useOffers} from '../save-state.ts';
 
 export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'objective'|'strategy';status?:'accepted'|'rejected'|'saving';error?:string;[k:string]:any;}
@@ -64,7 +65,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   const saveCoaching=async(ps:Proposal[])=>{const latest=dataRef.current;const c=latest.db.coaching?.[team.id]??{teamId:team.id,version:0,leads:[],matchups:[],objectives:[]};const id=()=>Math.random().toString(36).slice(2,12);const scope=context.versionId==='all'?[]:[context.versionId];
     const leads=[...c.leads],matchups=[...c.matchups],objectives=[...c.objectives];
     for(const p of ps){if(p.kind==='lead')leads.push({id:id(),lead:p.lead,back:p.back,when:p.when,plan:p.plan,calcIds:[],versionIds:scope,status:'active'});else if(p.kind==='matchup')matchups.push({id:id(),opponent:p.opponent,threat:p.threat,bring:p.bring,plan:p.plan,calcIds:[],versionIds:scope,status:'active'});else if(p.kind==='objective')objectives.push({id:id(),kind:p.type,text:p.text,done:false});}
-    await mutate({type:'coaching-save',teamId:team.id,parentVersion:c.version,coaching:{...c,leads,matchups,objectives}});};
+    await mutate(coachingUpdate(team.id,c,{leads,matchups,objectives}));};
   const update=(ti:number,pi:number,patch:Partial<Proposal>)=>save(prev=>{const next=structuredClone(prev);Object.assign(next[ti].proposals![pi],patch);return next;});
   const decide=async(ti:number,pi:number,yes:boolean)=>{if(!yes){update(ti,pi,{status:'rejected'});return;}update(ti,pi,{status:'saving',error:undefined});
     try{const note=await accept(turns[ti].proposals![pi]);update(ti,pi,{status:'accepted',error:note||undefined});}catch(e){update(ti,pi,{status:undefined,error:(e as Error).message});}};

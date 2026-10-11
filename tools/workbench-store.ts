@@ -14,6 +14,9 @@ export const emptyStore=():Workbench=>({schemaVersion:1,revision:0,bank:[],teams
 const uid=(prefix:string)=>`${prefix}-${randomUUID().slice(0,12)}`;
 const now=()=>new Date().toISOString();
 export class Conflict extends Error {}
+// The whole workspace moved on (another tab, an AI job, a connector). Saves retry on the latest copy; per-record
+// checks (a set's base revision, coaching version) still catch real edit clashes.
+export class StaleWorkspace extends Conflict {}
 export const blankNotes=():SetNotes=>({role:'',benchmarks:'',partners:'',matchups:''});
 export function checkText(value:unknown,max=30000):string {if(typeof value!=='string'||value.length>max)throw new Error('Expected bounded text');return value;}
 export const cleanSet=(input:PokemonSet)=>checkSet(input,false);
@@ -57,6 +60,16 @@ export function certainty(prev:SetRevision,set:PokemonSet):Pick<SetRevision,'pro
   fields.moves=knownMoves.length===(set.moves??[]).length?'known':'inferred';
   return Object.values(fields).some(v=>v!=='known')?{provenance:'observed',fields,knownMoves}:{provenance:'manual'};
 }
+const AMEND_WINDOW=30*60_000;
+function amendable(db:Workbench,team:Formula,old:ReturnType<typeof currentTeam>,prev:SetRevision,set:PokemonSet){
+  const fresh=(t:string)=>Date.now()-Date.parse(t)<AMEND_WINDOW;
+  if(!fresh(prev.createdAt)||!fresh(old.configuration.createdAt)||prev.starred)return false;
+  if(dex.species.get(prev.set.species).baseSpecies!==dex.species.get(set.species).baseSpecies)return false;
+  if((db.benchmarks??[]).some(b=>b.revisionId===prev.id))return false;
+  if(Object.values(db.associations).some(a=>a.configurationId===old.configuration.id))return false;
+  const uses=db.teams.flatMap(t=>t.versions.flatMap(v=>v.configurations)).filter(c=>c.slots.some(s=>s.revisionId===prev.id)).length;
+  return uses===1&&old.version.configurations.at(-1)?.id===old.configuration.id&&team.versions.some(v=>v.id===old.version.id);
+}
 export function applyAction(db:Workbench,action:any):unknown {
   if(!action||typeof action.type!=='string')throw new Error('Action required');
   if(action.type==='benchmark-save'){
@@ -97,6 +110,14 @@ export function applyAction(db:Workbench,action:any):unknown {
     if((current?.version??0)!==action.parentVersion)throw new Conflict('Coaching notes changed. Reload before saving.');
     const coaching=cleanCoaching(team.id,action.coaching,(current?.version??0)+1);db.coaching[team.id]=coaching;return coaching;
   }
+  // Item-level strategy edits (accept, edit, delete, add) merged into the latest plans, so a plan added meanwhile by
+  // Ask Frontier Brain or a connector is never overwritten.
+  if(action.type==='coaching-update'){
+    const team=db.teams.find(t=>t.id===action.teamId);if(!team)throw new Error('Team not found');const current=(db.coaching??={})[team.id]??{teamId:team.id,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]};
+    const merge=(list:any[],upsert:any[]=[],remove:string[]=[])=>{const out=list.filter(x=>!remove.includes(x.id));for(const item of upsert){const i=out.findIndex(x=>x.id===item.id);if(i<0)out.push(item);else out[i]=item;}return out;};
+    const next={leads:merge(current.leads,action.upsert?.leads,action.remove?.leads),matchups:merge(current.matchups,action.upsert?.matchups,action.remove?.matchups),objectives:merge(current.objectives,action.upsert?.objectives,action.remove?.objectives)};
+    const coaching=cleanCoaching(team.id,next,current.version+1);db.coaching[team.id]=coaching;return coaching;
+  }
   // Replace one or more slots with new sets (slot swap, AI set, AI team). Same species → a new revision of that
   // Pokémon; different species → a new Pokémon entry. Then a new configuration (or a new version) is saved.
   if(action.type==='team-replace-sets'){
@@ -106,7 +127,7 @@ export function applyAction(db:Workbench,action:any):unknown {
     const perSlot=action.sets.every((r:any)=>typeof r.baseRevisionId==='string');
     if(perSlot){for(const r of action.sets)if(old.configuration.slots[r.slot]?.revisionId!==r.baseRevisionId)throw new Conflict('That Pokémon was changed elsewhere. Reload before saving.');}
     else if(old.configuration.id!==action.parentConfigurationId)throw new Conflict('Team configuration changed. Reload before saving.');
-    const slots=structuredClone(old.configuration.slots);
+    const slots=structuredClone(old.configuration.slots);let amended=false;
     for(const r of action.sets){if(!Number.isInteger(r.slot)||r.slot<0||r.slot>5)throw new Error('Invalid slot');const set=cleanSet(r.set);const current=slots[r.slot];const entry=db.bank.find(b=>b.id===current.bankId)!;
       const prev=entry.revisions.find(x=>x.id===current.revisionId)!;const note=checkText(r.note??'',4000);
       // Reusing a set that is already saved (e.g. restoring an older one) points at it instead of duplicating it,
@@ -116,13 +137,18 @@ export function applyAction(db:Workbench,action:any):unknown {
       const notes=r.notes?cleanNotes({...r.notes,benchmarks:[r.notes.benchmarks,note].filter(Boolean).join('\n\n')}):undefined;
       // Same set, new notes: notes aren't part of an exact-set claim, so they update the revision in place.
       if(!action.newVersion&&JSON.stringify(cleanSet(prev.set))===JSON.stringify(set)){if(notes)prev.notes=notes;continue;}
+      // Autosave: a burst of edits to one Pokémon amends the revision that burst created, so History shows one edit,
+      // not one per keystroke. Only while nothing else can point at it (no replay link, star, benchmark or other team).
+      if(r.amend===true&&!action.newVersion&&amendable(db,team,old,prev,set)){Object.assign(prev,{set,createdAt:now(),...certainty(prev,set)});if(prev.provenance==='manual'){delete prev.fields;delete prev.knownMoves;}if(notes)prev.notes=notes;amended=true;continue;}
       if(dex.species.get(prev.set.species).baseSpecies===dex.species.get(set.species).baseSpecies){const revision:SetRevision={id:uid('set'),number:entry.revisions.length+1,createdAt:now(),set,notes:notes??{...prev.notes,benchmarks:[prev.notes.benchmarks,note].filter(Boolean).join('\n\n')},...certainty(prev,set)};entry.revisions.push(revision);slots[r.slot]={bankId:entry.id,revisionId:revision.id};}
       else{const revision={id:uid('set'),number:1,createdAt:now(),set,notes:notes??{...blankNotes(),benchmarks:note},provenance:'manual' as const};const fresh={id:uid('bank'),name:`${set.species} · ${team.name}`,revisions:[revision]};db.bank.push(fresh);slots[r.slot]={bankId:fresh.id,revisionId:revision.id};}}
-    if(!action.newVersion&&JSON.stringify(slots)===JSON.stringify(old.configuration.slots))return {versionId:old.version.id,configurationId:old.configuration.id,unchanged:true};
+    if(!action.newVersion&&JSON.stringify(slots)===JSON.stringify(old.configuration.slots)){
+      if(amended){const errors=validation(resolveSlots(db,slots),team.format);if(errors.length)throw new Error(errors.join('\n'));if(action.summary)old.configuration.summary=checkText(action.summary,500);}
+      return {versionId:old.version.id,configurationId:old.configuration.id,revisionIds:slots.map(s=>s.revisionId),...amended?{amended:true}:{unchanged:true}};}
     const sets=resolveSlots(db,slots);const errors=validation(sets,team.format);if(errors.length)throw new Error(errors.join('\n'));
     const configuration={id:uid('config'),createdAt:now(),slots,summary:checkText(action.summary??'Replaced sets',500)};
     if(action.newVersion){const version={id:uid('formula'),number:team.versions.length+1,createdAt:now(),notes:checkText(action.notes??old.version.notes),configurations:[configuration],currentConfigurationId:configuration.id};team.versions.push(version);if(action.activate===true)team.activeVersionId=version.id;return {versionId:version.id,configurationId:configuration.id};}
-    old.version.configurations.push(configuration);old.version.currentConfigurationId=configuration.id;return {versionId:old.version.id,configurationId:configuration.id};
+    old.version.configurations.push(configuration);old.version.currentConfigurationId=configuration.id;return {versionId:old.version.id,configurationId:configuration.id,revisionIds:slots.map(s=>s.revisionId)};
   }
   // Strategy notes describe a version; editing them does not change any set, so they are updated in place.
   if(action.type==='version-notes'){const team=db.teams.find(t=>t.id===action.teamId);const v=team?.versions.find(v=>v.id===action.versionId);if(!v)throw new Error('Version not found');v.notes=checkText(action.notes);return v;}
@@ -204,12 +230,18 @@ export async function migrateStore(root=ROOT){
 }
 async function withStoreLock<T>(root:string,fn:()=>Promise<T>):Promise<T>{
   await mkdir(resolve(root,'teams'),{recursive:true});const lock=resolve(root,'teams/.workbench-lock');
-  try{await mkdir(lock);}catch(e){if((e as NodeJS.ErrnoException).code!=='EEXIST')throw e;let pid:number;try{pid=Number(await readFile(resolve(lock,'pid'),'utf8'));if(!Number.isInteger(pid)||pid<1)throw new Error('Unknown owner');process.kill(pid,0);}catch(err){if((err as NodeJS.ErrnoException).code==='ESRCH'){await rm(lock,{recursive:true});return withStoreLock(root,fn);}throw new Conflict('Another save is in progress. Try again.');}throw new Conflict('Another save is in progress. Try again.');}
+  try{await mkdir(lock);}catch(e){if((e as NodeJS.ErrnoException).code!=='EEXIST')throw e;let pid:number;try{pid=Number(await readFile(resolve(lock,'pid'),'utf8'));if(!Number.isInteger(pid)||pid<1)throw new Error('Unknown owner');process.kill(pid,0);}catch(err){if((err as NodeJS.ErrnoException).code==='ESRCH'){await rm(lock,{recursive:true});return withStoreLock(root,fn);}throw new StaleWorkspace('Another save is in progress. Try again.');}throw new StaleWorkspace('Another save is in progress. Try again.');}
   await writeFile(resolve(lock,'pid'),String(process.pid));try{return await fn();}finally{await rm(lock,{recursive:true});}
 }
 export async function mutateStore(revision:number,fn:(db:Workbench)=>unknown|Promise<unknown>,storageRoot=ROOT){
   const hostedStore=storageRoot===ROOT?dataContext().store:undefined;if(hostedStore)return hostedStore.mutate(revision,fn);
-  return withStoreLock(storageRoot,async()=>{const pending=await optionalFile<{db:Workbench}>(resolve(storageRoot,'.cache/coach-transaction.json'));if(pending)await materialize(pending.db,storageRoot);const db=await readStore(storageRoot);if(db.revision!==revision)throw new Conflict('Workspace changed since you opened it. Reload before saving.');const result=await fn(db);db.revision++;await commit(db,storageRoot);return {db,result};});
+  return withStoreLock(storageRoot,async()=>{const pending=await optionalFile<{db:Workbench}>(resolve(storageRoot,'.cache/coach-transaction.json'));if(pending)await materialize(pending.db,storageRoot);const db=await readStore(storageRoot);if(db.revision!==revision)throw new StaleWorkspace('Workspace changed since you opened it. Reload before saving.');const result=await fn(db);db.revision++;await commit(db,storageRoot);return {db,result};});
+}
+// Apply a change to the latest workspace, retrying when another writer commits first.
+export async function mutateLatest<T>(fn:(db:Workbench)=>T|Promise<T>,storageRoot=ROOT):Promise<{db:Workbench;result:Awaited<T>}>{
+  for(let attempt=0;;attempt++){const db=await readStore(storageRoot);
+    try{return await mutateStore(db.revision,fn,storageRoot) as any;}
+    catch(e){if(!(e instanceof StaleWorkspace)||attempt>=6)throw e;await new Promise(r=>setTimeout(r,40*(attempt+1)+Math.random()*60));}}
 }
 export async function legacyTeams(storageRoot=ROOT){
   if(storageRoot===ROOT&&dataContext().hosted)return [];

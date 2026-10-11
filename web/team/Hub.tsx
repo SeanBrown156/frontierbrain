@@ -1,12 +1,13 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
-import {useState,useEffect} from 'react';
+import {useState,useEffect,useRef} from 'react';
 import {api,Art,Panel,Modal,Notice,date,Markdown} from '../ui.tsx';
-import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye} from '../icons.tsx';
+import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye,Check,WarningDiamond} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
 import {getView,versionName,stats} from './editors.tsx';
 import {useDraft,useOffers,takeOffer} from '../save-state.ts';
 import SetTile from '../ai/SetTile.tsx';
+import type {Mutate} from './PokemonWorkspace.tsx';
 
 export const teamHref=(teamId:string,tab:string,versionId='all')=>`#team/${teamId}/${tab}/${versionId}`;
 export const monHref=(teamId:string,versionId:string,slot:number,swap=false)=>`#team/${teamId}/mon/${versionId}/${slot}${swap?'/swap':''}`;
@@ -15,7 +16,7 @@ const tabs=[['overview','Overview',Home],['strategy','Strategy',Target],['replay
 const statLabel:Record<string,string>={hp:'HP',atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
 export const sourceName=(v:any)=>v.source==='observed'?'from replays':v.source==='paste'||v.number===1?'from paste':v.configurations?.[0]?.summary?.startsWith('Restored')?v.configurations[0].summary.toLowerCase():'saved version';
 
-export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{team:any;data:any;mutate:(a:any)=>Promise<any>;notify:(s:string)=>void;load:()=>Promise<void>;tab:string;versionId:string}){
+export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{team:any;data:any;mutate:Mutate;notify:(s:string)=>void;load:()=>Promise<void>;tab:string;versionId:string}){
   const all=versionId==='all'||!team.versions.some((v:any)=>v.id===versionId);
   const teamGames=data.games.filter((g:any)=>g.association?.teamId===team.id);const scopedGames=all?teamGames:teamGames.filter((g:any)=>g.association?.versionId===versionId);
   const [exported,setExported]=useState<string|null>(null),[renaming,setRenaming]=useState(false),[name,setName]=useState(team.name);
@@ -23,7 +24,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
   const paste=async()=>{try{setExported((await api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`)).paste);}catch(e){notify((e as Error).message);}};
   const rename=async()=>{setRenaming(false);if(name.trim()&&name.trim()!==team.name)await mutate({type:'team-rename',teamId:team.id,name:name.trim()}).catch(()=>setName(team.name));};
   return <div className="team-hub">
-    <a href="#teams" className="text-button"><Px icon={ArrowLeft} size={12}/>Teams</a>
+    <a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a>
     <div className="hub-head"><div className="hub-title">{renaming?<input className="rename" aria-label="Team name" autoFocus value={name} onChange={e=>setName(e.target.value)} onBlur={()=>void rename()} onKeyDown={e=>{if(e.key==='Enter')void rename();if(e.key==='Escape'){setName(team.name);setRenaming(false);}}}/>
         :<h1><button className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></button></h1>}</div></div>
     <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav>
@@ -35,7 +36,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     {exported!==null&&<Modal title="Showdown export" onClose={()=>setExported(null)}><Notice>Champions stat points use the “EVs:” label only for Showdown compatibility.{shown.source==='observed'?' This version was rebuilt from replays; guessed fields are assumptions.':''}</Notice><textarea className="paste" aria-label="Team export" readOnly rows={20} value={exported}/><button className="primary" onClick={()=>{void navigator.clipboard.writeText(exported).then(()=>notify('Paste copied.')).catch(()=>notify('Select and copy the paste manually.'));}}>Copy paste</button></Modal>}
   </div>;
 }
-function Overview({team,data,version,mutate}:{team:any;data:any;version:any;mutate:(a:any)=>Promise<any>}){
+function Overview({team,data,version,mutate}:{team:any;data:any;version:any;mutate:Mutate}){
   const view=getView(team,data.db,version.id);const active=version.id===team.activeVersionId;const current=team.versions.find((v:any)=>v.id===team.activeVersionId);
   return <div className="hub-overview">
     {!active&&<div className="notice warn">Viewing {versionName(version)}, an older version (read-only). <a className="button" href={teamHref(team.id,'overview',team.activeVersionId)}>Back to {versionName(current)}</a><button onClick={()=>{if(confirm(`Bring back ${versionName(version)}'s six as a new version (V${team.versions.length+1})? Nothing is deleted.`))void mutate({type:'team-milestone',teamId:team.id,fromVersionId:version.id}).then(r=>{location.hash=teamHref(team.id,'overview',r.result.versionId);}).catch(()=>{});}}>Make it the current team</button></div>}
@@ -48,25 +49,30 @@ function Overview({team,data,version,mutate}:{team:any;data:any;version:any;muta
   </div>;
 }
 // Lead and matchup drafts that came with an AI team are added to Coaching as proposals to accept there.
-export async function addPlans(team:any,data:any,mutate:(a:any)=>Promise<any>,p:any,versionId:string){
+export async function addPlans(team:any,data:any,mutate:Mutate,p:any,versionId:string){
   if(!p.leads?.length&&!p.matchups?.length)return;const c=data.db.coaching?.[team.id]??{version:0,leads:[],matchups:[],objectives:[]};const id=()=>Math.random().toString(36).slice(2,12);
-  await mutate({type:'coaching-save',teamId:team.id,parentVersion:c.version,coaching:{...c,leads:[...c.leads,...p.leads.map((l:any)=>({...l,id:id(),calcIds:[],versionIds:[versionId],status:'proposed'}))],matchups:[...c.matchups,...p.matchups.map((m:any)=>({...m,id:id(),calcIds:[],versionIds:[versionId],status:'proposed'}))]}});
+  await mutate({type:'coaching-update',teamId:team.id,upsert:{leads:p.leads.map((l:any)=>({...l,id:id(),calcIds:[],versionIds:[versionId],status:'proposed'})),matchups:p.matchups.map((m:any)=>({...m,id:id(),calcIds:[],versionIds:[versionId],status:'proposed'}))}});
 }
-// The version's game plan. Editing (or a rewrite accepted from Ask Frontier Brain) is a draft until Save.
-function Strategy({team,version,all,mutate}:{team:any;version:any;all:boolean;mutate:(a:any)=>Promise<any>}){
-  const d=useDraft<string>(`strategy-${version.id}`,version.notes??'',version.notes??'','Strategy');const [editing,setEditing]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+// The team's game plan. Edits (or a rewrite accepted from Ask Frontier Brain) save themselves.
+function Strategy({team,version,all,mutate}:{team:any;version:any;all:boolean;mutate:Mutate}){
+  const d=useDraft<string>(`strategy-${version.id}`,version.notes??'',version.notes??'','Strategy',{guard:false});const [editing,setEditing]=useState(false),[error,setError]=useState('');
   useOffers(`strategy:${team.id}`,text=>{d.setDraft(text);setEditing(true);return true;});
   useEffect(()=>{const t=takeOffer(`strategy:${team.id}`);if(t){d.setDraft(t);setEditing(true);}},[]);
-  const save=async()=>{setBusy(true);setError('');d.markSaving();try{await mutate({type:'version-notes',teamId:team.id,versionId:version.id,notes:d.draft});setEditing(false);}catch(e){d.markFailed();setError((e as Error).message);}finally{setBusy(false);}};
-  return <section className={'strategy-block'+(d.dirty?' dirty':'')}><div className="strategy-head"><h2>Overall strategy</h2><span className="grow"/>{!editing&&<button onClick={()=>setEditing(true)}><Px icon={Pencil}/>Edit</button>}</div>
-    {editing?<textarea aria-label="Strategy" rows={14} value={d.draft} onChange={e=>d.setDraft(e.target.value)} placeholder="Game plan, win conditions, leads at a glance, threats…"/>:<Markdown text={version.notes||'No game plan yet. Write one here, or ask Frontier Brain to draft it.'}/>}
-    {editing&&<div className="save-bar">{error?<span className="error">{error}</span>:<span>{d.dirty?'Unsaved changes':'No changes'}</span>}<div className="button-row"><button disabled={busy} onClick={()=>{d.discard();setEditing(false);setError('');}}>{d.dirty?'Discard':'Close'}</button><button className="primary" disabled={busy||!d.dirty} onClick={()=>void save()}>{busy?'Saving…':'Save'}</button></div></div>}
+  // Saves itself a moment after you stop typing, and when you click Done or leave the page.
+  const latest=useRef(d.draft);latest.current=d.draft;const dirty=useRef(d.dirty);dirty.current=d.dirty;
+  const save=()=>{if(!dirty.current)return Promise.resolve();const text=latest.current;d.markSaving(text);
+    return mutate({type:'version-notes',teamId:team.id,versionId:version.id,notes:text},{quiet:true,before:()=>d.markSaved(text)}).then(()=>setError(''),e=>{d.markFailed();setError((e as Error).message);});};
+  useEffect(()=>{if(!d.dirty)return;const t=setTimeout(()=>void save(),1000);return()=>clearTimeout(t);},[d.draft]);
+  useEffect(()=>()=>void save(),[]);
+  return <section className="strategy-block"><div className="strategy-head"><h2>Overall strategy</h2><span className="grow"/>{editing?<button onClick={()=>{void save();setEditing(false);}}><Px icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Px icon={Pencil}/>Edit</button>}</div>
+    {editing?<textarea aria-label="Strategy" rows={14} value={d.draft} onChange={e=>d.setDraft(e.target.value)} placeholder="Game plan, win conditions, leads at a glance, threats…" autoFocus/>:<Markdown text={d.draft||'No game plan yet. Write one here, or ask Frontier Brain to draft it.'}/>}
+    {error&&<p className="set-pending" role="status"><Px icon={WarningDiamond} size={12}/>Not saved yet: {error}</p>}
   </section>;
 }
 // "Save as V2": versions are milestones the player chooses (e.g. before an event). Edits in between are logged quietly.
 // Version picker: switch versions, or "Save as new version…" to keep the current six as a milestone you can come back
 // to (e.g. before a tournament). Edits between milestones are logged quietly on the version.
-function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:string;versionId:string;all:boolean;games:any[];mutate:(a:any)=>Promise<any>}){
+function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:string;versionId:string;all:boolean;games:any[];mutate:Mutate}){
   const current=team.versions.find((v:any)=>v.id===team.activeVersionId);const edits=current.configurations.length-1;const next=team.versions.length+1;
   const [busy,setBusy]=useState(false);
   const save=async()=>{setBusy(true);try{const r=await mutate({type:'team-milestone',teamId:team.id,parentConfigurationId:current.currentConfigurationId,label:team.name});location.hash=teamHref(team.id,'overview',r.result.versionId);}catch{}finally{setBusy(false);}};
@@ -80,7 +86,7 @@ function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:strin
 // Every version, newest first, each with its edit log. Older edits can be viewed and restored; nothing is overwritten.
 // History: every saved change, newest first, across the team's whole life. Versions are kept in the data (and older
 // milestones still exist) but the player never manages them; restoring an edit records it as a new change.
-function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:(a:any)=>Promise<any>}){
+function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:Mutate}){
   const [viewing,setViewing]=useState<{version:any;config:any}|null>(null);
   const active=team.versions.find((v:any)=>v.id===team.activeVersionId);
   const entries=team.versions.flatMap((v:any)=>v.configurations.map((c:any,n:number)=>({v,c,first:n===0}))).sort((a:any,b:any)=>b.c.createdAt.localeCompare(a.c.createdAt));
@@ -101,7 +107,7 @@ function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:(a:a
 export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void;reload?:()=>Promise<void>}){
   return <div className="teams-landing"><div className="landing-head"><h1>Your teams</h1></div>
     <BuildJobs onReview={onReview} art={data.art}/>
-    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span><span>{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}</span></div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
+    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span>{r.n>0&&<span>{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
     <SampleTeams data={data} reload={reload}/>
     </div>;
 }

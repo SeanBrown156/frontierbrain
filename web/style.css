@@ -594,3 +594,75 @@ a.account-button{text-decoration:none}
 .copy-line button{flex:none}
 .client-tabs{display:flex!important;flex-wrap:wrap;width:100%;gap:0}.client-tabs button{flex:1 1 auto;height:var(--compact-height)!important;min-height:var(--compact-height)!important;font-size:13px!important}
 .steps{margin:0;padding-left:var(--s6);display:grid;gap:var(--s3)}.steps li{line-height:1.55}.steps code{font:13px var(--mono);background:var(--surface);padding:0 var(--s1)}
+
+/* ── Polish pass: alignment and consistency. Last in the file, so it settles earlier overrides. ── */
+/* Page rhythm: every page starts the same distance under the masthead. */
+main{padding-top:var(--s6)}
+.teams-landing,.workspace,.team-hub,.settings{padding-top:0!important;margin-top:0!important}.teams-landing .landing-head{margin-top:0!important}
+.back-link{display:inline-flex;align-items:center;gap:var(--s1);align-self:flex-start;margin:0 0 var(--s4) calc(-1 * var(--s2))!important;padding:0 var(--s2)!important}
+.team-hub .hub-head{margin-top:0!important}.team-hub .hub-head>.back-link{margin-bottom:var(--s2)!important}
+.workspace .hub-head{margin-top:0}.workspace .hub-head .back-link{margin-bottom:0!important}
+/* Buttons that sit in a row of labelled fields line up with the fields, not with the labels. */
+.settings-form>button,.profile-card>button,.form-grid>button,.paste-source>button{align-self:end!important}
+.paste-source{align-items:end}
+/* Team cards: one padding at every width (the nth-child rule used to win on phones). */
+.team-card,.team-card:nth-child(2),.team-card:nth-child(3){padding:var(--s6)}
+.team-card .card-footer{justify-content:space-between}
+@media(max-width:720px){.team-card,.team-card:nth-child(2),.team-card:nth-child(3){padding:var(--s4)}.new-team-slot{min-height:140px}}
+/* Overview cards: moves read as a compact list. */
+.mon-card .move-list{margin:var(--s2) 0 0}.mon-card .move-list li{padding:2px 0;line-height:1.5}
+/* Strategy: the overall block's heading matches the panels below it. */
+.strategy-block>.strategy-head{padding-bottom:var(--s4);margin-bottom:var(--s4);border-bottom:1px solid var(--line)}
+.strategy-head button,.panel-heading button{flex:none}
+/* Autosave status line on the Pokémon card and the strategy editor. */
+.set-pending{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s3);padding:var(--s2) var(--s3);font-size:13px;line-height:1.4;color:var(--gold-ink);background:var(--tint);border:1px solid var(--gold);border-radius:2px}
+.set-pending .px-icon{flex:none}
+.strategy-block .set-pending{margin:var(--s3) 0 0}
+/* Pokémon page: a roomier set card, item/ability/nature on one row, and tidy footer links. */
+.workspace-grid{grid-template-columns:minmax(380px,5fr) minmax(0,7fr)}
+.set-card{container-type:inline-size}
+.set-fields>.form-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.set-fields>.form-grid>label:last-child{grid-column:auto!important}
+@container (max-width:470px){.set-fields>.form-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.set-fields>.form-grid>label:last-child{grid-column:1/-1!important}}
+.set-card .history summary,.set-card .star-button,.set-card .my-set{margin-left:0;padding-left:0}
+.set-card .star-button{justify-content:flex-start}
+.changed-notice .button-row,.set-card .notice .button-row{display:inline-flex;margin:0 0 0 var(--s2)}
+@media(max-width:1100px){.workspace-grid{grid-template-columns:minmax(0,1fr)}}
+/* Replays: filters sit left like everything else, and the search box matches the filter buttons. */
+.replay-filters{justify-content:flex-start!important;align-items:center}
+.opponent-filter{justify-content:flex-start!important}
+.opponent-filter input{height:var(--compact-height)!important;min-height:var(--compact-height)!important}
+/* History: the danger button is a normal-size button. */
+.danger-zone button{height:var(--control-height)!important;min-height:var(--control-height)!important;max-height:var(--control-height)!important;flex:none}
+/* Dialogs: anchored near the top so switching tabs doesn't make them jump; no focus ring on open; actions on the right. */
+.modal{margin:6vh auto auto}
+.modal:focus{outline:none}
+.draft-review>.primary{justify-self:end;align-self:flex-end;margin-left:auto}
+.new-team .button-row{justify-content:flex-start}
+.pool-list{padding:2px;margin:0 -2px}
+/* Ask drawer: suggestions read left to right. */
+.chat-suggestions button{justify-content:flex-start!important;text-align:left!important}
+/* Phones: left-aligned like desktop, and header controls the same size. */
+@media(max-width:720px){
+  .strategy-head,.digest-head{justify-content:space-between!important;text-align:left!important}
+  .strategy-head h2{width:auto!important}.digest-head>div{width:auto!important;flex:1}
+  .danger-zone{text-align:left!important;align-items:flex-start!important}
+  .opponent-filter{justify-content:flex-start!important}
+  .workspace .hub-head{align-items:flex-start!important}
+  .masthead .account-button{width:var(--control-height)!important;height:var(--control-height)!important;min-height:var(--control-height);padding:0!important;justify-content:center}
+  .version-bar{flex-wrap:nowrap!important}.version-bar .format-picker{flex:1 1 auto!important;min-width:0}.version-bar .format-picker select{min-width:0!important;width:100%!important}
+}
+/* Consecutive field groups keep the same spacing as rows inside a group. */
+.form-grid+.form-grid,.form-grid+label{margin-top:var(--s4)}
+/* Replays: the "no summary yet" line sits with the list it describes. */
+.replays>.footnote{margin:calc(-1 * var(--s2)) 0 calc(-1 * var(--s3))}
+.replays>.replay-filters{margin:0}
+/* Settings › connectors: equal client tabs; command lines aren't double-shaded. */
+.client-tabs button{flex:1 1 0!important;min-width:max-content}
+.copy-line code,.steps .copy-line code{background:none;padding:0}
+.steps{font-size:14px}
+@media(max-width:720px){.replay-filters{align-items:stretch!important}.replay-filters>.segmented{align-self:flex-start}.opponent-filter .combo{flex:1;width:100%}}
+@media(max-width:720px){
+  .panel-heading{justify-content:space-between!important;text-align:left!important}
+  .ai-mode{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.ai-mode button{white-space:normal;line-height:1.2;padding:0 var(--s2)!important}
+}

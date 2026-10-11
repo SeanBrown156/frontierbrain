@@ -21,8 +21,9 @@ export default function SpeciesPicker({value='',placeholder,onPick,onPickSaved,d
     for(const p of saved.filter(p=>p.label.toLowerCase().includes(q)&&!rows.some(r=>r.key==='saved:'+p.id)))rows.push({kind:'saved',key:'saved:'+p.id,o:p});}
   const choose=(i:number)=>{const r=rows[i];if(!r||(r.kind==='species'&&r.off))return;setOpen(false);setText(value);if(r.kind==='saved')onPickSaved?.(r.o);else onPick(r.o.name);};
   const iconOf=(name:string)=>options.find(o=>o.name===name)?.icon;const showing=open&&text?options.find(o=>o.name.toLowerCase()===text.trim().toLowerCase()):null;
-  return <div className="combo with-icon" onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node)){setOpen(false);setText(value);}}}>
-    <PokeIcon n={showing?showing.icon:iconOf(value)}/>
+  const icon=showing?showing.icon:iconOf(value);
+  return <div className={'combo'+(icon?' with-icon':'')} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node)){setOpen(false);setText(value);}}}>
+    {icon?<PokeIcon n={icon}/>:null}
     <input ref={input} role="combobox" aria-label={label??placeholder??'Pokémon'} aria-expanded={open} aria-controls={id} aria-activedescendant={open&&rows[active]?`${id}-${active}`:undefined} value={text} placeholder={value||placeholder}
       onFocus={e=>{e.currentTarget.select();setText('');setOpen(true);setActive(0);}} onChange={e=>{setText(e.target.value);setOpen(true);setActive(0);}}
       onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();setOpen(true);setActive(Math.min(active+1,rows.length-1));}else if(e.key==='ArrowUp'){e.preventDefault();setActive(Math.max(active-1,0));}

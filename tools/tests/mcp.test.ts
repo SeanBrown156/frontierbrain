@@ -33,6 +33,10 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const [a,b]=teams[0].pokemon;await text('propose_plans',{teamId:made.created,leads:[{lead:[a,b],plan:'Test lead'}]});
     assert.equal(store.db.coaching![made.created].leads[0].status,'proposed','plans arrive as proposals');
     const calc=await text('calc_damage',{attacker:{species:'Gholdengo',nature:'Modest',statPoints:{spa:32}},defender:{species:'Incineroar',nature:'Careful',statPoints:{hp:32,spd:20}},move:'Shadow Ball'});assert.ok(calc.range?.length===2);
+    const prompts=(await client.listPrompts()).prompts.map(p=>p.name);assert.ok(prompts.includes('build_around'));
+    const pr=await client.getPrompt({name:'build_around',arguments:{pokemon:'Mega Chimecho, Trevenant'}});assert.match((pr.messages[0].content as any).text,/pokemon_profile/);
+    assert.match(client.getInstructions()??'',/collaborator/);
+    const profile=await text('pokemon_profile',{species:'Chimecho',top:10});assert.ok(profile.forms.some((f:any)=>f.name==='Chimecho-Mega'));assert.ok(profile.roles['speed control'].includes('Trick Room'));assert.equal(profile.metaSheet.summary.length,profile.forms.length);
     const bad:any=await client.callTool({name:'nope',arguments:{}});assert.ok(bad.isError);
   }finally{await client.close();server.close();await rm(root,{recursive:true});}
 });

@@ -4,6 +4,7 @@ import {api,Art,Panel,Modal,Notice,pct,Markdown} from '../ui.tsx';
 import {useDirty} from '../save-state.ts';
 import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {versionName} from './editors.tsx';
+import {Px,Plus} from '../icons.tsx';
 
 const newId=()=>Math.random().toString(36).slice(2,12);
 const empty=(teamId:string):TeamCoaching=>({teamId,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]});
@@ -16,25 +17,25 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
   const roster=versionId?team.versions.find((v:any)=>v.id===versionId):team.versions.find((v:any)=>v.id===team.activeVersionId);
   const members:string[]=roster.configurations.find((c:any)=>c.id===roster.currentConfigurationId).slots.map((sl:any)=>data.db.bank.find((b:any)=>b.id===sl.bankId)?.revisions.find((r:any)=>r.id===sl.revisionId)?.set.species).filter(Boolean);
   const inScope=(p:{versionIds:string[]})=>!versionId||!p.versionIds.length||p.versionIds.includes(versionId);
-  const save=async(next:Partial<TeamCoaching>)=>{await mutate({type:'coaching-save',teamId:team.id,parentVersion:coaching.version,coaching:{...coaching,...next}});};
+  const save=async(next:Partial<TeamCoaching>)=>{await mutate(coachingUpdate(team.id,coaching,{...coaching,...next}));};
   const upsert=<T extends {id:string}>(list:T[],item:T)=>list.some(x=>x.id===item.id)?list.map(x=>x.id===item.id?item:x):[...list,item];
   const scopeIds=versionId?[versionId]:[];const versionLabel=(ids:string[])=>ids.length?ids.map(id=>{const v=team.versions.find((v:any)=>v.id===id);return v?`V${v.number}`:'?';}).join(', '):'All versions';
   const leads=Object.entries<any>(stats?.leads??{}).sort((a,b)=>b[1].games-a[1].games);const opponents=Object.entries<any>(stats?.matchups??{}).sort((a,b)=>b[1].preview-a[1].preview);
   return <div className="coaching">
     <div className="team-detail-grid">
-      <Panel title="Lead strategy" action={<button onClick={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}>+ New</button>}>
+      <Panel title="Lead strategy" action={<button onClick={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
         {coaching.leads.filter(inScope).map(l=><article key={l.id} className={'plan-card '+l.status}><header><div className="pair">{l.lead.map(p=><Art key={p} name={p} art={data.art} small/>)}<h3>{l.lead.join(' + ')}</h3>{l.back.length>0&&<span className="muted">back: {l.back.join(', ')}</span>}</div>{l.status==='proposed'&&<span className="tag">AI draft</span>}</header>
           {l.when&&<p><b>When:</b> {l.when}</p>}<div className="plan-text"><Markdown text={l.plan}/></div><LeadRecord stats={stats} lead={l.lead}/><footer><span className="muted">{versionLabel(l.versionIds)}</span>{l.status==='proposed'&&<button onClick={()=>void save({leads:upsert(coaching.leads,{...l,status:'active'})})}>Accept</button>}<button onClick={()=>setEditLead(l)}>Edit</button><button onClick={()=>{if(confirm(`Delete the ${l.lead.join(' + ')} lead plan?`))void save({leads:coaching.leads.filter(x=>x.id!==l.id)});}}>Delete</button></footer></article>)}
         {!coaching.leads.filter(inScope).length&&<p className="muted">No lead plans yet. Add one, start from a combo you've led with below, or ask Frontier Brain.</p>}
         {leads.length>0&&<><h3 className="subhead">Lead combos in replays</h3><div className="table-scroll"><table className="stat-table"><thead><tr><th>Lead</th><th>Games</th><th>W–L</th><th>Win %</th><th/></tr></thead><tbody>{leads.map(([pair,r])=><tr key={pair}><td>{pair}</td><td>{r.games}</td><td>{r.wins}–{r.losses}</td><td>{r.games>=SMALL?pct(r.wins,r.games):<span className="muted">n={r.games}</span>}</td><td><button className="text-button" onClick={()=>setEditLead({id:newId(),lead:pair.split(' + '),back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}>Plan →</button></td></tr>)}</tbody></table></div></>}
       </Panel>
-      <Panel title="Matchup strategy" action={<button onClick={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}>+ New</button>}>
+      <Panel title="Matchup strategy" action={<button onClick={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
         {coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=><article key={m.id} className={'plan-card '+m.status}><header><h3><span className={'threat '+m.threat}>{m.threat}</span> {m.opponent}</h3>{m.status==='proposed'&&<span className="tag">AI draft</span>}</header>{m.bring.length>0&&<div className="pair">{m.bring.map(p=><Art key={p} name={p} art={data.art} small/>)}<span className="muted">bring {m.bring.join(', ')}</span></div>}<div className="plan-text"><Markdown text={m.plan}/></div>
           <footer><span className="muted">{versionLabel(m.versionIds)}</span>{m.status==='proposed'&&<button onClick={()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})})}>Accept</button>}<button onClick={()=>setEditMatchup(m)}>Edit</button><button onClick={()=>{if(confirm(`Delete the ${m.opponent} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}>Delete</button></footer></article>)}
         {!coaching.matchups.filter(inScope).length&&<p className="muted">No matchup plans yet. Add one, pick an opponent below, or ask Frontier Brain.</p>}{opponents.length>0&&<><h3 className="subhead">Opponents at team preview</h3><div className="table-scroll"><table className="stat-table"><thead><tr><th>Pokémon</th><th>Seen</th><th>W–L when seen</th><th>Brought</th><th/></tr></thead><tbody>{opponents.slice(0,20).map(([mon,r])=><tr key={mon}><td><Art name={mon} art={data.art} small/> {mon}</td><td>{r.preview}</td><td>{r.previewWins}–{r.preview-r.previewWins}</td><td>{r.observed}{r.unknown?` (+${r.unknown} unknown)`:''}</td><td><button className="text-button" onClick={()=>setEditMatchup({id:newId(),opponent:mon,threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}>Plan →</button></td></tr>)}</tbody></table></div></>}
       </Panel>
     </div>
-    <p className="footnote">{versionId?'Plans for this version plus all-version plans. ':''}Replay tables use {games.length} linked game{games.length===1?'':'s'}; below {SMALL} games a record is an observation, not a diagnosis.</p>
+    {(versionId||games.length>0)&&<p className="footnote">{versionId?'Plans for this version plus all-version plans. ':''}{games.length>0&&<>Replay tables use {games.length} linked game{games.length===1?'':'s'}; below {SMALL} games a record is an observation, not a diagnosis.</>}</p>}
     {editLead&&<LeadEditor plan={editLead} team={team} members={members} onClose={()=>setEditLead(null)} save={async l=>{await save({leads:upsert(coaching.leads,l)});setEditLead(null);}}/>}
     {editMatchup&&<MatchupEditor plan={editMatchup} team={team} members={members} onClose={()=>setEditMatchup(null)} save={async m=>{await save({matchups:upsert(coaching.matchups,m)});setEditMatchup(null);}}/>}
   </div>;
@@ -57,3 +58,11 @@ function MatchupEditor({plan,team,members,save,onClose}:{plan:MatchupPlan;team:a
       <Pick label="Threat" value={p.threat} options={['high','medium','low']} onChange={v=>setP({...p,threat:(v||'medium') as MatchupPlan['threat']})}/></div>
     <Choose label="Bring" value={p.bring} options={members} max={4} onChange={v=>setP({...p,bring:v})}/>
     <label>Game plan<textarea rows={6} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})}/></label>{error&&<p className="error">{error}</p>}<button className="primary" disabled={busy}>{busy?'Saving…':'Save matchup plan'}</button></form></Modal>;}
+
+// The difference between two copies of a team's strategy, as one item-level update the server merges into the latest.
+export function coachingUpdate(teamId:string,before:Pick<TeamCoaching,'leads'|'matchups'|'objectives'>,after:Pick<TeamCoaching,'leads'|'matchups'|'objectives'>){
+  const upsert:any={},remove:any={};
+  for(const k of ['leads','matchups','objectives'] as const){const old=new Map<string,any>(before[k].map((x:any)=>[x.id,x]));const now=new Set(after[k].map((x:any)=>x.id));
+    upsert[k]=after[k].filter((x:any)=>JSON.stringify(old.get(x.id))!==JSON.stringify(x));remove[k]=before[k].filter((x:any)=>!now.has(x.id)).map((x:any)=>x.id);}
+  return {type:'coaching-update',teamId,upsert,remove};
+}
