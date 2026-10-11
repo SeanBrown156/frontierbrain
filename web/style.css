@@ -550,3 +550,23 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.q
 .benchmarks li button.icon{width:32px;min-width:32px;height:32px;min-height:32px}
 .set-notes-edit textarea{width:100%}
 .benchmark-save{display:flex;justify-content:flex-start;margin:var(--s4) 0}
+/* ===== Ask Frontier Brain drawer, final layout ===== */
+.dock{display:flex;flex-direction:column}
+.dock-head{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:var(--s3)!important;padding:var(--s3) var(--s4)!important}
+.dock-head h2{margin:0!important;font-size:18px!important;display:flex;align-items:center;gap:var(--s2);text-align:left!important;flex:1;min-width:0}
+.dock-head .button-row{margin:0!important;display:flex!important;flex-wrap:nowrap!important;gap:var(--s2)!important;justify-content:flex-end!important;align-items:center}
+.dock-head .model-picker select{max-width:130px}
+.dock-input{padding:var(--s3) var(--s4)!important}
+.chat-input{display:flex!important;align-items:stretch!important;gap:var(--s2)!important}
+.chat-input textarea{flex:1;height:auto!important;min-height:64px!important;margin:0!important}
+.chat-input button{width:48px!important;min-width:48px!important;height:auto!important;max-height:none!important;min-height:64px!important;padding:0!important;align-self:stretch!important}
+.dock-toggle{display:inline-flex!important;align-items:center;gap:var(--s2);height:44px!important;min-height:44px!important;padding:0 var(--s4)!important;border-radius:2px!important;background:var(--emerald-deep)!important;color:var(--inverse)!important;border:1px solid var(--emerald-shade)!important;box-shadow:2px 3px 0 var(--shadow)!important;z-index:60}
+.dock-toggle:hover{background:var(--emerald-shade)!important}
+/* Mobile: the drawer is a full-screen sheet; the opener is a compact floating button. */
+@media(max-width:720px){
+ .with-dock{padding-right:var(--s4)!important}
+ .dock{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;z-index:100!important;border:0!important}
+ .dock-head .model-picker{display:none}
+ .dock-toggle{right:16px!important;bottom:16px!important;height:48px!important;padding:0 var(--s4)!important}
+}
+.dock-head h2{justify-content:flex-start!important}

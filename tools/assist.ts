@@ -11,7 +11,7 @@ import type {PokemonSet} from '../shared/workbench.ts';
 // `build` makes a whole team from a brief (New team). `assist` is the one docked chat on team pages; `page` says
 // what the player is looking at so its guidance leads. The older per-panel areas are kept so saved jobs still load.
 export type Area='build'|'assist'|'team'|'slot'|'coaching'|'strategy';
-export type Page='overview'|'slot'|'strategy'|'coaching'|'replays'|'versions';
+export type Page='overview'|'slot'|'strategy'|'coaching'|'replays'|'versions'|'general';
 type Emit=(event:'tool'|'message'|'error',data:unknown)=>void;
 const rules='Champions rules: level 50; stat points 0–32 per stat and at most 66 total (Showdown "EVs:" line); no IVs/Tera/Dynamax; six different species; no duplicate items; every Pokémon has an ability and four legal moves.';
 const research='Research with tools before proposing: meta_overview (what wins), team_pool_sets (real items/natures/moves/spreads with player examples), standard_set + calc_damage / calc_speed / spread_search to justify spreads. Quote numbers only from tool results.';
@@ -27,6 +27,7 @@ Proposals: exactly one {"kind":"team","name","strategy":markdown (game plan, win
 };
 const style='Write the reply for a narrow side panel: a one-line answer first, then short headings and bullets; at most one compact table (≤5 columns). Name sources (player/event or data source) for usage claims.';
 const pageGuide:Record<Page,{full:string;line:string}>={
+  general:{full:`No team is open. Answer questions about the metagame, sets, spreads, calcs and rules using the tools (meta_overview, team_pool_sets, standard_set, usage_data, calc_damage, calc_speed, spread_search). Do not call get_team and return no proposals (proposals: []); if he wants changes to a team, tell him to open that team and ask there.`,line:'General questions with no team open: answers only, no proposals.'},
   overview:{full:guidance.team,line:'Team-wide changes: set proposals for any slot (slot = index in get_team) or a full team proposal.'},
   slot:{full:guidance.slot.replace('(slot = the focused slot)','(slot = the focused slot unless he names another Pokémon)'),line:'One Pokémon: set proposals for that slot.'},
   strategy:{full:`${guidance.strategy}\n${guidance.coaching}`,line:'Strategy write-up, lead and matchup proposals using only team members.'},
@@ -35,8 +36,8 @@ const pageGuide:Record<Page,{full:string;line:string}>={
   versions:{full:guidance.team,line:'Version-level changes.'},
 };
 // The page's guidance in full, the others as one-liners: any proposal kind is allowed wherever the player asks.
-export function assistGuidance(page:Page='overview'){const p=pageGuide[page]??pageGuide.overview;
-  return `${p.full}\nHe may also ask for other kinds of changes from this page:\n${(Object.keys(pageGuide) as Page[]).filter(k=>k!==page&&k!=='coaching'&&!(page==='strategy'&&k==='versions')).map(k=>`- ${pageGuide[k].line}`).join('\n')}\n${style}`;}
+export function assistGuidance(page:Page='overview'){const p=pageGuide[page]??pageGuide.overview;if(page==='general')return `${p.full}\n${style}`;
+  return `${p.full}\nHe may also ask for other kinds of changes from this page:\n${(Object.keys(pageGuide) as Page[]).filter(k=>k!==page&&k!=='coaching'&&k!=='general'&&!(page==='strategy'&&k==='versions')).map(k=>`- ${pageGuide[k].line}`).join('\n')}\n${style}`;}
 export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'objective'|'strategy';[k:string]:any;}
 const text=(v:unknown,max:number)=>typeof v==='string'?v.slice(0,max):'';
 const names=(v:unknown,n:number)=>Array.isArray(v)?v.filter(x=>typeof x==='string').slice(0,n):[];

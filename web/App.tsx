@@ -36,8 +36,9 @@ export default function App(){
   const openReport=async(path:string)=>{try{setReport((await api('/report?path='+encodeURIComponent(path))).text);}catch(e){notify((e as Error).message,true);}};
   // Routes: teams · team/<id>/<tab>/<version|all> · team/<id>/mon/<version>/<slot>[/swap] · inbox · news · data · references
   const parts=route.split('/');const team=parts[0]==='team'?data?.teams.find((t:any)=>t.id===parts[1]):null;const pageData=data?{...data,jobs}:null;
-  const dock:DockContext|null=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:null;
-  const withDock=!!dock&&dockOpen;
+  // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
+  const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',inbox:'Replay inbox'} as any)[parts[0]]??'Your teams'};
+  const withDock=dockOpen;
   return <div className={'shell'+(withDock?' with-dock':'')}>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/favicon.svg" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
       <AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
@@ -54,7 +55,7 @@ export default function App(){
       {route==='references'&&<><a href="#teams" className="text-button">← Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
       {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
     </>}</main><footer className="footer"><span>FRONTIER BRAIN</span><span>Pokémon illustrations © Pokémon / Nintendo / Creatures / GAME FREAK. Unofficial, private tool.</span></footer>
-    {team&&dock&&pageData&&<AssistDock key={team.id} team={team} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
+    {pageData&&<AssistDock key={team?.id??'general'} team={team??null} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
     {importing&&<NewTeam mutate={mutate} load={load} notify={notify} review={importing.review} onClose={()=>setImporting(false)}/>} {newsOpen&&data&&<Modal title="This week in Champions VGC" onClose={()=>setNewsOpen(false)}><News weeks={data.news} jobs={jobs} run={run}/></Modal>} {report!==null&&<Modal title="Research notebook" onClose={()=>setReport(null)}><Markdown text={report}/></Modal>}
   </div>;
 }
