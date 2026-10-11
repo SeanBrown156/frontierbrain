@@ -1,6 +1,6 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Panel,Modal,Notice,date,Markdown} from '../ui.tsx';
+import {api,Art,Panel,Modal,Notice,date,Markdown,TypeBadges,ItemIcon,useDex} from '../ui.tsx';
 import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye,Check,WarningDiamond} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
@@ -41,12 +41,21 @@ function Overview({team,data,version,mutate}:{team:any;data:any;version:any;muta
   return <div className="hub-overview">
     {!active&&<div className="notice warn">Viewing {versionName(version)}, an older version (read-only). <a className="button" href={teamHref(team.id,'overview',team.activeVersionId)}>Back to {versionName(current)}</a><button onClick={()=>{if(confirm(`Bring back ${versionName(version)}'s six as a new version (V${team.versions.length+1})? Nothing is deleted.`))void mutate({type:'team-milestone',teamId:team.id,fromVersionId:version.id}).then(r=>{location.hash=teamHref(team.id,'overview',r.result.versionId);}).catch(()=>{});}}>Make it the current team</button></div>}
     {version.source==='observed'&&<p className="footnote">Rebuilt from replays: <b>bold</b> moves were seen in battle; anything tagged “guess” is an assumption.</p>}
-    <div className="six-grid">{view.revisions.map(({revision},i)=>{const s=revision.set;const obs=revision.provenance==='observed';return <a key={i} className={'mon-card'+(active?'':' read-only')} href={monHref(team.id,version.id,i)} aria-label={`${s.species}: open set and calc`}>
-      <div className="mon-card-head"><Art name={s.species} art={data.art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}</h3><span>{s.item?'@ '+s.item:'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}</span><p>{s.ability} · {s.nature}</p></div></div>
-      <p className="sp-line">{stats.filter(k=>(s.statPoints?.[k]??0)>0).map(k=><span key={k}>{statLabel[k]} {s.statPoints![k]}</span>)}{!stats.some(k=>(s.statPoints?.[k]??0)>0)&&'No stat points'}</p>
+    <div className="six-grid">{view.revisions.map(({revision},i)=>{const s=revision.set;const obs=revision.provenance==='observed';return <a key={i} className={'mon-card'+(active?'':' read-only')} href={monHref(team.id,version.id,i)} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
+      <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
+      <div className="mon-card-head"><Art name={s.species} art={data.art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}</h3><TypeBadges species={s.species}/></div></div>
+      <p className="mon-item"><ItemIcon item={s.item}/>{s.item||'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}<span className="mon-meta">{s.ability} · {s.nature}</span></p>
+      <SpBars species={s.species} points={s.statPoints??{}}/>
       <ul className="move-list">{s.moves?.map(m=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
 </a>;})}</div>
   </div>;
+}
+// Card stat bars: the species' base stat with the set's stat points stacked on the end (the same drawing as the
+// Pokémon page). Final stats live on the Pokémon page, where they come from the stat tool.
+function SpBars({species,points}:{species:string;points:Record<string,number>}){
+  const base=useDex([species],[]).base[species];const scale=(v:number)=>`${Math.min(100,100*v/200)}%`;
+  return <div className="sp-bars" aria-label="Base stats and stat points">{stats.map(k=>{const b=base?.[k]??0,sp=points[k]??0;
+    return <div key={k} className={'sp-bar'+(sp?' has-sp':'')}><span className="k">{statLabel[k]}</span><span className="track"><i className="b" style={{width:scale(b)}}/><i className="p" style={{width:scale(sp)}}/></span><span className="v">{base?b:'—'}{sp>0&&<b>+{sp}</b>}</span></div>;})}</div>;
 }
 // Lead and matchup drafts that came with an AI team are added to Coaching as proposals to accept there.
 export async function addPlans(team:any,data:any,mutate:Mutate,p:any,versionId:string){
@@ -107,7 +116,7 @@ function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:Muta
 export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void;reload?:()=>Promise<void>}){
   return <div className="teams-landing"><div className="landing-head"><h1>Your teams</h1></div>
     <BuildJobs onReview={onReview} art={data.art}/>
-    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span>{r.n>0&&<span>{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
+    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span>{r.n>0&&<span className="card-record">{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
     <SampleTeams data={data} reload={reload}/>
     </div>;
 }

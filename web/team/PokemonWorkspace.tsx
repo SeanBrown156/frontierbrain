@@ -1,6 +1,6 @@
 import {useState,useEffect,useRef,type ReactNode} from 'react';
 import type {SetRevision,SetNotes,PokemonSet,BankEntry} from '../../shared/workbench.ts';
-import {api,Art,Notice,Empty,date} from '../ui.tsx';
+import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon} from '../ui.tsx';
 import {Px,ArrowLeft,WarningDiamond} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
 import Benchmarks from './Benchmarks.tsx';
@@ -73,6 +73,7 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
       {d.changedElsewhere&&<div className="notice warn">This Pokémon was changed elsewhere (e.g. accepted from Ask Frontier Brain). <span className="button-row"><button onClick={d.loadLatest}>Load latest</button><button onClick={d.keepMine}>Keep my edits</button></span></div>}
       <div className="set-card-head"><Art name={set.species} art={data.art}/><div className="grow">
         <SpeciesPicker label="Species" value={set.species} onPick={sp=>void pickSpecies(sp)} onPickSaved={o=>replace(o.value.set,{reuse:true,basis:[`Reusing your saved set: ${o.label}.`]})} disabled={others.map((s:any)=>s.species)} saved={savedSets} autoFocus={swap}/>
+        <div className="set-types"><TypeBadges species={set.species}/></div>
         {loading&&<p className="muted">Loading the most common {loading} set…</p>}
         <input className="nickname" aria-label="Nickname" placeholder="Nickname (optional)" value={set.nickname??''} onChange={e=>update({nickname:e.target.value||undefined})}/></div></div>
       {(meta.basis||meta.why)&&<ul className="basis">{meta.why&&<li>AI: {meta.why}</li>}{meta.basis?.map((b,i)=><li key={i}>{b}</li>)}</ul>}
@@ -107,7 +108,7 @@ function SetFields({set,update,inferred,others}:{set:PokemonSet;update:(p:Partia
   const taken=new Set(others.map(o=>o.item).filter(Boolean));
   return <div className="set-fields">
     <div className="form-grid">
-      <label>Item {guess('item')}<input list="set-items" value={set.item??''} onChange={e=>update({item:e.target.value})} className={set.item&&taken.has(set.item)?'invalid':''}/></label>
+      <label className="item-field">Item {guess('item')}<ItemIcon item={set.item}/><input list="set-items" value={set.item??''} onChange={e=>update({item:e.target.value})} className={set.item&&taken.has(set.item)?'invalid':''}/></label>
       <label>Ability {guess('ability')}<select value={set.ability??''} onChange={e=>update({ability:e.target.value})}>{abilities.map(a=><option key={a}>{a}</option>)}</select></label>
       <label>Nature {guess('nature')}<select value={set.nature??'Serious'} onChange={e=>update({nature:e.target.value})}>{(dex?.natures??[set.nature]).map((n:string)=><option key={n}>{n}</option>)}</select></label>
     </div>

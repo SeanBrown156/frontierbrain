@@ -10,11 +10,14 @@ import DataPool from './DataPool.tsx';
 import {hostedSite} from './auth.tsx';
 import AccountMenu from './AccountMenu.tsx';
 import Settings from './Settings.tsx';
+import Welcome,{WELCOMED} from './Welcome.tsx';
+// A first visit with no address opens the welcome page once; after that the app opens on your teams.
+const firstVisit=()=>{try{return !location.hash&&!localStorage.getItem(WELCOMED);}catch{return false;}};
 
 // Old Pokémon links carried a configuration id (#team/<id>/mon/<version>/<config>/<slot>); they now open the current set.
 const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[2]==='mon'&&p[4]?.startsWith('config-')?[...p.slice(0,4),p[5]].join('/'):hash;};
 export default function App(){
-  const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||'teams'),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
+  const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams')),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
   const [menuOpen,setMenuOpen]=useState(false);useEffect(()=>setMenuOpen(false),[route]);
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
   // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
@@ -59,12 +62,13 @@ export default function App(){
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
   return <div className={'shell'+(withDock?' with-dock':'')}>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/favicon.svg" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
-      <AccountMenu profile={data?.profile} reload={load} notify={notify}/>
+      <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>
     <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button aria-label="Dismiss notification" onClick={()=>setMessage(null)}>×</button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
     {!data?<Empty>Opening Frontier Brain…</Empty>:<>
       {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
+      {route==='welcome'&&<Welcome data={data}/>}
       {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} reload={load} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
       {team&&parts[2]!=='mon'&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
@@ -73,10 +77,19 @@ export default function App(){
       {route==='data'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><DataPool art={data.art}/></>}
       {route==='references'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
       {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
-    </>}</main><footer className="footer"><span>FRONTIER BRAIN</span><span>Pokémon illustrations © Pokémon / Nintendo / Creatures / GAME FREAK. Unofficial, private tool.</span></footer>
-    {pageData&&<AssistDock key={team?.id??'general'} team={team??null} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
+    </>}</main><footer className="footer"><span>FRONTIER BRAIN</span><a href="#welcome">About</a><span>Pokémon images © Pokémon / Nintendo / Creatures / GAME FREAK: HOME renders and item icons via Pokémon Showdown, illustrations via PokéAPI. Unofficial tool.</span></footer>
+    {pageData&&route!=='welcome'&&<AssistDock key={team?.id??'general'} team={team??null} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
     {importing&&<NewTeam mutate={mutate} load={load} notify={notify} review={importing.review} onClose={()=>setImporting(false)}/>} {newsOpen&&data&&<Modal title="This week in Champions VGC" onClose={()=>setNewsOpen(false)}><News weeks={data.news} jobs={jobs} run={run}/></Modal>} {report!==null&&<Modal title="Research notebook" onClose={()=>setReport(null)}><Markdown text={report}/></Modal>}
   </div>;
+}
+// Light or dark glass. Follows the system until you choose; the choice is remembered in this browser.
+function ThemeToggle(){
+  const system=()=>matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  const [theme,setTheme]=useState<string>(()=>document.documentElement.dataset.theme??system());
+  const flip=()=>{const next=theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('frontierbrain.theme',next);}catch{}setTheme(next);};
+  return <button className="theme-toggle" onClick={flip} aria-label={theme==='dark'?'Switch to light mode':'Switch to dark mode'} title={theme==='dark'?'Light mode':'Dark mode'}>
+    {theme==='dark'?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+      :<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg>}</button>;
 }
 // Saving is automatic and silent. The header only speaks up when a save failed; the next good save clears it.
 function SavePill(){const {status}=useSaveState();

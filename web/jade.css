@@ -1,0 +1,337 @@
+/* Jade Glass: Sky Pillar inside a clear emerald shell. Frosted panels with corner screws, dot-matrix numerals,
+   a red LED for whatever is live, HOME renders standing on lit glass. Dark and light themes share every rule;
+   only the tokens below change. Loaded after style.css; every rule is scoped to html.jade so it wins the cascade. */
+
+html.jade{
+ --fd:'Saira Condensed','Arial Narrow',sans-serif;--fb:'Hanken Grotesk',system-ui,-apple-system,sans-serif;--fm:'JetBrains Mono',ui-monospace,Menlo,monospace;--fdot:'Doto',var(--fm);
+ --font:var(--fb);--mono:var(--fm);--display:var(--fd);
+ --r:16px;--rs:10px;--blur:16px;
+ /* light: morning light through jade */
+ --bg:#E3E9E6;--glass:rgba(255,255,255,.58);--glass-2:rgba(255,255,255,.78);--sunk:rgba(8,32,26,.05);
+ --tx:#08201A;--mu:#4C6A5B;--ln:rgba(8,32,26,.12);--ln-2:rgba(8,32,26,.2);
+ --ac:#0B8A55;--ac-2:#13B072;--on:#FFFFFF;--hot:#D21C32;--gd:#B07F06;--glow:rgba(11,138,85,.28);--shade:rgba(8,32,26,.16);--hi:rgba(255,255,255,.75);
+ --screw:rgba(8,32,26,.28);--floor:rgba(11,138,85,.22);
+ /* legacy tokens, remapped */
+ --emerald-deep:var(--ac);--emerald-bright:var(--ac-2);--emerald-shade:#076b41;--trainer-green:var(--ac);--trainer-lime:var(--ac-2);
+ --red:var(--hot);--red-ink:var(--hot);--red-bright:var(--hot);--white:#fff;--cream:var(--glass);
+ --ink:var(--tx);--paper:var(--glass);--page:var(--bg);--surface:var(--sunk);--field:rgba(255,255,255,.72);--muted:var(--mu);
+ --action:var(--ac);--success:var(--ac);--line:var(--ln);--frame:var(--ln-2);--hover:rgba(11,138,85,.09);--tint:rgba(11,138,85,.06);
+ --danger-tint:rgba(210,28,50,.08);--gold:var(--gd);--gold-ink:#7f5c04;--inverse:var(--on);--strong:var(--ac);--shadow:var(--shade);
+ --tile:transparent;--focus:var(--ac);--stripe:var(--ac);--backdrop:rgba(4,14,10,.45);
+ color-scheme:light;background:var(--bg);color:var(--tx);font-family:var(--fb);
+}
+/* dark: the default after hours, and whenever the system asks */
+@media (prefers-color-scheme:dark){html.jade:not([data-theme=light]){
+ --bg:#06100C;--glass:rgba(31,208,138,.055);--glass-2:rgba(31,208,138,.1);--sunk:rgba(0,0,0,.25);
+ --tx:#E8F4EC;--mu:#86A797;--ln:rgba(140,255,200,.13);--ln-2:rgba(140,255,200,.24);
+ --ac:#1FD08A;--ac-2:#5FF0AE;--on:#03130B;--hot:#FF3D50;--gd:#F4C443;--glow:rgba(31,208,138,.4);--shade:rgba(0,0,0,.55);--hi:rgba(200,255,228,.14);
+ --screw:rgba(160,255,210,.32);--floor:rgba(31,208,138,.28);--emerald-shade:#15a36c;--field:rgba(0,0,0,.28);--gold-ink:#F4C443;
+ --hover:rgba(31,208,138,.1);--tint:rgba(31,208,138,.07);--danger-tint:rgba(255,61,80,.12);--backdrop:rgba(0,0,0,.6);color-scheme:dark}}
+html.jade[data-theme=dark]{
+ --bg:#06100C;--glass:rgba(31,208,138,.055);--glass-2:rgba(31,208,138,.1);--sunk:rgba(0,0,0,.25);
+ --tx:#E8F4EC;--mu:#86A797;--ln:rgba(140,255,200,.13);--ln-2:rgba(140,255,200,.24);
+ --ac:#1FD08A;--ac-2:#5FF0AE;--on:#03130B;--hot:#FF3D50;--gd:#F4C443;--glow:rgba(31,208,138,.4);--shade:rgba(0,0,0,.55);--hi:rgba(200,255,228,.14);
+ --screw:rgba(160,255,210,.32);--floor:rgba(31,208,138,.28);--emerald-shade:#15a36c;--field:rgba(0,0,0,.28);--gold-ink:#F4C443;
+ --hover:rgba(31,208,138,.1);--tint:rgba(31,208,138,.07);--danger-tint:rgba(255,61,80,.12);--backdrop:rgba(0,0,0,.6);color-scheme:dark}
+
+/* ---------- page ---------- */
+html.jade body{background:var(--bg);background-image:none;color:var(--tx);font:15px/1.55 var(--fb);min-height:100vh}
+html.jade body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(70% 55% at 85% -10%,color-mix(in srgb,var(--ac) 22%,transparent),transparent 70%),
+  radial-gradient(50% 45% at -5% 105%,color-mix(in srgb,var(--ac) 12%,transparent),transparent 70%),
+  radial-gradient(35% 30% at 100% 100%,color-mix(in srgb,var(--hot) 6%,transparent),transparent 70%),
+  linear-gradient(115deg,transparent 0 46%,color-mix(in srgb,var(--ac) 5%,transparent) 46% 54%,transparent 54%)}
+html.jade ::selection{background:color-mix(in srgb,var(--ac) 35%,transparent)}
+html.jade a:hover{color:var(--ac)}
+html.jade h1,html.jade h2,html.jade .brand{font-family:var(--fd);font-weight:700;letter-spacing:.01em}
+html.jade h1{font-size:44px;line-height:1.05;font-weight:800;text-transform:uppercase;letter-spacing:.005em}
+html.jade h2{font-size:24px;line-height:1.15;text-transform:uppercase}
+html.jade h3{font-family:var(--fb);font-weight:700}
+html.jade .eyebrow,html.jade .tag,html.jade .status,html.jade .result,html.jade legend{font-family:var(--fm);letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+html.jade .eyebrow{color:var(--gd);font-size:10.5px}
+html.jade .muted{color:var(--mu)}
+html.jade :focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:6px}
+
+/* ---------- glass ---------- */
+html.jade :is(.panel,.mon-card,.team-card,.set-card,.strategy-block,.plan-card,.set-tile,.source-card,.build-job,.sample-offer,.scoped-reviews,.game-card,.pool-counts>div,.news-signal,.danger-zone,.proposal-card,.lab-result,.welcome-card){
+ background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 11%,transparent),transparent 55%),var(--glass);
+ border:1px solid var(--ln)!important;border-radius:var(--r)!important;
+ box-shadow:inset 0 1px 0 var(--hi),0 18px 40px -28px var(--shade);
+ -webkit-backdrop-filter:blur(var(--blur)) saturate(140%);backdrop-filter:blur(var(--blur)) saturate(140%)}
+html.jade .panel{padding:22px 24px;position:relative}
+/* corner screws */
+html.jade :is(.mon-card,.team-card,.set-card,.panel,.welcome-card)::after{content:'';position:absolute;inset:8px;pointer-events:none;opacity:.55;border-radius:calc(var(--r) - 8px);
+ background:radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) top left/6px 6px no-repeat,radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) top right/6px 6px no-repeat,
+  radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) bottom left/6px 6px no-repeat,radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) bottom right/6px 6px no-repeat}
+
+/* hover: a light sweep across the glass and an emerald edge, never a dotted line */
+html.jade :is(.mon-card,.team-card,.source-card,.game-card){position:relative;overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s}
+html.jade :is(.mon-card,.team-card,.source-card,.game-card)::before{content:'';position:absolute;inset:-1px;z-index:-1;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(105deg,transparent 30%,color-mix(in srgb,var(--ac-2) 22%,transparent) 45%,color-mix(in srgb,#fff 26%,transparent) 50%,color-mix(in srgb,var(--ac-2) 18%,transparent) 55%,transparent 70%) -160% 0/250% 100% no-repeat;
+ transition:background-position 0s}
+html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover::before{background-position:160% 0;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
+html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 55%,transparent)!important;
+ box-shadow:inset 0 1px 0 var(--hi),0 0 0 1px color-mix(in srgb,var(--ac) 20%,transparent),0 24px 48px -26px var(--glow);color:inherit}
+
+/* ---------- buttons and fields ---------- */
+html.jade :is(button,.button){font-family:var(--fb);font-weight:600;font-size:13px;letter-spacing:0;border:1px solid var(--ln-2);border-radius:var(--rs);background:var(--glass-2);color:var(--tx);box-shadow:inset 0 1px 0 var(--hi);
+ -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .15s,border-color .2s,background .2s,box-shadow .2s}
+html.jade :is(button,.button):hover:not(:disabled){border-color:var(--ac);background:var(--hover);color:var(--tx);transform:translateY(-1px)}
+html.jade :is(button,.button).primary,html.jade .dock-toggle{background:linear-gradient(180deg,var(--ac-2),var(--ac));color:var(--on)!important;border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 22px -10px var(--glow)}
+html.jade :is(button,.button).primary:hover:not(:disabled){filter:brightness(1.07);background:linear-gradient(180deg,var(--ac-2),var(--ac));color:var(--on);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 12px 28px -10px var(--glow)}
+html.jade :is(button,.button).danger{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 45%,transparent)}
+html.jade :is(button,.button).danger:hover{background:var(--hot);color:#fff}
+html.jade .text-button{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none;color:var(--ac)}
+html.jade .text-button:hover{color:var(--ac-2);transform:none}
+html.jade :is(input,select,textarea){background:var(--field);color:var(--tx);border:1px solid var(--ln-2);border-radius:var(--rs);transition:border-color .2s,box-shadow .2s}
+html.jade :is(input,select,textarea):focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+html.jade select option{background:var(--bg);color:var(--tx)}
+html.jade fieldset{border-color:var(--ln);border-radius:12px}
+html.jade legend{font-size:10.5px;color:var(--gd)}
+
+/* ---------- masthead ---------- */
+html.jade .shell{max-width:1320px}
+html.jade .masthead{position:sticky;top:10px;z-index:30;margin-top:10px;background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r);padding:10px 14px!important;
+ -webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);box-shadow:inset 0 1px 0 var(--hi),0 16px 40px -30px var(--shade);color:var(--tx)!important;min-height:0!important}
+html.jade .brand{color:var(--tx)!important;font-size:22px!important;text-transform:uppercase;letter-spacing:.04em;gap:10px!important}
+html.jade .brand-logo{width:34px;height:34px;filter:drop-shadow(0 4px 10px var(--glow));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+html.jade .brand:hover .brand-logo{transform:rotate(-8deg) scale(1.06)}
+html.jade .brand:hover{color:var(--tx)!important}
+html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news,.account-button){background:transparent!important;border:1px solid transparent!important;color:var(--tx)!important;box-shadow:none!important;backdrop-filter:none;border-radius:var(--rs)!important;height:36px}
+html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news,.account-button):hover,html.jade .masthead .quickbar-group.open>button{background:var(--hover)!important;border-color:var(--ln)!important;color:var(--tx)!important}
+html.jade .quickbar-menu{background:var(--bg)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:0 30px 60px -20px var(--shade)!important;color:var(--tx)}
+html.jade .quickbar-menu a:hover{background:var(--hover)}
+html.jade .avatar{background:linear-gradient(140deg,var(--ac-2),var(--ac))!important;color:var(--on)!important;border:0!important}
+html.jade .theme-toggle{width:36px;height:36px;padding:0;border-radius:50%;background:transparent;border-color:var(--ln);box-shadow:none}
+html.jade .theme-toggle svg{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+html.jade .theme-toggle:hover svg{transform:rotate(40deg)}
+
+/* the news strip stays quiet: a single line under glass, no red, no scoreboard energy */
+html.jade .ticker{background:transparent!important;color:var(--mu)!important;border:0!important;font-family:var(--fm);font-size:11.5px;margin-top:8px!important}
+html.jade .ticker-label{background:transparent!important;color:var(--ac)!important;font-family:var(--fm)!important;letter-spacing:.12em}
+html.jade .ticker b{color:var(--gd)!important;font-weight:600}
+html.jade .ticker a:hover{color:var(--tx)}
+html.jade .ticker-track{-webkit-mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+
+/* ---------- landing / teams ---------- */
+html.jade .team-card{padding:18px!important}
+html.jade .team-card h3{font:800 24px/1.1 var(--fd);text-transform:uppercase;letter-spacing:.02em}
+html.jade .team-card .team-six{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:10px 0 12px}
+html.jade .team-card .art.small{width:100%!important;height:auto!important;aspect-ratio:1}
+html.jade .team-card:hover .art img{transform:translateY(-4px) scale(1.06)}
+html.jade .team-card .art img{transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+html.jade .team-card .art:nth-child(2) img{transition-delay:.03s}html.jade .team-card .art:nth-child(3) img{transition-delay:.06s}html.jade .team-card .art:nth-child(4) img{transition-delay:.09s}html.jade .team-card .art:nth-child(5) img{transition-delay:.12s}html.jade .team-card .art:nth-child(6) img{transition-delay:.15s}
+html.jade .new-team-slot{border-style:dashed!important;border-color:var(--ln-2)!important;background:transparent!important;color:var(--mu)}
+html.jade .new-team-slot:hover{border-style:solid!important;color:var(--ac)}
+html.jade .tag{background:var(--sunk)!important;color:var(--mu)!important;border:1px solid var(--ln)!important;border-radius:999px!important;padding:3px 10px!important;font-size:10px}
+html.jade .tag.ok{color:var(--ac)!important;border-color:color-mix(in srgb,var(--ac) 40%,transparent)!important}
+
+/* ---------- team hub ---------- */
+html.jade .hub-title h1,html.jade .landing-head h1{font-size:clamp(36px,5vw,58px)}
+html.jade .title-button{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none;padding:0;font:inherit;color:inherit;text-transform:inherit}
+html.jade .title-button:hover{transform:none;color:var(--ac)}
+html.jade .hub-nav{border-bottom:1px solid var(--ln)!important}
+html.jade .hub-tabs{gap:4px!important;border:0!important;padding:4px;background:var(--sunk);border-radius:14px;margin-bottom:10px!important}
+html.jade .hub-tabs a{height:38px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--mu)!important;font:700 15px var(--fd)!important;text-transform:uppercase;letter-spacing:.06em;transition:color .2s,background .25s}
+html.jade .hub-tabs a:hover{color:var(--tx)!important;background:var(--hover)!important}
+html.jade .hub-tabs a.selected{background:var(--glass-2)!important;color:var(--tx)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--shade)}
+html.jade .hub-tabs a.selected::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--hot);box-shadow:0 0 8px var(--hot);animation:jPulse 1.6s ease-in-out infinite}
+
+/* the six */
+html.jade .six-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+html.jade .mon-card{padding:18px!important;border-top:1px solid var(--ln)!important;gap:10px;animation:jRise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms)}
+html.jade .mon-slot{position:absolute;top:12px;right:16px;font:900 30px/1 var(--fdot);color:color-mix(in srgb,var(--tx) 22%,transparent);transition:color .3s}
+html.jade .mon-card:hover .mon-slot{color:var(--ac)}
+html.jade .mon-card-head{display:flex;flex-direction:column;align-items:flex-start!important;gap:6px!important;border:0!important;padding:0!important;margin:0!important}
+html.jade .mon-card-head .art{width:132px!important;height:132px!important;align-self:center;position:relative;margin:-4px 0 2px}
+html.jade .mon-card-head .art::after{content:'';position:absolute;left:14%;right:14%;bottom:2px;height:14px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1;transition:transform .45s}
+html.jade .art img{filter:drop-shadow(0 10px 14px var(--shade))!important;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+html.jade .mon-card:hover .mon-card-head .art img{transform:translateY(-6px) scale(1.07)}
+html.jade .mon-card:hover .mon-card-head .art::after{transform:scaleX(.82)}
+html.jade .mon-card h3{font:800 22px/1.05 var(--fd)!important;text-transform:uppercase;letter-spacing:.02em;margin:0}
+html.jade .mon-item{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:600;flex-wrap:wrap}
+html.jade .mon-meta{flex-basis:100%;font-weight:400;color:var(--mu);font-size:12.5px}
+html.jade .mon-card .move-list{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:2px 0 0;padding:0;list-style:none}
+html.jade .mon-card .move-list li{font-size:12px;padding:5px 9px;border-radius:8px;background:var(--sunk);border:1px solid var(--ln);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+html.jade .mon-card .move-list li.inferred{border-style:dashed}
+
+/* type badges: room to breathe, colour from the type */
+html.jade .type-badges{display:inline-flex;gap:5px;flex-wrap:wrap}
+.type-badge{--type:#888;display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font:600 10.5px/1.4 var(--fm,ui-monospace);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+ color:color-mix(in srgb,var(--type) 55%,var(--tx,#111));background:color-mix(in srgb,var(--type) 14%,transparent);border:1px solid color-mix(in srgb,var(--type) 38%,transparent)}
+.type-badge::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--type);box-shadow:0 0 6px color-mix(in srgb,var(--type) 70%,transparent)}
+@media (prefers-color-scheme:dark){html.jade:not([data-theme=light]) .type-badge{color:color-mix(in srgb,var(--type) 45%,#fff)}}
+html.jade[data-theme=dark] .type-badge{color:color-mix(in srgb,var(--type) 45%,#fff)}
+/* item icons from the Showdown sheet */
+.item-icon{display:inline-block;width:24px;height:24px;flex:none;background:url(/api/item-sheet) no-repeat;image-rendering:pixelated;vertical-align:middle}
+
+/* stat bars on cards: base, with stat points stacked on top in gold */
+.sp-bars{display:grid;gap:4px;margin:2px 0}
+.sp-bar{display:grid;grid-template-columns:30px 1fr 54px;align-items:center;gap:8px;font-size:11px}
+.sp-bar .k{font:600 10px var(--fm);letter-spacing:.06em;color:var(--mu);text-transform:uppercase}
+.sp-bar .track{display:flex;height:6px;border-radius:99px;background:var(--sunk);overflow:hidden;box-shadow:inset 0 0 0 1px var(--ln)}
+.sp-bar .b{background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 55%,transparent),var(--ac));border-radius:99px 0 0 99px;transform-origin:left;animation:jGrow .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + .15s)}
+.sp-bar .p{background:var(--gd);box-shadow:0 0 8px var(--gd);border-radius:0 99px 99px 0;transform-origin:left;animation:jGrow .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + .7s)}
+.sp-bar .v{font:800 12px var(--fdot);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sp-bar .v b{color:var(--gd);margin-left:3px;font:inherit}
+
+/* ---------- Pokémon page ---------- */
+html.jade .mon-switcher{gap:6px!important}
+html.jade .mon-switcher a{border-radius:12px!important;border:1px solid transparent!important;background:transparent!important;padding:4px!important;transition:transform .25s,background .25s,border-color .25s;position:relative}
+html.jade .mon-switcher a:hover{transform:translateY(-3px);background:var(--hover)!important}
+html.jade .mon-switcher a.selected{background:var(--glass-2)!important;border-color:var(--ln)!important}
+html.jade .mon-switcher a.selected::after{content:'';position:absolute;left:30%;right:30%;bottom:-4px;height:2px;border-radius:2px;background:var(--hot);box-shadow:0 0 8px var(--hot)}
+html.jade .mon-switcher .art.small{width:52px!important;height:52px!important}
+html.jade .set-card{padding:20px!important;border-top:1px solid var(--ln)!important}
+html.jade .set-card-head{align-items:center!important}
+html.jade .set-card-head>.art{width:140px!important;height:140px!important;position:relative;animation:jFloat 6s ease-in-out infinite}
+html.jade .set-card-head>.art::after{content:'';position:absolute;left:12%;right:12%;bottom:-2px;height:16px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
+html.jade .set-types{margin:6px 0 2px}
+html.jade .item-field{position:relative}
+html.jade .item-field .item-icon{position:absolute;left:8px;bottom:8px}
+html.jade .item-field input{padding-left:38px}
+/* stat bars: base in emerald, stat points stacked on top in gold, final in dot-matrix */
+html.jade .stat-row{align-items:center}
+html.jade .stat-bar{height:10px!important;border-radius:99px!important;background:var(--sunk)!important;box-shadow:inset 0 0 0 1px var(--ln);overflow:hidden;display:flex!important}
+html.jade .stat-bar .base{background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 50%,transparent),var(--ac))!important;border-radius:99px 0 0 99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+html.jade .stat-bar .sp{background:var(--gd)!important;box-shadow:0 0 10px var(--gd);border-radius:0 99px 99px 0;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+html.jade .key-base{background:var(--ac)!important}html.jade .key-sp{background:var(--gd)!important}
+html.jade .stat-final{font:900 20px/1 var(--fdot)!important;color:var(--tx)}
+html.jade .stat-final.up{color:var(--ac)!important}html.jade .stat-final.down{color:var(--hot)!important}
+html.jade .stat-base{font-family:var(--fm);color:var(--mu)}
+html.jade .stat-name{font:600 11px var(--fm);letter-spacing:.06em;text-transform:uppercase}
+html.jade .segmented button.on,html.jade .segmented button[aria-pressed=true]{background:var(--ac);color:var(--on);border-color:transparent}
+
+/* ---------- dialogs, dock, toasts ---------- */
+html.jade .modal{background:var(--bg)!important;color:var(--tx)!important;border:1px solid var(--ln-2)!important;border-radius:22px!important;box-shadow:0 40px 100px -30px var(--shade),inset 0 1px 0 var(--hi)!important;animation:jPop .35s cubic-bezier(.2,.8,.2,1)}
+html.jade .modal::backdrop{background:var(--backdrop);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+html.jade .dock{background:color-mix(in srgb,var(--bg) 82%,transparent)!important;-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border-left:1px solid var(--ln)!important;color:var(--tx)}
+html.jade .dock-toggle{border-radius:999px!important;padding:12px 20px!important}
+html.jade .toast{background:var(--bg)!important;color:var(--tx)!important;border:1px solid var(--ln-2)!important;border-radius:14px!important;box-shadow:0 20px 50px -20px var(--shade)!important;animation:jPop .3s cubic-bezier(.2,.8,.2,1)}
+html.jade .notice{background:var(--tint)!important;border:1px solid var(--ln)!important;border-radius:12px!important;color:var(--tx)}
+html.jade .footer{color:var(--mu);border-top:1px solid var(--ln)!important}
+html.jade .footer>span:first-child{font-family:var(--fd);font-weight:700;letter-spacing:.12em}
+html.jade .guess{background:color-mix(in srgb,var(--gd) 14%,transparent)!important;color:var(--gd)!important;border-radius:999px}
+html.jade table{border-color:var(--ln)}html.jade :is(td,th){border-color:var(--ln)!important}
+html.jade .markdown code,html.jade .markdown pre{background:var(--sunk)!important}
+
+/* ---------- motion ---------- */
+@keyframes jRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes jGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes jPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes jFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes jPulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){html.jade *,html.jade *::before{animation:none!important;transition:none!important}}
+
+/* ---------- header layout: one glass row on desktop ---------- */
+@media (min-width:1101px){
+ html.jade .masthead{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand nav save theme account"!important;gap:0 10px!important;align-items:center}
+ html.jade .masthead-nav{justify-content:center}
+ html.jade .masthead .quickbar{flex-wrap:nowrap}
+}
+@media (max-width:1100px) and (min-width:761px){
+ html.jade .masthead{grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:"brand theme save" "nav nav account"!important}
+}
+html.jade .theme-toggle{grid-area:theme;justify-self:end}
+@media (max-width:760px){
+ html.jade .masthead{grid-template-columns:minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand theme account toggle" "save save save save" "nav nav nav nav"!important;top:6px}
+ html.jade h1{font-size:34px}
+ html.jade .mon-card-head .art{width:112px!important;height:112px!important}
+}
+/* six as 3 × 2 on desktop, 2 × 3 on tablets, one column on phones */
+html.jade .six-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media (max-width:1000px){html.jade .six-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media (max-width:620px){html.jade .six-grid{grid-template-columns:minmax(0,1fr)!important}}
+html.jade .menu-toggle{color:var(--tx)!important;background:var(--glass-2)!important;border-color:var(--ln-2)!important}
+/* teams page: the six stand on a lit glass shelf */
+html.jade .team-card .team-six{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;min-height:0!important;padding:10px 6px 14px!important;margin:12px 0!important;border:0!important;border-radius:12px;position:relative;
+ background:radial-gradient(80% 60% at 50% 100%,var(--floor),transparent 70%),var(--sunk)!important}
+html.jade .team-card .art.small{width:100%!important;max-width:none!important;height:auto!important;display:block;aspect-ratio:1}
+html.jade .team-card .art.small img{width:100%;height:100%;object-fit:contain}
+html.jade .team-card .card-footer{border-top:1px solid var(--ln)!important;padding-top:12px}
+html.jade .team-card .card-record{font:800 15px var(--fdot);color:var(--tx)}
+html.jade .team-list{gap:16px!important}
+/* segmented choices: one sunk track, the chosen option lifts out as glass with an emerald edge */
+html.jade .segmented{display:inline-flex;gap:3px;padding:3px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .segmented>button{background:transparent!important;border:1px solid transparent!important;box-shadow:none!important;color:var(--mu)!important;border-radius:9px!important;backdrop-filter:none;transform:none!important}
+html.jade .segmented>button:hover{color:var(--tx)!important;background:var(--hover)!important}
+html.jade .segmented>button:is(.on,[aria-pressed=true],[aria-selected=true]){background:var(--glass-2)!important;color:var(--tx)!important;border-color:color-mix(in srgb,var(--ac) 45%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--glow)!important}
+html.jade .common-mon .art.small{width:48px!important;height:48px!important}
+html.jade .common-mon small{font:800 13px var(--fdot);color:var(--tx)}
+html.jade .pool-counts>div{background:var(--glass)!important}
+html.jade .pool-counts b,html.jade .pool-counts strong{font-family:var(--fdot);font-weight:900}
+
+/* ---------- welcome ---------- */
+.welcome-page{padding:24px 0 8px}
+.wl-hero{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:28px;align-items:center;min-height:min(620px,78vh)}
+.wl-copy{animation:jRise .7s cubic-bezier(.2,.8,.2,1) both}
+html.jade .wl-copy h1{font-size:clamp(52px,7.4vw,104px);line-height:.9;margin:14px 0 18px;letter-spacing:-.005em}
+.wl-copy h1 em{font-style:normal;background:linear-gradient(100deg,var(--ac),var(--ac-2) 45%,var(--tx) 50%,var(--ac-2) 55%,var(--ac));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:jSheen 6s ease-in-out infinite}
+.wl-sub{font-size:18px;line-height:1.55;color:var(--mu);max-width:34em;margin:0 0 26px}
+.wl-ctas{display:flex;gap:10px;flex-wrap:wrap}
+html.jade .wl-ctas :is(button,.button){height:48px;padding:0 22px;font-size:15px;border-radius:12px}
+.wl-go span{display:inline-block;margin-left:8px;transition:transform .3s}
+.wl-go:hover span{transform:translateX(4px)}
+.wl-facts{display:flex;gap:28px;margin:34px 0 0;padding-top:18px;border-top:1px solid var(--ln)}
+.wl-facts div{margin:0}.wl-facts dt{font:600 10px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
+.wl-facts dd{margin:4px 0 0;font:900 34px/1 var(--fdot);color:var(--tx)}.wl-facts dd.small{font:700 18px/1.9 var(--fd);text-transform:uppercase;letter-spacing:.04em}
+/* the stage: a frosted pane, six renders on a lit arc, leaning toward the pointer */
+.wl-stage{--px:0;--py:0;position:relative;height:540px;perspective:1100px;animation:jRise .8s .1s cubic-bezier(.2,.8,.2,1) both}
+.wl-glass{position:absolute;inset:6% 4% 14%;border-radius:28px;border:1px solid var(--ln-2);
+ background:linear-gradient(150deg,color-mix(in srgb,var(--ac) 24%,transparent),transparent 45%),linear-gradient(330deg,color-mix(in srgb,var(--ac) 12%,transparent),transparent 40%),var(--glass);
+ box-shadow:inset 0 1px 0 var(--hi),0 50px 90px -40px var(--glow);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
+ transform:rotateY(calc(var(--px) * 9deg)) rotateX(calc(var(--py) * -7deg));transition:transform .5s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.wl-glass::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.16) 48%,transparent 60%);transform:translateX(calc(var(--px) * 40%));transition:transform .6s}
+.wl-glass::after{content:'';position:absolute;inset:12px;border-radius:18px;opacity:.6;
+ background:radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) top left/8px 8px no-repeat,radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) top right/8px 8px no-repeat,radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) bottom left/8px 8px no-repeat,radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) bottom right/8px 8px no-repeat}
+.wl-led{position:absolute;top:24px;right:30px;width:8px;height:8px;border-radius:50%;background:var(--hot);box-shadow:0 0 10px var(--hot);animation:jPulse 1.6s ease-in-out infinite;z-index:1}
+.wl-label{position:absolute;top:19px;left:30px;font:600 10.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gd);z-index:1}
+.wl-six{position:absolute;inset:0;transform:translateX(calc(var(--px) * -14px)) translateY(calc(var(--py) * -8px));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+html.jade .wl-mon{--t:calc(var(--i) / (var(--n) - 1));position:absolute;left:calc(5% + var(--t) * 74%);top:calc(36% - sin(var(--t) * 180deg) * 13%);width:21%;aspect-ratio:1;padding:0;border:0!important;background:none!important;box-shadow:none!important;backdrop-filter:none;border-radius:50%;
+ transition:transform .6s cubic-bezier(.2,.8,.2,1),filter .5s,opacity .5s;filter:saturate(.75) brightness(.92);opacity:.85;animation:jRise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.25s + var(--i) * 70ms)}
+html.jade .wl-mon:hover{transform:none}
+html.jade .wl-mon .art{width:100%!important;height:100%!important;animation:jFloat 5s ease-in-out infinite;animation-delay:calc(var(--i) * -.8s)}
+html.jade .wl-mon::after{content:'';position:absolute;left:18%;right:18%;bottom:-4%;height:12%;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);transition:transform .6s,opacity .6s;opacity:.7}
+html.jade .wl-mon.on{transform:scale(1.32) translateY(-6%);filter:none;opacity:1;z-index:2}
+html.jade .wl-mon.on::after{transform:scaleX(1.25);opacity:1;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac-2) 65%,transparent),transparent)}
+html.jade .wl-mon.on .art img{filter:drop-shadow(0 18px 24px var(--shade)) drop-shadow(0 0 28px color-mix(in srgb,var(--ac) 35%,transparent))!important}
+.wl-caption{position:absolute;left:0;right:0;bottom:4%;display:flex;flex-direction:column;align-items:center;gap:8px;animation:jPop .45s cubic-bezier(.2,.8,.2,1)}
+.wl-caption b{font:800 30px/1 var(--fd);text-transform:uppercase;letter-spacing:.03em}
+.wl-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:34px 0}
+.wl-benefits article{position:relative;padding:22px 20px;border-radius:var(--r);border:1px solid var(--ln);background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 55%),var(--glass);box-shadow:inset 0 1px 0 var(--hi);
+ -webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur));overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;animation:jRise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.4s + var(--i) * 80ms)}
+.wl-benefits article::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,transparent 30%,color-mix(in srgb,var(--ac-2) 20%,transparent) 46%,rgba(255,255,255,.2) 50%,transparent 66%) -160% 0/250% 100% no-repeat}
+.wl-benefits article:hover::before{background-position:160% 0;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
+.wl-benefits article:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 50%,transparent);box-shadow:inset 0 1px 0 var(--hi),0 24px 44px -26px var(--glow)}
+.wl-k{display:flex;align-items:center;gap:10px;font:600 10.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
+.wl-n{font:900 22px/1 var(--fdot);color:color-mix(in srgb,var(--tx) 30%,transparent);letter-spacing:0}
+.wl-benefits h3{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:14px 0 8px}
+.wl-benefits p{margin:0;color:var(--mu);font-size:14px;line-height:1.55}
+.wl-close{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 24px;border-radius:var(--r);border:1px solid var(--ln);background:var(--sunk);margin-bottom:24px}
+.wl-close p{margin:0;color:var(--mu);max-width:52em}
+.footer a{color:var(--ac);margin-right:auto;margin-left:16px}
+@keyframes jSheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+@media (max-width:1000px){.wl-hero{grid-template-columns:minmax(0,1fr)}.wl-stage{height:440px}.wl-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.wl-stage{height:340px}.wl-benefits{grid-template-columns:minmax(0,1fr)}.wl-close{flex-direction:column;align-items:stretch}.wl-facts{gap:18px}.wl-caption b{font-size:22px}}
+html.jade .wl-mon{height:auto!important;min-height:0!important;max-height:none!important}
+.wl-stage{height:600px}.wl-glass{inset:4% 2% 16%}.wl-caption{bottom:2%}
+html.jade .wl-mon{top:calc(30% - sin(var(--t) * 180deg) * 12%)}
+@media (max-width:1000px){.wl-stage{height:480px}}@media (max-width:620px){.wl-stage{height:360px}}
+/* arc sits centred inside the pane */
+html.jade .wl-mon{width:20%;left:calc(5% + var(--t) * 71%);top:calc(40% - sin(var(--t) * 180deg) * 13%)}
+.wl-stage{height:560px}.wl-glass{inset:3% 1% 13%}
+.wl-copy h1 em{background-image:linear-gradient(100deg,var(--ac),var(--ac-2) 45%,#fff 50%,var(--ac-2) 55%,var(--ac))}
+.wl-glass .wl-floor{position:absolute;left:8%;right:8%;bottom:9%;height:22%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 22%,transparent),transparent);filter:blur(4px)}
+@media (max-width:620px){.wl-stage{height:320px}html.jade .wl-mon{width:22%;left:calc(2% + var(--t) * 74%)}}
+/* with the Ask dock open the page is ~470px narrower: two rows until there's room for one */
+@media (min-width:761px) and (max-width:1760px){
+ html.jade .with-dock .masthead{grid-template-columns:minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand save theme account" "nav nav nav nav"!important;gap:8px 10px!important}
+ html.jade .with-dock .masthead-nav{justify-content:flex-start}
+}
+/* Ask dock: glass messages */
+html.jade .dock :is(.assist-turn,.chat-turn,.assist-intro,.dialogue){background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:inset 0 1px 0 var(--hi)!important}
+html.jade .dock-head{border-bottom:1px solid var(--ln)!important}
+html.jade .dock-head h2{font-size:20px}
+html.jade .dock-log>.chat-empty,html.jade .chat-turn{background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:inset 0 1px 0 var(--hi)!important;outline:0!important}
+html.jade .chat-turn.user{background:color-mix(in srgb,var(--ac) 14%,transparent)!important;border-color:color-mix(in srgb,var(--ac) 35%,transparent)!important}
+html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user),.welcome-tag)::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--hot);box-shadow:0 0 8px var(--hot);right:12px;bottom:10px;animation:jPulse 1.6s ease-in-out infinite}

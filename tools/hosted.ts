@@ -64,7 +64,7 @@ export function workspaceStore(client:SupabaseClient,userId:string):StoreBackend
 // Routes that only make sense on one person's machine (background workers, local report files, legacy imports).
 const LOCAL_ONLY=new Set(['/api/jobs','/api/legacy','/api/migrate-legacy','/api/pool-refresh']);
 // Loaded by <img>/CSS without an Authorization header; they serve shared data only.
-const PUBLIC=new Set(['/api/icon-sheet','/api/art']);
+const PUBLIC=new Set(['/api/icon-sheet','/api/art','/api/home','/api/item-sheet']);
 // AI features need an account (guests are anonymous users). A guest's AI key header is dropped everywhere else too.
 const AI=new Set(['/api/ai-jobs','/api/replay-summarise','/api/models']);
 export function hostedHandler(config:HostedConfig,inner:(req:IncomingMessage,res:ServerResponse)=>unknown){

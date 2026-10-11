@@ -1,4 +1,21 @@
-# Frontier Brain × Emerald design notes
+# Frontier Brain design notes
+
+## Jade Glass (October 2026, branch `jade-glass-ui`)
+
+Chosen from the Round 3 lookbook: Sky Pillar inside a clear emerald shell. It supersedes the Round 2 cream palette below, which is kept as history. The system lives in `web/jade.css`, loaded after `style.css`. Every rule is scoped to `html.jade`, and the legacy tokens are remapped, so older components pick up the theme without edits.
+
+- **Themes.** Dark ("after hours") and light ("morning jade"). The app follows the system until the player picks one with the header toggle; the choice is stored in `localStorage` (`frontierbrain.theme`) and applied before first paint by `index.html`.
+- **Tokens.** Background, glass, sunk, text, muted, line, accent (`#1FD08A` dark, `#0B8A55` light), hot red (the LED), gold (stat points and eyebrows).
+- **Surfaces.** Frosted glass: a translucent fill, backdrop blur, a faint emerald gradient from the top-left, an inset top highlight and corner screws. Hover is a light sweep across the glass with an emerald edge and a small lift, never a dotted outline.
+- **Type.** Saira Condensed (uppercase display and headings), Hanken Grotesk (reading and controls), JetBrains Mono (eyebrows, labels and stat keys), and Doto for dot-matrix numerals (slot numbers, final stats and counts). All are SIL OFL fonts from Google Fonts.
+- **Pokémon images.** HOME 3D renders by default (`/api/home`, from Showdown's `sprites/home`, cached in the data directory locally and redirected on the hosted site). Each render falls back to the official illustration, then a placeholder. Held items use Showdown's item sheet (`/api/item-sheet`). The pixel box icons stay in pickers and lists as the Pixel Edge nod.
+- **Data drawing.** Type badges are full-width pills coloured by type. Stat bars show the base stat in emerald with the stat points stacked on the end in gold; final stats on the Pokémon page come from the stat tool.
+- **Motion.** Cards rise in sequence, bars grow, renders float and the selected tab pulses its LED. Everything stops for `prefers-reduced-motion`.
+- **Logo.** An original emerald-cut gem, read as a Battle Frontier symbol, with a circuit "brain" and a red LED node in its table facet (`public/favicon.svg`). No Pokémon artwork is used in the mark.
+- **Front door.** `#welcome` is shown once on a first visit and linked from the footer. It uses the player's first team, or an example core before they have a team, on a glass stage that leans toward the pointer.
+- **Avoid.** Sports-betting cues: odds chips, slanted score bars, loud tickers. The news strip is kept quiet: mono type, no red.
+
+## Round 2 history: Frontier Brain × Emerald
 
 Round 2 on `design/emerald`, 9 October 2026. One light theme, original CSS graphics, IBM Plex for reading and calculations, Pixelify Sans for short display text. The owner's round 2 feedback supersedes the earlier palette and layout.
 

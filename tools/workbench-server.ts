@@ -16,7 +16,7 @@ import {metaSets,type MetaSource} from './meta-sets.ts';
 import {showdownReplayHTML} from './replay-links.ts';
 import {fetchText} from './research.ts';
 import {refreshPool,poolStatus,poolOverview,poolTeams} from './pool.ts';
-import {iconIndex,iconNumber,iconSheet} from './icons.ts';
+import {iconIndex,iconNumber,iconSheet,homeSprite,homeSpriteId,homeSpriteURL,dexInfo,itemSheet,ITEM_SHEET_URL} from './icons.ts';
 import {startJob,listJobs,getJob,dismissJob,cancelJob} from './ai-jobs.ts';
 import {modelSettings,saveModelSettings,availableModels} from './models.ts';
 import {queueSummaries,readSummary,readDigest,isStale,runningFor,transcript,readGame} from './replay-summary.ts';
@@ -145,6 +145,16 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       // Hosted: artwork isn't copied into the database; send the browser to the public source the cache came from.
       if(hostedMode&&typeof entry.url==='string'&&/^https:\/\/raw\.githubusercontent\.com\//.test(entry.url)){res.writeHead(302,{Location:entry.url,'Cache-Control':'public, max-age=86400'});res.end();return;}res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'});res.end(await readBytes(dataPath(entry.file)));return;
     }
+    if(req.method==='GET'&&path==='/api/home'){
+      const name=url.searchParams.get('species')??'';const sprite=homeSpriteId(name);if(!sprite)return respond(res,404,{error:'Unknown species'});
+      // Hosted: send the browser to Showdown's copy rather than storing images per user.
+      if(hostedMode){res.writeHead(302,{Location:homeSpriteURL(sprite),'Cache-Control':'public, max-age=86400'});res.end();return;}
+      const bytes=await homeSprite(name);if(!bytes)return respond(res,404,{error:'No HOME render for this form'});
+      res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(bytes);return;
+    }
+    if(req.method==='GET'&&path==='/api/dex-info'){const list=(k:string)=>(url.searchParams.get(k)??'').split('|').filter(Boolean);return respond(res,200,dexInfo(list('species'),list('items')));}
+    if(req.method==='GET'&&path==='/api/item-sheet'){if(hostedMode){res.writeHead(302,{Location:ITEM_SHEET_URL,'Cache-Control':'public, max-age=604800'});res.end();return;}
+      res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(await itemSheet());return;}
     if(req.method==='GET'&&path==='/api/dex'){
       const species=dex.species.get(url.searchParams.get('species')??'');const all=dex.moves.all().filter((m:any)=>m.exists&&!m.isNonstandard);const moves=all.map((m:any)=>m.name);return respond(res,200,{statusMoves:all.filter((m:any)=>m.category==='Status').map((m:any)=>m.name),multiHit:Object.fromEntries(all.filter((m:any)=>Array.isArray(m.multihit)).map((m:any)=>[m.name,m.multihit])),contextMoves:Object.fromEntries(Object.entries(contextMoves).map(([k,v])=>[k,{field:v.field,label:v.label,max:v.max}])),species:species.exists?{name:species.name,types:species.types,abilities:Object.values(species.abilities),baseStats:species.baseStats,megas:(species.otherFormes??[]).map((f:string)=>dex.species.get(f)).filter((f:any)=>f.isMega&&f.requiredItem).map((f:any)=>({name:f.name,item:f.requiredItem,types:f.types,ability:Object.values(f.abilities)[0],baseStats:f.baseStats}))}:null,speciesNames:dex.species.all().filter((s:any)=>s.exists&&!s.isNonstandard).map((s:any)=>s.name),moves,natures:dex.natures.all().map((n:any)=>n.name),items:dex.items.all().filter((i:any)=>!i.isNonstandard).map((i:any)=>i.name),abilities:dex.abilities.all().filter((a:any)=>!a.isNonstandard).map((a:any)=>a.name)});
     }
