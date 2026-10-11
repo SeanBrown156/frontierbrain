@@ -72,7 +72,7 @@ export function applyAction(db:Workbench,action:any):unknown {
   // Deleting a team removes it with its versions, strategy and replay links. Its sets stay in the Pokémon library
   // and the replays stay saved (unlinked), so nothing played is lost.
   if(action.type==='team-delete'){const i=db.teams.findIndex(t=>t.id===action.teamId);if(i<0)throw new Error('Team not found');db.teams.splice(i,1);if(db.coaching)delete db.coaching[action.teamId];
-    let unlinked=0;for(const [id,a] of Object.entries(db.associations))if(a.teamId===action.teamId){delete db.associations[id];unlinked++;}return {deleted:action.teamId,unlinked};}
+    const replays:string[]=[];for(const [id,a] of Object.entries(db.associations))if(a.teamId===action.teamId){delete db.associations[id];replays.push(id);}db.matches=db.matches.filter(m=>!m.replayIds.some(r=>replays.includes(r)));return {deleted:action.teamId,unlinked:replays.length,replays};}
   if(action.type==='import')return makeTeam(db,action.name,action.paste,action.format??FORMAT,{notes:action.notes,setNotes:action.setNotes&&typeof action.setNotes==='object'&&!Array.isArray(action.setNotes)?action.setNotes:undefined});
   if(action.type==='bank-import'){const sets=importText(checkText(action.paste));if(sets.length!==1)throw new Error('Paste one Pokémon for a bank entry');return applyAction(db,{type:'bank-create',name:action.name,set:sets[0],notes:blankNotes()});}
   if(action.type==='bank-create'){const set=cleanSet(action.set);const revision={id:uid('set'),number:1,createdAt:now(),set,notes:cleanNotes(action.notes)};const entry={id:uid('bank'),name:checkText(action.name,120),revisions:[revision]};db.bank.push(entry);return entry;}

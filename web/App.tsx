@@ -7,7 +7,6 @@ import TeamHub,{TeamsLanding} from './team/Hub.tsx';
 import PokemonWorkspace from './team/PokemonWorkspace.tsx';
 import NewTeam from './team/NewTeam.tsx';
 import DataPool from './DataPool.tsx';
-import Coach from './Coach.tsx';
 import {hostedSite} from './auth.tsx';
 import AccountMenu from './AccountMenu.tsx';
 
@@ -34,7 +33,7 @@ export default function App(){
   const mutate=async(action:any)=>{saving();try{const result=await api('/action',{revision:revision.current??data.db.revision,action});revision.current=result.revision;await load();saved();return result;}catch(e){failed((e as Error).message);notify((e as Error).message,true);throw e;}};
   const run=async(kind:string)=>{try{await api('/jobs',{kind});setJobs(await api('/jobs'));notify('Started. Progress is shown beside this workflow.');}catch(e){notify((e as Error).message,true);}};
   const openReport=async(path:string)=>{try{setReport((await api('/report?path='+encodeURIComponent(path))).text);}catch(e){notify((e as Error).message,true);}};
-  // Routes: teams · team/<id>/<tab>/<version|all> · team/<id>/mon/<version>/<slot>[/swap] · inbox · news · data · references
+  // Routes: teams · team/<id>/<tab>/<version|all> · team/<id>/mon/<version>/<slot>[/swap] · news · data · references
   const parts=route.split('/');const team=parts[0]==='team'?data?.teams.find((t:any)=>t.id===parts[1]):null;const pageData=data?{...data,jobs}:null;
   // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',inbox:'Replay inbox'} as any)[parts[0]]??'Your teams'};
@@ -49,7 +48,6 @@ export default function App(){
       {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} reload={load} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
       {team&&parts[2]!=='mon'&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
-      {route==='inbox'&&<><a href="#teams" className="text-button">← Teams</a><Coach data={pageData} notify={notify} load={load} run={run} initialTeam="inbox"/></>}
       {route==='news'&&<><a href="#teams" className="text-button">← Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
       {route==='data'&&<><a href="#teams" className="text-button">← Teams</a><DataPool art={data.art}/></>}
       {route==='references'&&<><a href="#teams" className="text-button">← Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}

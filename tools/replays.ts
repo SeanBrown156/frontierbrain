@@ -1,6 +1,6 @@
 import {readFile,readdir,mkdir,copyFile,unlink,stat} from 'node:fs/promises';
 import {resolve,join,relative} from 'node:path';
-import {ROOT,hash,id,json,optionalJSON,save,stamp,markdown,workspacePath,dataPath,listDir,readText,modifiedAt,config as profile} from './io.ts';
+import {ROOT,hash,id,json,optionalJSON,save,stamp,markdown,workspacePath,dataPath,listDir,readText,modifiedAt,removeFile,config as profile} from './io.ts';
 
 export interface Event {line:number;turn:number;type:string;args:string[];raw:string;}
 export interface Mon {key:string;species:string;nickname:string;hp?:{value:number;max:number|null;precision:'exact'|'percent'|'unknown'};status?:string;boosts:Record<string,number>;moves:string[];ability?:string;item?:string;fainted?:boolean;volatiles:string[];}
@@ -151,6 +151,12 @@ export function aggregate(games:Game[]) {
   }
   for(const o of Object.values(groups)){o.winRate=o.games?o.wins/o.games:null;for(const v of Object.values(o.matchups) as any[]){v.highlightEligible=v.previewGames>=4;v.attendanceLowerBound=v.observedBrought/v.previewGames;v.attendanceUpperBound=(v.observedBrought+v.unknownSelections)/v.previewGames;}}
   return {groups,notes:'Roster groups are provisional, not exact set versions. Bring counts are observed lower bounds when back slots are unseen. Win rates are descriptive and have small samples; attendance records bounds, not invented selections.'};
+}
+// Deleting a team deletes its replays: the saved originals, parsed copies, index entries and AI summaries.
+export async function deleteReplays(ids:string[]){
+  if(!ids.length)return 0;const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());const gone=index.games.filter(g=>ids.includes(g.id));
+  for(const g of gone){for(const path of [g.source,g.parsed,`reports/replay-summaries/${g.id}.json`])if(path)await removeFile(path).catch(()=>{});}
+  index.games=index.games.filter(g=>!ids.includes(g.id));await save('replays/index.json',index);return gone.length;
 }
 export async function loadGames(){const index=await optionalJSON<ReplayIndex>('replays/index.json',emptyIndex());return Promise.all(index.games.map(g=>json<Game>(g.parsed)));}
 export async function replayReports() {

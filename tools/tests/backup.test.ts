@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve} from 'node:path';
-import {withData,fileBackend,CODE,save,readText} from '../io.ts';
+import {withData,fileBackend,CODE,save,readText,listDir} from '../io.ts';
 import {emptyStore,Conflict,type StoreBackend} from '../workbench-store.ts';
 import {addSamples} from '../samples.ts';
 import {createBackup,restoreBackup} from '../backup.ts';
-import {loadGames,addReplays} from '../replays.ts';
+import {loadGames,addReplays,deleteReplays} from '../replays.ts';
 import {readFile,readdir} from 'node:fs/promises';
 import {mutateStore,associateReplay,currentTeam,makeTeam} from '../workbench-store.ts';
 import {parseReplay} from '../replays.ts';
@@ -35,4 +35,15 @@ test('A backup restores into another workspace, merging without duplicating same
       await assert.rejects(restoreBackup({format:'nope'}),/not a Frontier Brain backup/);
     });
   }finally{await rm(a,{recursive:true});await rm(b,{recursive:true});}
+});
+
+test('Deleting replays removes the original, parsed copy, index entry and summary',async()=>{
+  const root=await mkdtemp(resolve(tmpdir(),'fb-delete-'));
+  try{await withData({user:fileBackend(root),shared:fileBackend(root,CODE),store:memoryStore(),hosted:true},async()=>{
+    const dir=resolve(CODE,'tools/tests/fixtures/corpus');const file=(await readdir(dir)).find(f=>f.endsWith('game05.html'))!;
+    const saved=await addReplays([{html:await readFile(resolve(dir,file),'utf8'),filename:file}],{as:'Player'});const id=saved.results[0].id;
+    await save(`reports/replay-summaries/${id}.json`,{summary:'x'});assert.equal((await loadGames()).length,1);
+    assert.equal(await deleteReplays([id]),1);assert.equal((await loadGames()).length,0);
+    await assert.rejects(readText(`reports/replay-summaries/${id}.json`));assert.equal((await listDir('replays/originals')).length,0);
+  });}finally{await rm(root,{recursive:true});}
 });

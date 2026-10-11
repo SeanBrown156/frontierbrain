@@ -3,10 +3,10 @@ import {resolve,relative} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
-import {ROOT,CODE,json,optionalJSON,save,hash,id,dataPath,listDir,readText,readBytes,withData,dataContext,config as profile} from './io.ts';
+import {ROOT,CODE,json,optionalJSON,save,hash,id,dataPath,listDir,readText,readBytes,removeFile,withData,dataContext,config as profile} from './io.ts';
 import {dashboard,cacheArtwork,backfillUsage,refreshEvents,coachStats} from './workbench-data.ts';
 import {readStore as readRootStore,mutateStore as mutateRootStore,applyAction,currentTeam,teamPaste,sameRoster,Conflict,legacyTeams as legacyRootTeams,makeTeam,associateReplay} from './workbench-store.ts';
-import {parseReplay,addReplay,loadGames} from './replays.ts';
+import {parseReplay,addReplay,loadGames,deleteReplays} from './replays.ts';
 import {refreshResearch} from './research.ts';
 import {workflowLock} from './workbench-jobs.ts';
 import {exportText} from './teams.ts';
@@ -78,7 +78,10 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='POST'&&path==='/api/action'){
       const input=await body(req);if(!Number.isInteger(input.revision))throw new Error('Workspace revision required');
       if(input.action?.type==='match-save'){const games=await loadGames();const chosen=input.action.replayIds?.map((rid:string)=>games.find(g=>g.id===rid));if(!chosen?.every(Boolean)||new Set(chosen.map((g:any)=>g.players[g.ownSide==='p1'?'p2':'p1'].name)).size!==1||new Set(chosen.map((g:any)=>g.format)).size!==1)throw new Error('Choose games in one format against the same opponent');}
-      const result=await mutateStore(input.revision,db=>applyAction(db,input.action));return respond(res,200,{revision:result.db.revision,result:result.result});
+      const result=await mutateStore(input.revision,db=>applyAction(db,input.action));
+      // A deleted team takes its replays and their analysis with it.
+      if(input.action?.type==='team-delete'){const r:any=result.result;await deleteReplays(r.replays??[]);await removeFile(`reports/replay-digests/${input.action.teamId}.json`).catch(()=>{});}
+      return respond(res,200,{revision:result.db.revision,result:result.result});
     }
     if(req.method==='POST'&&path==='/api/migrate-legacy'){const input=await body(req);const records=await legacyTeams();const result=await mutateStore(input.revision,db=>{for(const old of records){if(!db.teams.some(t=>t.name===old.id))makeTeam(db,old.id,exportText(old.sets,old.format),old.format);}return {imported:records.length};});return respond(res,200,{revision:result.db.revision,result:result.result});}
     if(req.method==='GET'&&path==='/api/legacy')return respond(res,200,await legacyTeams());
