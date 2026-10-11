@@ -25,18 +25,17 @@ export default function NewTeam({mutate,load,onClose,notify,review}:{mutate:(a:a
       if(review)await api('/ai-job-dismiss',{id:review.jobId}).catch(()=>{});await load();location.hash=teamHref(team.id,'overview');onClose();
     }catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   const hasPaste=paste.trim().length>0;
-  return <Modal title={review?'Review AI draft':'New team'} onClose={onClose}><div className="new-team">{!review&&<Tabs tabs={['From tournaments','Build from a prompt','Paste or PokePaste link']} value={tab} onChange={setTab}/>}
+  return <Modal title={review?'Review AI draft':'New team'} onClose={onClose}><div className="new-team">{!review&&<Tabs tabs={['From tournaments','Build from a prompt','Paste or PokePaste link']} value={tab} onChange={setTab} icons={{'Build from a prompt':<Px icon={Sparkles}/>}}/>}
     {tab==='Build from a prompt'&&!canUseAI(account)&&<SignInForAI what="AI team builds"/>}{tab==='Build from a prompt'&&canUseAI(account)&&<><label>What should this team do?<textarea rows={5} value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. A Trick Room team around Mega Gengar Perish Song with a Belly Drum Kommo-o win condition. It should handle Rillaboom/Incineroar balance and Tailwind offense."/></label>
       <div className="button-row"><button className="primary" disabled={busy||!prompt.trim()} onClick={()=>void build()}><Px icon={Sparkles}/>{busy?'Starting…':'Build team'}</button><span className="muted">Model</span><ModelPicker tier="build"/></div>
       <p className="footnote">Takes a few minutes: it researches the data pool, runs calcs and checks the rules. You can keep using the app meanwhile.</p></>}
     {tab==='From tournaments'&&!review&&(slots.length?<div className="picked-team"><span>Picked <b>{name}</b></span><button className="text-button" onClick={()=>{setSlots([]);setPaste('');setName('');setStrategy('');}}>Choose a different team</button></div>:<TournamentPicker onPick={d=>{setName(d.name);setPaste(d.paste);setStrategy(d.notes);setSlots(d.slots);}} busy={busy} setError={setError}/>)}
-    {tab==='From tournaments'&&slots.length>0&&<ul className="slot-basis">{slots.map(s=><li key={s.species}><b>{s.species}</b> <span className={'tag '+(s.spread==='exact'?'ok':'')}>{s.spread==='exact'?'exact spread':'spread filled'}</span> <span className="muted">{s.basis}</span></li>)}</ul>}
-    {tab==='Paste or PokePaste link'&&!review&&<><div className="form-grid paste-source"><label>PokePaste link<input value={link} onChange={e=>setLink(e.target.value)} placeholder="https://pokepast.es/…"/></label><button disabled={busy||!link.trim()} onClick={()=>void fetchPaste()}>Fetch paste</button></div><p className="footnote">Or paste a Showdown export straight into the box below.</p></>}
+    {tab==='From tournaments'&&slots.length>0&&<ul className="slot-basis">{slots.map(s=><li key={s.species}><b>{s.species}</b> <span className={'tag '+(s.spread==='exact'?'ok':'')}>{s.spread==='exact'?'★ Exact spread':'Spread filled'}</span> <span className="muted">{s.basis}</span></li>)}</ul>}
+    {tab==='Paste or PokePaste link'&&!review&&<><div className="form-grid paste-source"><label>PokePaste link<input value={link} onChange={e=>setLink(e.target.value)} placeholder="https://pokepast.es/…"/></label><button disabled={busy||!link.trim()} onClick={()=>void fetchPaste()}>Fetch paste</button></div></>}
     {error&&<p role="alert" className="error">{error}</p>}
     {(review||hasPaste||tab==='Paste or PokePaste link')&&<div className="draft-review"><label>Team name<input value={name} onChange={e=>setName(e.target.value)} maxLength={120}/></label>
       <label>Showdown paste<textarea rows={14} value={paste} onChange={e=>setPaste(e.target.value)} spellCheck={false}/></label>
-      <Notice>Champions “EVs:” are stat points: 0–32 per stat, 66 total. Illegal teams are rejected with the reason.</Notice>
-      <label>Strategy<textarea rows={8} value={strategy} onChange={e=>setStrategy(e.target.value)}/></label>{strategy&&<details><summary>Preview strategy</summary><Markdown text={strategy}/></details>}
+      {review&&<><label>Strategy<textarea rows={8} value={strategy} onChange={e=>setStrategy(e.target.value)}/></label>{strategy&&<details><summary>Preview strategy</summary><Markdown text={strategy}/></details>}</>}
       {draft&&<details open><summary>Roles, leads and matchups from the build</summary><ul>{draft.sets.map((s:any)=><li key={s.species}><b>{s.species}</b>: {s.role}</li>)}</ul><p className="footnote">{draft.leads.length} lead plan(s) and {draft.matchups.length} matchup plan(s) will be added to the team's Coaching tab as drafts.</p></details>}
       <button className="primary" disabled={busy||!paste.trim()} onClick={()=>void create()}>Create team</button></div>}
   </div></Modal>;
@@ -53,16 +52,16 @@ function TournamentPicker({onPick,busy,setError}:{onPick:(d:any)=>void;busy:bool
   useEffect(()=>{(iconCache??=api('/species-options').then((o:any[])=>Object.fromEntries(o.map(x=>[x.name,x.icon])))).then(setIcons).catch(()=>{});},[]);
   useEffect(()=>{lastSearch={q,lane};let alive=true;const t=setTimeout(()=>{api(`/pool-teams?q=${encodeURIComponent(q)}${lane?`&lane=${lane}`:''}&limit=40`).then(r=>{if(alive)setResult(r);}).catch(e=>setError(e.message));},250);return()=>{alive=false;clearTimeout(t);};},[q,lane]);
   const pick=async(id:string)=>{setLoading(id);setError('');try{onPick(await api('/pool-team?id='+encodeURIComponent(id)));}catch(e){setError((e as Error).message);}finally{setLoading('');}};
-  const place=(t:PoolHit)=>t.placing?`#${t.placing}`:t.lane==='shared'?'Paste':'—';
+  const place=(t:PoolHit)=>t.placing?`#${t.placing}`:t.lane==='shared'?'VGCPastes':'—';
   return <div className="pool-picker">
     <div className="form-grid"><label>Search players, events or Pokémon<input value={q} onChange={e=>setQ(e.target.value)} placeholder="e.g. Brisbane, Incineroar Gholdengo, Kiran"/></label>
-      <label>Source<select value={lane} onChange={e=>setLane(e.target.value)}><option value="">All</option><option value="official">Official events</option><option value="online">Online events</option><option value="shared">Shared pastes</option></select></label></div>
-    <p className="footnote">{result?`${result.total.toLocaleString()} teams · best results first`:'Loading teams…'}. Teams marked “exact spreads” use the player's own shared paste; the rest get the most common spread for each Pokémon, labelled.</p>
+      <label>Source<select value={lane} onChange={e=>setLane(e.target.value)}><option value="">All</option><option value="official">Official events</option><option value="online">Online events</option><option value="shared">VGCPastes</option></select></label></div>
+    <p className="footnote">{result?`${result.total.toLocaleString()} teams · best results first`:'Loading teams…'}. ★ Exact spreads come from the player's own VGCPastes paste; the rest get the most common spread for each Pokémon, labelled.</p>
     <ul className="pool-list">{result?.teams.map(t=><li key={t.id}><button className="pool-row" disabled={busy||!!loading} onClick={()=>void pick(t.id)}>
       <span className="pool-place">{place(t)}</span>
-      <span className="pool-who"><b>{t.player}</b><small>{t.event||'Shared paste'}{t.date?` · ${t.date}`:''}{t.record?` · ${t.record}`:''}{t.players?` · ${t.players} players`:''}</small></span>
+      <span className="pool-who"><b>{t.player}</b><small>{t.event||'VGCPastes'}{t.date?` · ${t.date}`:''}{t.record?` · ${t.record}`:''}{t.players?` · ${t.players} players`:''}</small></span>
       <span className="pool-six" aria-label={t.pokemon.join(', ')}>{t.pokemon.map((p,i)=><span key={i} title={p}><PokeIcon n={icons[p]}/></span>)}</span>
-      {t.exactSpreads&&<span className="tag ok">exact spreads</span>}{loading===t.id&&<span className="muted">Loading…</span>}
+      {t.exactSpreads&&<span className="tag ok">★ Exact spreads</span>}{loading===t.id&&<span className="muted">Loading…</span>}
     </button></li>)}</ul>
   </div>;
 }

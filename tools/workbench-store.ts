@@ -1,3 +1,4 @@
+import {autoLink} from './replay-link.ts';
 import {FORMATS} from '../shared/formats.ts';
 import {readFile,mkdir,writeFile,rename,rm,readdir,copyFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
@@ -215,6 +216,7 @@ export function teamPaste(db:Workbench,team:Formula,versionId?:string,configId?:
 export function sameRoster(a:string[],b:string[]){const norm=(names:string[])=>names.map(n=>dex.species.get(n).baseSpecies).sort().join('|');return a.length===b.length&&norm(a)===norm(b);}
 export function associateReplay(db:Workbench,game:Game,input:any){
   if(input.certainty==='clear'){delete db.associations[game.id];return {cleared:true};}
+  if(input.certainty==='auto'){const r=autoLink(db,game,input.teamId);if(r.association)db.associations[game.id]=r.association;return r;}
   const team=db.teams.find(t=>t.id===input.teamId);if(!team)throw new Error('Team not found');
   // Family links may name a version when the six match it: "played this version, exact sets unconfirmed".
   if(input.certainty==='family'){let versionId:string|undefined;if(input.versionId){const v=currentTeam(db,team,input.versionId);if(!sameRoster(game.preview[game.ownSide],v.sets.map(s=>s.species)))throw new Error('Roster does not match that version');versionId=v.version.id;}
@@ -223,5 +225,5 @@ export function associateReplay(db:Workbench,game:Game,input:any){
   const view=currentTeam(db,team,input.versionId,input.configurationId);if(!sameRoster(game.preview[game.ownSide],view.sets.map(s=>s.species)))throw new Error('Roster does not match configuration');if(view.errors.length)throw new Error('Cannot attach an illegal configuration');
   const identity:Record<string,string>={};for(const e of game.events){if(['switch','drag','replace','detailschange'].includes(e.type))identity[e.args[0]]=e.args[1]?.split(',')[0];
     if(e.type==='move'&&e.args[1]!=='Struggle'&&e.args[0].startsWith(game.ownSide)&&!e.args.some(a=>a.startsWith('[from]'))){const species=dex.species.get(identity[e.args[0]]??'').baseSpecies;const set=view.sets.find(s=>dex.species.get(s.species).baseSpecies===species);if(set&&!set.moves?.includes(e.args[1]))throw new Error(`Observed ${species} used ${e.args[1]}, absent from this configuration. Save the historical set first.`);}}
-  db.associations[game.id]={teamId:team.id,versionId:view.version.id,configurationId:view.configuration.id,certainty:'exact'};return db.associations[game.id];
+  db.associations[game.id]={teamId:team.id,versionId:view.version.id,configurationId:view.configuration.id,certainty:'exact',basis:'player'};return db.associations[game.id];
 }

@@ -17,7 +17,7 @@ export default function PokemonWorkspace({team,data,mutate,versionId,slot,swap}:
   const view=getView(team,data.db,versionId);const current=view.revisions[slot];
   if(!current?.revision)return <Empty>That Pokémon slot doesn't exist. <a href={teamHref(team.id,'overview',versionId)}>Back to the team.</a></Empty>;
   return <div className="workspace">
-    <div className="hub-head"><a href={teamHref(team.id,'overview',view.version.id)} className="text-button"><Px icon={ArrowLeft} size={12}/>{team.name} · {versionName(view.version)}</a>
+    <div className="hub-head"><a href={teamHref(team.id,'overview',view.version.id)} className="text-button"><Px icon={ArrowLeft} size={12}/>{team.name}</a>
       <nav className="mon-switcher" aria-label="Team members">{view.revisions.map((r,i)=><a key={i} href={monHref(team.id,view.version.id,i)} className={i===slot?'selected':''} title={r.revision.set.species} aria-current={i===slot?'page':undefined}><Art name={r.revision.set.species} art={data.art} small/></a>)}</nav></div>
     <SetWorkspace key={`${view.version.id}-${slot}`} team={team} data={data} mutate={mutate} view={view} slot={slot} swap={swap}/>
   </div>;

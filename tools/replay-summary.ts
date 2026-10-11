@@ -50,7 +50,7 @@ Reply as JSON only: {"summary":"1–2 sentences: how the game was won or lost","
 export async function summariseReplay(gameId:string,emit:(e:any,d:any)=>void=()=>{},opts:ChatOptions={}):Promise<ReplaySummary>{
   const game=await readGame(gameId);const db=await readStore();const association=db.associations[gameId];const team=association?db.teams.find(t=>t.id===association.teamId):undefined;
   let sets='No team linked.',setsBasis='none';
-  if(team){const v=currentTeam(db,team,association!.versionId??team.activeVersionId,association!.certainty==='exact'?association!.configurationId:undefined);setsBasis=association!.certainty==='exact'?'exact sets played':`V${v.version.number} current sets (exact sets not confirmed)`;
+  if(team){const v=currentTeam(db,team,association!.versionId??team.activeVersionId,association!.certainty==='exact'?association!.configurationId:undefined);setsBasis=association!.certainty==='exact'?(association!.basis==='auto'?'sets current when played, consistent with the game (spreads unconfirmed)':'exact sets played'):'current sets (the sets played were not matched)';
     sets=v.sets.map(s=>`${s.species} @ ${s.item||'no item'} · ${s.ability} · ${s.nature} · ${(s.moves??[]).join(' / ')}`).join('\n');}
   const other=game.ownSide==='p1'?'p2':'p1';
   const prompt=`Result: ${game.result} (${game.turns.length} turns). Format: ${game.format}.

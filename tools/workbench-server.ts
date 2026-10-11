@@ -83,7 +83,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='POST'&&path==='/api/migrate-legacy'){const input=await body(req);const records=await legacyTeams();const result=await mutateStore(input.revision,db=>{for(const old of records){if(!db.teams.some(t=>t.name===old.id))makeTeam(db,old.id,exportText(old.sets,old.format),old.format);}return {imported:records.length};});return respond(res,200,{revision:result.db.revision,result:result.result});}
     if(req.method==='GET'&&path==='/api/legacy')return respond(res,200,await legacyTeams());
     if(req.method==='POST'&&path==='/api/associate'){
-      const input=await body(req);if(!['family','exact','clear'].includes(input.certainty))throw new Error('Association certainty required');
+      const input=await body(req);if(!['family','exact','clear','auto'].includes(input.certainty))throw new Error('Association certainty required');
       const result=await workflowLock(async()=>{
         const games=await loadGames();const game=games.find(g=>g.id===input.replayId);if(!game)throw new Error('Replay not found');
         const changed=await mutateStore(input.revision,db=>associateReplay(db,game,input));
@@ -96,16 +96,17 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       const input=await body(req);if(typeof input.html!=='string'||input.html.length>6_000_000)throw new Error('Expected replay HTML under 6 MB');
       const result=await saveReplay(input.html,input.association,input.revision);if('status'in result)return respond(res,409,{error:(result as any).reason});if(!(result as any).duplicate)void queueSummaries(input.association?.teamId,[(result as any).id]);return respond(res,200,result);
     }
-    // Batch intake: Showdown replay links and/or HTML files, linked to one team version. Exact links fall back to
-    // a version-level roster link (sets unconfirmed) when recorded moves contradict the saved sets.
+    // Batch intake: Showdown replay links and/or HTML files. By default each replay is linked automatically
+    // (tools/replay-link.ts): the team whose six it matches, at the edit current when it was played. Explicit exact
+    // links fall back to a roster link (sets unconfirmed) when recorded moves contradict the saved sets.
     if(req.method==='POST'&&path==='/api/replays'){
       const input=await body(req);if(!Array.isArray(input.items)||!input.items.length||input.items.length>40)throw new Error('Send 1–40 replays');const results=[];
       for(const item of input.items){const label=item.url??item.name??'replay';
         try{const html=item.url?await showdownReplayHTML(item.url):item.html;if(typeof html!=='string'||html.length>6_000_000)throw new Error('Expected replay HTML under 6 MB');
-          const revision=(await readStore()).revision;let association=input.association,note='';
+          const revision=(await readStore()).revision;let association=input.association??{certainty:'auto'},note='';
           let r:any=await saveReplay(html,association,revision).catch(async e=>{if(association?.certainty!=='exact'||!/absent from this configuration|Roster does not match/.test(e.message))throw e;
             note=e.message;association={teamId:association.teamId,versionId:/Roster/.test(e.message)?undefined:association.versionId,certainty:'family'};return saveReplay(html,association,(await readStore()).revision);});
-          if('status'in r)throw new Error(r.reason);results.push({label,ok:true,id:r.id,duplicate:!!r.duplicate,certainty:association?.certainty??'inbox',...note?{note}:{}});
+          if('status'in r)throw new Error(r.reason);const link=(await readStore()).associations[r.id];results.push({label,ok:true,id:r.id,duplicate:!!r.duplicate,certainty:link?.certainty??'inbox',basis:link?.basis,...note||link?.note?{note:note||link?.note}:{}});
         }catch(e){results.push({label,ok:false,error:(e as Error).message});}}
       // Each new game gets an AI summary in the background, then the team's "what to work on" digest is refreshed.
       const fresh:string[]=[];for(const r of results as any[])if(r.ok&&(!r.duplicate||!(await readSummary(r.id))))fresh.push(r.id);if(fresh.length)void queueSummaries(input.association?.teamId,fresh);

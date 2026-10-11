@@ -7,7 +7,8 @@ export interface Slot {bankId:string;revisionId:string;}
 export interface Configuration {id:string;createdAt:string;slots:Slot[];summary?:string;}
 export interface FormulaVersion {id:string;number:number;createdAt:string;notes:string;configurations:Configuration[];currentConfigurationId:string;label?:string;source?:'paste'|'observed';}
 export interface Formula {id:string;name:string;format:string;activeVersionId:string;versions:FormulaVersion[];}
-export interface ReplayAssociation {teamId:string;versionId?:string;configurationId?:string;certainty:'family'|'exact';}
+// basis 'auto': linked by tools/replay-link.ts (consistent with the game, never proof of spreads); 'player': confirmed by the player.
+export interface ReplayAssociation {teamId:string;versionId?:string;configurationId?:string;certainty:'family'|'exact';basis?:'auto'|'player';note?:string;}
 export interface MatchRecord {id:string;replayIds:string[];notes:string;}
 export interface Benchmark {id:string;bankId:string;revisionId:string;createdAt:string;title:string;kind:'damage'|'speed'|'spread';input:any;result:any;context:string;sources:string[];}
 export interface ReviewScope {teamId?:string;versionId?:string;configurationId?:string;replayIds:string[];}

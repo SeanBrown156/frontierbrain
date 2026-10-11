@@ -1,5 +1,6 @@
 import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
 import {createClient,type Session} from '@supabase/supabase-js';
+import {Sparkles} from 'pixelarticons/react';
 
 // Hosted site only: Supabase Auth. Without VITE_SUPABASE_URL the app runs in local mode with no sign-in at all.
 // Nobody is asked to sign in up front: a first visit starts an anonymous guest session, so work saves straight away.
@@ -96,5 +97,5 @@ function EmailForm({mode,onBack,onDone}:{mode:'create'|'signin';onBack:()=>void;
 
 // Shown in place of an AI control for guests.
 export function SignInForAI({what='AI features'}:{what?:string}){
-  return <div className="signin-for-ai"><p>{what} need an account. Your guest work comes with you.</p><button className="primary" onClick={()=>requireAccount(`Sign in to use ${what}.`)}>Sign in</button></div>;
+  return <div className="signin-for-ai"><p><Sparkles width={16} height={16} aria-hidden="true" className="px-icon"/> {what} need an account. Your guest work comes with you.</p><button className="primary" onClick={()=>requireAccount(`Sign in to use ${what}.`)}>Sign in</button></div>;
 }

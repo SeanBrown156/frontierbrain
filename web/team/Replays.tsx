@@ -31,7 +31,7 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
       {styleOptions.length>0&&<div className="chip-row">{styleOptions.map(s=><button key={s} className={'chip'+(styles.includes(s)?' on':'')} onClick={()=>setStyles(styles.includes(s)?styles.filter(x=>x!==s):[...styles,s])}>{s}</button>)}</div>}
       <div className="segmented" role="group" aria-label="Result">{[['','All'],['win','Wins'],['loss','Losses']].map(([v,l])=><button key={v} className={result===v?'on':''} onClick={()=>setResult(v)}>{l}</button>)}</div>
     </div>}
-    {missing.length>0&&!busy&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}>Summarise {missing.length===1?'it':'them'}</button></p>}
+    {missing.length>0&&!busy&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
     <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)}/>)}
       {games.length>0&&!shown.length&&<p className="muted">No games match these filters.</p>}</div>
     {games.length>=3&&<Patterns games={shown}/>}
@@ -66,31 +66,29 @@ function GameDrawer({g,s,team,data,load,notify,close,resummarise}:{g:any;s:any;t
   const [log,setLog]=useState(''),[linking,setLinking]=useState(false),[turn,setTurn]=useState<number|null>(null);const box=useRef<HTMLPreElement>(null);const o=other(g);
   useEffect(()=>{api('/replay-transcript?id='+encodeURIComponent(g.id)).then(r=>setLog(r.transcript)).catch(()=>{});},[g.id]);
   useEffect(()=>{if(turn===null||!box.current)return;const el=box.current.querySelector(`[data-turn="${turn}"]`);el?.scrollIntoView({block:'start',behavior:'smooth'});},[turn,log]);
-  const v=team.versions.find((x:any)=>x.id===g.association?.versionId);const config=v?.configurations.findIndex((c:any)=>c.id===g.association?.configurationId);
   const lines=log.split('\n');
   return <Modal title={`${g.result==='win'?'Win':g.result==='loss'?'Loss':g.result} vs ${g.players[o].name}`} onClose={close}><div className="game-drawer">
-    <p className="muted">{g.date?date(g.date):''} · {v?versionName(v):'no version'}{g.association?.certainty==='exact'&&config>=0?` · exact sets (edit ${config+1})`:' · sets not confirmed'} · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <button className="text-button" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</button></p>
+    <p className="muted">{g.date?date(g.date):''} · <LinkStatus g={g} team={team} data={data} load={load} notify={notify}/> · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <button className="text-button" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</button></p>
     <div className="selections">{[[g.ownSide,'You'],[o,'Opponent']].map(([side,label])=><div key={side}><span className="eyebrow">{label}</span><div className="six">{g.preview[side].map((m:string)=><span key={m} className={g.leads[side].includes(m)?'lead':g.revealed[side].includes(m)?'brought':'benched'} title={m}><Art name={m} art={data.art} small/></span>)}</div></div>)}<p className="footnote">Leads are outlined; faded Pokémon weren't seen in battle.</p></div>
     {s?<><p className="game-summary big">{s.summary}</p>
       {s.workOn.length>0&&<><h3>Work on</h3><ul className="work-on full">{s.workOn.map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span><b>{w.title}</b>{w.turn&&<button className="text-button" onClick={()=>setTurn(w.turn)}>turn {w.turn}</button>}<p>{w.detail}</p></li>)}</ul></>}
       {s.keyMoments.length>0&&<><h3>Key moments</h3><ol className="moments">{s.keyMoments.map((m:any,i:number)=><li key={i}><button className="text-button" onClick={()=>setTurn(m.turn)}>Turn {m.turn}</button> {m.text}</li>)}</ol></>}
-      <p className="model-line">{s.model} · {date(s.createdAt)} · team sets: {s.setsBasis}{s.stale?' · the link changed since':''} · <button className="text-button" onClick={resummarise}>Re-summarise</button></p></>
-      :<p className="muted">No summary yet. <button className="text-button" onClick={resummarise}>Summarise this game</button></p>}
+      <p className="model-line">{s.model} · {date(s.createdAt)} · team sets: {s.setsBasis}{s.stale?' · the link changed since':''} · <button className="text-button" onClick={resummarise}><Px icon={Sparkles} size={12}/>Re-summarise</button></p></>
+      :<p className="muted">No summary yet. <button className="text-button" onClick={resummarise}><Px icon={Sparkles} size={12}/>Summarise this game</button></p>}
     <details open={turn!==null} onToggle={e=>{if(!(e.target as HTMLDetailsElement).open)setTurn(null);}}><summary>Turn by turn</summary><pre ref={box} className="transcript">{lines.map((l,i)=>{const m=/^Turn (\d+):/.exec(l);return <span key={i} data-turn={m?.[1]} className={m&&Number(m[1])===turn?'hl':''}>{l}{'\n'}</span>;})}</pre></details>
   </div>{linking&&<AssociationDialog game={g} data={data} close={()=>setLinking(false)} load={load} notify={notify}/>}</Modal>;
 }
 
 function AddReplays({team,versionId,load,notify,after}:{team:any;versionId:string;load:()=>Promise<void>;notify:(s:string,e?:boolean)=>void;after:()=>void}){
-  const [links,setLinks]=useState(''),[files,setFiles]=useState<File[]>([]),[exact,setExact]=useState(false),[busy,setBusy]=useState(false),[results,setResults]=useState<any[]>([]);
-  const v=team.versions.find((x:any)=>x.id===versionId)??team.versions.at(-1);
+  const [links,setLinks]=useState(''),[files,setFiles]=useState<File[]>([]),[busy,setBusy]=useState(false),[results,setResults]=useState<any[]>([]);
   const submit=async()=>{setBusy(true);setResults([]);try{const items=[...links.split(/\s+/).filter(l=>l.startsWith('http')).map(url=>({url})),...await Promise.all(files.map(async f=>({name:f.name,html:await f.text()})))];
-      const r=await api('/replays',{items,association:{teamId:team.id,versionId:v.id,configurationId:v.currentConfigurationId,certainty:exact?'exact':'family',confirm:exact}});await load();
-      const ok=r.results.filter((x:any)=>x.ok).length;setResults(r.results.filter((x:any)=>!x.ok||x.note));notify(`${ok} of ${r.results.length} replay(s) added to ${versionName(v)}. Summaries are on the way.`);if(ok===r.results.length){setLinks('');setFiles([]);}after();}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
+      const r=await api('/replays',{items,association:{teamId:team.id,certainty:'auto'}});await load();
+      const ok=r.results.filter((x:any)=>x.ok);const matched=ok.filter((x:any)=>x.certainty==='exact').length;setResults(r.results.filter((x:any)=>!x.ok||x.certainty!=='exact'));notify(`${ok.length} of ${r.results.length} replay(s) added${matched?`; ${matched} matched to your sets at the time`:''}.`);if(ok===r.results.length){setLinks('');setFiles([]);}after();}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
   return <section className="add-replays"><div className="add-row"><textarea rows={links.includes('\n')?3:1} value={links} onChange={e=>setLinks(e.target.value)} placeholder="Paste Showdown replay links (one per line)" aria-label="Showdown replay links"/>
       <label className="button file-button"><Px icon={Upload}/>{files.length?`${files.length} file${files.length===1?'':'s'}`:'HTML files'}<input className="file-input" type="file" multiple accept=".html,.htm" onChange={e=>setFiles([...(e.target.files??[])])}/></label>
       <button className="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</button></div>
-    <label className="radio exact"><input type="checkbox" checked={exact} onChange={e=>setExact(e.target.checked)}/>I played exactly these sets</label>
-    {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?`linked by team only (${r.note})`:r.error}</p>)}
+    <p className="footnote">Each replay links to this team at the sets you had when you played it, checked against what the game showed.</p>
+    {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?(r.certainty==='inbox'?'not linked: its six don\'t match this team':`linked by team only${r.note?` (${r.note})`:''}`):r.error}</p>)}
   </section>;
 }
 
@@ -102,4 +100,15 @@ function Patterns({games}:{games:any[]}){
     <div><h3>Your leads</h3><table><tbody>{leads.map(([pair,r])=><tr key={pair}><td>{pair}</td><td>{r.wins}–{r.losses}</td><td className="muted">{r.games>=5?pct(r.wins,r.games):`n=${r.games}`}</td></tr>)}</tbody></table></div>
     <div><h3>Opponents</h3><table><tbody>{opps.map(([m,r])=><tr key={m}><td>{m}</td><td>{r.previewWins}–{r.preview-r.previewWins}</td><td className="muted">{r.preview>=5?pct(r.previewWins,r.preview):`n=${r.preview}`}</td></tr>)}</tbody></table></div>
   </div><p className="footnote">Below 5 games a record is an observation, not a diagnosis.</p></details>;
+}
+
+// How a game is linked to this team's sets: matched automatically (consistent with the game, not proof of spreads),
+// confirmed by the player, or same six with differences the battle showed.
+function LinkStatus({g,team,data,load,notify}:{g:any;team:any;data:any;load:()=>Promise<void>;notify:(s:string,e?:boolean)=>void}){
+  const a=g.association;if(!a)return <span>not linked</span>;
+  const v=team.versions.find((x:any)=>x.id===a.versionId);const c=v?.configurations.find((x:any)=>x.id===a.configurationId);
+  const confirm=async()=>{try{await api('/associate',{revision:data.db.revision,replayId:g.id,teamId:team.id,versionId:a.versionId,configurationId:a.configurationId,certainty:'exact',confirm:true});await load();notify('Confirmed as your exact sets.');}catch(e){notify((e as Error).message,true);}};
+  if(a.certainty==='exact'&&a.basis==='auto')return <span>sets matched to your team on {date(c?.createdAt)}{a.note?` (${a.note.toLowerCase()})`:''} · <button className="text-button" onClick={()=>void confirm()}>These were my exact sets</button></span>;
+  if(a.certainty==='exact')return <span>exact sets confirmed ({date(c?.createdAt)})</span>;
+  return <span>same six, sets not matched{a.note?`: ${a.note}`:''}</span>;
 }
