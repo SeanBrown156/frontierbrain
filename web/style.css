@@ -529,3 +529,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-play .px-icon,.q
 .new-team>*{width:100%;max-width:none;margin-inline:0;box-sizing:border-box}
 .new-team .signin-for-ai{margin:0}
 .new-team .draft-review label,.new-team .paste-source{width:100%}
+/* Calc: Damage / Speed tabs span the panel. */
+.lab>.tabs{display:grid!important;grid-template-columns:1fr 1fr;gap:var(--s2)!important;width:100%;margin:0 0 var(--s6)!important}
+.lab>.tabs button{width:100%;height:var(--control-height)!important;min-height:var(--control-height)!important;max-height:none!important;font-size:14px!important}
