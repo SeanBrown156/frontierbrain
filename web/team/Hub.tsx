@@ -22,16 +22,12 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
   const shown=all?team.versions.find((v:any)=>v.id===team.activeVersionId):team.versions.find((v:any)=>v.id===versionId);
   const paste=async()=>{try{setExported((await api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`)).paste);}catch(e){notify((e as Error).message);}};
   const rename=async()=>{setRenaming(false);if(name.trim()&&name.trim()!==team.name)await mutate({type:'team-rename',teamId:team.id,name:name.trim()}).catch(()=>setName(team.name));};
-  const r=record(scopedGames);
   return <div className="team-hub">
     <a href="#teams" className="text-button"><Px icon={ArrowLeft} size={12}/>Teams</a>
     <div className="hub-head"><div className="hub-title">{renaming?<input className="rename" aria-label="Team name" autoFocus value={name} onChange={e=>setName(e.target.value)} onBlur={()=>void rename()} onKeyDown={e=>{if(e.key==='Enter')void rename();if(e.key==='Escape'){setName(team.name);setRenaming(false);}}}/>
-        :<h1><button className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></button></h1>}
-        <span className="muted">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'no games yet'}</span>
-        <label className="format-picker"><span>Format</span><select value={team.format} onChange={e=>void mutate({type:'team-format',teamId:team.id,format:e.target.value}).catch(()=>{})}>{FORMATS.some(f=>f.id===team.format)?null:<option value={team.format}>{team.format}</option>}{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label></div>
-      <div className="hub-actions"><Milestone team={team} mutate={mutate}/><button onClick={()=>void paste()}><Px icon={Share}/>Export</button></div></div>
+        :<h1><button className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></button></h1>}</div></div>
     <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav>
-      <label className="version-select"><span className="sr-only">Version</span><select value={all?'all':versionId} onChange={e=>{location.hash=teamHref(team.id,tab,e.target.value);}}><option value="all">{team.versions.length>1?'All versions':versionName(team.versions[0])}</option>{team.versions.map((v:any)=><option key={v.id} value={v.id}>{versionName(v)}{v.id===team.activeVersionId?' (current)':''} · {record(teamGames.filter((x:any)=>x.association?.versionId===v.id)).label}</option>)}</select></label></div>
+      <div className="version-bar"><VersionPicker team={team} tab={tab} versionId={versionId} all={all} games={teamGames} mutate={mutate}/><button onClick={()=>void paste()}><Px icon={Share}/>Export</button></div></div>
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
     {tab==='replays'&&<Replays team={team} data={data} versionId={all?'all':versionId} load={load} notify={notify}/>}
@@ -42,13 +38,14 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
 function Overview({team,data,version,mutate}:{team:any;data:any;version:any;mutate:(a:any)=>Promise<any>}){
   const view=getView(team,data.db,version.id);const active=version.id===team.activeVersionId;const current=team.versions.find((v:any)=>v.id===team.activeVersionId);
   return <div className="hub-overview">
+    <div className="overview-meta"><label className="format-picker"><span>Format</span><select value={team.format} onChange={e=>void mutate({type:'team-format',teamId:team.id,format:e.target.value}).catch(()=>{})}>{FORMATS.some(f=>f.id===team.format)?null:<option value={team.format}>{team.format}</option>}{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label></div>
     {!active&&<div className="notice warn">Viewing {versionName(version)}, an older version (read-only). <a className="button" href={teamHref(team.id,'overview',team.activeVersionId)}>Back to {versionName(current)}</a><button onClick={()=>{if(confirm(`Bring back ${versionName(version)}'s six as a new version (V${team.versions.length+1})? Nothing is deleted.`))void mutate({type:'team-milestone',teamId:team.id,fromVersionId:version.id}).then(r=>{location.hash=teamHref(team.id,'overview',r.result.versionId);}).catch(()=>{});}}>Make it the current team</button></div>}
     {version.source==='observed'&&<p className="footnote">Rebuilt from replays: <b>bold</b> moves were seen in battle; anything tagged “guess” is an assumption.</p>}
     <div className="six-grid">{view.revisions.map(({revision},i)=>{const s=revision.set;const obs=revision.provenance==='observed';return <a key={i} className={'mon-card'+(active?'':' read-only')} href={monHref(team.id,version.id,i)} aria-label={`${s.species}: open set and calc`}>
       <div className="mon-card-head"><Art name={s.species} art={data.art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}</h3><span>{s.item?'@ '+s.item:'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}</span><p>{s.ability} · {s.nature}</p></div></div>
       <p className="sp-line">{stats.filter(k=>(s.statPoints?.[k]??0)>0).map(k=><span key={k}>{statLabel[k]} {s.statPoints![k]}</span>)}{!stats.some(k=>(s.statPoints?.[k]??0)>0)&&'No stat points'}</p>
       <ul className="move-list">{s.moves?.map(m=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
-      {active&&<span className="card-swap" role="button" tabIndex={0} onClick={e=>{e.preventDefault();location.hash=monHref(team.id,version.id,i,true);}} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();location.hash=monHref(team.id,version.id,i,true);}}}>Swap</span>}</a>;})}</div>
+</a>;})}</div>
   </div>;
 }
 // Lead and matchup drafts that came with an AI team are added to Coaching as proposals to accept there.
@@ -68,12 +65,18 @@ function Strategy({team,version,all,mutate}:{team:any;version:any;all:boolean;mu
   </section>;
 }
 // "Save as V2": versions are milestones the player chooses (e.g. before an event). Edits in between are logged quietly.
-function Milestone({team,mutate}:{team:any;mutate:(a:any)=>Promise<any>}){
-  const current=team.versions.find((v:any)=>v.id===team.activeVersionId);const edits=current.configurations.length-1;const [open,setOpen]=useState(false),[label,setLabel]=useState(''),[busy,setBusy]=useState(false);
-  const save=async()=>{setBusy(true);try{const r=await mutate({type:'team-milestone',teamId:team.id,parentConfigurationId:current.currentConfigurationId,label});setOpen(false);setLabel('');location.hash=teamHref(team.id,'overview',r.result.versionId);}catch{}finally{setBusy(false);}};
-  return <div className="milestone"><span className="muted" title="Edits are kept in the version's edit log">{versionName(current)} · {edits?`${edits} edit${edits===1?'':'s'} since saved`:'no edits since saved'}</span>
-    {open?<span className="milestone-form"><input autoFocus aria-label="Version name" placeholder={`V${team.versions.length+1} name (optional)`} value={label} onChange={e=>setLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void save();if(e.key==='Escape')setOpen(false);}}/><button className="primary" disabled={busy} onClick={()=>void save()}>Save V{team.versions.length+1}</button><button onClick={()=>setOpen(false)}>Cancel</button></span>
-      :<button onClick={()=>setOpen(true)} title="Keep this six as a version you can come back to (e.g. before a tournament)">Save as V{team.versions.length+1}</button>}</div>;
+// Version picker: switch versions, or "Save as new version…" to keep the current six as a milestone you can come back
+// to (e.g. before a tournament). Edits between milestones are logged quietly on the version.
+function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:string;versionId:string;all:boolean;games:any[];mutate:(a:any)=>Promise<any>}){
+  const current=team.versions.find((v:any)=>v.id===team.activeVersionId);const edits=current.configurations.length-1;const next=team.versions.length+1;
+  const [saving,setSaving]=useState(false),[label,setLabel]=useState(''),[busy,setBusy]=useState(false);
+  const save=async()=>{setBusy(true);try{const r=await mutate({type:'team-milestone',teamId:team.id,parentConfigurationId:current.currentConfigurationId,label});setSaving(false);setLabel('');location.hash=teamHref(team.id,'overview',r.result.versionId);}catch{}finally{setBusy(false);}};
+  const describe=(v:any)=>`${versionName(v)}${v.id===team.activeVersionId?` (current${edits?` · ${edits} edit${edits===1?'':'s'}`:''})`:''}${(r=>r.n?` · ${r.label}`:'')(record(games.filter((x:any)=>x.association?.versionId===v.id)))}`;
+  if(saving)return <span className="milestone-form"><input autoFocus aria-label="Version name" placeholder={`V${next} name (optional)`} value={label} onChange={e=>setLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void save();if(e.key==='Escape')setSaving(false);}}/><button className="primary" disabled={busy} onClick={()=>void save()}>Save V{next}</button><button onClick={()=>setSaving(false)}>Cancel</button></span>;
+  return <label className="version-select"><span className="sr-only">Version</span><select value={all?'all':versionId} onChange={e=>{if(e.target.value==='new')return setSaving(true);location.hash=teamHref(team.id,tab,e.target.value);}}>
+    {team.versions.length>1&&<option value="all">All versions</option>}
+    {team.versions.map((v:any)=><option key={v.id} value={team.versions.length>1?v.id:'all'}>{describe(v)}</option>)}
+    <option value="new">Save as new version (V{next})…</option></select></label>;
 }
 // Every version, newest first, each with its edit log. Older edits can be viewed and restored; nothing is overwritten.
 function Versions({team,data,games,mutate}:{team:any;data:any;games:any[];mutate:(a:any)=>Promise<any>}){
