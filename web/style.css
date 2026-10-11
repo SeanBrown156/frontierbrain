@@ -457,3 +457,4 @@ button:disabled{opacity:.55;cursor:not-allowed}
  .masthead{position:sticky!important;top:0;z-index:50;margin:0 calc(-1 * var(--s4)) var(--s2)!important;border-width:0 0 2px!important;box-shadow:0 2px 0 var(--shadow)}
  .menu-open .masthead-nav{max-height:calc(100dvh - 72px);overflow-y:auto;overscroll-behavior:contain}
 }
+@media(min-width:721px){.ticker{margin-bottom:0!important}.ticker+.masthead{margin-top:0!important;border-top-width:0!important}}
