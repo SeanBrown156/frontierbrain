@@ -4,11 +4,13 @@ import {api,Modal,Notice,Tabs,Markdown,PokeIcon} from '../ui.tsx';
 import {Px,Sparkles} from '../icons.tsx';
 import {teamHref} from './Hub.tsx';
 import {ModelPicker} from '../ai/AssistDock.tsx';
+import {useAccount,canUseAI,SignInForAI} from '../auth.tsx';
 
 const newId=()=>Math.random().toString(36).slice(2,12);
 // "+ New team": build from a prompt (AI researches with usage data and calcs, rules-checked locally),
 // or import a Showdown paste / PokePaste link. Nothing is saved until "Create team".
 export default function NewTeam({mutate,load,onClose,notify,review}:{mutate:(a:any)=>Promise<any>;load:()=>Promise<void>;onClose:()=>void;notify:(s:string)=>void;review?:{jobId:string;proposal:any}}){
+  const account=useAccount();
   const [tab,setTab]=useState(review?'Paste or PokePaste link':'From tournaments'),[prompt,setPrompt]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const initial=review?{...review.proposal,sets:review.proposal.roles??[]}:null;
   const [draft]=useState<any>(initial),[name,setName]=useState(initial?.name??''),[paste,setPaste]=useState(initial?.paste??''),[strategy,setStrategy]=useState(initial?.strategy??''),[link,setLink]=useState(''),[slots,setSlots]=useState<{species:string;spread:string;basis:string}[]>([]);
@@ -24,7 +26,7 @@ export default function NewTeam({mutate,load,onClose,notify,review}:{mutate:(a:a
     }catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   const hasPaste=paste.trim().length>0;
   return <Modal title={review?'Review AI draft':'New team'} onClose={onClose}><div className="new-team">{!review&&<Tabs tabs={['From tournaments','Build from a prompt','Paste or PokePaste link']} value={tab} onChange={setTab}/>}
-    {tab==='Build from a prompt'&&<><label>What should this team do?<textarea rows={5} value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. A Trick Room team around Mega Gengar Perish Song with a Belly Drum Kommo-o win condition. It should handle Rillaboom/Incineroar balance and Tailwind offense."/></label>
+    {tab==='Build from a prompt'&&!canUseAI(account)&&<SignInForAI what="AI team builds"/>}{tab==='Build from a prompt'&&canUseAI(account)&&<><label>What should this team do?<textarea rows={5} value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. A Trick Room team around Mega Gengar Perish Song with a Belly Drum Kommo-o win condition. It should handle Rillaboom/Incineroar balance and Tailwind offense."/></label>
       <div className="button-row"><button className="primary" disabled={busy||!prompt.trim()} onClick={()=>void build()}><Px icon={Sparkles}/>{busy?'Starting…':'Build team'}</button><span className="muted">Model</span><ModelPicker tier="build"/></div>
       <p className="footnote">Takes a few minutes: it researches the data pool, runs calcs and checks the rules. You can keep using the app meanwhile.</p></>}
     {tab==='From tournaments'&&!review&&(slots.length?<div className="picked-team"><span>Picked <b>{name}</b></span><button className="text-button" onClick={()=>{setSlots([]);setPaste('');setName('');setStrategy('');}}>Choose a different team</button></div>:<TournamentPicker onPick={d=>{setName(d.name);setPaste(d.paste);setStrategy(d.notes);setSlots(d.slots);}} busy={busy} setError={setError}/>)}

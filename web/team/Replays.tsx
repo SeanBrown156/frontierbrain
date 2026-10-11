@@ -1,3 +1,5 @@
+import ShowdownName from './ShowdownName.tsx';
+import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
 import {useState,useEffect,useRef} from 'react';
 import {api,Art,Modal,date,pct,downloadOriginal} from '../ui.tsx';
 import {Px,Upload,Sparkles,Reload} from '../icons.tsx';
@@ -16,11 +18,12 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
   const refresh=async()=>{try{setInfo(await api('/replay-summaries?team='+team.id));}catch{}};
   useEffect(()=>{void refresh();},[team.id,games.length]);
   useEffect(()=>{if(!info.running.length)return;const t=setInterval(()=>void refresh(),3000);return()=>clearInterval(t);},[info.running.length]);
-  const summarise=async(gameIds:string[])=>{try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
+  const ai=canUseAI(useAccount());
+  const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in to get AI summaries of your replays.');try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
   const shown=games.filter((g:any)=>(!result||g.result===result)&&mons.every(m=>g.preview[other(g)].includes(m))&&styles.every(s=>info.summaries[g.id]?.opponentStyle?.includes(s)));
   const styleOptions=[...new Set(Object.values<any>(info.summaries).flatMap(s=>s.opponentStyle))];
   const missing=games.filter((g:any)=>!info.summaries[g.id]).map((g:any)=>g.id);const busy=info.running.length>0;
-  return <div className="replays">
+  return <div className="replays">{!data.profile?.player&&<ShowdownName reload={load}/>}
     <Digest team={team} games={games} info={info} busy={busy} refresh={()=>void summarise([])} art={data.art}/>
     <AddReplays team={team} versionId={all?team.activeVersionId:versionId} load={load} notify={notify} after={()=>setTimeout(()=>void refresh(),800)}/>
     {games.length>0&&<div className="replay-filters">

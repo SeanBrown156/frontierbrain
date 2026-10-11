@@ -90,23 +90,24 @@ function Versions({team,data,games,mutate}:{team:any;data:any;games:any[];mutate
   </div>;
 }
 
+// "gen9championsvgc2026regmc" → "Champions M-C"; anything unrecognised is shown as stored.
+export const formatLabel=(f:string)=>{const m=/champions.*reg([a-z])([a-z])?$/.exec(f??'');return m?`Champions ${m[1].toUpperCase()}${m[2]?'-'+m[2].toUpperCase():''}`:f||'Unknown format';};
 export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void;reload?:()=>Promise<void>}){
   const inbox=data.games.filter((g:any)=>!g.association);
-  return <div className="teams-landing"><div className="landing-head"><div><span className="facility-label" aria-hidden="true">FRONTIER PASS / TEAM FACILITY</span><p className="eyebrow">POKÉMON CHAMPIONS / REGULATION M-C</p><h1>Your teams</h1></div><button className="primary" onClick={onImport}><Px icon={Plus}/>New team</button></div>
-    <div className="frontier-record"><div><span className="eyebrow">TRAINER RECORD</span><strong>{data.profile?.player||'Welcome, Trainer'}</strong></div><div><span className="eyebrow">Teams</span><b>{data.teams.length}</b></div><div><span className="eyebrow">Saved replays</span><b>{data.games.length}</b></div><span className="pass-seal" aria-hidden="true">VIII</span></div>
-    {!data.profile?.player&&<ShowdownName reload={reload}/>}
+  return <div className="teams-landing"><div className="landing-head"><h1>Your teams</h1></div>
     <BuildJobs onReview={onReview} art={data.art}/>
-    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3><span className="tag">V{t.view.version.number}{t.view.version.label?` · ${t.view.version.label}`:''}</span></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span/><span>{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}</span></div></a>;})}</div>
+    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3><span className="tag">V{t.view.version.number}{t.view.version.label?` · ${t.view.version.label}`:''}</span></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><Art key={i} name={s.species} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span><span>{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}</span></div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
     {inbox.length>0?<Notice>{inbox.length} replay(s) aren't linked to a team. <a href="#inbox">Open the inbox →</a></Notice>:null}
     <SampleTeams data={data} reload={reload}/>
-    {!data.teams.length&&<div className="empty-teams"><p>No teams yet. Describe one and Frontier Brain will research and build it, or bring a paste.</p><button className="primary" onClick={onImport}><Px icon={Plus}/>New team</button></div>}</div>;
+    </div>;
 }
 
 // Background team builds: live steps while running, then a draft to review.
 const buildSteps:Record<string,string>={meta_overview:'Read the meta',team_pool_sets:'Pool sets',standard_set:'Typical set',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',usage_data:'Usage data',dex_lookup:'Dex',get_team:'Team',validation:'Rules check'};
 function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>void;art:any}){
   const [jobs,setJobs]=useState<any[]>([]);
-  useEffect(()=>{let alive=true;const tick=()=>api('/ai-jobs').then(j=>{if(alive)setJobs(j.filter((x:any)=>x.area==='build'&&!x.dismissed));}).catch(()=>{});void tick();const t=setInterval(()=>void tick(),2500);return()=>{alive=false;clearInterval(t);};},[]);
+  // Polls only while a build is running (checked once on load, then after starting one, which reloads this page).
+  useEffect(()=>{let alive=true,timer:any;const tick=()=>api('/ai-jobs').then(j=>{if(!alive)return;const builds=j.filter((x:any)=>x.area==='build'&&!x.dismissed);setJobs(builds);if(builds.some((x:any)=>x.status==='running'))timer=setTimeout(tick,2500);}).catch(()=>{});void tick();return()=>{alive=false;clearTimeout(timer);};},[]);
   if(!jobs.length)return null;
   return <div className="build-jobs">{jobs.map(j=>{const team=j.result?.proposals?.find((p:any)=>p.kind==='team');const last=j.steps.at(-1);return <article key={j.id} className={'build-job '+j.status}><div><span className="eyebrow">{j.status==='running'?'BUILDING…':j.status==='done'?'DRAFT READY':j.status==='failed'?'BUILD FAILED':'INTERRUPTED'}</span><h3>{team?.name??j.title}</h3>
       {j.status==='running'&&<p className="muted">{j.steps.length} research step(s){last?` · ${buildSteps[last.name]??last.name}${last.input?`: ${last.input}`:''}`:' · starting'}</p>}
@@ -115,14 +116,6 @@ function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>voi
 }
 
 // Replays are read from the player's side, so Frontier Brain needs their Showdown name (and any alts).
-function ShowdownName({reload}:{reload?:()=>Promise<void>}){
-  const [name,setName]=useState(''),[aliases,setAliases]=useState(''),[error,setError]=useState('');
-  const save=async()=>{try{await api('/profile',{player:name,aliases:aliases.split(',').map(a=>a.trim()).filter(Boolean)});await reload?.();}catch(e){setError((e as Error).message);}};
-  return <form className="profile-card" onSubmit={e=>{e.preventDefault();void save();}}><div><h3>What's your Showdown name?</h3><p className="muted">Replays are reviewed from your side, so Frontier Brain needs to know which player is you.</p></div>
-    <label>Showdown name<input required value={name} onChange={e=>setName(e.target.value)} placeholder="YourName"/></label>
-    <label>Other names (optional)<input value={aliases} onChange={e=>setAliases(e.target.value)} placeholder="alt1, alt2"/></label>
-    <button className="primary" disabled={!name.trim()}>Save</button>{error&&<p className="error">{error}</p>}</form>;
-}
 
 // Starter teams: recent tournament top-8 lists with the players' shared spreads, plus a ladder team with replays.
 function SampleTeams({data,reload}:{data:any;reload?:()=>Promise<void>}){

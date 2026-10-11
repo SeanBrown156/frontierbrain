@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {accessToken} from './auth.tsx';
 import {aiHeaders} from './ai/keys.tsx';
+import {hostedSite} from './auth.tsx';
 // Every request carries the session token on the hosted site (accounts and guests); locally there is none.
 async function headers(json:boolean){const h:Record<string,string>={...json?{'Content-Type':'application/json'}:{},...aiHeaders()};const token=await accessToken();if(token)h.Authorization=`Bearer ${token}`;return h;}
 export async function api(path:string,input?:unknown){const response=await fetch('/api'+path,input===undefined?{headers:await headers(false)}:{method:'POST',headers:await headers(true),body:JSON.stringify(input)});const data=await response.json();if(!response.ok)throw new Error(data.error??`Request failed (${response.status})`);return data;}
@@ -11,7 +12,7 @@ export async function downloadOriginal(id:string){const response=await fetch('/a
 export const speciesId=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
 export const date=(s:string)=>new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}).format(new Date(s.length===10?s+'T12:00:00Z':s));
 export const pct=(wins:number,games:number)=>games?`${(100*wins/games).toFixed(1)}%`:'—';
-export function Art({name,art,small=false}:{name:string;art:any;small?:boolean}){const [failed,setFailed]=useState(false);const record=art[speciesId(name)];return <span className={'art '+(small?'small':'')} title={name}>{record?.state==='cached'&&!failed?<img src={`/api/art?id=${speciesId(name)}`} alt={name} loading="lazy" onError={()=>setFailed(true)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
+export function Art({name,art,small=false}:{name:string;art:any;small?:boolean}){const [failed,setFailed]=useState(false);const record=art[speciesId(name)];return <span className={'art '+(small?'small':'')} title={name}>{record?.state==='cached'&&!failed?<img src={hostedSite&&/^https:\/\/raw\.githubusercontent\.com\//.test(record.url??'')?record.url:`/api/art?id=${speciesId(name)}`} alt={name} loading="lazy" onError={()=>setFailed(true)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
 // Box icon from the locally cached Showdown sheet (12 columns of 40×30); blank cell when unknown.
 export function PokeIcon({n}:{n?:number}){return <span className="poke-icon" aria-hidden="true" style={n?{backgroundPosition:`-${(n%12)*40}px -${Math.floor(n/12)*30}px`}:{backgroundImage:'none'}}/>;}
 export function Panel({title,kicker,children,className='',action}:{title:string;kicker?:string;children:ReactNode;className?:string;action?:ReactNode}){return <section className={'panel '+className}><header className="panel-heading"><div>{kicker&&<span className="eyebrow">{kicker}</span>}<h2>{title}</h2></div>{action}</header>{children}</section>;}

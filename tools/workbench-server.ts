@@ -24,6 +24,7 @@ import {typicalSet} from './typical-set.ts';
 import {hostedConfig,hostedHandler} from './hosted.ts';
 import {addSamples,seedNewWorkspace} from './samples.ts';
 import {searchPoolTeams,poolTeamDraft} from './pool-import.ts';
+import {createBackup,restoreBackup} from './backup.ts';
 
 function respond(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
 const WEB_PORT=Number(process.env.WEB_PORT??5173),API_PORT=Number(process.env.API_PORT??5174);
@@ -68,6 +69,8 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='GET'&&path==='/api/dashboard'){if(storageRoot===ROOT)await seedNewWorkspace().catch(e=>console.error('Sample teams not added:',(e as Error).message));return respond(res,200,await dashboard(storageRoot));}
     if(req.method==='GET'&&path==='/api/pool-teams'){const lane=url.searchParams.get('lane');return respond(res,200,await searchPoolTeams({q:url.searchParams.get('q')??'',lane:['official','online','shared'].includes(lane??'')?lane as any:undefined,limit:Number(url.searchParams.get('limit')??40)}));}
     if(req.method==='GET'&&path==='/api/pool-team')return respond(res,200,await poolTeamDraft(url.searchParams.get('id')??''));
+    if(req.method==='GET'&&path==='/api/backup')return respond(res,200,await createBackup());
+    if(req.method==='POST'&&path==='/api/restore')return respond(res,200,await restoreBackup(await body(req)));
     if(req.method==='POST'&&path==='/api/samples')return respond(res,200,await addSamples());
     if(req.method==='GET'&&path==='/api/jobs')return respond(res,200,await jobHistory());
     if(req.method==='GET'&&path==='/api/coach-stats'){const ids=(url.searchParams.get('ids')??'').split(',');const games=await loadGames();return respond(res,200,coachStats(games.filter(g=>ids.includes(g.id))));}

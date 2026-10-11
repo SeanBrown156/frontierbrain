@@ -2,7 +2,7 @@
 // ("themes across games"). Runs on the chat model tier. Inputs are a compact, chat-free transcript built from the
 // parsed log, so the model judges decisions from the recorded sequence; counts in the digest are recomputed here.
 import {createHash} from 'node:crypto';
-import {json,optionalJSON,save,dataContext} from './io.ts';
+import {json,optionalJSON,save,dataContext,activeAI} from './io.ts';
 import {keepAlive} from './keep-alive.ts';
 import type {Game,ReplayIndex} from './replays.ts';
 import {chatJSON,type ChatOptions} from './chat.ts';
@@ -92,6 +92,7 @@ export async function readDigest(teamId:string){return optionalJSON<TeamDigest|n
 // One queue per owner, so users never wait on each other's summaries.
 const queues=new Map<string,Promise<unknown>>();
 export function queueSummaries(teamId:string|undefined,gameIds:string[],digest=true){
+  if(!activeAI())return Promise.resolve(); // no key, no summaries (guests, or a player who hasn't added one)
   const owner=dataContext().userId??'local';let queue=queues.get(owner)??Promise.resolve();
   for(const id of gameIds)queue=queue.then(()=>new Promise<void>(done=>{const job=startTask('replay-summary',`Summarise ${id}`,{teamId},[],async(emit,signal)=>{const s=await summariseReplay(id,emit,{signal});return {value:s,model:s.model};});
     const wait=setInterval(()=>{if(job.status!=='running'){clearInterval(wait);done();}},500);}));

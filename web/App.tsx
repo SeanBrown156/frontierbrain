@@ -8,11 +8,12 @@ import PokemonWorkspace from './team/PokemonWorkspace.tsx';
 import NewTeam from './team/NewTeam.tsx';
 import DataPool from './DataPool.tsx';
 import Coach from './Coach.tsx';
-import {AccountMenu,type Account} from './auth.tsx';
+import {hostedSite} from './auth.tsx';
+import AccountMenu from './AccountMenu.tsx';
 
 // Old Pokémon links carried a configuration id (#team/<id>/mon/<version>/<config>/<slot>); they now open the current set.
 const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[2]==='mon'&&p[4]?.startsWith('config-')?[...p.slice(0,4),p[5]].join('/'):hash;};
-export default function App({account}:{account:Account}){
+export default function App(){
   const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||'teams'),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
   // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
@@ -22,7 +23,11 @@ export default function App({account}:{account:Account}){
   useEffect(()=>{void load();const handler=()=>{if(location.hash===lastHash.current)return;if(hasDirty()&&!confirmDiscard()){history.replaceState(null,'',lastHash.current||'#teams');return;}
       const fixed=normalise(location.hash.slice(1));if(fixed!==location.hash.slice(1))history.replaceState(null,'','#'+fixed);lastHash.current=location.hash;setRoute(fixed||'teams');scrollTo({top:0});};
     addEventListener('hashchange',handler);return()=>removeEventListener('hashchange',handler);},[load]);
-  useEffect(()=>{let alive=true;const tick=async()=>{try{const result=await api('/jobs');if(alive)setJobs(result);}catch{}};void tick();const timer=setInterval(()=>{void tick();void load();},10000);return()=>{alive=false;clearInterval(timer);};},[load]);
+  useEffect(()=>{let alive=true;const tick=async()=>{try{const result=await api('/jobs');if(alive)setJobs(result);}catch{}};void tick();
+    // No constant polling: local background jobs are checked every 10 s (local only); the workspace reloads when you come back to the tab.
+    const timer=hostedSite?undefined:setInterval(()=>void tick(),10000);let last=Date.now();
+    const back=()=>{if(document.visibilityState==='visible'&&Date.now()-last>30000){last=Date.now();void load();}};document.addEventListener('visibilitychange',back);
+    return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',back);};},[load]);
   useEffect(()=>{if(!message||message.error)return;const t=setTimeout(()=>setMessage(null),4000);return()=>clearTimeout(t);},[message]);
   const notify=(text:string,isError=false)=>setMessage({text,error:isError});
   const mutate=async(action:any)=>{saving();try{const result=await api('/action',{revision:revision.current??data.db.revision,action});revision.current=result.revision;await load();saved();return result;}catch(e){failed((e as Error).message);notify((e as Error).message,true);throw e;}};
@@ -32,7 +37,7 @@ export default function App({account}:{account:Account}){
   const parts=route.split('/');const team=parts[0]==='team'?data?.teams.find((t:any)=>t.id===parts[1]):null;const pageData=data?{...data,jobs}:null;
   const dock:DockContext|null=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:null;
   const withDock=!!dock&&dockOpen;
-  return <div className={'shell'+(withDock?' with-dock':'')}>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className="masthead"><a href="#teams" className="brand"><img className="brand-logo" src="/favicon.svg" alt="" width={32} height={32}/><span>Frontier Brain</span></a>{data&&<QuickLinks sources={data.sources}/>}<span className="masthead-spacer"/><AccountMenu account={account}/><SavePill/></header>
+  return <div className={'shell'+(withDock?' with-dock':'')}>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className="masthead"><a href="#teams" className="brand"><img className="brand-logo" src="/favicon.svg" alt="" width={32} height={32}/><span>Frontier Brain</span></a><div className="masthead-nav">{data&&<QuickLinks sources={data.sources}/>}<AccountMenu profile={data?.profile} reload={load} notify={notify}/></div><span className="masthead-spacer"/><SavePill/></header>
     <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button aria-label="Dismiss notification" onClick={()=>setMessage(null)}>×</button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
     {!data?<Empty>Opening Frontier Brain…</Empty>:<>
       {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
@@ -44,7 +49,7 @@ export default function App({account}:{account:Account}){
       {route==='data'&&<><a href="#teams" className="text-button">← Teams</a><DataPool art={data.art}/></>}
       {route==='references'&&<><a href="#teams" className="text-button">← Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
       {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
-    </>}</main><footer className="footer"><span>FRONTIER BRAIN · Champions M-C</span><span>Pokémon illustrations © Pokémon / Nintendo / Creatures / GAME FREAK. Unofficial, private tool.</span></footer>
+    </>}</main><footer className="footer"><span>FRONTIER BRAIN</span><span>Pokémon illustrations © Pokémon / Nintendo / Creatures / GAME FREAK. Unofficial, private tool.</span></footer>
     {team&&dock&&pageData&&<AssistDock key={team.id} team={team} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
     {importing&&<NewTeam mutate={mutate} load={load} notify={notify} review={importing.review} onClose={()=>setImporting(false)}/>} {newsOpen&&data&&<Modal title="This week in Champions VGC" onClose={()=>setNewsOpen(false)}><News weeks={data.news} jobs={jobs} run={run}/></Modal>} {report!==null&&<Modal title="Research notebook" onClose={()=>setReport(null)}><Markdown text={report}/></Modal>}
   </div>;
@@ -54,7 +59,8 @@ function SavePill(){const {status,dirty}=useSaveState();const time=(t?:number)=>
   if(dirty.length)return <span className="save-pill dirty" role="status"><i/>Unsaved: {[...new Set(dirty)].join(', ')}</span>;
   if(status.state==='saving')return <span className="save-pill" role="status">Saving…</span>;
   if(status.state==='error')return <span className="save-pill error" role="status" title={status.error}><Px icon={WarningDiamond} size={12}/>Save failed</span>;
-  return <span className="save-pill ok" role="status"><Px icon={Check} size={12}/>{status.state==='saved'?`Saved ${time(status.at)}`:'All changes saved'}</span>;}
+  return null; // saved is the normal state; only problems and pending work are shown
+}
 // Headlines from the saved weekly briefings. A headline opens its source; anywhere else opens the week's briefing.
 function Ticker({weeks,openNews}:{weeks:any[];openNews:()=>void}){
   const items=weeks.flatMap((w:any)=>[...(w.signals??[]).map((s:any)=>({text:s.title,tag:s.kind==='measured'?'DATA':s.kind==='community'?'CHATTER':'REPORT',url:w.articles.find((a:any)=>s.articleIds?.includes(a.id))?.url})),...w.articles.map((a:any)=>({text:a.title,tag:a.source,url:a.url}))]).slice(0,16);

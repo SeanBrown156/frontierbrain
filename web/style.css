@@ -355,3 +355,75 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
  .masthead .quickbar-group>button{width:100%;justify-content:center}
  .dock-toggle{left:16px;right:16px;width:calc(100vw - 32px);justify-content:center;box-shadow:0 0 0 16px var(--page)}
 }
+/* Outlined buttons (owner's call: keep the first version's clear outlines). Every non-text button is a cream
+   panel with an ink outline and a small offset shadow; primary stays solid emerald, danger outlined red. */
+button:not(.text-button):not(.title-button):not(.pool-row):not(.primary):not(.danger):not(.account-button),.button{background:var(--paper);color:var(--ink);border:1px solid var(--ink);box-shadow:1px 2px 0 var(--shadow)}
+button:not(.text-button):not(.title-button):not(.primary):not(.danger):not(.account-button):hover,.button:hover{background:var(--hover);border-color:var(--ink)}
+.primary{border:1px solid var(--emerald-shade);box-shadow:1px 2px 0 var(--shadow)}
+.tabs .selected,.week-tabs .selected,.segmented button.on,.choose.on{background:var(--action)!important;color:var(--inverse)!important;border-color:var(--emerald-shade)!important}
+/* Top nav: left-aligned under the brand, each item an outlined cream-on-emerald button. */
+.masthead .quickbar{justify-content:flex-start!important;gap:var(--s2)!important}
+.masthead .quickbar-group>button,.masthead .quickbar-play,.masthead .quickbar-all{height:var(--control-height);display:inline-flex;align-items:center;gap:var(--s2);padding:0 var(--s3)!important;background:transparent!important;color:var(--inverse)!important;border:1px solid #fffdf3b3!important;border-radius:2px;box-shadow:1px 2px 0 #00000033!important;font:600 14px/1.2 var(--font)}
+.masthead .quickbar-group>button:hover,.masthead .quickbar-group.open>button,.masthead .quickbar-play:hover,.masthead .quickbar-all:hover{background:var(--emerald-shade)!important;border-color:var(--trainer-lime)!important}
+@media(min-width:721px){.masthead{display:flex!important;flex-direction:row!important;flex-wrap:wrap;align-items:center}.masthead .brand{margin-right:auto}.masthead .quickbar{order:3;flex-basis:100%;width:100%}}
+.modal>header button,.toast button{border-color:transparent!important;box-shadow:none!important;background:transparent!important}
+button:disabled{opacity:.55;cursor:not-allowed}
+/* Avatar and sign-in */
+.account-menu{position:relative;margin:0}
+.account-button{height:var(--control-height);min-height:var(--control-height);display:inline-flex;align-items:center;gap:var(--s2);padding:0 var(--s3) 0 var(--s1);border:1px solid var(--paper);border-radius:999px;background:transparent;color:var(--inverse);box-shadow:none;font:600 14px/1 var(--font)}
+.account-button:hover{background:var(--emerald-shade);color:var(--inverse);border-color:var(--trainer-lime)}
+.account-button[aria-label]{padding:0 var(--s1)}
+.avatar{width:32px;height:32px;border-radius:50%;display:inline-grid;place-items:center;background:var(--paper);color:var(--emerald-deep);font:600 15px/1 var(--display);border:2px solid var(--trainer-lime)}
+.avatar.guest{background:var(--emerald-shade);color:var(--inverse)}
+.account-pop{position:absolute;right:0;top:calc(100% + 8px);z-index:40;width:280px;text-align:left}
+.account-pop button{width:100%}
+.signin-dialog{width:min(460px,95vw)}
+.signin-body{display:grid;gap:var(--s4)}.signin-body p{margin:0;line-height:1.55}
+.signin-body .welcome-actions{display:grid;gap:var(--s2)}.signin-body .welcome-actions button{width:100%}
+.signin-body .text-button{justify-self:center}
+.signin-for-ai{display:grid;gap:var(--s3);justify-items:center;text-align:center;margin:var(--s4);padding:var(--s4);border:1px dashed var(--frame);background:var(--tint)}
+.signin-for-ai p{margin:0}
+.backup-panel .button-row{justify-content:flex-start}
+.masthead-new{background:var(--paper)!important;color:var(--emerald-deep)!important;border:1px solid var(--paper)!important;box-shadow:1px 2px 0 #00000033!important}
+.masthead-new:hover{background:var(--trainer-lime)!important;color:var(--emerald-shade)!important}
+/* Teams page: every section spans the same full content column (record, profile, samples, builds, team grid). */
+.teams-landing>*,.teams-landing .frontier-record,.teams-landing .profile-card,.teams-landing .sample-offer,.teams-landing .empty-teams,.teams-landing .build-jobs{width:100%;max-width:none;margin-inline:0;box-sizing:border-box}
+.teams-landing .profile-card{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;text-align:left}
+.teams-landing .profile-card>div{grid-column:1/-1}
+.teams-landing .frontier-record{grid-template-columns:minmax(0,2fr) 1fr 1fr 48px}
+@media(max-width:720px){.teams-landing .profile-card{grid-template-columns:minmax(0,1fr)}.teams-landing .frontier-record{grid-template-columns:1fr 1fr}.teams-landing .frontier-record>div:first-child{grid-column:1/-1}}
+.teams-landing .frontier-record{grid-template-columns:minmax(0,2fr) 1fr 1fr}
+.landing-head{justify-content:flex-start;text-align:left}
+.team-card .card-footer{display:flex;justify-content:space-between;align-items:center;gap:var(--s2)}
+.account-pop{width:320px;padding:var(--s4);gap:var(--s4)}
+.account-pop section p{margin:0}.account-email{display:block;overflow-wrap:anywhere}
+.account-section{display:grid;gap:var(--s2);padding-top:var(--s3);border-top:1px solid var(--line)}
+.account-section label{display:grid;gap:var(--s1);margin:0}
+.account-label{font:600 13px var(--font)}
+.account-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
+.replays>.profile-card{width:100%;max-width:none;margin:0;text-align:left;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end}
+@media(max-width:720px){.replays>.profile-card{grid-template-columns:minmax(0,1fr)}}
+.teams-landing .landing-head{display:block;text-align:left;margin:var(--s8) 0 var(--s6)}.teams-landing .landing-head h1{text-align:left;margin:0}
+/* Nav row: links on the left, New team pinned right. */
+.masthead-nav{order:3;flex-basis:100%;display:flex;align-items:center;gap:var(--s2);min-width:0}
+.masthead-nav .quickbar{flex:1;min-width:0;order:0!important;flex-basis:auto!important;width:auto!important}
+.masthead-nav .masthead-new{margin-left:auto}
+@media(max-width:720px){.masthead-nav{flex-direction:column;align-items:stretch}.masthead-nav .masthead-new{margin:0;width:100%}}
+/* One width everywhere: every page section fills the same content column. */
+:root{--reading-width:100%}
+.strategy-block,.digest,.versions,.danger-zone,.profile-card,.sample-offer,.empty-teams,.frontier-record{max-width:none;width:100%}
+/* Avatar: square pixel frame like the other controls. */
+.account-button{border-radius:2px;border:1px solid #fffdf3b3;padding:0 var(--s3) 0 var(--s1);box-shadow:1px 2px 0 #00000033;font:400 15px/1 var(--display)}
+.account-button[aria-label]{padding:0 var(--s3) 0 var(--s1)}
+.avatar{width:30px;height:30px;border-radius:0;border:2px solid var(--emerald-shade);box-shadow:inset -2px -2px 0 #0000001f;background:var(--trainer-lime);color:var(--emerald-shade);font:400 16px/1 var(--display);image-rendering:pixelated}
+.avatar.guest{background:var(--paper);color:var(--emerald-deep)}
+.account-pop{width:320px!important;max-width:calc(100vw - 32px)!important;right:0;left:auto}
+.masthead-nav .account-menu{margin-left:auto}
+@media(max-width:720px){.masthead-nav .account-menu{margin:0;width:100%;display:flex;justify-content:center}}
+.new-team-slot{height:auto!important;max-height:none!important;min-height:240px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);border:2px dashed var(--frame)!important;background:transparent!important;box-shadow:none!important;color:var(--emerald-deep)!important;font:400 20px var(--display)!important;cursor:pointer;white-space:normal}
+.new-team-slot small{font:13px var(--font);color:var(--muted)}
+.new-team-slot:hover{background:var(--hover)!important;border-style:solid!important}
+.new-team-slot{align-self:stretch!important;margin:0!important;width:100%}
+@media(max-width:720px){.masthead .quickbar-play,.masthead .quickbar-all{display:inline-flex!important;width:100%;justify-content:center;box-sizing:border-box}}
+.masthead .quickbar-play,.masthead .quickbar-all{margin:0!important}
+@media(max-width:720px){.masthead-nav .account-button{width:100%;justify-content:center}}

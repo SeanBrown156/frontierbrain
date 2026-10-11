@@ -65,6 +65,8 @@ export function workspaceStore(client:SupabaseClient,userId:string):StoreBackend
 const LOCAL_ONLY=new Set(['/api/jobs','/api/legacy','/api/migrate-legacy','/api/pool-refresh']);
 // Loaded by <img>/CSS without an Authorization header; they serve shared data only.
 const PUBLIC=new Set(['/api/icon-sheet','/api/art']);
+// AI features need an account (guests are anonymous users). A guest's AI key header is dropped everywhere else too.
+const AI=new Set(['/api/ai-jobs','/api/replay-summarise','/api/models']);
 export function hostedHandler(config:HostedConfig,inner:(req:IncomingMessage,res:ServerResponse)=>unknown){
   const auth=createClient(config.url,config.publishableKey,noSession);
   const reader=auth;const writer=config.secretKey?createClient(config.url,config.secretKey,noSession):null;const shared=sharedFiles(reader,writer);
@@ -76,6 +78,7 @@ export function hostedHandler(config:HostedConfig,inner:(req:IncomingMessage,res
     if(!token){if(!PUBLIC.has(path))return deny(res,401,'Sign in or continue as a guest');return withData({user:nobody,shared,hosted:true},()=>inner(req,res));}
     const {data,error}=await auth.auth.getClaims(token);const userId=data?.claims?.sub;
     if(error||!userId)return deny(res,401,'Your session has expired. Sign in again.');
+    if(data.claims.is_anonymous){if(AI.has(path)&&req.method==='POST'||path==='/api/models')return deny(res,403,'Sign in to use AI features. Your guest work is kept.');delete req.headers['x-ai-key'];}
     const client=createClient(config.url,config.publishableKey,{...noSession,global:{headers:{Authorization:`Bearer ${token}`}}});
     return withData({user:userFiles(client,userId),shared,store:workspaceStore(client,userId),userId,hosted:true},()=>inner(req,res));
   };
