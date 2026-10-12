@@ -21,7 +21,9 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
   const teamGames=data.games.filter((g:any)=>g.association?.teamId===team.id);const scopedGames=all?teamGames:teamGames.filter((g:any)=>g.association?.versionId===versionId);
   const [exported,setExported]=useState<string|null>(null),[renaming,setRenaming]=useState(false),[name,setName]=useState(team.name);
   const shown=all?team.versions.find((v:any)=>v.id===team.activeVersionId):team.versions.find((v:any)=>v.id===versionId);
-  const paste=async()=>{try{setExported((await api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`)).paste);}catch(e){notify((e as Error).message);}};
+  const [pokepaste,setPokepaste]=useState(''),[publishing,setPublishing]=useState(false);
+  const publish=async()=>{setPublishing(true);try{const r=await api('/pokepaste-create',{teamId:team.id,versionId:shown.id,configurationId:shown.currentConfigurationId,author:data.profile?.player??''});setPokepaste(r.url);void navigator.clipboard.writeText(r.url).catch(()=>{});}catch(e){notify((e as Error).message);}finally{setPublishing(false);}};
+  const paste=async()=>{setPokepaste('');try{setExported((await api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`)).paste);}catch(e){notify((e as Error).message);}};
   const rename=async()=>{setRenaming(false);if(name.trim()&&name.trim()!==team.name)await mutate({type:'team-rename',teamId:team.id,name:name.trim()}).catch(()=>setName(team.name));};
   return <div className="team-hub">
     <a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a>
@@ -33,7 +35,9 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} data={data} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
     {tab==='replays'&&<Replays team={team} data={data} versionId={all?'all':versionId} load={load} notify={notify}/>}
     {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate} notify={notify}/>}
-    {exported!==null&&<Modal title="Showdown export" onClose={()=>setExported(null)}><Notice>Champions stat points use the “EVs:” label only for Showdown compatibility.{shown.source==='observed'?' This version was rebuilt from replays; guessed fields are assumptions.':''}</Notice><textarea className="paste" aria-label="Team export" readOnly rows={20} value={exported}/><button className="primary" onClick={()=>{void navigator.clipboard.writeText(exported).then(()=>notify('Paste copied.')).catch(()=>notify('Select and copy the paste manually.'));}}>Copy paste</button></Modal>}
+    {exported!==null&&<Modal title="Showdown export" onClose={()=>setExported(null)}><Notice>Champions stat points use the “EVs:” label only for Showdown compatibility.{shown.source==='observed'?' This version was rebuilt from replays; guessed fields are assumptions.':''}</Notice><textarea className="paste" aria-label="Team export" readOnly rows={20} value={exported}/><div className="button-row export-actions"><button className="primary" onClick={()=>{void navigator.clipboard.writeText(exported).then(()=>notify('Paste copied.')).catch(()=>notify('Select and copy the paste manually.'));}}>Copy paste</button>
+      {pokepaste?<a className="button" href={pokepaste} target="_blank" rel="noreferrer">{pokepaste.replace('https://','')} ↗</a>:<button disabled={publishing} onClick={()=>void publish()}>{publishing?'Creating…':'Create PokePaste'}</button>}</div>
+      {pokepaste&&<p className="footnote">Public link, copied to your clipboard.</p>}</Modal>}
   </div>;
 }
 function Overview({team,data,version,mutate}:{team:any;data:any;version:any;mutate:Mutate}){

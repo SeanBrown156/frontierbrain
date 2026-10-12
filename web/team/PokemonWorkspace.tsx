@@ -72,6 +72,7 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
   // One notes field. Older records split notes into four; they show here merged under headings, and the first edit saves the merged text.
   const notesText=mergeNotes(d.draft.notes);
   return <><div className="workspace-grid">
+    <div className="set-column">
     <section className={'set-card panel'+(readOnly?' read-only':'')} aria-label={`${set.species} set`}>
       {readOnly&&<div className="notice warn">This is {versionName(view.version)}, an older version (read-only). <a href={monHref(team.id,team.activeVersionId,slot)}>Edit the current team →</a></div>}
       <fieldset className="plain" disabled={readOnly}>
@@ -90,12 +91,12 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
       <History entry={entry} revision={revision} load={r=>replace(r.set,{reuse:true,basis:[`Restored the ${date(r.createdAt)} set.`]})}/>
       </fieldset>
     </section>
-    <BenchmarkLab offerKey={`calc:${team.id}:${slot}`} entry={entry} revision={revision} own={set} data={data} mutate={mutate} onUseSpread={(nature,statPoints)=>update({nature,statPoints})}/>
-  </div>
-  <div className="set-extras">
     <section className="panel set-benchmarks"><Benchmarks entry={entry} set={set} data={data} mutate={mutate}/></section>
     <SetStrategy species={set.species} text={notesText} readOnly={readOnly} onChange={t=>d.setDraft(x=>({...x,notes:{role:t,benchmarks:'',partners:'',matchups:''}}))}/>
-  </div></>;
+    </div>
+    <BenchmarkLab offerKey={`calc:${team.id}:${slot}`} entry={entry} revision={revision} own={set} data={data} mutate={mutate} onUseSpread={(nature,statPoints)=>update({nature,statPoints})}/>
+  </div>
+</>;
 }
 
 // The set's fields. Fields guessed from replays (observed sets) carry a "guess" tag until edited.
@@ -143,9 +144,11 @@ function StatBars({base,final,points,setPoint,head}:{base?:Record<string,number>
 }
 
 function History({entry,revision,load}:{entry:BankEntry;revision:SetRevision;load:(r:SetRevision)=>void}){
-  if(entry.revisions.length<2)return null;
-  return <details className="history"><summary>History</summary><ol>{[...entry.revisions].reverse().slice(0,6).map(r=><li key={r.id} className={r.id===revision.id?'current':''}><span>{date(r.createdAt)} · {r.set.item||'no item'} · {r.set.nature} · {stats.map(k=>r.set.statPoints?.[k]??0).join('/')}</span>
-    {r.id===revision.id?<span className="muted">now</span>:<button className="text-button" onClick={()=>load(r)}>Go back to this</button>}</li>)}</ol></details>;
+  const [all,setAll]=useState(false);if(entry.revisions.length<2)return null;const list=[...entry.revisions].reverse();const shown=all?list:list.slice(0,3);
+  return <fieldset className="set-history"><legend>History <b>{list.length}</b></legend><ol>{shown.map(r=><li key={r.id} className={r.id===revision.id?'current':''}>
+      <span className="h-date">{date(r.createdAt)}</span><span className="h-set">{r.set.item||'No item'} · {r.set.nature}</span><span className="h-sp">{stats.map(k=>r.set.statPoints?.[k]??0).join('/')}</span>
+      {r.id===revision.id?<span className="tag ok">Now</span>:<button type="button" className="compact" onClick={()=>load(r)}>Restore</button>}</li>)}</ol>
+    {list.length>3&&<button type="button" className="text-button h-more" onClick={()=>setAll(!all)}>{all?'Show less':`Show all ${list.length}`}</button>}</fieldset>;
 }
 
 // The Pokémon's strategy: Markdown that reads as a short guide, with Edit to change it (it saves with the set).

@@ -1100,3 +1100,35 @@ html.jade .ticker .ticker-label{border:0!important;box-shadow:none!important;pad
 html.jade .ticker .ticker-label:hover{background:transparent!important;color:var(--ac-2)!important;text-decoration:underline;text-underline-offset:4px}
 /* the brain sits further back */
 .brain-backdrop{opacity:.35!important}.brain-backdrop.hero{opacity:.7!important}
+/* Pokémon page: set, benchmarks and strategy stacked on the left; the calc on the right; both columns end together */
+html.jade .workspace-grid{align-items:stretch!important}
+.set-column{display:flex;flex-direction:column;gap:24px;min-width:0}
+html.jade .set-column>.panel{margin:0!important}
+html.jade .set-column>.set-notes{flex:1}
+html.jade .set-card{position:static!important}
+html.jade .workspace-grid>.lab-inline{margin:0!important}
+html.jade .set-column .set-notes .markdown,html.jade .set-column .set-notes .markdown>*{max-width:none!important}
+/* history, styled like the other set sections */
+html.jade .set-history ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+html.jade .set-history li{display:grid;grid-template-columns:90px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--sunk);font-size:13px}
+html.jade .set-history li.current{background:color-mix(in srgb,var(--ac) 10%,transparent)}
+.h-date{color:var(--mu)}.h-set{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.h-sp{font:700 13px var(--fd);color:var(--mu)}
+html.jade .set-history .compact{height:28px;padding:0 10px!important;font-size:12px!important}
+html.jade .set-history legend b{font:800 13px var(--fd);color:var(--tx);margin-left:4px}
+html.jade .h-more{margin-top:8px;padding:0!important;height:auto!important}
+html.jade .set-column>.set-notes{display:block!important}
+/* replay cards: one even summary paragraph */
+html.jade article.game .game-summary{margin:0;font-size:14px;line-height:1.6;color:var(--tx);font-weight:400}
+/* replay drawer "Work on": category, title and turn on one line, the detail underneath */
+html.jade .work-on.full{display:grid;gap:12px}
+html.jade .work-on.full li{display:block!important;margin:0!important;padding:14px 16px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .wo-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+html.jade .wo-head b{font-size:15px}
+html.jade .wo-turn{margin-left:auto!important;font-size:12.5px!important;height:auto!important;padding:0!important}
+html.jade .work-on.full p{margin:0!important;line-height:1.6;max-width:none}
+/* category pills (Play / Building / Variance): quiet pills, everywhere they appear */
+html.jade .cat{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;font:700 10.5px/1 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu);flex:none}
+html.jade .cat.play{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 50%,transparent);background:color-mix(in srgb,var(--gd) 10%,transparent)}
+html.jade .cat.building{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 50%,transparent);background:color-mix(in srgb,var(--ac) 10%,transparent)}
+html.jade .cat.variance{color:#9aa8ff;border-color:color-mix(in srgb,#9aa8ff 45%,transparent)}
+html.jade .work-on:not(.full) li{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
