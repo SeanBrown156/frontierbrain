@@ -19,7 +19,9 @@ const firstVisit=()=>{try{return !location.hash&&!localStorage.getItem(WELCOMED)
 const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[2]==='mon'&&p[4]?.startsWith('config-')?[...p.slice(0,4),p[5]].join('/'):hash;};
 export default function App(){
   const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams')),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
-  const [menuOpen,setMenuOpen]=useState(false);useEffect(()=>setMenuOpen(false),[route]);
+  const [menuOpen,setMenuOpen]=useState(false),[scrolled,setScrolled]=useState(false);
+  // Past the top of the page the header detaches from the news strip into a compact floating bar.
+  useEffect(()=>{const on=()=>setScrolled(scrollY>64);on();addEventListener('scroll',on,{passive:true});return()=>removeEventListener('scroll',on);},[]);useEffect(()=>setMenuOpen(false),[route]);
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
   // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
   const revision=useRef<number|null>(null);const dataRef=useRef<any>(null);const lastHash=useRef(location.hash);
@@ -62,7 +64,7 @@ export default function App(){
   // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
-  return <div className={'shell'+(withDock?' with-dock':'')}><BrainBackdrop route={route}/>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/brand/icon-64.png" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
+  return <div className={'shell'+(withDock?' with-dock':'')+(scrolled?' scrolled':'')}><BrainBackdrop route={route}/>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/brand/icon-64.png" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>

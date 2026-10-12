@@ -1082,3 +1082,21 @@ html.jade[data-theme=dark]{--glass:rgba(9,26,19,.84);--glass-2:rgba(18,44,33,.9)
 /* things that sit straight on the page (tab bar, header pills, team switcher, chips row) get the same solid backing */
 html.jade :is(.hub-tabs,.format-tag,.ticker,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
 html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
+
+/* ---------- top of page: news and nav run edge to edge as one bar; scrolling detaches the nav into a floating pill ---------- */
+html.jade body{overflow-x:clip}
+html.jade{--edge:max(16px,calc((100vw - 1320px) / 2 + 16px))}
+html.jade .shell>.ticker{width:100vw;margin:0 0 0 calc(50% - 50vw)!important;padding:0 var(--edge)!important;height:34px;border-radius:0!important;
+ background:color-mix(in srgb,var(--bg) 88%,transparent)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--ln)!important}
+html.jade .shell>.masthead{width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw)!important;top:0!important;border-radius:0!important;border-width:0 0 1px!important;padding:10px var(--edge)!important;
+ background:color-mix(in srgb,var(--bg) 82%,transparent)!important;box-shadow:none!important;
+ transition:width .35s cubic-bezier(.2,.8,.2,1),margin .35s cubic-bezier(.2,.8,.2,1),padding .35s,border-radius .35s,top .35s,box-shadow .35s,background .35s}
+html.jade .shell.scrolled>.masthead{width:min(1320px,calc(100vw - 32px));margin-left:calc(50% - min(1320px,calc(100vw - 32px)) / 2)!important;top:10px!important;
+ border-radius:16px!important;border-width:1px!important;padding:6px 14px!important;background:var(--glass)!important;box-shadow:inset 0 1px 0 var(--hi),0 18px 40px -24px var(--shade)!important}
+html.jade .shell.scrolled .brand{font-size:19px!important}html.jade .shell.scrolled .brand-logo{width:28px!important;height:28px!important}
+html.jade .shell>.masthead+*{margin-top:8px}
+/* news label: quiet hover, no red block */
+html.jade .ticker .ticker-label{border:0!important;box-shadow:none!important;padding:0 12px 0 0!important;height:100%}
+html.jade .ticker .ticker-label:hover{background:transparent!important;color:var(--ac-2)!important;text-decoration:underline;text-underline-offset:4px}
+/* the brain sits further back */
+.brain-backdrop{opacity:.35!important}.brain-backdrop.hero{opacity:.7!important}

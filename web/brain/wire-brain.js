@@ -38,7 +38,7 @@ export const MODES = {
   constellation: {
     edgeBase: 0.03, cloudBase: 0.018, pointBase: 0.85, pointSize: 1.7,
     rate: 5, hops: [10, 18], branch: 1.15, speed: 0.9, decay: 0.9, density: 0.45,
-    click: { hops: 32, branch: 1.9, hot: 0, speed: 1.3, ripple: 0.03, refractory: 1.2 },
+    click: { hops: 14, branch: 1.35, hot: 0, speed: 1.1, ripple: 0.012, refractory: 1.6 },
   },
   // Crystal that twists and shatters along its facets on click, then reforms.
   facet: {
