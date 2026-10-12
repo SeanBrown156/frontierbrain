@@ -1,6 +1,4 @@
-import {useEffect,useRef,useState,lazy,Suspense} from 'react';
-// The live 3D mark loads on its own, so three.js never weighs down the rest of the app.
-const EmeraldBrain=lazy(()=>import('./brain/EmeraldBrain.tsx'));
+import {useEffect,useRef,useState} from 'react';
 import {Art,TypeBadges} from './ui.tsx';
 
 // The front door: what Frontier Brain does, drawn with the player's own six (or a well-known balance core before
@@ -37,7 +35,7 @@ export default function Welcome({data}:{data:any}){
           <div><dt>Mechanics</dt><dd className="small">Champions M-C</dd></div>
         </dl>
       </div>
-      <div className="wl-orb"><Suspense fallback={<img src="/brand/emerald-brain-512.png" alt=""/>}><EmeraldBrain network label="Frontier Brain: an emerald brain in a network of connections"/></Suspense><span className="wl-brain-hint">Hover to twist · drag to spin</span></div>
+      <div className="wl-orb" aria-hidden="true"><span className="wl-brain-hint">Click anywhere to fire it</span></div>
     </section>
     <section className="wl-team"><div className="wl-team-head"><span className="eyebrow">{team?'Your six':'An example core'}</span><h2>{team?team.name:'Built from the meta'}</h2><p className="muted">{team?'Hover a Pokémon to bring it forward; click to open your teams.':'Import a team and it takes this stage.'}</p></div>
       <div className="wl-stage" ref={stage} aria-label={team?`${team.name}: ${six.join(', ')}`:`Example core: ${six.join(', ')}`}>

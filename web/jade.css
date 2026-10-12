@@ -992,11 +992,11 @@ html.jade .format-copy button{height:40px}
 html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:2px}
 html.jade .mon-chip:hover{color:var(--ac)!important}
 html.jade .plan-toggle{background:none!important;border:0!important}
-.network-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
+.brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
 html.jade .brand-logo{width:34px!important;height:34px!important;filter:drop-shadow(0 3px 8px var(--glow))}
 html.jade .plan-actions button.icon{box-shadow:none!important}
-.network-backdrop{z-index:0!important}
-html.jade .shell>:not(.network-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
+.brain-backdrop{z-index:0!important}
+html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
 html.jade .shell>.masthead{z-index:30}
 /* dialogs: title flush with the content's left edge */
 html.jade .modal{padding:24px!important}
@@ -1069,3 +1069,16 @@ html.jade .theme-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
 html.jade .theme-head b{font-size:15px}
 html.jade .debrief .themes p{margin:0;line-height:1.65;color:var(--tx);opacity:.9}
 @media (max-width:1000px){.debrief{grid-template-columns:minmax(0,1fr)}}
+.brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
+html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
+.wl-orb .wl-brain-hint{opacity:.8!important;bottom:4%}
+.brain-backdrop{opacity:.55;transition:opacity .6s}
+.brain-backdrop.hero{opacity:.9}
+html.jade nav.mon-switcher{background:color-mix(in srgb,var(--bg) 70%,transparent)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+/* with the brain behind, glass is mostly opaque: it frosts the brain to a faint glow rather than showing it */
+html.jade{--glass:rgba(244,248,246,.84);--glass-2:rgba(255,255,255,.9);--blur:22px}
+@media (prefers-color-scheme:dark){html.jade:not([data-theme=light]){--glass:rgba(9,26,19,.84);--glass-2:rgba(18,44,33,.9)}}
+html.jade[data-theme=dark]{--glass:rgba(9,26,19,.84);--glass-2:rgba(18,44,33,.9)}
+/* things that sit straight on the page (tab bar, header pills, team switcher, chips row) get the same solid backing */
+html.jade :is(.hub-tabs,.format-tag,.ticker,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
+html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}

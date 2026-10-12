@@ -11,7 +11,7 @@ import {hostedSite} from './auth.tsx';
 import AccountMenu from './AccountMenu.tsx';
 import Settings from './Settings.tsx';
 import Welcome,{WELCOMED} from './Welcome.tsx';
-import NetworkBackdrop from './brain/NetworkBackdrop.tsx';
+import BrainBackdrop from './brain/BrainBackdrop.tsx';
 // A first visit with no address opens the welcome page once; after that the app opens on your teams.
 const firstVisit=()=>{try{return !location.hash&&!localStorage.getItem(WELCOMED);}catch{return false;}};
 
@@ -62,7 +62,7 @@ export default function App(){
   // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
-  return <div className={'shell'+(withDock?' with-dock':'')}><NetworkBackdrop/>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/brand/icon-64.png" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
+  return <div className={'shell'+(withDock?' with-dock':'')}><BrainBackdrop route={route}/>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/brand/icon-64.png" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>
