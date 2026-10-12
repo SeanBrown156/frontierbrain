@@ -12,6 +12,10 @@ import AccountMenu from './AccountMenu.tsx';
 import Settings from './Settings.tsx';
 import Welcome,{WELCOMED} from './Welcome.tsx';
 import BrainBackdrop from './brain/BrainBackdrop.tsx';
+import Boot,{shouldBoot} from './Boot.tsx';
+import {decode} from './fx.ts';
+// Names that resolve from noise when you point at them (titles do the same when a page opens).
+const DECODE_ON_HOVER='.team-card-title h3,.team-card-title,.mon-card-head h3,.combatant-head h3,.guide-mon-head h3';
 // A first visit with no address opens the welcome page once; after that the app opens on your teams.
 const firstVisit=()=>{try{return !location.hash&&!localStorage.getItem(WELCOMED);}catch{return false;}};
 
@@ -20,6 +24,12 @@ const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[
 export default function App(){
   const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams')),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
   const [menuOpen,setMenuOpen]=useState(false),[scrolled,setScrolled]=useState(false);
+  // Jade × Phosphor: the once-per-session boot, the screen switching on after it, and text that resolves from noise.
+  const [booting,setBooting]=useState(shouldBoot),[powerOn,setPowerOn]=useState(false);
+  const bootDone=()=>{setBooting(false);setPowerOn(true);setTimeout(()=>setPowerOn(false),1400);};
+  useEffect(()=>{if(!data||booting)return;const id=requestAnimationFrame(()=>document.querySelectorAll('main h1').forEach(el=>decode(el,{duration:560})));return()=>cancelAnimationFrame(id);},[route,!!data,booting]);
+  useEffect(()=>{const over=(e:PointerEvent)=>{const el=(e.target as HTMLElement).closest?.(DECODE_ON_HOVER);if(el&&!el.contains(e.relatedTarget as Node))decode(el,{duration:340});};
+    addEventListener('pointerover',over,{passive:true});return()=>removeEventListener('pointerover',over);},[]);
   // Past the top of the page the header detaches from the news strip into a compact floating bar.
   useEffect(()=>{const on=()=>setScrolled(scrollY>64);on();addEventListener('scroll',on,{passive:true});return()=>removeEventListener('scroll',on);},[]);useEffect(()=>setMenuOpen(false),[route]);
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
@@ -65,7 +75,7 @@ export default function App(){
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
   // Ask Frontier Brain floats over the page as an overlay, so opening it never reflows the layout.
-  return <div className={'shell'+(withDock?' dock-open':'')+(scrolled?' scrolled':'')}><BrainBackdrop route={route}/>{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/brand/icon-64.png" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
+  return <div className={'shell'+(withDock?' dock-open':'')+(scrolled?' scrolled':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+route} aria-hidden="true"/>}{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><a href="#teams" className="brand"><img className="brand-logo" src="/brand/icon-64.png" alt="" width={32} height={32}/><span>Frontier Brain</span></a><SavePill/>
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>

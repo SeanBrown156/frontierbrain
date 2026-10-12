@@ -3,6 +3,7 @@ import {api,Panel} from './ui.tsx';
 import {Px,Download,Upload,Sparkles,Check} from './icons.tsx';
 import {supabase,useAccount,requireAccount,hostedSite} from './auth.tsx';
 import {aiKey,setAIKey,type AIKey} from './ai/keys.tsx';
+import {useSpriteStyle,setSpriteStyle,type SpriteStyle} from './fx.ts';
 
 // Settings (#account): who you are, your Showdown name, your AI key, backups. The avatar in the header opens it.
 export default function Settings({profile,reload,notify}:{profile?:any;reload:()=>Promise<void>;notify:(text:string,error?:boolean)=>void}){
@@ -15,6 +16,7 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
         :<p className="muted">Local workspace on this computer. No account needed.</p>}
     </Panel>
     <ShowdownName profile={profile} reload={reload} notify={notify}/>
+    <Looks/>
     <AboutYou/>
     <AIPanel/>
     <Backup reload={reload} notify={notify}/>
@@ -138,4 +140,10 @@ function Backup({reload,notify}:{reload:()=>Promise<void>;notify:(t:string,e?:bo
   return <Panel title="Backup"><p className="muted">One file with your teams, sets, strategy, replays and summaries. Restoring adds what's missing and never overwrites anything already here.</p>
     <div className="settings-actions"><button disabled={busy} onClick={()=>void download()}><Px icon={Download}/>Download backup</button><button disabled={busy} onClick={()=>file.current?.click()}><Px icon={Upload}/>Restore from a backup</button></div>
     <input ref={file} type="file" accept="application/json,.json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)void restore(f);}}/></Panel>;
+}
+
+// How Pokémon are drawn everywhere: HOME 3D renders, or Showdown's animated sprites. Kept in this browser.
+function Looks(){
+  const style=useSpriteStyle();const options:[SpriteStyle,string,string][]=[['home','HOME renders','3D renders from Pokémon HOME'],['gen5','Black/White sprites','Animated pixel sprites (Gen 5)'],['xy','XY sprites','Animated 3D sprites (Gen 6 onward)']];
+  return <Panel title="Pokémon art"><div className="sprite-choice" role="radiogroup" aria-label="Pokémon art">{options.map(([k,label,note])=><button key={k} type="button" role="radio" aria-checked={style===k} className={'toggle'+(style===k?' on':'')} onClick={()=>setSpriteStyle(k)}><b>{label}</b><small>{note}</small></button>)}</div></Panel>;
 }

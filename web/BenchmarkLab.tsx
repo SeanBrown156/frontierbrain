@@ -1,3 +1,4 @@
+import {useRolling} from './fx.ts';
 import {useState,useEffect,useLayoutEffect,useRef,type ReactNode} from 'react';
 import type {BankEntry,SetRevision,PokemonSet} from '../shared/workbench.ts';
 import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,MegaBadge,type MegaForm} from './ui.tsx';
@@ -182,8 +183,10 @@ function DamageViz({result,name,attackerName,defender,fallback,move,art}:{result
   const ko=result.koChanceOnHit;const phrase=String(result.description??'').split(' -- ')[1]??'';
   const verdict=hi===0?'No effect':ko>=1?'Guaranteed KO':ko>0?`${(ko*100).toFixed(1)}% chance to KO`:phrase?phrase[0].toUpperCase()+phrase.slice(1):'No KO from this HP';
   const tone=(leftHi>50?'ok':leftHi>20?'warn':'low');
+  const big=useRolling(result.percentOfMaxHP.map((v:number)=>v.toFixed(1)).join('–')+'%',k,560),hp=useRolling(`${lo}–${hi} HP`,k,560);
   return <div className="dmg">
-    <div className="dmg-head"><span className="eyebrow">{attackerName} · {move} → {name}</span><div className="lab-big"><b>{result.percentOfMaxHP.map((v:number)=>v.toFixed(1)).join('–')}%</b><span>{lo}–{hi} HP</span></div><span className={'verdict'+(ko>=1?' ko':ko>0?' maybe':'')}>{verdict}</span></div>
+    <div className="calc-run" key={k} aria-hidden="true"><span>CALC ▸ {attackerName} · {move} → {name}</span><i/><b>{rolls.length} {rolls.length===1?'ROLL':'ROLLS'}</b></div>
+    <div className="dmg-head"><span className="eyebrow">{attackerName} · {move} → {name}</span><div className="lab-big"><b>{big}</b><span>{hp}</span></div><span className={'verdict'+(ko>=1?' ko':ko>0?' maybe':'')}>{verdict}</span></div>
     <div className="dmg-target"><div className="dmg-art"><Art name={defender} fallback={fallback} art={art} small/></div><div className="grow">
       <div className="hp-head"><b>{name}</b><span>{go?`${Math.max(0,cur-hi)}–${Math.max(0,cur-lo)}`:cur} / {max} HP</span></div>
       <div className={'hp-track '+(go?tone:'ok')} role="img" aria-label={`${name} goes from ${cur} to ${Math.max(0,cur-hi)}–${Math.max(0,cur-lo)} of ${max} HP`}>
@@ -204,10 +207,11 @@ function SpeedRace({a,b,first,trickRoom,art,decidedBy}:{a:{name:string;fallback:
   const fast=Math.max(a.speed,b.speed,1),slow=Math.max(1,Math.min(a.speed,b.speed));
   const reach=(s:number)=>trickRoom?slow/Math.max(1,s):Math.max(1,s)/fast;
   let da=reach(a.speed),db=reach(b.speed);if(first==='tie')da=db=1;else if(first==='a'){da=1;db=Math.min(db,.94);}else{db=1;da=Math.min(da,.94);}
+  const sa=useRolling(String(a.speed),k,520),sb=useRolling(String(b.speed),k,520);
   const lane=(side:'a'|'b',r:typeof a,d:number)=>{const wins=first===side||first==='tie';return <div className={'lane'+(wins?' wins':'')}>
     <div className="track"><span className="finish"/><span className="runner" style={{left:go?`calc((100% - 72px) * ${d.toFixed(3)})`:'0px',transitionDuration:go&&!reduced()?'1.6s':'0s'}}><Art name={r.name} fallback={r.fallback} art={art} small/></span></div>
-    <div className="lane-stat"><b>{r.speed}</b><span>{formName(r.name)}</span>{go&&wins&&<em style={{animationDelay:reduced()?'0s':'1.5s'}}>{first==='tie'?'Tie':'1st'}</em>}</div></div>;};
-  return <div className={'race'+(trickRoom?' tr':'')}><span className="eyebrow">{trickRoom?'Trick Room · slower moves first':'Speed · faster moves first'}</span>{lane('a',a,da)}{lane('b',b,db)}
+    <div className="lane-stat"><b>{side==='a'?sa:sb}</b><span>{formName(r.name)}</span>{go&&wins&&<em style={{animationDelay:reduced()?'0s':'1.5s'}}>{first==='tie'?'Tie':'1st'}</em>}</div></div>;};
+  return <div className={'race'+(trickRoom?' tr':'')}><div className="calc-run" key={k} aria-hidden="true"><span>SPEED ▸ {formName(a.name)} {a.speed} · {formName(b.name)} {b.speed}{trickRoom?' · TRICK ROOM':''}</span><i/><b>{first==='tie'?'TIE':'RESOLVED'}</b></div><span className="eyebrow">{trickRoom?'Trick Room · slower moves first':'Speed · faster moves first'}</span>{lane('a',a,da)}{lane('b',b,db)}
     <p className="race-verdict">{first==='tie'?'Speed tie: a coin flip each turn.':`${formName(first==='a'?a.name:b.name)} acts first${decidedBy==='priority'?' on priority':decidedBy==='item or ability order'?' (item or ability order)':''}.`}</p></div>;
 }
 function SetFields({set,update,dex,form}:{set:any;update:(s:any)=>void;dex:any;form:string}){const [final,setFinal]=useState<any>(null);const key=JSON.stringify({species:form,nature:set.nature,statPoints:set.statPoints});useEffect(()=>{let alive=true;api('/calculate',{kind:'stats',input:JSON.parse(key)}).then(s=>{if(alive)setFinal(s);}).catch(()=>{if(alive)setFinal(null);});return()=>{alive=false;};},[key]);return <div className="set-edit"><div className="lab-row"><label>Nature<select value={set.nature??'Serious'} onChange={e=>update({...set,nature:e.target.value})}>{(dex?.natures??[set.nature??'Serious']).map((s:string)=><option key={s}>{s}</option>)}</select></label><label>Ability<input list="lab-abilities" value={set.ability??''} onChange={e=>update({...set,ability:e.target.value})}/></label></div><label>Item<ItemPicker value={set.item??''} onChange={v=>update({...set,item:v})} dex={dex}/></label><SpEditBars set={set} form={form} final={final} update={update}/></div>;}

@@ -1422,7 +1422,7 @@ html.jade .plan-toggle{background:none!important;border:0!important}
 html.jade .brand-logo{width:34px!important;height:34px!important;filter:drop-shadow(0 3px 8px var(--glow))}
 html.jade .plan-actions button.icon{box-shadow:none!important}
 .brain-backdrop{z-index:0!important}
-html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
+html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle):not(.boot):not(.screen-sweep){position:relative;z-index:1}
 html.jade .shell>.masthead{z-index:30}
 /* dialogs: title flush with the content's left edge */
 html.jade .modal{padding:24px!important}
@@ -1496,7 +1496,7 @@ html.jade .theme-head b{font-size:15px}
 html.jade .debrief .themes p{margin:0;line-height:1.65;color:var(--tx);opacity:.9}
 @media (max-width:1000px){.debrief{grid-template-columns:minmax(0,1fr)}}
 .brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
-html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
+html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle):not(.boot):not(.screen-sweep){position:relative;z-index:1}
 .wl-orb .wl-brain-hint{opacity:.8!important;bottom:4%}
 .brain-backdrop{opacity:.55;transition:opacity .6s}
 .brain-backdrop.hero{opacity:.9}
@@ -1586,3 +1586,86 @@ html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;wi
 @media (max-width:620px){html.jade .dock{top:0!important;right:0!important;bottom:0!important;width:100vw!important;border-radius:0!important}}
 @media (prefers-reduced-motion:reduce){html.jade .dock{animation:none}}
 .crit-alt{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0!important}.crit-alt b{font:800 22px var(--fd)}
+
+/* ---------- Jade × Phosphor ----------
+   Saira stays for titles and Hanken for reading. IBM Plex Mono carries the numbers and the rare terminal moments (the
+   boot, the calc readout), glowing like phosphor in the dark theme and plain emerald in the light one. CRT texture is
+   kept to readouts, and a screen switches on with a downward sweep. All motion stops for prefers-reduced-motion. */
+html.jade{--fnum:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;--fdot:var(--fnum);
+ --phos:#0A7A4A;--phos-glow:none;--phos-title:0 2px 24px var(--bg);--phos-gold:none;--scan:rgba(8,32,26,.045)}
+@media (prefers-color-scheme:dark){html.jade:not([data-theme=light]){
+ --phos:#8DFFC4;--phos-glow:0 0 6px rgba(61,255,142,.5),0 0 18px rgba(61,255,142,.2);--phos-title:0 0 22px rgba(31,208,138,.32),0 0 2px rgba(95,240,174,.45);
+ --phos-gold:0 0 6px rgba(244,196,67,.5),0 0 16px rgba(244,196,67,.18);--scan:rgba(0,0,0,.26)}}
+html.jade[data-theme=dark]{
+ --phos:#8DFFC4;--phos-glow:0 0 6px rgba(61,255,142,.5),0 0 18px rgba(61,255,142,.2);--phos-title:0 0 22px rgba(31,208,138,.32),0 0 2px rgba(95,240,174,.45);
+ --phos-gold:0 0 6px rgba(244,196,67,.5),0 0 16px rgba(244,196,67,.18);--scan:rgba(0,0,0,.26)}
+
+/* Numbers: Plex Mono in phosphor. Mono runs wider than Saira Condensed, so the biggest sizes step down a little. */
+html.jade :is(.lab-big b,.lane-stat b,.wl-facts dd,.stat-final,.mon-slot,.wl-n,.card-record,.hp-head span,.sp-bar .v,.set-edit .sp-grid small,.sp-edit .stat-bars-head b,.common-mon small,.pool-counts b){
+ font-family:var(--fnum)!important;font-weight:600!important;color:var(--phos)!important;text-shadow:var(--phos-glow);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+html.jade .lab-big b{font-size:40px!important}
+html.jade .lane-stat b{font-size:28px!important}
+html.jade .stat-final{font-size:19px!important}
+html.jade .mon-slot{font-size:24px!important;opacity:.55}
+html.jade .stat-plus{font-family:var(--fnum)!important;font-weight:600!important;color:var(--gd)!important;text-shadow:var(--phos-gold)}
+html.jade :is(.lab-big span,.crit-alt b){font-family:var(--fnum);font-variant-numeric:tabular-nums}
+/* Data pool tables: only the number columns go mono (most used: share and count; pairs: share). */
+html.jade .data-pool .stat-table td:is(:nth-child(n+3),:nth-child(2):last-child){font-family:var(--fnum);font-variant-numeric:tabular-nums}
+html.jade .data-pool .stat-table td:is(:nth-child(3),:nth-child(2):last-child){color:var(--phos);text-shadow:var(--phos-glow);font-weight:600}
+
+/* Titles keep Saira and pick up a faint phosphor bloom in the dark. */
+html.jade main h1,html.jade :is(.landing-head,.hub-head) h1,html.jade .boot-exe{text-shadow:var(--phos-title)}
+
+/* Subtle CRT on readouts only: fine scanlines and a soft vignette over the calc result, nothing else. */
+html.jade .lab-result{position:relative;overflow:hidden}
+html.jade .lab-result::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+ background:repeating-linear-gradient(180deg,var(--scan) 0 1px,transparent 1px 3px),radial-gradient(130% 100% at 50% 50%,transparent 62%,var(--scan) 100%)}
+
+/* The calc running: a mono line whose bar draws across, then the result resolves (numbers roll in fx.ts). */
+.calc-run{display:flex;align-items:center;gap:12px;margin:0 0 var(--s3);font:500 12px/1.4 var(--fnum);letter-spacing:.05em;text-transform:uppercase;color:var(--phos);text-shadow:var(--phos-glow)}
+.calc-run span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65%}
+.calc-run i{flex:1;height:2px;border-radius:1px;background:linear-gradient(90deg,var(--ac),var(--ac-2));box-shadow:0 0 8px var(--glow);transform-origin:left;animation:fx-run .45s cubic-bezier(.6,0,.2,1) both}
+.calc-run b{font-weight:700;color:var(--phos);animation:fx-fade .2s ease .45s both}
+@keyframes fx-run{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fx-fade{from{opacity:0}to{opacity:1}}
+
+/* A screen switching on: after the boot, the page opens from a bright line; every page change sweeps light downward. */
+.shell.power-on>:is(main,.masthead,.ticker){animation:fx-power .75s cubic-bezier(.2,.7,.2,1) both}
+@keyframes fx-power{0%{clip-path:inset(49.7% 0 49.7% 0);opacity:.5}35%{clip-path:inset(49.7% 0 49.7% 0);opacity:1}100%{clip-path:inset(0 0 0 0)}}
+.screen-sweep{position:fixed;left:0;right:0;top:0;height:28vh;z-index:5;pointer-events:none;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--ac-2) 9%,transparent) 70%,color-mix(in srgb,var(--ac-2) 16%,transparent) 96%,transparent);animation:fx-sweep 1.1s cubic-bezier(.3,.1,.2,1) both}
+.shell.power-on .screen-sweep{animation-delay:.45s}
+@keyframes fx-sweep{from{transform:translateY(-30vh)}to{transform:translateY(110vh)}}
+
+/* Boot: the display face types "loading frontier-brain.exe" over the brain as it powers up; status lines in Plex Mono. */
+.shell.booting>:not(.brain-backdrop):not(.boot){visibility:hidden}
+html.jade .brain-backdrop.booting{opacity:.95!important}
+html.jade .brain-backdrop{transition:opacity 1.6s ease}
+.boot{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;padding:0 8vw;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 78%,transparent),color-mix(in srgb,var(--bg) 45%,transparent));transition:opacity .5s ease}
+.boot.leaving{opacity:0}
+.boot::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(180deg,var(--scan) 0 1px,transparent 1px 3px)}
+.boot-inner{position:relative;z-index:1;max-width:980px}
+.boot-exe{margin:0;font:800 clamp(34px,6.2vw,92px)/.95 var(--fd);white-space:nowrap;text-transform:uppercase;letter-spacing:.01em;color:var(--tx)}
+.boot-exe .ext{color:var(--ac)}
+.boot-exe .caret{display:inline-block;width:.4em;height:.76em;margin-left:.08em;vertical-align:-.04em;background:var(--ac);box-shadow:0 0 14px var(--glow);animation:fx-blink .9s steps(1) infinite}
+@keyframes fx-blink{50%{opacity:0}}
+.boot-lines{margin-top:var(--s6);font:400 14px/1.9 var(--fnum);color:var(--mu);max-width:620px}
+.boot-lines div{display:flex;gap:var(--s4);animation:fx-rise .22s ease-out both}
+.boot-lines span{flex:1;white-space:pre}
+.boot-lines b{font-weight:600;letter-spacing:.06em;color:var(--phos);text-shadow:var(--phos-glow)}
+.boot-lines b.warn{color:var(--hot);text-shadow:none}
+.boot-lines .ready span{color:var(--gd);font-weight:600}
+@keyframes fx-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.boot-bar{display:flex;align-items:center;gap:var(--s4);margin-top:var(--s4);max-width:620px}
+.boot-track{flex:1;height:4px;border-radius:2px;background:var(--ln);overflow:hidden}
+.boot-track i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac-2));box-shadow:0 0 10px var(--glow);transition:width .25s ease}
+.boot-bar b{min-width:64px;text-align:right;font:600 22px var(--fnum);color:var(--phos);text-shadow:var(--phos-glow)}
+.boot-skip{margin-top:var(--s6);font:500 11px var(--fnum);letter-spacing:.2em;text-transform:uppercase;color:var(--mu);opacity:.7}
+
+/* Pokémon art as Showdown sprites (Settings → Pokémon art): pixel-crisp Black/White, smooth XY. */
+.art.sprite img{object-fit:contain}
+.art.sprite-gen5 img{image-rendering:pixelated}
+.sprite-choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--s3)}
+.sprite-choice button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;height:auto!important;min-height:64px;padding:var(--s3) var(--s4);text-align:left;white-space:normal}
+.sprite-choice small{color:var(--mu);font-weight:400}
+
+@media (prefers-reduced-motion:reduce){.calc-run i,.calc-run b,.shell.power-on>*,.screen-sweep,.boot-exe .caret,.boot-lines div{animation:none!important}.screen-sweep{display:none}}

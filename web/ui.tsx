@@ -1,3 +1,4 @@
+import {useSpriteStyle,spriteUrls} from './fx.ts';
 import {useEffect,useRef,useState,useId,type ReactNode} from 'react';
 import ReactMarkdown from 'react-markdown';
 import {X} from 'lucide-react';
@@ -36,9 +37,11 @@ export function Art({name,art,small=false,kind='home',fallback}:{name:string;art
   // A Mega without its own HOME render shows the base form's HOME render before any illustration, so every
   // render on a page keeps the same 3D style.
   const alt=fallback&&fallback!==name?urls(fallback):[];
-  const sources=(kind==='home'&&alt.length?[urls(name)[0],alt[0],urls(name)[1],alt[1]]:[...urls(name),...alt]).filter(Boolean) as string[];
-  const [step,setStep]=useState(0);useEffect(()=>setStep(0),[name]);const src=sources[step];
-  return <span className={'art '+(small?'small':'')} title={name}>{src?<img key={src} src={src} alt={name} loading="lazy" onError={()=>setStep(step+1)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
+  // The sprite setting (Settings) puts Showdown's animated sprites first; HOME renders stay the fallback.
+  const sprite=useSpriteStyle();const sprites=kind==='home'&&sprite!=='home'?[...spriteUrls(name,sprite),...(fallback&&fallback!==name?spriteUrls(fallback,sprite):[])]:[];
+  const sources=[...sprites,...(kind==='home'&&alt.length?[urls(name)[0],alt[0],urls(name)[1],alt[1]]:[...urls(name),...alt])].filter(Boolean) as string[];
+  const [step,setStep]=useState(0);useEffect(()=>setStep(0),[name,sprite]);const src=sources[step];const isSprite=step<sprites.length;
+  return <span className={'art '+(small?'small':'')+(isSprite?' sprite sprite-'+sprite:'')} title={name}>{src?<img key={src} src={src} alt={name} loading="lazy" onError={()=>setStep(step+1)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
 // Species types and item sheet positions, fetched once per name and shared by every card on the page.
 export type MegaForm={name:string;item:string;types:string[];ability:string;baseStats:Record<string,number>};
 const dexCache={types:{} as Record<string,string[]>,base:{} as Record<string,Record<string,number>>,megas:{} as Record<string,MegaForm[]>,moves:{} as Record<string,string>,items:{} as Record<string,number>};let dexWaiting:Promise<void>|null=null;const dexWant={species:new Set<string>(),items:new Set<string>(),moves:new Set<string>()};
