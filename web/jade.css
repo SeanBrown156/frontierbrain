@@ -1137,3 +1137,9 @@ html.jade .modal :is(h3,h4){font:800 18px/1.2 var(--fd)!important;text-transform
 html.jade .modal .work-on h3,html.jade .modal .plan-card h3,html.jade .modal .set-tile h3,html.jade .modal .proposal-card h3{border:0;padding:0;margin:0!important;font-size:16px!important}
 html.jade .modal .game-summary.big{font-size:16px;line-height:1.65}
 html.jade .result.loss{color:var(--hot)!important;border-color:color-mix(in srgb,var(--hot) 50%,transparent)!important;background:color-mix(in srgb,var(--hot) 10%,transparent)!important}
+/* Pokémon picker rows: icon, name (truncates), then the usage figure on the right, never overlapping */
+html.jade .combo .combo-list{min-width:360px}
+html.jade .combo-list li{display:flex!important;align-items:center;gap:8px;justify-content:flex-start!important}
+html.jade .combo-list li>span:not(.poke-icon):not(.item-icon){flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.jade .combo-list li>small{flex:none;white-space:nowrap;margin-left:auto;padding-left:8px;font-size:12px}
+html.jade .combo-list li>.poke-icon{flex:none}
