@@ -21,11 +21,11 @@ let openDialog:(reason?:string)=>void=()=>{};
 export function requireAccount(reason?:string){openDialog(reason);}
 
 // Back to the same page after Google; the connector consent page also needs its ?authorization_id.
-// A sign-in that leaves the page (Google, or an email link) is marked here, so the same dialog can reopen with
+// A sign-in that leaves the page (Google) is marked here, so the same dialog can reopen with
 // "You're all set" when the person comes back signed in. Per browser tab session; cleared once shown.
 const PENDING='frontierbrain.signin-pending';
-const markPending=(how:'google'|'email',email?:string)=>{try{sessionStorage.setItem(PENDING,JSON.stringify({how,email}));}catch{}};
-const takePending=():{how:'google'|'email';email?:string}|null=>{try{const v=sessionStorage.getItem(PENDING);sessionStorage.removeItem(PENDING);return v?JSON.parse(v):null;}catch{return null;}};
+const markPending=(how:'google',email?:string)=>{try{sessionStorage.setItem(PENDING,JSON.stringify({how,email}));}catch{}};
+const takePending=():{how:'google';email?:string}|null=>{try{const v=sessionStorage.getItem(PENDING);sessionStorage.removeItem(PENDING);return v?JSON.parse(v):null;}catch{return null;}};
 const redirectTo=()=>location.origin+location.pathname+(location.pathname.startsWith('/oauth/')?location.search:'');
 // Signing in to an account that already exists from a guest session switches users. The guest's own teams
 // (not the samples) travel with a backup kept in this browser and are merged into the account after sign-in.
@@ -58,9 +58,9 @@ export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
     // Google said this identity already belongs to an account: sign in to that account instead (guest work is carried).
     const params=new URLSearchParams(location.hash.slice(1)+'&'+location.search.slice(1));
     if(params.get('error_code')==='identity_already_exists'){history.replaceState(null,'',redirectTo());void supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:redirectTo()}});return;}
-    // Back from an email link that failed (expired, already used): say so in the sign-in dialog.
-    const failed=params.get('error_description');if(failed&&params.get('error_code')!=='identity_already_exists'){history.replaceState(null,'',redirectTo());setDialog({step:'link-error',error:failed.replace(/\+/g,' ').replace(/([^.!?])$/,'$1.')});return;}
-    // Back signed in after Google or a confirmation link started from this tab: finish in the same dialog.
+    // Back from a Google sign-in that didn't finish (cancelled, refused): say so in the sign-in dialog.
+    const failed=params.get('error_description');if(failed){history.replaceState(null,'',redirectTo());takePending();setDialog({step:'error',error:failed.replace(/\+/g,' ').replace(/([^.!?])$/,'$1.')});return;}
+    // Back signed in after Google, started from this tab: finish in the same dialog.
     if(!session.user.is_anonymous){const pending=takePending();if(pending)setDialog({step:'done',email:session.user.email??pending.email});}
     void bringGuestWork(session).then(m=>{if(m){setNote(m);setTimeout(()=>location.reload(),1500);}});},[session]);
   if(!supabase)return <AccountContext.Provider value={{kind:'local'}}>{children({kind:'local'})}</AccountContext.Provider>;
@@ -73,56 +73,28 @@ export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
   </AccountContext.Provider>;
 }
 
-// One dialog for the whole sign-in: choose a method, then (for a new email account) "Check your email", and when the
-// person comes back signed in, "You're all set". A failed or expired link lands here too.
-type Step='start'|'create'|'signin'|'check'|'done'|'link-error';
-function SignInDialog({reason,step:initial='start',email:knownEmail,error:linkError,onClose}:{reason?:string;step?:Step;email?:string;error?:string;onClose:()=>void}){
-  const ref=useRef<HTMLDialogElement>(null),[step,setStep]=useState<Step>(initial),[email,setEmail]=useState(knownEmail??''),[resent,setResent]=useState(''),[busy,setBusy]=useState(false);
+// One dialog for the whole sign-in. Accounts are Google only (no email accounts, so nothing to confirm): choose
+// "Continue with Google", and when the person comes back signed in, the same dialog reopens with "You're all set".
+// A sign-in that didn't finish (cancelled, or Google refused) lands here too.
+type Step='start'|'done'|'error';
+function SignInDialog({reason,step:initial='start',email,error:failure,onClose}:{reason?:string;step?:Step;email?:string;error?:string;onClose:()=>void}){
+  const ref=useRef<HTMLDialogElement>(null),[step,setStep]=useState<Step>(initial),[busy,setBusy]=useState(false);
   useEffect(()=>{const d=ref.current!;d.showModal();return()=>d.close();},[]);
-  const google=async()=>{await stashGuestWork();markPending('google');await supabase!.auth.linkIdentity({provider:'google',options:{redirectTo:redirectTo()}});};
-  const resend=async()=>{if(!email)return setStep('create');setBusy(true);setResent('');const {error}=await supabase!.auth.resend({type:'email_change',email,options:{emailRedirectTo:redirectTo()}});setBusy(false);setResent(error?error.message:'Sent again. It can take a minute to arrive.');};
-  const title=step==='check'?'Check your email':step==='done'?"You're all set":step==='link-error'?"That link didn't work":'Sign in to Frontier Brain';
+  const google=async()=>{setBusy(true);await stashGuestWork();markPending('google');const {error}=await supabase!.auth.linkIdentity({provider:'google',options:{redirectTo:redirectTo()}});if(error){setBusy(false);setStep('error');}};
+  const title=step==='done'?"You're all set":step==='error'?"Sign-in didn't finish":'Sign in to Frontier Brain';
   return <dialog ref={ref} className="modal signin-dialog" aria-labelledby="signin-title" onCancel={onClose}>
     <header><h2 id="signin-title">{title}</h2><button className="icon dialog-close" aria-label="Close" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>
     <div className="signin-body">
-      {step==='check'?<>
-        <p>We sent a confirmation link to <b>{email}</b>. Open it to finish creating your account; you'll come back here signed in.</p>
-        <p className="muted">Your work is already saved. Nothing in your inbox? Check spam, or send it again.</p>
-        {resent&&<p className="notice">{resent}</p>}
-        <div className="button-row"><button className="primary" onClick={onClose}>Close</button><button disabled={busy} onClick={()=>void resend()}>{busy?'Sending…':'Resend email'}</button></div>
-      </>:step==='done'?<>
+      {step==='done'?<>
         <p>{email?<>Signed in as <b>{email}</b>. </>:null}Your teams are saved to your account and follow you to any device. AI features are unlocked.</p>
         <div className="button-row"><button className="primary" onClick={onClose}>Done</button></div>
-      </>:step==='link-error'?<>
-        <p>{linkError??'The confirmation link has expired or was already used.'}</p>
-        <p className="muted">Links work once and expire after a while. Send a fresh one, or sign in if you've already confirmed.</p>
-        <div className="welcome-actions"><button className="primary" onClick={()=>setStep('create')}>Send a new link</button><button className="text-button" onClick={()=>setStep('signin')}>I already have an account</button></div>
       </>:<>
-        {reason&&<p className="notice">{reason}</p>}
-        <p>An account keeps your teams on any device and unlocks AI: Ask Frontier Brain, AI team builds, replay summaries, and connecting Claude or ChatGPT. Everything you've done as a guest comes with you.</p>
-        {step==='start'?<div className="welcome-actions">
-          <button className="primary" onClick={()=>void google()}>Continue with Google</button>
-          <button onClick={()=>setStep('create')}>Create an account with email</button>
-          <button className="text-button" onClick={()=>setStep('signin')}>I already have an account</button>
-        </div>:<EmailForm mode={step==='signin'?'signin':'create'} onBack={()=>setStep('start')} onDone={e=>{if(step==='create'){setEmail(e);setStep('done');}else onClose();}} onCheck={e=>{setEmail(e);markPending('email',e);setStep('check');}}/>}
+        {step==='error'?<p className="notice">{failure??'Google didn\'t complete the sign-in.'} Your guest work is still here; try again when you're ready.</p>:reason&&<p className="notice">{reason}</p>}
+        <p>Sign in with your Google account to keep your teams on any device and unlock AI: Ask Frontier Brain, AI team builds, replay summaries, and connecting Claude or ChatGPT. Everything you've done as a guest comes with you.</p>
+        <div className="welcome-actions"><button className="primary" disabled={busy} onClick={()=>void google()}>{busy?'Opening Google…':'Continue with Google'}</button></div>
       </>}
     </div>
   </dialog>;
-}
-function EmailForm({mode,onBack,onDone,onCheck}:{mode:'create'|'signin';onBack:()=>void;onDone:(email:string)=>void;onCheck:(email:string)=>void}){
-  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[note,setNote]=useState(''),[error,setError]=useState('');
-  const submit=async()=>{setBusy(true);setError('');setNote('');
-    // Creating an account upgrades the guest in place (same user id, nothing moves). Signing in switches users.
-    if(mode==='signin')await stashGuestWork();
-    const r=mode==='create'?await supabase!.auth.updateUser({email,password},{emailRedirectTo:redirectTo()}):await supabase!.auth.signInWithPassword({email,password});
-    setBusy(false);if(r.error)return setError(r.error.message);
-    if(mode==='create'&&(r.data as any)?.user?.new_email)return onCheck(email);onDone(email);};
-  return <form className="welcome-form" onSubmit={e=>{e.preventDefault();void submit();}}>
-    <label>Email<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label>
-    <label>Password<input type="password" autoComplete={mode==='create'?'new-password':'current-password'} required minLength={8} value={password} onChange={e=>setPassword(e.target.value)}/></label>
-    {error&&<p className="error">{error}</p>}{note&&<p className="notice">{note}</p>}
-    <div className="button-row"><button className="primary" disabled={busy}>{mode==='create'?'Create account':'Sign in'}</button><button type="button" onClick={onBack}>Back</button></div>
-  </form>;
 }
 
 // Shown in place of an AI control for guests. `verb` completes "Sign in for free to … with your preferred AI tool."
