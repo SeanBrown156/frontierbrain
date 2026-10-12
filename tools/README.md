@@ -7,10 +7,10 @@ npm run vgc -- help
 npm run vgc -- sources usage
 npm run vgc -- refresh
 npm run vgc -- dex Rillaboom
-npm run vgc -- stats examples/rillaboom.json
-npm run vgc -- calc examples/damage.json
-npm run vgc -- speed examples/speed.json
-npm run vgc -- spread-search examples/spread-search.json
+npm run vgc -- stats tools/examples/rillaboom.json
+npm run vgc -- calc tools/examples/damage.json
+npm run vgc -- speed tools/examples/speed.json
+npm run vgc -- spread-search tools/examples/spread-search.json
 npm run vgc -- team-import path/to/team.txt team-name-v1
 npm run vgc -- team-attach team-name-v1 replay-id
 npm run daily

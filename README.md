@@ -40,7 +40,7 @@ Everything starts from a team.
 - **Saving**: edits are drafts until **Save**. The header pill shows *Unsaved*, *Saving…*, *Saved* or *Save failed*, and leaving a page with unsaved changes asks first.
 - **Ask Frontier Brain**: one docked chat per team on every team page (press `/`), described below.
 - **News ticker** across the top; **quick links** in four groups plus Showdown.
-- Type: IBM Plex Sans throughout, IBM Plex Mono for pastes (Google Fonts). Buttons come in one scale: 36px default, 30px compact (chips, card actions), and text links.
+- Look and feel: the Jade Glass design system, dark and light themes ([docs/DESIGN.md](docs/DESIGN.md)).
 - Box icons in the species picker come from Pokémon Showdown's icon sheet, downloaded once to `knowledge/artwork/` (`tools/icons.ts`; source and retrieval date in `icon-index.json`).
 
 ## Data: the team pool
@@ -109,6 +109,7 @@ npm run check       # tsc for tools and web
 npm run daily | npm run weekly | npm run vgc -- help
 ```
 
+- [Repo map](docs/REPO_MAP.md) · [Design system](docs/DESIGN.md)
 - [Source quick reference](knowledge/sources/INDEX.md) · [Research routes](knowledge/sources/research-routes.md) · [Tool commands](tools/README.md)
 - Contributions welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
