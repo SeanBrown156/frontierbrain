@@ -6,7 +6,7 @@ import {tmpdir} from 'node:os';
 import {resolve} from 'node:path';
 import {withData,fileBackend,CODE} from '../io.ts';
 import {emptyStore,applyAction,Conflict,type StoreBackend} from '../workbench-store.ts';
-import {seedNewWorkspace,addSamples,latestSamples} from '../samples.ts';
+import {seedNewWorkspace,addSamples,latestSamples,forgetSamples} from '../samples.ts';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {forgetPool} from '../pool.ts';
 import type {Workbench} from '../../shared/workbench.ts';
@@ -51,7 +51,7 @@ test('Samples are the two latest Regional winners; a list without spreads gets t
   const teams=[official('official:443:1:ericrios','Regional Frankfurt','443','2026-09-26','Eric Rios',1129),official('official:442:1:kiransingh','Regional Brisbane','442','2026-09-26','Kiran Singh',327),
     official('official:999:1:newwinner','Regional Somewhere','999','2026-10-10','New Winner',300),...shared];
   await mkdir(resolve(root,'knowledge/pool'),{recursive:true});await writeFile(resolve(root,'knowledge/pool/teams.json'),JSON.stringify({refreshedAt:'2026-10-12T00:00:00Z',teams}));
-  forgetPool();try{await withData({user:fileBackend(root),shared:fileBackend(root,CODE),store:memoryStore(),hosted:true},async()=>{
+  forgetPool();forgetSamples();try{await withData({user:fileBackend(root),shared:fileBackend(root,CODE),store:memoryStore(),hosted:true},async()=>{
     const [a,b]=await latestSamples();
     assert.equal(a.name,'Sample · New Winner, 1st Somewhere Regional');assert.equal(b.key,'official:443:1:ericrios','tie on date: the larger event, curated');
     assert.ok(b.coaching,'a curated winner keeps its strategy');assert.ok(!a.coaching);

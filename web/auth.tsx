@@ -5,7 +5,8 @@ import {X} from 'lucide-react';
 
 // Hosted site only: Supabase Auth. Without VITE_SUPABASE_URL the app runs in local mode with no sign-in at all.
 // Nobody is asked to sign in up front: a first visit starts an anonymous guest session, so work saves straight away.
-// AI features and connecting Claude/ChatGPT need an account; those places call requireAccount() to ask.
+// AI features and connecting Claude/ChatGPT need an account; those places call requireAccount(), which goes straight
+// to Google (accounts are Google only). No intermediate dialog.
 const url=import.meta.env.VITE_SUPABASE_URL as string|undefined,key=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string|undefined;
 export const supabase=url&&key?createClient(url,key):null;
 export const hostedSite=!!supabase;
@@ -16,9 +17,18 @@ export const useAccount=()=>useContext(AccountContext);
 // AI needs an account on the hosted site; locally everything is allowed.
 export const canUseAI=(a:Account)=>a.kind!=='guest';
 
-// One sign-in dialog for the whole app, opened from the avatar menu or from an AI feature.
-let openDialog:(reason?:string)=>void=()=>{};
-export function requireAccount(reason?:string){openDialog(reason);}
+// The sign-in dialog only reports the outcome: "You're all set" when someone comes back signed in, or a sign-in that
+// didn't finish. Starting a sign-in goes straight to Google.
+let showDialog:(state:{step:Step;email?:string;error?:string})=>void=()=>{};
+export function requireAccount(_reason?:string){void signInWithGoogle();}
+export async function signInWithGoogle(){if(!supabase)return;await stashGuestWork();markPending('google');
+  const {error}=await supabase.auth.linkIdentity({provider:'google',options:{redirectTo:redirectTo()}});if(error){takePending();showDialog({step:'error',error:error.message});}}
+// The Google "G" (four-colour mark) on the sign-in buttons.
+const G=()=><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" className="google-g"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>;
+export function GoogleButton({label='Sign in with Google',className='primary'}:{label?:string;className?:string}){
+  const [busy,setBusy]=useState(false);
+  return <button className={className+' google-button'} disabled={busy} onClick={()=>{setBusy(true);void signInWithGoogle().finally(()=>setBusy(false));}}><span className="google-g-wrap"><G/></span>{busy?'Opening Google…':label}</button>;
+}
 
 // Back to the same page after Google; the connector consent page also needs its ?authorization_id.
 // A sign-in that leaves the page (Google) is marked here, so the same dialog can reopen with
@@ -50,8 +60,8 @@ function useSession(){
   return session;
 }
 export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
-  const session=useSession(),[error,setError]=useState(''),[note,setNote]=useState(''),[dialog,setDialog]=useState<{reason?:string;step?:Step;email?:string;error?:string}|null>(null),starting=useRef(false);
-  openDialog=reason=>setDialog({reason});
+  const session=useSession(),[error,setError]=useState(''),[note,setNote]=useState(''),[dialog,setDialog]=useState<{step:Step;email?:string;error?:string}|null>(null),starting=useRef(false);
+  showDialog=setDialog;
   useEffect(()=>{if(!supabase||session!==null||starting.current)return;
     starting.current=true;supabase.auth.signInAnonymously().then(({error})=>{starting.current=false;if(error)setError(error.message);});},[session]);
   useEffect(()=>{if(!supabase||!session)return;
@@ -69,29 +79,25 @@ export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
   const account:Account=session.user.is_anonymous?{kind:'guest'}:{kind:'account',email:session.user.email??''};
   return <AccountContext.Provider value={account}>{children(account)}
     {note&&<div className="toast" role="status">{note}</div>}
-    {dialog&&<SignInDialog reason={dialog.reason} step={dialog.step} email={dialog.email} error={dialog.error} onClose={()=>setDialog(null)}/>}
+    {dialog&&<SignInDialog step={dialog.step} email={dialog.email} error={dialog.error} onClose={()=>setDialog(null)}/>}
   </AccountContext.Provider>;
 }
 
-// One dialog for the whole sign-in. Accounts are Google only (no email accounts, so nothing to confirm): choose
-// "Continue with Google", and when the person comes back signed in, the same dialog reopens with "You're all set".
-// A sign-in that didn't finish (cancelled, or Google refused) lands here too.
-type Step='start'|'done'|'error';
-function SignInDialog({reason,step:initial='start',email,error:failure,onClose}:{reason?:string;step?:Step;email?:string;error?:string;onClose:()=>void}){
-  const ref=useRef<HTMLDialogElement>(null),[step,setStep]=useState<Step>(initial),[busy,setBusy]=useState(false);
+// The outcome of a Google sign-in: "You're all set" when someone comes back signed in from this tab, or "Sign-in didn't
+// finish" (cancelled, or Google refused) with a button to try again.
+type Step='done'|'error';
+function SignInDialog({step,email,error:failure,onClose}:{step:Step;email?:string;error?:string;onClose:()=>void}){
+  const ref=useRef<HTMLDialogElement>(null);
   useEffect(()=>{const d=ref.current!;d.showModal();return()=>d.close();},[]);
-  const google=async()=>{setBusy(true);await stashGuestWork();markPending('google');const {error}=await supabase!.auth.linkIdentity({provider:'google',options:{redirectTo:redirectTo()}});if(error){setBusy(false);setStep('error');}};
-  const title=step==='done'?"You're all set":step==='error'?"Sign-in didn't finish":'Sign in to Frontier Brain';
   return <dialog ref={ref} className="modal signin-dialog" aria-labelledby="signin-title" onCancel={onClose}>
-    <header><h2 id="signin-title">{title}</h2><button className="icon dialog-close" aria-label="Close" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>
+    <header><h2 id="signin-title">{step==='done'?"You're all set":"Sign-in didn't finish"}</h2><button className="icon dialog-close" aria-label="Close" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>
     <div className="signin-body">
       {step==='done'?<>
         <p>{email?<>Signed in as <b>{email}</b>. </>:null}Your teams are saved to your account and follow you to any device. AI features are unlocked.</p>
         <div className="button-row"><button className="primary" onClick={onClose}>Done</button></div>
       </>:<>
-        {step==='error'?<p className="notice">{failure??'Google didn\'t complete the sign-in.'} Your guest work is still here; try again when you're ready.</p>:reason&&<p className="notice">{reason}</p>}
-        <p>Sign in with your Google account to keep your teams on any device and unlock AI: Ask Frontier Brain, AI team builds, replay summaries, and connecting Claude or ChatGPT. Everything you've done as a guest comes with you.</p>
-        <div className="welcome-actions"><button className="primary" disabled={busy} onClick={()=>void google()}>{busy?'Opening Google…':'Continue with Google'}</button></div>
+        <p>{failure??'Google didn\'t complete the sign-in.'} Your guest work is still here.</p>
+        <div className="button-row"><GoogleButton label="Try again with Google"/><button onClick={onClose}>Close</button></div>
       </>}
     </div>
   </dialog>;
@@ -100,5 +106,5 @@ function SignInDialog({reason,step:initial='start',email,error:failure,onClose}:
 // Shown in place of an AI control for guests. `verb` completes "Sign in for free to … with your preferred AI tool."
 export function SignInForAI({verb='do this'}:{verb?:string}){
   const text=`Sign in for free to ${verb} with your preferred AI tool.`;
-  return <div className="signin-for-ai"><p><Sparkles width={16} height={16} aria-hidden="true" className="px-icon"/> {text}</p><button className="primary" onClick={()=>requireAccount(text)}>Sign in</button></div>;
+  return <div className="signin-for-ai"><p><Sparkles width={16} height={16} aria-hidden="true" className="px-icon"/> {text}</p><GoogleButton/></div>;
 }

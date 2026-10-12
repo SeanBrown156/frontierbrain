@@ -19,7 +19,14 @@ const FORMAT='gen9championsvgc2026regmc';
 // winner with a curated entry in samples.json keeps its hand-written strategy and replays; any other winner arrives as
 // its team list, with blank stat points filled from the most common competitive spread and labelled as such.
 // Without a pool (fresh checkout, tests) the two newest curated samples are used.
-export async function latestSamples(count=2):Promise<Sample[]>{
+// Built once per hour per server instance: the pool changes weekly, and building reads the whole pool (seconds).
+let cached:{at:number;count:number;samples:Promise<Sample[]>}|null=null;
+export function latestSamples(count=2):Promise<Sample[]>{
+  if(cached&&cached.count===count&&Date.now()-cached.at<3600_000)return cached.samples;
+  const samples=buildLatestSamples(count);cached={at:Date.now(),count,samples};samples.catch(()=>{cached=null;});return samples;
+}
+export const forgetSamples=()=>{cached=null;};
+async function buildLatestSamples(count:number):Promise<Sample[]>{
   const bundle=await json<{teams:Sample[]}>('knowledge/samples/samples.json');
   let pool:PoolTeam[]=[];try{pool=await poolTeams();}catch{}
   const winners=pool.filter(t=>t.lane==='official'&&t.placing===1&&/regional/i.test(t.event)&&t.sets.length===6)
