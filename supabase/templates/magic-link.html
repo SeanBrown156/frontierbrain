@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><title>Your sign-in link</title></head>
+<body style="margin:0;padding:0;background:#06100C;">
+<!-- Frontier Brain auth email (magic-link). Supabase template: paste into Authentication → Emails → Templates. Keep it short: one action, no marketing. -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#06100C;padding:32px 16px;">
+<tr><td align="center">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#0C1F17;border:1px solid #1E4434;border-radius:16px;">
+  <tr><td style="padding:28px 28px 8px 28px;">
+    <img src="https://frontierbrain.vercel.app/brand/emerald-brain-192.png" width="48" height="48" alt="" style="display:block;border:0;">
+    <p style="margin:16px 0 0 0;font:800 13px/1.2 'Arial Narrow',Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#1FD08A;">Frontier Brain</p>
+    <h1 style="margin:6px 0 0 0;font:800 26px/1.15 'Arial Narrow',Arial,sans-serif;text-transform:uppercase;letter-spacing:.02em;color:#E8F4EC;">Sign in</h1>
+  </td></tr>
+  <tr><td style="padding:12px 28px 4px 28px;font:16px/1.55 Arial,Helvetica,sans-serif;color:#C9DCD1;">Use this link to sign in to Frontier Brain. It works once and expires soon.</td></tr>
+  <tr><td style="padding:20px 28px 8px 28px;">
+    <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#1FD08A;color:#06100C;font:800 15px/1 Arial,Helvetica,sans-serif;text-decoration:none;padding:14px 22px;border-radius:10px;">Sign in to Frontier Brain</a>
+  </td></tr>
+  <tr><td style="padding:12px 28px 28px 28px;font:13px/1.5 Arial,Helvetica,sans-serif;color:#7FA393;">If you didn't try to sign in, you can ignore this email.</td></tr>
+  </table>
+</td></tr></table>
+</body></html>
