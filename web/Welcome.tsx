@@ -89,7 +89,7 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
     <section className="lp-hero lp-zz">
       <div className="lp-copy">
         <h1 className="lp-title">The open&#8209;source <em>brain</em> for Pokémon VGC.</h1>
-        <p className="lp-sub">Build teams, run the calcs and learn from your replays, with the AI you already use.</p>
+        <p className="lp-sub">Build teams, run calcs and learn from your replays, with the AI you already use.</p>
         <div className="lp-ctas"><button className="primary lp-go" onClick={onOpen}>Open the app<span aria-hidden="true">→</span></button>
           <a className="button lp-gh" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</a></div>
       </div>
