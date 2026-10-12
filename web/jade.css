@@ -1598,3 +1598,11 @@ fieldset.add-row{border:0;padding:0;margin:0;min-width:0}
 .consent .consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);width:100%;margin-top:var(--s2)}
 .consent .consent-actions button{width:100%;justify-content:center}
 @media (max-width:620px){.consent .consent-actions{grid-template-columns:1fr}}
+
+/* Sign in with Google: the four-colour G on a white disc inside the primary button. */
+.google-button{display:inline-flex!important;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+.google-g-wrap{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(8,32,26,.2);flex:none}
+.google-g{display:block}
+.account-signin{align-items:center;gap:var(--s6)}
+.account-signin>div{display:grid;gap:var(--s2);flex:1;min-width:0}.account-signin p{margin:0}
+@media (max-width:620px){.account-signin{flex-direction:column;align-items:stretch}.account-signin .google-button{width:100%}}

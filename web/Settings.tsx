@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {api,Panel} from './ui.tsx';
 import {Px,Download,Upload,Sparkles,Check} from './icons.tsx';
-import {supabase,useAccount,requireAccount,hostedSite} from './auth.tsx';
+import {supabase,useAccount,hostedSite,GoogleButton} from './auth.tsx';
 import {aiKey,setAIKey,type AIKey} from './ai/keys.tsx';
 import {ShowdownNamesField} from './team/ShowdownName.tsx';
 
@@ -12,7 +12,7 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
     <h1>Settings</h1>
     <Panel title="Account">
       {account.kind==='account'?<div className="settings-row"><p>Signed in as <b>{account.email}</b></p><button onClick={()=>void supabase!.auth.signOut()}>Sign out</button></div>
-        :account.kind==='guest'?<div className="settings-row"><p>You're using Frontier Brain as a guest. Sign in for free to keep your teams on any device and use AI with your own key.</p><button className="primary" onClick={()=>requireAccount()}>Sign in</button></div>
+        :account.kind==='guest'?<div className="settings-row account-signin"><div><p><b>You're using Frontier Brain as a guest.</b> Your work is saved in this browser.</p><p className="muted">Sign in with Google to keep your teams, sets and replays on any device, and to use AI: Ask Frontier Brain, AI team builds, replay summaries, and connecting Claude or ChatGPT. Everything you've made as a guest comes with you.</p></div><GoogleButton/></div>
         :<p className="muted">Local workspace on this computer. No account needed.</p>}
     </Panel>
     <ShowdownName profile={profile} reload={reload} notify={notify}/>
@@ -80,7 +80,7 @@ function Connectors(){
         <li><b>Changes wait for you.</b> New plans arrive as proposals in the team's Strategy tab; nothing about an existing team changes until you accept it.</li>
       </ul>
     </div>
-    {account.kind==='guest'?<div className="settings-row"><p>Connectors need a free account.</p><button className="primary" onClick={()=>requireAccount('Sign in for free to connect Claude or ChatGPT.')}>Sign in</button></div>:<>
+    {account.kind==='guest'?<div className="settings-row"><p>Connectors need a free account.</p><GoogleButton/></div>:<>
       <label className="connector-url">Connector address<Copy text={url}/></label>
       <div className="segmented client-tabs" role="tablist">{CLIENTS.map(c=><button key={c} role="tab" aria-selected={client===c} className={client===c?'on':''} onClick={()=>setClient(c)}>{c}</button>)}</div>
       {local&&web?<p className="notice">{client} connects to sites on the internet, not to this computer. Use the hosted site (frontierbrain.vercel.app) to connect {client}, or use Claude Code, Codex or Cursor here.</p>
@@ -111,7 +111,7 @@ function AIKey(){
         <li><b>Check for yourself.</b> Frontier Brain is open source: <a href="https://github.com/SeanBrown156/frontierbrain" target="_blank" rel="noreferrer">see how keys are handled ↗</a></li>
       </ul>
     </div>
-    {locked?<div className="settings-row"><p>Sign in for free to use AI with your preferred AI tool.</p><button className="primary" onClick={()=>requireAccount('Sign in for free to use AI with your preferred AI tool.')}>Sign in</button></div>:<>
+    {locked?<div className="settings-row"><p>Sign in for free to use AI with your preferred AI tool.</p><GoogleButton/></div>:<>
       {saved&&<p className="key-saved"><Px icon={Check}/>{saved.provider==='anthropic'?'Anthropic (Claude)':'OpenAI'} key saved in this browser, ending …{saved.key.slice(-4)}</p>}
       <form className="settings-form" onSubmit={e=>{e.preventDefault();if(key.trim())void save();}}>
         <label>Provider<select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic (Claude)</option></select></label>
