@@ -490,12 +490,12 @@ html.jade :is(.mon-card,.team-card,.set-card,.panel,.welcome-card)::after{conten
  background:radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) top left/6px 6px no-repeat,radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) top right/6px 6px no-repeat,
   radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) bottom left/6px 6px no-repeat,radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) bottom right/6px 6px no-repeat}
 
-/* hover: a light sweep across the glass and an emerald edge, never a dotted line */
+/* hover: a band of light sweeps down the glass (the same direction as a screen switching on) and an emerald edge, never a dotted line */
 html.jade :is(.mon-card,.team-card,.source-card,.game-card){position:relative;overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s}
 html.jade :is(.mon-card,.team-card,.source-card,.game-card)::before{content:'';position:absolute;inset:-1px;z-index:-1;pointer-events:none;border-radius:inherit;
- background:linear-gradient(105deg,transparent 30%,color-mix(in srgb,var(--ac-2) 22%,transparent) 45%,color-mix(in srgb,#fff 26%,transparent) 50%,color-mix(in srgb,var(--ac-2) 18%,transparent) 55%,transparent 70%) -160% 0/250% 100% no-repeat;
+ background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--ac-2) 22%,transparent) 45%,color-mix(in srgb,#fff 26%,transparent) 50%,color-mix(in srgb,var(--ac-2) 18%,transparent) 55%,transparent 70%) 0 -160%/100% 250% no-repeat;
  transition:background-position 0s}
-html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover::before{background-position:160% 0;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
+html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover::before{background-position:0 160%;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
 html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 55%,transparent)!important;
  box-shadow:inset 0 1px 0 var(--hi),0 0 0 1px color-mix(in srgb,var(--ac) 20%,transparent),0 24px 48px -26px var(--glow);color:inherit}
 
@@ -726,8 +726,8 @@ html.jade .wl-mon.on .art img{filter:drop-shadow(0 18px 24px var(--shade)) drop-
 .wl-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:34px 0}
 .wl-benefits article{position:relative;padding:22px 20px;border-radius:var(--r);border:1px solid var(--ln);background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 55%),var(--glass);box-shadow:inset 0 1px 0 var(--hi);
  -webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur));overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;animation:jRise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.4s + var(--i) * 80ms)}
-.wl-benefits article::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,transparent 30%,color-mix(in srgb,var(--ac-2) 20%,transparent) 46%,rgba(255,255,255,.2) 50%,transparent 66%) -160% 0/250% 100% no-repeat}
-.wl-benefits article:hover::before{background-position:160% 0;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
+.wl-benefits article::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--ac-2) 20%,transparent) 46%,rgba(255,255,255,.2) 50%,transparent 66%) 0 -160%/100% 250% no-repeat}
+.wl-benefits article:hover::before{background-position:0 160%;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
 .wl-benefits article:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 50%,transparent);box-shadow:inset 0 1px 0 var(--hi),0 24px 44px -26px var(--glow)}
 .wl-k{display:flex;align-items:center;gap:10px;font:600 10.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
 .wl-n{font:900 22px/1 var(--fdot);color:color-mix(in srgb,var(--tx) 30%,transparent);letter-spacing:0}
@@ -1509,17 +1509,13 @@ html.jade[data-theme=dark]{--glass:rgba(9,26,19,.84);--glass-2:rgba(18,44,33,.9)
 html.jade :is(.hub-tabs,.format-tag,.ticker,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
 html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
 
-/* ---------- top of page: news and nav run edge to edge as one bar; scrolling detaches the nav into a floating pill ---------- */
+/* ---------- top of page: news and nav run edge to edge as one bar, and the nav stays full width when you scroll ---------- */
 html.jade body{overflow-x:clip}
 html.jade{--edge:max(16px,calc((100vw - 1320px) / 2 + 16px))}
 html.jade .shell>.ticker{width:100vw;margin:0 0 0 calc(50% - 50vw)!important;padding:0 var(--edge)!important;height:34px;border-radius:0!important;
  background:color-mix(in srgb,var(--bg) 88%,transparent)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--ln)!important}
 html.jade .shell>.masthead{width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw)!important;top:0!important;border-radius:0!important;border-width:0 0 1px!important;padding:10px var(--edge)!important;
- background:color-mix(in srgb,var(--bg) 82%,transparent)!important;box-shadow:none!important;
- transition:width .35s cubic-bezier(.2,.8,.2,1),margin .35s cubic-bezier(.2,.8,.2,1),padding .35s,border-radius .35s,top .35s,box-shadow .35s,background .35s}
-html.jade .shell.scrolled>.masthead{width:min(1320px,calc(100vw - 32px));margin-left:calc(50% - min(1320px,calc(100vw - 32px)) / 2)!important;top:10px!important;
- border-radius:16px!important;border-width:1px!important;padding:6px 14px!important;background:var(--glass)!important;box-shadow:inset 0 1px 0 var(--hi),0 18px 40px -24px var(--shade)!important}
-html.jade .shell.scrolled .brand{font-size:19px!important}html.jade .shell.scrolled .brand-logo{width:28px!important;height:28px!important}
+ background:color-mix(in srgb,var(--bg) 82%,transparent)!important;box-shadow:none!important;}
 html.jade .shell>.masthead+*{margin-top:8px}
 /* news label: quiet hover, no red block */
 html.jade .ticker .ticker-label{border:0!important;box-shadow:none!important;padding:0 12px 0 0!important;height:100%}
@@ -1664,9 +1660,17 @@ html.jade .brain-backdrop{transition:opacity 1.6s ease}
 /* Pokémon art as Showdown sprites (Settings → Pokémon art): pixel-crisp Black/White, smooth XY. */
 .art.sprite img{object-fit:contain}
 .art.sprite-gen5 img{image-rendering:pixelated}
-.sprite-choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--s3)}
-.sprite-choice button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;height:auto!important;min-height:64px;padding:var(--s3) var(--s4);text-align:left;white-space:normal}
-.sprite-choice small{color:var(--mu);font-weight:400}
+.sprite-choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+html.jade .sprite-choice button.sprite-option:not(#_){max-height:none!important;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;height:auto!important;min-height:0!important;padding:12px 8px 16px!important;text-align:center;white-space:normal;border-radius:var(--r)!important}
+html.jade .sprite-choice button.sprite-option.on:not(#_){border-color:var(--ac)!important;box-shadow:0 0 0 1px var(--ac),0 0 18px -6px var(--glow)!important;background:color-mix(in srgb,var(--ac) 10%,transparent)!important}
+.sprite-preview{display:flex;align-items:flex-end;justify-content:center;width:100%;height:112px;margin-bottom:8px;border-radius:var(--rs);background:radial-gradient(60% 40% at 50% 88%,var(--floor),transparent 70%)}
+.sprite-preview img{max-width:100%;max-height:100%;object-fit:contain}
+.sprite-preview.sprite-home img{height:104px}
+.sprite-preview.sprite-gen5 img{height:96px;image-rendering:pixelated}
+.sprite-preview.sprite-xy img{max-height:104px}
+.sprite-choice b{font:700 15px var(--fb)}
+.sprite-choice small{color:var(--mu);font-weight:400;font-size:12px}
+@media (max-width:620px){.sprite-choice{gap:8px}.sprite-preview{height:84px}.sprite-preview.sprite-home img{height:80px}.sprite-preview.sprite-gen5 img{height:72px}.sprite-preview.sprite-xy img{max-height:80px}html.jade .sprite-choice button.sprite-option:not(#_){padding:8px 4px 12px!important}}
 
 @media (prefers-reduced-motion:reduce){.calc-run i,.calc-run b,.shell.power-on>*,.screen-sweep,.boot-exe .caret,.boot-lines div{animation:none!important}.screen-sweep{display:none}}
 
@@ -1753,7 +1757,7 @@ html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);out
    right. Every control is 40px; chips are 24px, sitting 8px inside the field. Stacked full width on phones. */
 html.jade .replays .replay-filters.rf{position:relative;z-index:20;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;margin:0!important}
 .rf-find{display:flex;align-items:flex-start;gap:12px;flex:1 1 auto;min-width:0}
-.rf-search{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px;flex:0 1 400px;min-width:0;min-height:40px;box-sizing:border-box;padding:7px 12px 7px 40px;background:var(--field);border:1px solid var(--ln-2);border-radius:var(--rs);cursor:text;transition:border-color .2s,box-shadow .2s}
+.rf-search{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px;flex:0 1 560px;min-width:0;min-height:40px;box-sizing:border-box;padding:7px 12px 7px 40px;background:var(--field);border:1px solid var(--ln-2);border-radius:var(--rs);cursor:text;transition:border-color .2s,box-shadow .2s}
 .rf-search:hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
 .rf-search:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
 .rf-search-icon{position:absolute;left:12px;top:11px;display:flex;color:var(--mu);pointer-events:none}
@@ -1767,14 +1771,6 @@ html.jade .rf-search>input{flex:1 1 48px;width:auto;min-width:48px;height:24px!i
 html.jade .rf-chip>button:not(#_){width:20px;min-width:20px;height:20px!important;min-height:20px!important;max-height:20px!important;margin:0 1px 0 0;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none;color:var(--mu);transform:none!important}
 html.jade .rf-chip>button:not(#_):hover{background:var(--hover)!important;color:var(--tx)}
 html.jade .rf-chip>button:not(#_):focus-visible{outline-offset:0}
-.rf-mon{position:relative;display:flex;flex:0 0 200px}
-html.jade .rf-mon-button:not(#_){width:100%;height:40px!important;min-height:40px!important;max-height:40px!important;justify-content:flex-start;gap:8px;padding:0 12px!important;background:var(--field)!important;border:1px solid var(--ln-2)!important;border-radius:var(--rs);box-shadow:none!important;backdrop-filter:none;font:400 14px var(--fb);color:var(--mu);transform:none!important}
-html.jade .rf-mon-button:not(#_):hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))!important}
-html.jade .rf-mon-button:not(#_):is(:focus-visible,[aria-expanded=true]){outline:none;border-color:var(--ac)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)!important}
-html.jade .rf-mon-button.picked:not(#_){padding-left:0!important;gap:4px;color:var(--tx);font-weight:600}
-.rf-mon-button>span:not(.poke-icon){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:left}
-.rf-mon-button>.px-icon{flex:none;color:var(--mu);transition:transform .2s}
-.rf-mon-button[aria-expanded=true]>.px-icon{transform:rotate(180deg)}
 html.jade .rf-list{top:calc(100% + 4px);left:0;right:auto;width:100%;min-width:280px;padding:4px!important;border-radius:12px!important;box-sizing:border-box}
 html.jade .rf-list:focus{outline:none}
 html.jade .rf-list.up{top:auto;bottom:calc(100% + 4px)}
@@ -1966,10 +1962,8 @@ html.jade .modal>header h2{min-width:0;overflow-wrap:anywhere}
 
  /* Top bar: one 40px row on a 4px grid. Empty grid rows no longer add their gaps, so there is no dead band under it. */
  html.jade .shell>.masthead{grid-template-rows:auto!important;row-gap:0!important;column-gap:8px!important;padding:12px 16px!important;align-items:center}
- html.jade .shell.scrolled>.masthead{padding:8px 8px 8px 12px!important}
  html.jade .masthead .brand{height:40px;gap:8px!important;font-size:22px!important;align-items:center}
- html.jade .masthead .brand-logo,html.jade .shell.scrolled .brand-logo{width:32px!important;height:32px!important}
- html.jade .shell.scrolled .brand{font-size:22px!important}
+ html.jade .masthead .brand-logo{width:32px!important;height:32px!important}
  html.jade .masthead :is(.theme-toggle,.menu-toggle,.account-button){width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:0!important;justify-content:center}
  html.jade .masthead .account-menu{width:40px!important;height:40px}
  html.jade .masthead .save-pill{margin-top:8px}
@@ -1977,7 +1971,6 @@ html.jade .modal>header h2{min-width:0;overflow-wrap:anywhere}
  html.jade .masthead-nav{gap:4px!important;padding-top:12px!important;margin-top:12px;border-top:1px solid var(--ln)!important}
  html.jade .masthead-nav .quickbar{gap:4px!important}
  html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news){height:40px!important;min-height:40px!important;padding:0 12px!important}
- html.jade .shell.scrolled .masthead-nav{max-height:calc(100dvh - 92px)}
 }
 @media (prefers-reduced-motion:reduce){html.jade .fx-glitch{animation:none!important}}
 
@@ -1989,3 +1982,9 @@ html.jade .manage .manage-tile{display:flex;flex-direction:column;align-items:st
 html.jade .manage .manage-tile .manage-actions{justify-content:flex-start}
 html.jade .team-hub .manage .manage-tile.format-tile,html.jade .team-hub .manage .manage-tile.format-tile>div{text-align:left!important;align-items:stretch!important;justify-content:flex-start!important}
 html.jade .team-hub .manage .manage-tile.format-tile .format-copy{justify-content:flex-start!important;margin:0!important}
+/* Manage tiles: a small label over buttons that share the full width. */
+html.jade .team-hub .manage .manage-tile{gap:8px}
+html.jade .team-hub .manage .manage-actions{display:flex;flex-wrap:nowrap;gap:8px;width:100%}
+html.jade .team-hub .manage .manage-actions>button{flex:1 1 0;min-width:0;justify-content:center;height:40px}
+html.jade .team-hub .manage .format-copy>label{flex:1.6 1 0;min-width:0}
+html.jade .team-hub .manage .format-copy select{width:100%;height:40px}

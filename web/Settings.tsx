@@ -3,7 +3,7 @@ import {api,Panel} from './ui.tsx';
 import {Px,Download,Upload,Sparkles,Check} from './icons.tsx';
 import {supabase,useAccount,requireAccount,hostedSite} from './auth.tsx';
 import {aiKey,setAIKey,type AIKey} from './ai/keys.tsx';
-import {useSpriteStyle,setSpriteStyle,type SpriteStyle} from './fx.ts';
+import {useSpriteStyle,setSpriteStyle,spriteUrls,type SpriteStyle} from './fx.ts';
 
 // Settings (#account): who you are, your Showdown name, your AI key, backups. The avatar in the header opens it.
 export default function Settings({profile,reload,notify}:{profile?:any;reload:()=>Promise<void>;notify:(text:string,error?:boolean)=>void}){
@@ -142,8 +142,12 @@ function Backup({reload,notify}:{reload:()=>Promise<void>;notify:(t:string,e?:bo
     <input ref={file} type="file" accept="application/json,.json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)void restore(f);}}/></Panel>;
 }
 
-// How Pokémon are drawn everywhere: HOME 3D renders, or Showdown's animated sprites. Kept in this browser.
+// How Pokémon are drawn everywhere: HOME 3D renders, or Showdown's animated sprites. Kept in this browser. Each choice
+// previews Alakazam (the brain) in that style.
 function Looks(){
-  const style=useSpriteStyle();const options:[SpriteStyle,string,string][]=[['home','HOME renders','3D renders from Pokémon HOME'],['gen5','Black/White sprites','Animated pixel sprites (Gen 5)'],['xy','XY sprites','Animated 3D sprites (Gen 6 onward)']];
-  return <Panel title="Pokémon art"><div className="sprite-choice" role="radiogroup" aria-label="Pokémon art">{options.map(([k,label,note])=><button key={k} type="button" role="radio" aria-checked={style===k} className={'toggle'+(style===k?' on':'')} onClick={()=>setSpriteStyle(k)}><b>{label}</b><small>{note}</small></button>)}</div></Panel>;
+  const style=useSpriteStyle();
+  const options:[SpriteStyle,string,string,string][]=[['home','HOME','3D renders',`/api/home?species=Alakazam`],['gen5','Black/White','Animated pixel sprites',spriteUrls('Alakazam','gen5')[0]],['xy','XY','Animated 3D sprites',spriteUrls('Alakazam','xy')[0]]];
+  return <Panel title="Pokémon art"><div className="sprite-choice" role="radiogroup" aria-label="Pokémon art">{options.map(([k,label,note,src])=>
+    <button key={k} type="button" role="radio" aria-checked={style===k} className={'sprite-option'+(style===k?' on':'')} onClick={()=>setSpriteStyle(k)}>
+      <span className={'sprite-preview sprite-'+k}><img src={src} alt="" loading="lazy"/></span><b>{label}</b><small>{note}</small></button>)}</div></Panel>;
 }

@@ -29,7 +29,7 @@ const firstVisit=()=>{try{return !location.hash&&!localStorage.getItem(WELCOMED)
 const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[2]==='mon'&&p[4]?.startsWith('config-')?[...p.slice(0,4),p[5]].join('/'):hash;};
 export default function App(){
   const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams')),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
-  const [menuOpen,setMenuOpen]=useState(false),[scrolled,setScrolled]=useState(false);
+  const [menuOpen,setMenuOpen]=useState(false);
   // Jade × Phosphor: the once-per-session boot, the screen switching on after it, and text that resolves from noise.
   const [booting,setBooting]=useState(shouldBoot),[powerOn,setPowerOn]=useState(false);
   const bootDone=()=>{setBooting(false);setPowerOn(true);setTimeout(()=>setPowerOn(false),1400);};
@@ -41,8 +41,7 @@ export default function App(){
     id=requestAnimationFrame(run);return()=>cancelAnimationFrame(id);},[page,!!data,booting]);
   useEffect(()=>{const over=(e:PointerEvent)=>{if(e.pointerType==='touch')return;const el=(e.target as HTMLElement).closest?.(DECODE_ON_HOVER);if(el&&!el.contains(e.relatedTarget as Node))hoverDecode(el);};
     addEventListener('pointerover',over,{passive:true});return()=>removeEventListener('pointerover',over);},[]);
-  // Past the top of the page the header detaches from the news strip into a compact floating bar.
-  useEffect(()=>{const on=()=>setScrolled(scrollY>64);on();addEventListener('scroll',on,{passive:true});return()=>removeEventListener('scroll',on);},[]);useEffect(()=>setMenuOpen(false),[route]);
+  useEffect(()=>setMenuOpen(false),[route]);
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
   // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
   const revision=useRef<number|null>(null);const dataRef=useRef<any>(null);const lastHash=useRef(location.hash);
@@ -86,7 +85,7 @@ export default function App(){
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
   // Ask Frontier Brain floats over the page as an overlay, so opening it never reflows the layout.
-  return <div className={'shell'+(withDock?' dock-open':'')+(scrolled?' scrolled':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><Brand/><SavePill/>
+  return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><Brand/><SavePill/>
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>

@@ -1,7 +1,7 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
 import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge,TYPE_COLOURS} from '../ui.tsx';
-import {Px,Share,Home,Target,Play,ArrowLeft,Pencil,Plus,Eye,Check,WarningDiamond,SettingsCog} from '../icons.tsx';
+import {Px,Share,Home,Target,Play,ArrowLeft,Pencil,Plus,Eye,Check,WarningDiamond,SettingsCog,Copy,Link,Swap} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
 import {getView,versionName,stats,natureEffect,noteTitles} from './editors.tsx';
@@ -129,7 +129,7 @@ function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing}:{tea
     await mutate({type:'team-configure',teamId:team.id,versionId:active.id,parentConfigurationId:active.currentConfigurationId,slots:e.c.slots,summary:`Restored from ${date(e.c.createdAt)}`}).catch(()=>{});};
   return <div className="versions history manage">
     <div className="manage-tiles">
-      <section className="manage-tile"><div><span className="eyebrow">Export</span><h3>Share this team</h3></div><div className="manage-actions"><button onClick={onExport}><Px icon={Share}/>Showdown paste</button><button onClick={onPokepaste} disabled={publishing}>{publishing?'Creating…':'PokePaste'}</button></div></section>
+      <section className="manage-tile"><span className="eyebrow">Export</span><div className="manage-actions"><button onClick={onExport}><Px icon={Share}/>Showdown paste</button><button onClick={onPokepaste} disabled={publishing}><Px icon={Link}/>{publishing?'Creating…':'PokePaste'}</button></div></section>
       <FormatTile team={team} mutate={mutate} notify={notify}/>
       <DuplicateTile team={team} mutate={mutate} notify={notify}/>
     </div>
@@ -157,8 +157,8 @@ export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:
 function FormatTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:string)=>void}){
   const [target,setTarget]=useState<string>(team.format),[busy,setBusy]=useState(false);useEffect(()=>setTarget(team.format),[team.format]);
   const change=async()=>{setBusy(true);try{await mutate({type:'team-format',teamId:team.id,format:target});notify(`Now ${formatLabel(target)}. Check the sets against its rules.`);}catch(e){notify((e as Error).message);}finally{setBusy(false);}};
-  return <section className="format-tile manage-tile"><div><span className="eyebrow">Format</span><h3>{formatLabel(team.format)}</h3></div>
-    <div className="format-copy manage-actions"><label><span className="sr-only">Format</span><select value={target} onChange={e=>setTarget(e.target.value)}>{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button disabled={busy||target===team.format} onClick={()=>void change()}>{busy?'Changing…':'Change format'}</button></div></section>;
+  return <section className="format-tile manage-tile"><span className="eyebrow">Format</span>
+    <div className="format-copy manage-actions"><label><span className="sr-only">Format</span><select value={target} onChange={e=>setTarget(e.target.value)}>{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button disabled={busy||target===team.format} onClick={()=>void change()}><Px icon={Swap}/>{busy?'Changing…':'Change'}</button></div></section>;
 }
 // A copy of the current six (sets and notes) as a new team in the same format; change its format from its own Manage tab.
 function DuplicateTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:string)=>void}){
@@ -166,7 +166,7 @@ function DuplicateTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:st
   const duplicate=async()=>{setBusy(true);try{const active=team.versions.find((v:any)=>v.id===team.activeVersionId);const {paste}=await api(`/export?team=${team.id}&version=${active.id}&configuration=${active.currentConfigurationId}`);
       const r=await mutate({type:'import',name:`${team.name} (copy)`,paste,format:team.format,notes:active.notes??''});notify(`Duplicated as ${team.name} (copy).`);location.hash=teamHref(r.result.id,'history');}
     catch(e){notify((e as Error).message);}finally{setBusy(false);}};
-  return <section className="manage-tile"><div><span className="eyebrow">Team</span><h3>Duplicate</h3></div><div className="manage-actions"><button disabled={busy} onClick={()=>void duplicate()}>{busy?'Duplicating…':'Duplicate team'}</button></div></section>;
+  return <section className="manage-tile"><span className="eyebrow">Duplicate</span><div className="manage-actions"><button disabled={busy} onClick={()=>void duplicate()}><Px icon={Copy}/>{busy?'Duplicating…':'Duplicate team'}</button></div></section>;
 }
 // Background team builds: live steps while running, then a draft to review.
 const buildSteps:Record<string,string>={meta_overview:'Read the meta',team_pool_sets:'Pool sets',standard_set:'Typical set',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',usage_data:'Usage data',dex_lookup:'Dex',get_team:'Team',validation:'Rules check'};
