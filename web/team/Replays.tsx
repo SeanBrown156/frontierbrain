@@ -113,16 +113,6 @@ function AddReplays({team,versionId,load,notify,after}:{team:any;versionId:strin
   </section>;
 }
 
-function Patterns({games}:{games:any[]}){
-  const [stats,setStats]=useState<any>(null);const ids=games.map(g=>g.id).join(',');
-  useEffect(()=>{let alive=true;api('/coach-stats?ids='+encodeURIComponent(ids)).then(s=>{if(alive)setStats(s);}).catch(()=>{});return()=>{alive=false;};},[ids]);
-  const leads=Object.entries<any>(stats?.leads??{}).sort((a,b)=>b[1].games-a[1].games).slice(0,8);const opps=Object.entries<any>(stats?.matchups??{}).sort((a,b)=>b[1].preview-a[1].preview).slice(0,10);
-  return <details className="patterns"><summary>Patterns across {games.length} games</summary><div className="patterns-grid">
-    <div><h3>Your leads</h3><table><tbody>{leads.map(([pair,r])=><tr key={pair}><td>{pair}</td><td>{r.wins}–{r.losses}</td><td className="muted">{r.games>=5?pct(r.wins,r.games):`n=${r.games}`}</td></tr>)}</tbody></table></div>
-    <div><h3>Opponents</h3><table><tbody>{opps.map(([m,r])=><tr key={m}><td>{m}</td><td>{r.previewWins}–{r.preview-r.previewWins}</td><td className="muted">{r.preview>=5?pct(r.previewWins,r.preview):`n=${r.preview}`}</td></tr>)}</tbody></table></div>
-  </div><p className="footnote">Below 5 games a record is an observation, not a diagnosis.</p></details>;
-}
-
 // How a game is linked to this team's sets: matched automatically (consistent with the game, not proof of spreads),
 // confirmed by the player, or same six with differences the battle showed.
 function LinkStatus({g,team,data,load,notify}:{g:any;team:any;data:any;load:()=>Promise<void>;notify:(s:string,e?:boolean)=>void}){
