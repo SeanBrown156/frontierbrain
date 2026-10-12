@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {poolRows,resolveSpecies,playerId} from '../pool-db.ts';
+import {poolRows,resolveSpecies,playerId,shrinkage} from '../pool-db.ts';
 import type {PoolTeam} from '../pool.ts';
 
 // A tiny synthetic pool: one official team (Limitless display names, a merged paste), one online team (record,
@@ -12,7 +12,7 @@ const teams:PoolTeam[]=[
   {id:'official:444:1:alice',lane:'official',event:'Regional Recife',eventId:'444',date:'2026-10-03',players:222,player:'Alice',placing:1,record:null,pokemon:six,
     sets:six.map(s=>set(s,s==='Incineroar'?{statPoints:sp}:{})),sources:[{name:'Limitless',url:'https://limitlessvgc.com/teams/1'},{name:'VGCPastes',url:'https://pokepast.es/aaa'}],spreadsFrom:{name:'VGCPastes',url:'https://pokepast.es/aaa'}},
   {id:'online:abc:bob',lane:'online',event:'Weekly #1',eventId:'abc',date:'2026-10-05',players:40,player:'Bob ',placing:3,record:'4-1-1',pokemon:six,
-    sets:six.map(s=>set(s,s==='Sneasler'?{item:'Focus Slash',moves:['Close Combat','-','Protect']}:{})),sources:[{name:'Limitless online',url:'https://play.limitlesstcg.com/tournament/abc/standings'}]},
+    sets:six.map(s=>set(s,s==='Sneasler'?{item:'Mega Stone',moves:['Close Combat','-','Protect']}:{})),sources:[{name:'Limitless online',url:'https://play.limitlesstcg.com/tournament/abc/standings'}]},
   {id:'shared:MC1',lane:'shared',event:'Video',eventId:'',date:'2026-10-06',players:null,player:'bob',placing:null,record:null,pokemon:six,
     sets:six.map(s=>set(s,{nature:'naïve',statPoints:sp})),sources:[{name:'VGCPastes',url:'https://pokepast.es/bbb'}]},
 ];
@@ -50,10 +50,26 @@ test('Six members per team; identical sets share one row; SP all-or-nothing with
 });
 
 test('Names are canonicalised when the engine knows them, otherwise kept as written and flagged',()=>{
-  const sneasler=rows.sets.find(s=>s.species==='Sneasler'&&s.item==='Focus Slash')!;
+  const sneasler=rows.sets.find(s=>s.species==='Sneasler'&&s.item==='Mega Stone')!;
   assert.deepEqual(sneasler.unresolved,['item']);assert.deepEqual(sneasler.moves,['Close Combat','Protect'],'"-" is an empty slot, not a move');
-  assert.equal(rows.unresolved.item['Focus Slash'],1);
+  assert.equal(rows.unresolved.item['Mega Stone'],1);
   const pasted=rows.sets.filter(s=>s.hp_sp!==null&&s.nature!=='Careful');assert.equal(pasted.length,6);
   assert.ok(pasted.every(s=>s.nature==='Naive'&&!s.unresolved.length),'"naïve" resolves to Naive');
   assert.equal(Object.keys(rows.unresolved.species).length,0);
+});
+test('A load that would shrink the hosted pool sharply is flagged; normal turnover is not',()=>{
+  assert.match(shrinkage(396,7759)!,/396 teams .* 7759 \(95% fewer\)/);
+  assert.ok(shrinkage(7633,8989),'a 15% drop (rate-limited online events) is refused');
+  assert.equal(shrinkage(8700,8989),null);assert.equal(shrinkage(9100,8989),null);assert.equal(shrinkage(10,null),null);
+});
+test('Name corrections: every target is a Champions name, no entry shadows a real one, and placeholders mean no item',async()=>{
+  const {corrections,correctName}=await import('../pool-names.ts');const {dex}=await import('../mechanics.ts');
+  const table={item:dex.items,ability:dex.abilities,nature:dex.natures,move:dex.moves} as const;
+  for(const [kind,entries] of Object.entries(corrections) as [keyof typeof table,Record<string,string|null>][])for(const [raw,to] of Object.entries(entries)){
+    assert.equal(table[kind].get(raw).exists,false,`${kind} "${raw}" already resolves; it must not be corrected`);
+    if(to!==null)assert.ok(table[kind].get(to).exists,`${kind} "${raw}" → "${to}" is not a Champions ${kind}`);}
+  assert.equal(correctName('item','golisopodite'),'Golisopite');assert.equal(correctName('item','NO ITEM'),null);assert.equal(correctName('move','Shadow'),undefined);
+  const [row]=poolRows([{id:'shared:t',lane:'shared',event:'',eventId:'',date:null,players:null,player:'p',placing:null,record:null,pokemon:['Golisopod'],
+    sets:[{species:'Golisopod',item:'Golisopodite',ability:'Emergancy Exit',nature:'Adament',moves:['Kowtow Kleave','Shadow']}],sources:[{name:'VGCPastes',url:'u'}]} as PoolTeam],{refreshedAt:'2026-10-12T00:00:00Z'}).sets;
+  assert.deepEqual([row.item,row.ability,row.nature,row.moves,row.unresolved],['Golisopite','Emergency Exit','Adamant',['Kowtow Cleave','Shadow'],['moves']]);
 });

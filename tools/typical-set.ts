@@ -9,6 +9,15 @@ import {MIN_POOL_SPREADS} from './chat.ts';
 import type {PokemonSet} from '../shared/workbench.ts';
 
 export interface TypicalSet {set:PokemonSet;basis:string[];}
+// The most common competitive spread for a species: the pool's top exact spread when it has enough, else PokéBase M-C
+// tournaments. `label` says where it came from, so a filled-in spread is never mistaken for a player's own.
+export async function commonSpread(species:string):Promise<{statPoints:NonNullable<PokemonSet['statPoints']>;nature?:string;label:string}|null>{
+  const name=dex.species.get(species);if(!name.exists)return null;let pool:MetaSets|null=null,source:MetaSets|null=null;
+  try{pool=await poolSets(name.name);}catch{}
+  if(pool&&(pool.spreads??[]).reduce((n,s:any)=>n+(s.count??0),0)>=MIN_POOL_SPREADS)source=pool;else{try{source=await metaSets(name.name,'pokebase');}catch{}}
+  const top:any=source?.spreads[0];if(!top)return null;
+  return {statPoints:top.statPoints,nature:top.nature,label:`${source===pool?'Frontier Brain pool':'PokéBase M-C tournaments'} most common spread for ${name.name}, ${top.percent}%${top.count?` (${top.count} sets)`:''}`};
+}
 const legalMoves=(species:string,moves:string[])=>moves.filter(m=>dex.moves.get(m).exists);
 export async function typicalSet(species:string,avoidItems:string[]=[]):Promise<TypicalSet>{
   const name=dex.species.get(species);if(!name.exists)throw new Error(`Unknown species: ${species}`);

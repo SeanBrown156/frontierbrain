@@ -1,12 +1,13 @@
 import {useEffect,useRef,useState} from 'react';
 import {api,Panel} from './ui.tsx';
 import {Px,Download,Upload,Sparkles,Check} from './icons.tsx';
-import {supabase,useAccount,requireAccount,hostedSite} from './auth.tsx';
+import {supabase,useAccount,hostedSite,GoogleButton} from './auth.tsx';
 import {aiKey,setAIKey,type AIKey} from './ai/keys.tsx';
 import SpeciesPicker from './ai/SpeciesPicker.tsx';
 import {StylePicker} from './ai/Pickers.tsx';
 import {X} from 'lucide-react';
 import {useSpriteStyle,setSpriteStyle,spriteUrls,type SpriteStyle} from './fx.ts';
+import {ShowdownNamesField} from './team/ShowdownName.tsx';
 
 // Settings (#account): who you are, your Showdown name, your AI key, backups. The avatar in the header opens it.
 export default function Settings({profile,reload,notify}:{profile?:any;reload:()=>Promise<void>;notify:(text:string,error?:boolean)=>void}){
@@ -15,7 +16,7 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
     <h1>Settings</h1>
     <Panel title="Account">
       {account.kind==='account'?<div className="settings-row"><p>Signed in as <b>{account.email}</b></p><button onClick={()=>void supabase!.auth.signOut()}>Sign out</button></div>
-        :account.kind==='guest'?<div className="settings-row"><p>You're using Frontier Brain as a guest. Sign in for free to keep your teams on any device and use AI with your own key.</p><button className="primary" onClick={()=>requireAccount()}>Sign in</button></div>
+        :account.kind==='guest'?<div className="settings-row account-signin"><div><p><b>You're using Frontier Brain as a guest.</b> Your work is saved in this browser.</p><p className="muted">Sign in with Google to keep your teams, sets and replays on any device, and to use AI: Ask Frontier Brain, AI team builds, replay summaries, and connecting Claude or ChatGPT. Everything you've made as a guest comes with you.</p></div><GoogleButton/></div>
         :<p className="muted">Local workspace on this computer. No account needed.</p>}
     </Panel>
     <ShowdownName profile={profile} reload={reload} notify={notify}/>
@@ -23,20 +24,13 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
     <AboutYou/>
     <AIPanel/>
     <Backup reload={reload} notify={notify}/>
+    {account.kind==='account'&&<DeleteAccount email={account.email} notify={notify}/>}
   </div>;
 }
 
 function ShowdownName({profile,reload,notify}:{profile?:any;reload:()=>Promise<void>;notify:(t:string,e?:boolean)=>void}){
-  const [name,setName]=useState(''),[aliases,setAliases]=useState(''),[busy,setBusy]=useState(false);
-  useEffect(()=>{setName(profile?.player??'');setAliases((profile?.aliases??[]).join(', '));},[profile?.player,(profile?.aliases??[]).join(',')]);
-  const dirty=name.trim()!==(profile?.player??'')||aliases!==(profile?.aliases??[]).join(', ');
-  const save=async()=>{setBusy(true);try{await api('/profile',{player:name.trim(),aliases:aliases.split(',').map(a=>a.trim()).filter(Boolean)});await reload();notify('Showdown name saved.');}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
-  return <Panel title="Showdown name"><p className="muted">Replays are read from your side, so Frontier Brain needs to know which player is you.</p>
-    <form className="settings-form" onSubmit={e=>{e.preventDefault();void save();}}>
-      <label>Showdown name<input value={name} onChange={e=>setName(e.target.value)} placeholder="YourName"/></label>
-      <label>Other names (optional)<input value={aliases} onChange={e=>setAliases(e.target.value)} placeholder="alt1, alt2"/></label>
-      <button className="primary" disabled={busy||!dirty||!name.trim()}>{busy?'Saving…':!dirty&&profile?.player?<><Px icon={Check}/>Saved</>:'Save'}</button>
-    </form></Panel>;
+  return <Panel title="Showdown names"><p className="muted">Replays are read from your side, so Frontier Brain needs to know which player is you. Add every name you play under; the first is your main one.</p>
+    <ShowdownNamesField profile={profile} reload={reload} onError={m=>notify(m,true)}/></Panel>;
 }
 
 // What Frontier Brain remembers about you. Claude, ChatGPT and the in-app assistant all read it (and save what you
@@ -95,7 +89,7 @@ function Connectors(){
         <li><b>Changes wait for you.</b> New plans arrive as proposals in the team's Strategy tab; nothing about an existing team changes until you accept it.</li>
       </ul>
     </div>
-    {account.kind==='guest'?<div className="settings-row"><p>Connectors need a free account.</p><button className="primary" onClick={()=>requireAccount('Sign in for free to connect Claude or ChatGPT.')}>Sign in</button></div>:<>
+    {account.kind==='guest'?<div className="settings-row"><p>Connectors need a free account.</p><GoogleButton/></div>:<>
       <label className="connector-url">Connector address<Copy text={url}/></label>
       <div className="segmented client-tabs" role="tablist">{CLIENTS.map(c=><button key={c} role="tab" aria-selected={client===c} className={client===c?'on':''} onClick={()=>setClient(c)}>{c}</button>)}</div>
       {local&&web?<p className="notice">{client} connects to sites on the internet, not to this computer. Use the hosted site (frontierbrain.vercel.app) to connect {client}, or use Claude Code, Codex or Cursor here.</p>
@@ -126,7 +120,7 @@ function AIKey(){
         <li><b>Check for yourself.</b> Frontier Brain is open source: <a href="https://github.com/SeanBrown156/frontierbrain" target="_blank" rel="noreferrer">see how keys are handled ↗</a></li>
       </ul>
     </div>
-    {locked?<div className="settings-row"><p>Sign in for free to use AI with your preferred AI tool.</p><button className="primary" onClick={()=>requireAccount('Sign in for free to use AI with your preferred AI tool.')}>Sign in</button></div>:<>
+    {locked?<div className="settings-row"><p>Sign in for free to use AI with your preferred AI tool.</p><GoogleButton/></div>:<>
       {saved&&<p className="key-saved"><Px icon={Check}/>{saved.provider==='anthropic'?'Anthropic (Claude)':'OpenAI'} key saved in this browser, ending …{saved.key.slice(-4)}</p>}
       <form className="settings-form" onSubmit={e=>{e.preventDefault();if(key.trim())void save();}}>
         <label>Provider<select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic (Claude)</option></select></label>
@@ -157,4 +151,14 @@ function Looks(){
   return <Panel title="Pokémon art"><div className="sprite-choice" role="radiogroup" aria-label="Pokémon art">{options.map(([k,label,note,src])=>
     <button key={k} type="button" role="radio" aria-checked={style===k} className={'sprite-option'+(style===k?' on':'')} onClick={()=>setSpriteStyle(k)}>
       <span className={'sprite-preview sprite-'+k}><img src={src} alt="" loading="lazy"/></span><b>{label}</b><small>{note}</small></button>)}</div></Panel>;
+}
+
+// Deleting the account removes it and everything stored under it on the hosted site; afterwards a fresh guest session starts.
+function DeleteAccount({email,notify}:{email:string;notify:(t:string,e?:boolean)=>void}){
+  const [busy,setBusy]=useState(false);
+  const remove=async()=>{if(!confirm(`Delete the account ${email} and everything in it? Download a backup first if you want to keep your teams. This can't be undone.`))return;
+    setBusy(true);try{await api('/account-delete',{});await supabase!.auth.signOut({scope:'local'});location.hash='#welcome';location.reload();}
+    catch(e){notify((e as Error).message,true);setBusy(false);}};
+  return <section className="danger-zone"><div><h3>Delete your account</h3><p className="muted">Deletes your account and everything in it: teams, history, sets, strategy, replays, summaries and settings. Download a backup first to keep a copy.</p></div>
+    <button className="danger" disabled={busy} onClick={()=>void remove()}>Delete account</button></section>;
 }

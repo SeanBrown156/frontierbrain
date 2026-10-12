@@ -27,7 +27,7 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
   return <div className="replays">{!data.profile?.player&&<ShowdownName reload={load}/>}
     <Digest team={team} games={games} info={info} busy={busy} refresh={()=>void summarise([])} art={data.art}/>
     <AtAGlance games={games} info={info} art={data.art}/>
-    <AddReplays team={team} versionId={all?team.activeVersionId:versionId} load={load} notify={notify} after={()=>setTimeout(()=>void refresh(),800)}/>
+    <AddReplays team={team} versionId={all?team.activeVersionId:versionId} load={load} notify={notify} after={()=>setTimeout(()=>void refresh(),800)} locked={!data.profile?.player}/>
     {games.length>0&&<div className="replay-filters rf">
       <div className="rf-find"><TagSearch games={games} summaries={info.summaries} value={picked} onChange={setPicked}/></div>
       <div className="segmented rf-result" role="group" aria-label="Result">{[['','All'],['win','Wins'],['loss','Losses']].map(([v,l])=><button key={v} className={result===v?'on':''} aria-pressed={result===v} onClick={()=>setResult(v)}>{l}</button>)}</div>
@@ -155,14 +155,15 @@ function GameDrawer({g,s,team,data,load,notify,close,resummarise}:{g:any;s:any;t
   </div>{linking&&<AssociationDialog game={g} data={data} close={()=>setLinking(false)} load={load} notify={notify}/>}</Modal>;
 }
 
-function AddReplays({team,versionId,load,notify,after}:{team:any;versionId:string;load:()=>Promise<void>;notify:(s:string,e?:boolean)=>void;after:()=>void}){
+// Locked until the player has a Showdown name: without it, replays can't be read from their side.
+function AddReplays({team,versionId,load,notify,after,locked=false}:{team:any;versionId:string;load:()=>Promise<void>;notify:(s:string,e?:boolean)=>void;after:()=>void;locked?:boolean}){
   const [links,setLinks]=useState(''),[files,setFiles]=useState<File[]>([]),[busy,setBusy]=useState(false),[results,setResults]=useState<any[]>([]);
   const submit=async()=>{setBusy(true);setResults([]);try{const items=[...links.split(/\s+/).filter(l=>l.startsWith('http')).map(url=>({url})),...await Promise.all(files.map(async f=>({name:f.name,html:await f.text()})))];
       const r=await api('/replays',{items,association:{teamId:team.id,certainty:'auto'}});await load();
       const ok=r.results.filter((x:any)=>x.ok);const matched=ok.filter((x:any)=>x.certainty==='exact').length;setResults(r.results.filter((x:any)=>!x.ok||x.certainty!=='exact'));notify(`${ok.length} of ${r.results.length} replay(s) added${matched?`; ${matched} matched to your sets at the time`:''}.`);if(ok===r.results.length){setLinks('');setFiles([]);}after();}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
-  return <section className="add-replays"><div className="add-row"><textarea rows={links.includes('\n')?3:1} value={links} onChange={e=>setLinks(e.target.value)} placeholder="Paste Showdown replay links (one per line)" aria-label="Showdown replay links"/>
+  return <section className={'add-replays'+(locked?' locked':'')} aria-disabled={locked||undefined} title={locked?'Add your Showdown name above first':undefined}><fieldset className="add-row" disabled={locked}><textarea rows={links.includes('\n')?3:1} value={links} onChange={e=>setLinks(e.target.value)} placeholder={locked?'Add your Showdown name above to add replays':'Paste Showdown replay links (one per line)'} aria-label="Showdown replay links"/>
       <label className="button file-button"><Px icon={Upload}/>{files.length?`${files.length} file${files.length===1?'':'s'}`:'HTML files'}<input className="file-input" type="file" multiple accept=".html,.htm" onChange={e=>setFiles([...(e.target.files??[])])}/></label>
-      <button className="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</button></div>
+      <button className="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</button></fieldset>
     
     {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?(r.certainty==='inbox'?'not linked: its six don\'t match this team':`linked by team only${r.note?` (${r.note})`:''}`):r.error}</p>)}
   </section>;

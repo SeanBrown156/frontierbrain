@@ -13,6 +13,7 @@ import {fetchText} from './research.ts';
 import {dex,resolveSpecies} from './mechanics.ts';
 import {recentEvents,standings,teamList} from './limitless.ts';
 import {pasteIndex,setsFromPaste} from './vgcpastes.ts';
+import {correctName,type NameKind} from './pool-names.ts';
 import type {MetaSets,Share,MetaSpread} from './meta-sets.ts';
 
 export type Lane='official'|'online'|'shared';
@@ -41,9 +42,18 @@ async function onlineTeams(log:Log,minPlayers:number):Promise<PoolTeam[]>{
   const list=JSON.parse((await fetchText(`${ONLINE}/tournaments?game=VGC&format=M-C&limit=500`,5_000_000)).text) as any[];const out:PoolTeam[]=[];let read=0;
   // Organisers tag custom-rule events as M-C too; their teams would distort standard usage.
   const custom=list.filter(t=>t.players>=minPlayers&&NONSTANDARD.test(t.name));if(custom.length)log(`Online · skipped ${custom.length} custom-rule event(s): ${custom.map(t=>t.name).join('; ')}`);
-  for(const t of list.filter(t=>t.players>=minPlayers&&!NONSTANDARD.test(t.name))){const path=`knowledge/metagame/limitless-online/${t.id}.json`;let rows=await optionalJSON<any[]|null>(path,null);
-    const finished=Date.parse(t.date)<Date.now()-2*86400_000;
-    if(!rows){try{rows=JSON.parse((await fetchText(`${ONLINE}/tournaments/${t.id}/standings`,10_000_000)).text);if(finished)await save(path,rows);read++;await sleep(200);}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);continue;}}
+  // An event whose standings can't be read (Limitless rate-limits bursts with HTTP 429) is retried once more slowly
+  // after the rest; if any still fail, the whole lane fails, so the refresh keeps the previous pool instead of
+  // silently dropping those teams. Finished events already read are cached, so the next run only fetches the rest.
+  const events=list.filter(t=>t.players>=minPlayers&&!NONSTANDARD.test(t.name));const unread:any[]=[];
+  const standingsOf=async(t:any,pause:number):Promise<any[]>=>{const path=`knowledge/metagame/limitless-online/${t.id}.json`;let rows=await optionalJSON<any[]|null>(path,null);if(rows)return rows;
+    const fresh=JSON.parse((await fetchText(`${ONLINE}/tournaments/${t.id}/standings`,10_000_000)).text) as any[];if(Date.parse(t.date)<Date.now()-2*86400_000)await save(path,fresh);read++;await sleep(pause);return fresh;};
+  const tables=new Map<string,any[]>();
+  for(const t of events){try{tables.set(t.id,await standingsOf(t,200));}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);unread.push(t);}}
+  if(unread.length){log(`Online · retrying ${unread.length} event(s) more slowly`);await sleep(60_000);
+    for(const t of unread.splice(0)){try{tables.set(t.id,await standingsOf(t,2000));}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);unread.push(t);}}}
+  if(unread.length)throw new Error(`${unread.length} online event(s) unreadable after retrying: ${unread.slice(0,3).map(t=>t.name).join('; ')}${unread.length>3?'…':''}`);
+  for(const t of events){const rows=tables.get(t.id);
     for(const r of rows??[]){if(!Array.isArray(r.decklist)||r.decklist.length!==6)continue;const sets=r.decklist.map((p:any)=>({species:species(p.name??p.id),item:p.item??'',ability:p.ability??'',nature:p.nature??'',moves:p.attacks??[]}));
       out.push({id:`online:${t.id}:${playerKey(r.player??r.name)}`,lane:'online',event:t.name,eventId:t.id,date:t.date.slice(0,10),players:t.players,player:r.name??r.player,placing:r.placing??null,record:r.record?`${r.record.wins}-${r.record.losses}${r.record.ties?'-'+r.record.ties:''}`:null,pokemon:sets.map((s:PoolSet)=>s.species),sets,sources:[{name:'Limitless online',url:`https://play.limitlesstcg.com/tournament/${t.id}/standings`}]});}}
   log(`Online · ${list.length} M-C tournaments listed, ${list.filter(t=>t.players>=minPlayers).length} with ≥${minPlayers} players (${read} newly read)`);return out;
@@ -75,6 +85,10 @@ export function consolidate(official:PoolTeam[],online:PoolTeam[],shared:PoolTea
     const key=`${playerKey(s.player)}:${JSON.stringify(s.sets.map(x=>[base(x.species),x.statPoints]).sort())}`;if(seen.has(key)){duplicates++;continue;}seen.add(key);kept.push(s);}
   return {teams:[...tournament,...kept],merged,duplicates};
 }
+// Keep the existing pool when any lane failed (or nothing came back) and there is one to keep.
+export const keepPreviousPool=(fresh:PoolTeam[],previous:{teams:PoolTeam[]}|null,errors:string[])=>!!previous?.teams.length&&(errors.length>0||!fresh.length);
+export function laneCounts(teams:PoolTeam[]){const n=(lane:string)=>teams.filter(t=>t.lane===lane).length;
+  return {official:n('official'),online:n('online'),shared:n('shared'),mergedSpreads:teams.filter(t=>t.spreadsFrom).length,total:teams.length,withSpreads:teams.filter(t=>t.sets.some(s=>s.statPoints)).length};}
 let running:Promise<unknown>|null=null;
 export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}:{minPlayers?:number;log?:Log}={}){
   if(running)return running;
@@ -82,9 +96,17 @@ export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}
     const safe=async<T>(name:string,fn:()=>Promise<T[]>)=>{try{return await fn();}catch(e){errors.push(`${name}: ${(e as Error).message}`);say(`${name} failed: ${(e as Error).message}`);return [] as T[];}};
     const official=await safe('Official',()=>officialTeams(say));const online=await safe('Online',()=>onlineTeams(say,minPlayers));const shared=await safe('Shared',()=>sharedTeams(say));
     const {teams,merged,duplicates}=consolidate(official,online,shared);
-    const status={refreshedAt:new Date().toISOString(),started,minPlayers,counts:{official:official.length,online:online.length,shared:shared.length,mergedSpreads:merged,duplicateShares:duplicates,total:teams.length,withSpreads:teams.filter(t=>t.sets.some(s=>s.statPoints)).length},
-      notes,errors,excluded:'Mirrors (StatCrusher, MunchStats Showdown tabs, Top Cut Explorer) and composites (Suckerpunch, Pikalytics, LabMaus) are not ingested; they repackage these upstreams or blend them.'};
-    if(teams.length||!(await optionalJSON(TEAMS,null))){await save(TEAMS,{refreshedAt:status.refreshedAt,teams});memo=null;}await save(STATUS,status);return status;})();
+    const counts={official:official.length,online:online.length,shared:shared.length,mergedSpreads:merged,duplicateShares:duplicates,total:teams.length,withSpreads:teams.filter(t=>t.sets.some(s=>s.statPoints)).length};
+    const excluded='Mirrors (StatCrusher, MunchStats Showdown tabs, Top Cut Explorer) and composites (Suckerpunch, Pikalytics, LabMaus) are not ingested; they repackage these upstreams or blend them.';
+    const now=new Date().toISOString(),previous=await optionalJSON<{refreshedAt:string;teams:PoolTeam[]}|null>(TEAMS,null);
+    // A failed lane would silently shrink the pool (and the hosted tables loaded from it), so the previous complete pool
+    // stays in place and its status keeps describing it; the failed attempt is recorded alongside.
+    if(keepPreviousPool(teams,previous,errors)){const before=await optionalJSON<any>(STATUS,null);
+      const status={...(before?.refreshedAt===previous!.refreshedAt?before:{counts:laneCounts(previous!.teams)}),refreshedAt:previous!.refreshedAt,errors,
+        notes:[...notes,`Kept the previous pool (refreshed ${previous!.refreshedAt}): this refresh had errors.`],lastAttempt:{started,at:now,counts,errors},excluded};
+      await save(STATUS,status);return status;}
+    const status={refreshedAt:now,started,minPlayers,counts,notes,errors,excluded};
+    await save(TEAMS,{refreshedAt:now,teams});memo=null;await save(STATUS,status);return status;})();
   try{return await running;}finally{running=null;}
 }
 export const poolStatus=()=>optionalJSON<any>(STATUS,null);
@@ -92,8 +114,13 @@ export const poolStatus=()=>optionalJSON<any>(STATUS,null);
 // A team that lists the same Pokémon twice is a source error; it counts once.
 // Parsed once per minute per server (the file is ~19 MB); a refresh shows up within that minute.
 let memo:{at:number;teams:Promise<PoolTeam[]>}|null=null;
+// Tests (and anything that swaps the data root) drop the cached pool.
+export const forgetPool=()=>{memo=null;};
 export function poolTeams():Promise<PoolTeam[]>{if(memo&&Date.now()-memo.at<60_000)return memo.teams;const teams=loadPoolTeams();memo={at:Date.now(),teams};teams.catch(()=>{memo=null;});return teams;}
-async function loadPoolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species)}))}));}
+async function loadPoolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species),...corrected(s)}))}));}
+// The reviewed name corrections (tools/pool-names.ts) apply on read, as in the hosted tables.
+const fix=(kind:NameKind,v:string)=>{const c=correctName(kind,v);return c===undefined?v:c??'';};
+const corrected=(s:PoolSet)=>({item:fix('item',s.item),ability:fix('ability',s.ability),nature:fix('nature',s.nature),moves:s.moves.map(m=>fix('move',m))});
 export interface PoolQuery {lanes?:Lane[];sinceDays?:number;}
 const inScope=(t:PoolTeam,q:PoolQuery)=>(!q.lanes||q.lanes.includes(t.lane))&&(!q.sinceDays||!t.date||Date.parse(t.date)>=Date.now()-q.sinceDays*86400_000);
 const tally=(values:string[],n:number):Share[]=>{const m=new Map<string,number>();for(const v of values)if(v)m.set(v,(m.get(v)??0)+1);return [...m].sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count,percent:Math.round(1000*count/Math.max(1,n))/10}));};

@@ -1,0 +1,72 @@
+# Weekly refresh of the hosted site's tournament pool: fetch the pool, load it into the Supabase pool_* tables and
+# seed the pool files into shared_files. Deterministic, no AI. Authenticates with the project's secret key (repository
+# secrets SUPABASE_URL and SUPABASE_SECRET_KEY), not a personal login.
+# Safety: refreshPool keeps the previous pool when a source fails, and pool-db refuses a load that would shrink the
+# hosted pool by more than 5%. A run whose sources failed exits non-zero so GitHub notifies the owner.
+name: Hosted pool refresh
+
+on:
+  schedule:
+    - cron: '0 22 * * 1' # Mondays 22:00 UTC (Tuesday morning in Melbourne), after weekend events post their lists
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hosted-pool
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_DATA: data
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Previous pool and cached source pages (finished online events, VGCPastes pastes), so a run only fetches what is new.
+      - uses: actions/cache/restore@v6
+        with:
+          path: |
+            data/knowledge/pool
+            data/knowledge/metagame/limitless-online
+            data/knowledge/metagame/vgcpastes
+          key: hosted-pool-${{ github.run_id }}
+          restore-keys: hosted-pool-
+
+      - name: Refresh the pool
+        run: |
+          node --input-type=module -e "
+            const {refreshPool}=await import('./tools/pool.ts');
+            const s=await refreshPool();
+            console.log(JSON.stringify({refreshedAt:s.refreshedAt,counts:s.counts,errors:s.errors,lastAttempt:s.lastAttempt?.counts},null,2));"
+
+      - name: Load into the pool tables
+        run: node tools/pool-db.ts
+
+      - name: Seed the pool files
+        run: node tools/hosted-seed.ts --only knowledge/pool/
+
+      - uses: actions/cache/save@v6
+        if: always()
+        with:
+          path: |
+            data/knowledge/pool
+            data/knowledge/metagame/limitless-online
+            data/knowledge/metagame/vgcpastes
+          key: hosted-pool-${{ github.run_id }}
+
+      - name: Fail if a source failed
+        run: |
+          node -e "const s=require('./data/knowledge/pool/status.json');if(s.errors?.length){console.error('Pool sources failed:',s.errors.join('; '));process.exit(1);}"
