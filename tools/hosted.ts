@@ -84,6 +84,12 @@ export function hostedHandler(config:HostedConfig,inner:(req:IncomingMessage,res
     if(error||!userId)return deny(res,401,'Your session has expired. Sign in again.');
     if(data.claims.is_anonymous&&path==='/api/mcp')return deny(res,403,'Connectors need a free Frontier Brain account. Sign in on the site first.');
     if(data.claims.is_anonymous){if(AI.has(path)&&req.method==='POST'||path==='/api/models')return deny(res,403,'Sign in to use AI features. Your guest work is kept.');delete req.headers['x-ai-key'];}
+    // Account deletion: revoke every session, then delete the auth user with the secret key. The user's workspace and
+    // files go with it (ON DELETE CASCADE). Guests can delete their data the same way.
+    if(path==='/api/account-delete'&&req.method==='POST'){if(!writer)return deny(res,503,'Account deletion is not configured on this site.');
+      const {error:outErr}=await writer.auth.admin.signOut(token,'global');if(outErr)return deny(res,500,`Couldn't end your sessions: ${outErr.message}`);
+      const {error:delErr}=await writer.auth.admin.deleteUser(userId);if(delErr)return deny(res,500,`Couldn't delete the account: ${delErr.message}`);
+      res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});return res.end(JSON.stringify({deleted:true}));}
     const client=createClient(config.url,config.publishableKey,{...noSession,global:{headers:{Authorization:`Bearer ${token}`}}});
     return withData({user:userFiles(client,userId),shared,store:workspaceStore(client,userId),userId,hosted:true},()=>inner(req,res));
   };

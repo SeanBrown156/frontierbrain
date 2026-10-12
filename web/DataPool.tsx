@@ -10,7 +10,7 @@ export default function DataPool({art}:{art:any}){
   useEffect(()=>{void load();const t=setInterval(()=>void load(),15000);return()=>clearInterval(t);},[]);
   const refresh=async()=>{try{await api('/pool-refresh',{});await load();}catch(e){setError((e as Error).message);}};
   const s=data?.status,o=data?.overview;
-  return <div className="data-pool"><Panel title="Data pool" kicker="ONE DEDUPLICATED SET OF TEAMS" action={<button onClick={()=>void refresh()} disabled={data?.refreshing}><Px icon={Reload}/>{data?.refreshing?'Refreshing…':'Refresh now'}</button>}>
+  return <div className="data-pool"><Panel title="Data pool" kicker="ONE DEDUPLICATED SET OF TEAMS" action={hostedSite?undefined:<button onClick={()=>void refresh()} disabled={data?.refreshing}><Px icon={Reload}/>{data?.refreshing?'Refreshing…':'Refresh now'}</button>}>
     {error&&<p className="error">{error}</p>}{!s?<Notice>The pool hasn't been built yet. Refresh to collect teams.</Notice>:<>
     <div className="pool-counts">{(['official','online','shared'] as const).map(l=><div key={l}><b>{s.counts[l==='shared'?'shared':l]}</b><span>{laneNames[l]}</span></div>)}<div><b>{s.counts.mergedSpreads}</b><span>pastes matched to a tournament team (spreads attached)</span></div><div><b>{s.counts.total}</b><span>teams in the pool · {s.counts.withSpreads} with exact spreads</span></div></div>
     <p className="footnote">Refreshed {date(s.refreshedAt)} {new Date(s.refreshedAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}. {hostedSite?'Updates weekly':'Updates every 12 hours while the app runs'}; finished events and pastes are cached for good. Online events need ≥{s.minPlayers} players. {s.excluded}</p>

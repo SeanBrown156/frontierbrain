@@ -18,6 +18,7 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
     <AboutYou/>
     <AIPanel/>
     <Backup reload={reload} notify={notify}/>
+    {account.kind==='account'&&<DeleteAccount email={account.email} notify={notify}/>}
   </div>;
 }
 
@@ -138,4 +139,14 @@ function Backup({reload,notify}:{reload:()=>Promise<void>;notify:(t:string,e?:bo
   return <Panel title="Backup"><p className="muted">One file with your teams, sets, strategy, replays and summaries. Restoring adds what's missing and never overwrites anything already here.</p>
     <div className="settings-actions"><button disabled={busy} onClick={()=>void download()}><Px icon={Download}/>Download backup</button><button disabled={busy} onClick={()=>file.current?.click()}><Px icon={Upload}/>Restore from a backup</button></div>
     <input ref={file} type="file" accept="application/json,.json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)void restore(f);}}/></Panel>;
+}
+
+// Deleting the account removes it and everything stored under it on the hosted site; afterwards a fresh guest session starts.
+function DeleteAccount({email,notify}:{email:string;notify:(t:string,e?:boolean)=>void}){
+  const [busy,setBusy]=useState(false);
+  const remove=async()=>{if(!confirm(`Delete the account ${email} and everything in it? Download a backup first if you want to keep your teams. This can't be undone.`))return;
+    setBusy(true);try{await api('/account-delete',{});await supabase!.auth.signOut({scope:'local'});location.hash='#welcome';location.reload();}
+    catch(e){notify((e as Error).message,true);setBusy(false);}};
+  return <section className="danger-zone"><div><h3>Delete your account</h3><p className="muted">Deletes your account and everything in it: teams, history, sets, strategy, replays, summaries and settings. Download a backup first to keep a copy.</p></div>
+    <button className="danger" disabled={busy} onClick={()=>void remove()}>Delete account</button></section>;
 }
