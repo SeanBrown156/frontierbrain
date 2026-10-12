@@ -2,7 +2,7 @@
 # seed the pool files into shared_files. Deterministic, no AI. Authenticates with the project's secret key (repository
 # secrets SUPABASE_URL and SUPABASE_SECRET_KEY), not a personal login.
 # Safety: refreshPool keeps the previous pool when a source fails, and pool-db refuses a load that would shrink the
-# hosted pool by more than 20%. A run whose sources failed exits non-zero so GitHub notifies the owner.
+# hosted pool by more than 5%. A run whose sources failed exits non-zero so GitHub notifies the owner.
 name: Hosted pool refresh
 
 on:
@@ -26,9 +26,9 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -36,7 +36,7 @@ jobs:
       - run: npm ci
 
       # Previous pool and cached source pages (finished online events, VGCPastes pastes), so a run only fetches what is new.
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v6
         with:
           path: |
             data/knowledge/pool
@@ -58,7 +58,7 @@ jobs:
       - name: Seed the pool files
         run: node tools/hosted-seed.ts --only knowledge/pool/
 
-      - uses: actions/cache/save@v4
+      - uses: actions/cache/save@v6
         if: always()
         with:
           path: |

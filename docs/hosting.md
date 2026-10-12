@@ -7,7 +7,22 @@ local, untracked `.env.hosted`.
 | --- | --- | --- |
 | Database, auth, storage | Supabase org **Frontier Brain** (`bllfdmvooghyzyzsvykl`), project **frontierbrain** (ref `txsjxommeirxuiclooel`) | Sydney (`ap-southeast-2`), Postgres 17, Free plan |
 | Web app and API | Vercel team **Sean's projects** (`seans-projects-95ee1f5b`), project **frontierbrain** (`prj_Q6T4APAT62jHiJZBgPngzOU7hloh`) | Region `syd1`; production at https://frontierbrain.vercel.app |
-| Source | GitHub `SeanBrown156/frontierbrain` | |
+| Source and automation | GitHub `SeanBrown156/frontierbrain` | Actions secrets `SUPABASE_URL`, `SUPABASE_SECRET_KEY` |
+
+## Billing
+
+- Supabase: org **Frontier Brain**, Free plan (checked 2026-10-12).
+- Vercel: team **Sean's projects**, Pro plan (checked 2026-10-12), paid by the team owner (`seanbrown156`).
+- GitHub Actions: public repository, standard runners (no charge).
+- AI: never paid by the site. Players bring their own key or connect Claude/ChatGPT; the weekly news routine runs on
+  the owner's Claude subscription.
+
+## Scheduled jobs
+
+- `hosted-pool.yml` (GitHub Actions, Mondays 22:00 UTC): pool refresh → `pool_*` tables → pool files in `shared_files`.
+- `hosted-news.yml` (GitHub Actions, on push of `knowledge/news/weeks.json`): schema test → news file in `shared_files`.
+- `frontier-brain-news` (Claude routine, Sundays 21:00 UTC, no connectors): researches the week and commits
+  `knowledge/news/weeks.json` to main.
 
 ## Environment variables
 

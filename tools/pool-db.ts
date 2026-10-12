@@ -72,8 +72,9 @@ export function poolRows(teams:PoolTeam[],{refreshedAt,format='M-C'}:{refreshedA
   return {events:[...events.values()],players:[...players.values()],sets:[...sets.values()],teams:out,members,unresolved,corrected};
 }
 
-// A load that would shrink the hosted pool by more than `limit` (teams) is almost always a partial refresh.
-export function shrinkage(next:number,current:number|null,limit=0.2):string|null{
+// A load that would shrink the hosted pool by more than `limit` (teams) is almost always a partial refresh: within a
+// regulation the pool only grows. A real reset (a new regulation) passes --force.
+export function shrinkage(next:number,current:number|null,limit=0.05):string|null{
   return current&&next<current*(1-limit)?`the pool has ${next} teams but the hosted tables hold ${current} (${Math.round(100*(1-next/current))}% fewer)`:null;}
 
 // Upserts in batches, then removes rows that the current pool no longer contains (older refreshed_at).

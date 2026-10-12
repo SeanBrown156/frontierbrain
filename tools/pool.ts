@@ -42,9 +42,18 @@ async function onlineTeams(log:Log,minPlayers:number):Promise<PoolTeam[]>{
   const list=JSON.parse((await fetchText(`${ONLINE}/tournaments?game=VGC&format=M-C&limit=500`,5_000_000)).text) as any[];const out:PoolTeam[]=[];let read=0;
   // Organisers tag custom-rule events as M-C too; their teams would distort standard usage.
   const custom=list.filter(t=>t.players>=minPlayers&&NONSTANDARD.test(t.name));if(custom.length)log(`Online · skipped ${custom.length} custom-rule event(s): ${custom.map(t=>t.name).join('; ')}`);
-  for(const t of list.filter(t=>t.players>=minPlayers&&!NONSTANDARD.test(t.name))){const path=`knowledge/metagame/limitless-online/${t.id}.json`;let rows=await optionalJSON<any[]|null>(path,null);
-    const finished=Date.parse(t.date)<Date.now()-2*86400_000;
-    if(!rows){try{rows=JSON.parse((await fetchText(`${ONLINE}/tournaments/${t.id}/standings`,10_000_000)).text);if(finished)await save(path,rows);read++;await sleep(200);}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);continue;}}
+  // An event whose standings can't be read (Limitless rate-limits bursts with HTTP 429) is retried once more slowly
+  // after the rest; if any still fail, the whole lane fails, so the refresh keeps the previous pool instead of
+  // silently dropping those teams. Finished events already read are cached, so the next run only fetches the rest.
+  const events=list.filter(t=>t.players>=minPlayers&&!NONSTANDARD.test(t.name));const unread:any[]=[];
+  const standingsOf=async(t:any,pause:number):Promise<any[]>=>{const path=`knowledge/metagame/limitless-online/${t.id}.json`;let rows=await optionalJSON<any[]|null>(path,null);if(rows)return rows;
+    const fresh=JSON.parse((await fetchText(`${ONLINE}/tournaments/${t.id}/standings`,10_000_000)).text) as any[];if(Date.parse(t.date)<Date.now()-2*86400_000)await save(path,fresh);read++;await sleep(pause);return fresh;};
+  const tables=new Map<string,any[]>();
+  for(const t of events){try{tables.set(t.id,await standingsOf(t,200));}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);unread.push(t);}}
+  if(unread.length){log(`Online · retrying ${unread.length} event(s) more slowly`);await sleep(60_000);
+    for(const t of unread.splice(0)){try{tables.set(t.id,await standingsOf(t,2000));}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);unread.push(t);}}}
+  if(unread.length)throw new Error(`${unread.length} online event(s) unreadable after retrying: ${unread.slice(0,3).map(t=>t.name).join('; ')}${unread.length>3?'…':''}`);
+  for(const t of events){const rows=tables.get(t.id);
     for(const r of rows??[]){if(!Array.isArray(r.decklist)||r.decklist.length!==6)continue;const sets=r.decklist.map((p:any)=>({species:species(p.name??p.id),item:p.item??'',ability:p.ability??'',nature:p.nature??'',moves:p.attacks??[]}));
       out.push({id:`online:${t.id}:${playerKey(r.player??r.name)}`,lane:'online',event:t.name,eventId:t.id,date:t.date.slice(0,10),players:t.players,player:r.name??r.player,placing:r.placing??null,record:r.record?`${r.record.wins}-${r.record.losses}${r.record.ties?'-'+r.record.ties:''}`:null,pokemon:sets.map((s:PoolSet)=>s.species),sets,sources:[{name:'Limitless online',url:`https://play.limitlesstcg.com/tournament/${t.id}/standings`}]});}}
   log(`Online · ${list.length} M-C tournaments listed, ${list.filter(t=>t.players>=minPlayers).length} with ≥${minPlayers} players (${read} newly read)`);return out;
