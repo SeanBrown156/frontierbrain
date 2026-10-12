@@ -14,7 +14,7 @@ export function AIKeySettings({onChange}:{onChange?:()=>void}){
     <button className="compact" onClick={()=>setOpen(!open)} title="Use your own OpenAI or Anthropic key">{saved?`${saved.provider==='openai'?'OpenAI':'Claude'} key ✓`:'Add AI key'}</button>
     {open&&<div className="account-pop" role="dialog" aria-label="AI key">
       <p>Ask Frontier Brain runs on <b>your own</b> key. It stays in this browser and is only sent with your requests; it's never stored on the server.</p>
-      <label>Provider<select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic (Claude)</option></select></label>
+      <label>Provider<select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label>
       <label>API key<input type="password" autoComplete="off" placeholder={provider==='openai'?'sk-…':'sk-ant-…'} value={key} onChange={e=>setKey(e.target.value)}/></label>
       <p className="footnote">Get one at {provider==='openai'?<a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">platform.openai.com</a>:<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">console.anthropic.com</a>}. You pay the provider directly for what you use.</p>
       <div className="button-row"><button className="primary" disabled={!key.trim()} onClick={save}>Save key</button>{saved&&<button onClick={()=>{setAIKey(null);setOpen(false);onChange?.();}}>Remove key</button>}</div>

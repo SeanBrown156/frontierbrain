@@ -14,7 +14,7 @@ const SMALL=5;
 // One plan, lead or matchup, with the same header: title on the left, actions top right (above it on very small
 // screens). On a phone a long write-up folds to its first lines with a More toggle; desktop always shows it all.
 const FOLD=112;
-function PlanCard({status,head,meta,summary,body,foot,accept,edit,remove}:{status:string;head:React.ReactNode;meta?:React.ReactNode;summary?:string;body:string;foot?:React.ReactNode;accept?:()=>void;edit:()=>void;remove:()=>void}){
+export function PlanCard({status,head,meta,summary,body,foot,accept,edit,remove}:{status:string;head:React.ReactNode;meta?:React.ReactNode;summary?:string;body:string;foot?:React.ReactNode;accept?:()=>void;edit:()=>void;remove:()=>void}){
   const [open,setOpen]=useState(false),[long,setLong]=useState(false);const inner=useRef<HTMLDivElement>(null);
   // Measured from the children, which the fold never resizes, so toggling it can't flip the measurement.
   useLayoutEffect(()=>{const el=inner.current;if(!el)return;const check=()=>setLong([...el.children].reduce((h,c)=>h+(c as HTMLElement).offsetHeight,0)>FOLD);check();const ro=new ResizeObserver(check);ro.observe(el);return()=>ro.disconnect();},[summary,body]);

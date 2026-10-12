@@ -10,7 +10,8 @@ import DataPool from './DataPool.tsx';
 import {hostedSite} from './auth.tsx';
 import AccountMenu from './AccountMenu.tsx';
 import Settings from './Settings.tsx';
-import Welcome,{WELCOMED} from './Welcome.tsx';
+import Welcome,{WELCOMED,REPO} from './Welcome.tsx';
+import {GitHubMark} from './landing-marks.tsx';
 import BrainBackdrop from './brain/BrainBackdrop.tsx';
 import Boot,{shouldBoot} from './Boot.tsx';
 import {decode,hoverDecode,glitch,reduced} from './fx.ts';
@@ -31,7 +32,8 @@ export default function App(){
   const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams')),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
   const [menuOpen,setMenuOpen]=useState(false);
   // Jade × Phosphor: the once-per-session boot, the screen switching on after it, and text that resolves from noise.
-  const [booting,setBooting]=useState(shouldBoot),[powerOn,setPowerOn]=useState(false);
+  // The landing page goes straight in; the boot belongs to the app and starts when you open it (see openApp).
+  const [booting,setBooting]=useState(()=>shouldBoot()&&(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams'))!=='welcome'),[powerOn,setPowerOn]=useState(false);
   const bootDone=()=>{setBooting(false);setPowerOn(true);setTimeout(()=>setPowerOn(false),1400);};
   const page=pageOf(route);const decodedPage=useRef('');
   useEffect(()=>{if(!data||booting||decodedPage.current===page)return;
@@ -89,15 +91,19 @@ export default function App(){
   // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
+  // "Open the app" on the landing page: mark it seen, run the boot (once per session), then open your teams.
+  const openApp=()=>{try{localStorage.setItem(WELCOMED,'1');}catch{}if(shouldBoot())setBooting(true);location.hash='#teams';};
   // Ask Frontier Brain floats over the page as an overlay, so opening it never reflows the layout.
-  return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}<header className={'masthead'+(menuOpen?' menu-open':'')}><Brand/><SavePill/>
+  return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&route!=='welcome'&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}{route==='welcome'?<header className="masthead landing-nav"><Brand/><ThemeToggle/>
+      <a className="button lp-nav-src" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</a><button className="primary lp-nav-go" onClick={openApp}>Open the app<span aria-hidden="true">→</span></button></header>
+    :<header className={'masthead'+(menuOpen?' menu-open':'')}><Brand/><SavePill/>
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
-      <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>
+      <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>}
     <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button className="icon" aria-label="Dismiss notification" onClick={()=>setMessage(null)}><Px icon={CloseIcon} size={16}/></button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
     {!data?<Empty>Opening Frontier Brain…</Empty>:<>
       {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
-      {route==='welcome'&&<Welcome data={data}/>}
+      {route==='welcome'&&<Welcome data={data} onOpen={openApp}/>}
       {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} reload={load} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
       {team&&parts[2]!=='mon'&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
@@ -106,7 +112,14 @@ export default function App(){
       {route==='data'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><DataPool art={data.art}/></>}
       {route==='references'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Panel title="References"><p>Upstream sources feed the <a href="#data">data pool</a>; mirrors and composites are kept as references. Each card says which it is.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
       {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
-    </>}</main><footer className="footer"><span>FRONTIER BRAIN</span><a href="#welcome">About</a><span>Pokémon images © Pokémon / Nintendo / Creatures / GAME FREAK: HOME renders and item icons via Pokémon Showdown, illustrations via PokéAPI. Unofficial tool.</span></footer>
+    </>}</main><footer className="footer site-footer"><div className="footer-grid">
+      <div className="footer-brand"><span className="footer-word">FRONTIER BRAIN</span><p>The open-source brain for Pokémon VGC. Teams, calcs and replay analysis, with the AI you already use.</p></div>
+      <nav aria-label="Frontier Brain"><h4>App</h4><a href="#teams">Teams</a><a href="#data">Data pool</a><a href="#welcome">About</a></nav>
+      <nav aria-label="Open source"><h4>Open source</h4><a href="https://github.com/SeanBrown156/frontierbrain" target="_blank" rel="noreferrer">View source</a><a href="https://github.com/SeanBrown156/frontierbrain/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT license</a><a href="mailto:seanwritesanddesigns@gmail.com">Contact</a></nav>
+    </div>
+    <div className="footer-legal">
+      <p>Frontier Brain is an unofficial fan project, not affiliated with or endorsed by Nintendo, The Pokémon Company, Game Freak or Creatures. Pokémon and Pokémon character names are trademarks of Nintendo. Pokémon images © Pokémon / Nintendo / Creatures / GAME FREAK: HOME renders and item icons via PokéAPI and Pokémon Showdown. Pokémon Showdown is a separate fan project; its name, logo and a replay screenshot are shown for illustration.</p>
+      <p>Frontier Brain is a product of Sean Writes &amp; Designs. © 2026 Sean Writes &amp; Designs. The source code is released under the MIT license. Contact: <span className="footer-mail">seanwritesanddesigns@gmail.com</span></p></div></footer>
     {pageData&&route!=='welcome'&&<AssistDock key={team?.id??'general'} team={team??null} data={pageData} context={dock} mutate={mutate} notify={notify} open={dockOpen} setOpen={setDockOpen} dataRef={dataRef}/>}
     {importing&&<NewTeam mutate={mutate} load={load} notify={notify} review={importing.review} onClose={()=>setImporting(false)}/>} {newsOpen&&data&&<Modal title="This week in Champions VGC" onClose={()=>setNewsOpen(false)}><News weeks={data.news} jobs={jobs} run={run}/></Modal>} {report!==null&&<Modal title="Research notebook" onClose={()=>setReport(null)}><Markdown text={report}/></Modal>}
   </div>;
@@ -120,12 +133,12 @@ function Brand(){
       if(el&&document.visibilityState==='visible'&&!document.querySelector('dialog[open],.shell.booting'))Math.random()<.5?decode(el,{duration:420,lock:true}):glitch(el);
       next();},20000+Math.random()*20000);};
     next();return()=>clearTimeout(timer);},[]);
-  return <a href="#teams" className="brand" onPointerEnter={e=>{if(e.pointerType!=='touch'&&word.current)hoverDecode(word.current,380);}}>
+  return <a href="#teams" className="brand" aria-label="Frontier Brain" onPointerEnter={e=>{if(e.pointerType!=='touch'&&word.current)hoverDecode(word.current,380);}}>
     <img className="brand-logo" src="/brand/icon-64.png" alt="" width={32} height={32}/><span ref={word} className="wordmark">Frontier Brain</span></a>;
 }
 // Light or dark glass. Follows the system until you choose; the choice is remembered in this browser.
 function ThemeToggle(){
-  const system=()=>matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  const system=()=>'dark'; // dark is the default; the stored choice (set in index.html) wins
   const [theme,setTheme]=useState<string>(()=>document.documentElement.dataset.theme??system());
   const flip=()=>{const next=theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('frontierbrain.theme',next);}catch{}setTheme(next);};
   return <button className="theme-toggle" onClick={flip} aria-label={theme==='dark'?'Switch to light mode':'Switch to dark mode'} title={theme==='dark'?'Light mode':'Dark mode'}>

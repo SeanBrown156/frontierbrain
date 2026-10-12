@@ -175,7 +175,7 @@ function Combatant({side,cardRef,role,set,art,mega,megaOn,setMega,species,picker
 
 // Damage: the defender's HP bar drains to the damage range (min–max shaded), with half and quarter marks, the verdict,
 // and the 16 rolls. Every number is the calc result's own; the animation only sequences it.
-function DamageViz({result,name,attackerName,defender,fallback,move,art}:{result:any;name:string;attackerName:string;attacker?:string;defender:string;fallback:string;move:string;art:any}){
+export function DamageViz({result,name,attackerName,defender,fallback,move,art}:{result:any;name:string;attackerName:string;attacker?:string;defender:string;fallback:string;move:string;art:any}){
   const max=result.defenderStats?.hp??0,cur=result.defaults?.defenderHP??max;const [lo,hi]=result.range as [number,number];
   const pct=(v:number)=>max?Math.max(0,Math.min(100,v/max*100)):0;const leftHi=pct(cur-hi),leftLo=pct(cur-lo),now=pct(cur);
   const rolls:number[]=result.rolls??[];const top=Math.max(...rolls,1),bottom=Math.min(...rolls,top);
@@ -199,7 +199,7 @@ function DamageViz({result,name,attackerName,defender,fallback,move,art}:{result
 
 // Speed: a race. Each runner's pace comes from its effective Speed (reversed under Trick Room); whoever acts first,
 // including by priority, reaches the line first.
-function SpeedRace({a,b,first,trickRoom,art,decidedBy}:{a:{name:string;fallback:string;speed:number};b:{name:string;fallback:string;speed:number};first:'a'|'b'|'tie';trickRoom:boolean;art:any;decidedBy?:string}){
+export function SpeedRace({a,b,first,trickRoom,art,decidedBy}:{a:{name:string;fallback:string;speed:number};b:{name:string;fallback:string;speed:number};first:'a'|'b'|'tie';trickRoom:boolean;art:any;decidedBy?:string}){
   const [go,setGo]=useState(false);const k=`${a.name}${a.speed}-${b.name}${b.speed}-${trickRoom}-${first}`;
   useEffect(()=>{setGo(false);const t=setTimeout(()=>setGo(true),reduced()?0:80);return()=>clearTimeout(t);},[k]);
   // Distance covered when the leader crosses: proportional to Speed (inverted under Trick Room). Priority can put the
