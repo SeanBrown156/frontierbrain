@@ -108,6 +108,8 @@ function ProposalCard({p,art,current,decide}:{p:Proposal;art:any;current:(slot:n
 
 // Which model answers. Saved locally (settings.json); chats default to gpt-6-luna, team builds to gpt-6-astra.
 let modelList:Promise<string[]>|null=null;
+// Does an AI key work right now (one in Settings, or the local .env key)? Cached once it does.
+export async function aiReady():Promise<boolean>{const l=await (modelList??=api('/models').catch(()=>[]));if(!l.length)modelList=null;return l.length>0;}
 // Before a key works there's nothing to choose between: show "Add AI key". Once the provider lists models (a key in
 // Settings, or the local .env key), show the model picker instead.
 function KeyOrModel(){const [list,setList]=useState<string[]|null>(null);useEffect(()=>{(modelList??=api('/models').catch(()=>[])).then(l=>{if(!l.length)modelList=null;setList(l);});},[]);

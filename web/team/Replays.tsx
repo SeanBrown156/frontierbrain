@@ -1,9 +1,10 @@
 import ShowdownName from './ShowdownName.tsx';
 import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
+import {aiReady} from '../ai/AssistDock.tsx';
 import {useState,useEffect,useLayoutEffect,useRef,useId,useMemo,type RefObject} from 'react';
 import {Search,Tag} from 'lucide-react';
 import {api,Art,Modal,date,downloadOriginal,sentences,useDex,TYPE_COLOURS,PokeIcon} from '../ui.tsx';
-import {Px,Upload,Sparkles,Reload,ChevronDown,Close,Check} from '../icons.tsx';
+import {Px,Upload,Sparkles,ChevronDown,Close,Check} from '../icons.tsx';
 import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
 import {record} from './Hub.tsx';
@@ -19,8 +20,8 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
   const refresh=async()=>{try{setInfo(await api('/replay-summaries?team='+team.id));}catch{}};
   useEffect(()=>{void refresh();},[team.id,games.length]);
   useEffect(()=>{if(!info.running.length)return;const t=setInterval(()=>void refresh(),3000);return()=>clearInterval(t);},[info.running.length]);
-  const ai=canUseAI(useAccount());
-  const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in for free to summarise replays with your preferred AI tool.');try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
+  const ai=canUseAI(useAccount());const [needAI,setNeedAI]=useState(false);
+  const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in for free to summarise replays with your preferred AI tool.');if(!(await aiReady())){setNeedAI(true);return;}try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
   const tags=new Map<string,Set<string>>(games.map((g:any)=>[g.id,new Set(gameTags(g,info.summaries[g.id]).map(tagKey))]));
   const shown=games.filter((g:any)=>(!result||g.result===result)&&picked.every(t=>tags.get(g.id)!.has(tagKey(t))));
   const missing=games.filter((g:any)=>!info.summaries[g.id]).map((g:any)=>g.id);const busy=info.running.length>0;
@@ -35,6 +36,7 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
     {missing.length>0&&!busy&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
     <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)}/>)}
       {games.length>0&&!shown.length&&<p className="muted">No games match these filters.</p>}</div>
+    {needAI&&<ConnectAI onClose={()=>setNeedAI(false)}/>}
     {open&&<GameDrawer g={games.find((x:any)=>x.id===open)} s={info.summaries[open]} team={team} data={data} load={load} notify={notify} close={()=>setOpen(null)} resummarise={()=>void summarise([open])}/>}
   </div>;
 }
@@ -94,10 +96,22 @@ function TagSearch({games,summaries,value,onChange}:{games:any[];summaries:Recor
 }
 
 
+// Summaries run on the player's own AI. With no key connected, say so and offer both ways in.
+function ConnectAI({onClose}:{onClose:()=>void}){
+  const go=(mode:'key'|'mcp')=>{try{sessionStorage.setItem('frontierbrain.ai-mode',mode);}catch{}onClose();location.hash='#account';};
+  return <Modal title="Connect your AI to analyse replays" onClose={onClose}>
+    <p>Replay analysis runs on your own AI, so nobody else pays for it and your replays stay yours. Connect one of these:</p>
+    <div className="connect-ai-options">
+      <button className="primary" onClick={()=>go('key')}><Px icon={Sparkles}/>Add an API key</button>
+      <button onClick={()=>go('mcp')}>Use MCP with Claude or ChatGPT</button>
+    </div>
+    <p className="footnote">An API key lets Frontier Brain summarise replays here. With MCP you connect Claude, ChatGPT or your coding agent and ask it to analyse your replays; it can read them through the connector.</p>
+  </Modal>;
+}
 function Digest({team,games,info,busy,refresh,art}:{team:any;games:any[];info:any;busy:boolean;refresh:()=>void;art:any}){
   const r=record(games);const d=info.digest;
   return <section className="digest panel"><header className="panel-heading"><div><span className="eyebrow">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}{d?` · ${d.games} summarised · ${date(d.createdAt)}`:''}</span><h2>Debrief</h2></div>
-      {r.n>=2&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Reload}/>Refresh</>}</button>}</header>
+      {r.n>=2&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Sparkles}/>Refresh</>}</button>}</header>
     {!d?<p className="muted">{r.n<2?'Add a couple of replays to get a debrief.':busy?'Summarising your games…':'Summarise your games to get a debrief.'}</p>
       :<div className="debrief">
         {d.strengths?.length>0&&<section><h3>What's working</h3><ul className="debrief-good">{d.strengths.map((t:string,i:number)=><li key={i}>{t}</li>)}</ul></section>}

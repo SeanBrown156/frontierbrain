@@ -2128,3 +2128,7 @@ html.jade .mode-switch .ms-short{display:none}
   html.jade .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:14px}
   html.jade .six-grid .mon-card{max-width:none}
 }
+
+/* the "connect your AI" prompt: two stacked full-width choices (side by side when there is room) */
+html.jade .connect-ai-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--s2);margin:16px 0}
+html.jade .connect-ai-options>button{width:100%;justify-content:center}
