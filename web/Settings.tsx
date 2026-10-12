@@ -112,7 +112,7 @@ function AIKey(){
   const remove=()=>{setAIKey(null);setSaved(null);setStatus('Key removed from this browser.');};
   return <>
     <div className="ai-explainer">
-      <p><Px icon={Sparkles}/> <b>AI runs on your own OpenAI or Anthropic (Claude) key, so you pay the provider directly for what you use.</b> Frontier Brain never charges you and never pays for anyone else's usage.</p>
+      <p><Px icon={Sparkles}/> <b>AI runs on your own OpenAI or Anthropic key, so you pay the provider directly for what you use.</b> Frontier Brain never charges you and never pays for anyone else's usage.</p>
       <ul className="privacy-points">
         <li><b>Stays in this browser.</b> Your key is kept on this device only. It isn't saved to your account or our database, so you'll add it again on another device.</li>
         <li><b>Used only for your requests.</b> When you ask Frontier Brain something, the key travels with that request to our server, which passes it to {provider==='anthropic'?'Anthropic':'OpenAI'} and then discards it. It's never logged or stored.</li>
@@ -122,9 +122,9 @@ function AIKey(){
       </ul>
     </div>
     {locked?<div className="settings-row"><p>Sign in for free to use AI with your preferred AI tool.</p><GoogleButton/></div>:<>
-      {saved&&<p className="key-saved"><Px icon={Check}/>{saved.provider==='anthropic'?'Anthropic (Claude)':'OpenAI'} key saved in this browser, ending …{saved.key.slice(-4)}</p>}
+      {saved&&<p className="key-saved"><Px icon={Check}/>{saved.provider==='anthropic'?'Anthropic':'OpenAI'} key saved in this browser, ending …{saved.key.slice(-4)}</p>}
       <form className="settings-form" onSubmit={e=>{e.preventDefault();if(key.trim())void save();}}>
-        <label>Provider<select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic (Claude)</option></select></label>
+        <label>Provider<select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label>
         <label>{saved?'Replace key':'API key'}<input type="password" autoComplete="off" spellCheck={false} placeholder={provider==='openai'?'sk-…':'sk-ant-…'} value={key} onChange={e=>setKey(e.target.value)}/></label>
         <button className="primary" disabled={!key.trim()}>Save key</button>
       </form>

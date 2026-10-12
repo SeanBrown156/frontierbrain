@@ -182,12 +182,12 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
         <h2 className="lp-title">Use the AI tools you already use</h2>
         <ModeSwitch label="Connect your AI" value={tab} onChange={setTab} options={[{value:'key',label:'Connect with your API key',short:'API key'},{value:'mcp',label:'Connect via MCP',short:'MCP',icon:<MCPMark/>}]}/>
         {tab==='key'?<div className="lp-pane" role="tabpanel">
-          <div><p className="lp-lead"><b>AI runs on your own OpenAI or Anthropic (Claude) key, so you pay the provider directly for what you use.</b> Frontier Brain never charges you and never pays for anyone else's usage. Your key unlocks the in-app AI chat, with full context of your teams, replays and calcs, right where you work.</p>
+          <div><p className="lp-lead"><b>AI runs on your own OpenAI or Anthropic key, so you pay the provider directly for what you use.</b> Frontier Brain never charges you and never pays for anyone else's usage. Your key unlocks the in-app AI chat, with full context of your teams, replays and calcs, right where you work.</p>
             <ul className="lp-points lp-more"><li><b>Stays in this browser.</b> Your key is kept on this device only, not in your account or our database.</li><li><b>Used only for your requests.</b> It passes to the provider for that one request and is discarded. Never logged or stored.</li><li><b>You're in control.</b> Remove it any time, or set a spending limit with your provider.</li></ul></div>
           <div className="lp-side">
             <div className="lp-grid c2" role="group" aria-label="Provider">
               <button className={prov==='openai'?'on':''} aria-pressed={prov==='openai'} onClick={()=>setProv('openai')}><OpenAIMark/><span>OpenAI</span></button>
-              <button className={prov==='anthropic'?'on':''} aria-pressed={prov==='anthropic'} onClick={()=>setProv('anthropic')}><AnthropicMark style={{color:'#D97757'}}/><span>Anthropic (Claude)</span></button></div>
+              <button className={prov==='anthropic'?'on':''} aria-pressed={prov==='anthropic'} onClick={()=>setProv('anthropic')}><AnthropicMark style={{color:'#D97757'}}/><span>Anthropic</span></button></div>
             <div className="lp-cmd"><code><b>{prov==='openai'?'OPENAI_API_KEY':'ANTHROPIC_API_KEY'}</b>={prov==='openai'?'sk-…':'sk-ant-…'}</code></div>
             <p className="lp-fine">Check for yourself. Frontier Brain is open source, so you can read exactly how keys are handled.</p></div>
         </div>:<div className="lp-pane" role="tabpanel">
