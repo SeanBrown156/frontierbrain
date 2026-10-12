@@ -1,6 +1,5 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import './style.css';
 import './jade.css';
 import App from './App.tsx';
 import {AuthGate} from './auth.tsx';
