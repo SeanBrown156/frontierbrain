@@ -11,6 +11,8 @@ settings.json
 # Downloaded Pokémon artwork and box icons: third-party images, re-cached on demand
 knowledge/artwork/
 # A player's data when APP_DATA is unset (the repo folder doubles as the data directory)
+# or APP_DATA=data (a separate data repo kept inside the checkout)
+/data/
 /teams/
 /pokemon/
 /replays/
