@@ -2014,3 +2014,9 @@ html.jade .pref-chips .chip{display:inline-flex;align-items:center;gap:4px;heigh
 html.jade .pref-chips .chip button:not(#_){display:inline-flex;align-items:center;justify-content:center;width:20px!important;height:20px!important;min-height:0!important;padding:0!important;border:0!important;background:none!important;color:inherit;border-radius:50%!important;box-shadow:none!important}
 html.jade .pref-chips .chip button:not(#_):hover{background:color-mix(in srgb,var(--tx) 12%,transparent)!important}
 @media (max-width:620px){html.jade .about-you{grid-template-columns:minmax(0,1fr);gap:16px}}
+
+/* Favourite star on phones: inside the artwork's bottom-right corner instead of hanging off its top-left. */
+@media (max-width:620px){
+ html.jade .set-card-head .art-wrap{position:relative}
+ html.jade .set-card-head .art-wrap .fav:not(#_){top:auto!important;left:auto!important;right:4px!important;bottom:4px!important}
+}
