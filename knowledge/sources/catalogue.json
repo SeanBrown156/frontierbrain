@@ -8,10 +8,11 @@
       "mechanics",
       "strategy"
     ],
-    "notes": "Champions pages and regulation change summaries; cross-check official announcements.",
+    "notes": "Champions guides and summaries of each regulation change.",
     "bar": "data",
     "barOrder": 3,
-    "icon": "/icons/pokemon-zone.png"
+    "icon": "/icons/pokemon-zone.png",
+    "aiNotes": "Champions pages and regulation change summaries; cross-check official announcements."
   },
   {
     "id": "pokebase",
@@ -21,9 +22,10 @@
       "mechanics",
       "community"
     ],
-    "notes": "Spreads aggregate for M-C tournaments and in-game ladder seasons. Fallback for typical spreads when the pool has fewer than 8 for a species.",
+    "notes": "Popular spreads from tournament teams and in-game ladder seasons.",
     "bar": "data",
-    "barOrder": 0
+    "barOrder": 0,
+    "aiNotes": "Spreads aggregate for M-C tournaments and in-game ladder seasons. Fallback for typical spreads when the pool has fewer than 8 for a species."
   },
   {
     "id": "pikalytics",
@@ -33,9 +35,10 @@
       "usage",
       "sets"
     ],
-    "notes": "COMPOSITE (Showdown ladder + curated teams). Moves/items/teammates cross-check; no spreads.",
+    "notes": "Common moves, items and teammates for every Pokémon.",
     "bar": "data",
-    "barOrder": 1
+    "barOrder": 1,
+    "aiNotes": "COMPOSITE (Showdown ladder + curated teams). Moves/items/teammates cross-check; no spreads."
   },
   {
     "id": "pokepaste",
@@ -53,9 +56,10 @@
     "categories": [
       "official"
     ],
-    "notes": "The game: free on Nintendo Switch, iPhone/iPad and Android. Download links on the official site.",
+    "notes": "Free on Nintendo Switch, iPhone, iPad and Android.",
     "bar": "play",
-    "barOrder": 0
+    "barOrder": 0,
+    "aiNotes": "The game: free on Nintendo Switch, iPhone/iPad and Android. Download links on the official site."
   },
   {
     "id": "showdown",
@@ -65,9 +69,10 @@
       "testing",
       "teams"
     ],
-    "notes": "Use Champions VGC M-C or M-C Bo3, not SV VGC or Champions singles.",
+    "notes": "Play Champions doubles in your browser.",
     "bar": "play",
-    "barOrder": 1
+    "barOrder": 1,
+    "aiNotes": "Use Champions VGC M-C or M-C Bo3, not SV VGC or Champions singles."
   },
   {
     "id": "showdown-replays",
@@ -76,9 +81,10 @@
     "categories": [
       "replays"
     ],
-    "notes": "Search and watch saved Showdown battles; paste links into a team's Replays tab.",
+    "notes": "Search and watch saved battles; paste links into a team's Replays tab.",
     "bar": "play",
-    "barOrder": 2
+    "barOrder": 2,
+    "aiNotes": "Search and watch saved Showdown battles; paste links into a team's Replays tab."
   },
   {
     "id": "limitless",
@@ -89,9 +95,10 @@
       "usage",
       "teams"
     ],
-    "notes": "UPSTREAM in the Frontier Brain pool: official-event Day 2 team lists and placings (no stat points).",
+    "notes": "Team lists and placings from official events.",
     "bar": "results",
-    "barOrder": 0
+    "barOrder": 0,
+    "aiNotes": "UPSTREAM in the Frontier Brain pool: official-event Day 2 team lists and placings (no stat points)."
   },
   {
     "id": "suckerpunch",
@@ -103,9 +110,10 @@
       "teams",
       "sets"
     ],
-    "notes": "COMPOSITE of Limitless, Victory Road, Play! and Showdown data. Cross-check only; never added to the pool.",
+    "notes": "Tournament teams and results from major events.",
     "bar": "data",
-    "barOrder": 7
+    "barOrder": 7,
+    "aiNotes": "COMPOSITE of Limitless, Victory Road, Play! and Showdown data. Cross-check only; never added to the pool."
   },
   {
     "id": "victory-road",
@@ -117,10 +125,11 @@
       "teams",
       "events"
     ],
-    "notes": "Event coverage and authored team reports; reports explain gameplans that usage percentages cannot.",
-    "bar": "results",
-    "barOrder": 3,
-    "icon": "/icons/victory-road.png"
+    "notes": "Event coverage and written team reports.",
+    "bar": "learn",
+    "barOrder": 2,
+    "icon": "/icons/victory-road.png",
+    "aiNotes": "Event coverage and authored team reports; reports explain gameplans that usage percentages cannot."
   },
   {
     "id": "vgcpastes",
@@ -131,9 +140,11 @@
       "reports",
       "results"
     ],
-    "notes": "UPSTREAM in the Frontier Brain pool: shared team pastes with exact spreads, merged into matching tournament teams.",
+    "notes": "Community resource of shared team pastes with exact spreads.",
     "bar": "data",
-    "barOrder": 2
+    "barOrder": 2,
+    "aiNotes": "UPSTREAM in the Frontier Brain pool: shared team pastes with exact spreads, merged into matching tournament teams.",
+    "icon": "/icons/google-sheets.svg"
   },
   {
     "id": "reddit-vgc",
@@ -143,9 +154,10 @@
       "community",
       "strategy"
     ],
-    "notes": "Hypothesis discovery; follow primary links and never treat comments as verified mechanics.",
+    "notes": "Community discussion and news.",
     "bar": "community",
-    "barOrder": 0
+    "barOrder": 0,
+    "aiNotes": "Hypothesis discovery; follow primary links and never treat comments as verified mechanics."
   },
   {
     "id": "vgc-guide",
@@ -155,9 +167,10 @@
       "strategy",
       "teambuilding"
     ],
-    "notes": "Doubles fundamentals, positioning and team-building principles; examples may use older formats.",
+    "notes": "Doubles fundamentals, positioning and team-building basics.",
     "bar": "learn",
-    "barOrder": 0
+    "barOrder": 0,
+    "aiNotes": "Doubles fundamentals, positioning and team-building principles; examples may use older formats."
   },
   {
     "id": "top-cut",
@@ -168,9 +181,10 @@
       "teams",
       "sets"
     ],
-    "notes": "MIRROR of RK9 official-event team lists (the same events Limitless covers). Reference only.",
+    "notes": "Browse team lists from official events.",
     "bar": "results",
-    "barOrder": 2
+    "barOrder": 2,
+    "aiNotes": "MIRROR of RK9 official-event team lists (the same events Limitless covers). Reference only."
   },
   {
     "id": "pikalytics-builder",
@@ -210,9 +224,11 @@
       "teams",
       "results"
     ],
-    "notes": "Japanese authored reports and ladder teams. Translate while preserving gameplan and calculation context.",
+    "notes": "Japanese player reports and ladder teams.",
     "bar": "learn",
-    "barOrder": 1
+    "barOrder": 1,
+    "aiNotes": "Japanese authored reports and ladder teams. Translate while preserving gameplan and calculation context.",
+    "icon": "/icons/liberty-note.png"
   },
   {
     "id": "liquipedia",
@@ -222,9 +238,10 @@
       "events",
       "results"
     ],
-    "notes": "Circuit/event context; prefer organizer/official result links for exact standings.",
+    "notes": "Circuit and event info, with links to official results.",
     "bar": "results",
-    "barOrder": 4
+    "barOrder": 4,
+    "aiNotes": "Circuit/event context; prefer organizer/official result links for exact standings."
   },
   {
     "id": "reddit-champions",
@@ -234,22 +251,10 @@
       "community",
       "mechanics"
     ],
-    "notes": "Champions-specific discussion and change discovery; verify assertions.",
+    "notes": "Champions discussion and updates.",
     "bar": "community",
-    "barOrder": 1
-  },
-  {
-    "id": "just-move-first",
-    "name": "Just move first!",
-    "url": "https://justmovefirst.com/",
-    "categories": [
-      "practice",
-      "speed"
-    ],
-    "notes": "Base-Speed recognition quiz, not usage data or full doubles effective-speed calculations.",
-    "bar": "learn",
-    "barOrder": 2,
-    "icon": "/icons/choice-scarf.png"
+    "barOrder": 1,
+    "aiNotes": "Champions-specific discussion and change discovery; verify assertions."
   },
   {
     "id": "smogon",
@@ -260,9 +265,10 @@
       "reports",
       "mechanics"
     ],
-    "notes": "Doubles/VGC analyses, forums and reports; check generation/regulation and article date.",
+    "notes": "Doubles analyses, forums and reports.",
     "bar": "learn",
-    "barOrder": 3
+    "barOrder": 3,
+    "aiNotes": "Doubles/VGC analyses, forums and reports; check generation/regulation and article date."
   },
   {
     "id": "showdown-calc",
@@ -282,9 +288,10 @@
       "results",
       "teams"
     ],
-    "notes": "COMPOSITE tournament aggregator. Cross-check only; never added to the pool.",
+    "notes": "Tournament results and team stats from events around the world.",
     "bar": "data",
-    "barOrder": 4
+    "barOrder": 4,
+    "aiNotes": "COMPOSITE tournament aggregator. Cross-check only; never added to the pool."
   },
   {
     "id": "vgc-champions-calc",
@@ -316,9 +323,10 @@
       "sets",
       "speed"
     ],
-    "notes": "MIRROR of Smogon Showdown ladder stats (same Elo/Bo3/month cuts). Reference only; not ingested to avoid double counting.",
+    "notes": "Showdown ladder usage stats, by rating and month.",
     "bar": "data",
-    "barOrder": 5
+    "barOrder": 5,
+    "aiNotes": "MIRROR of Smogon Showdown ladder stats (same Elo/Bo3/month cuts). Reference only; not ingested to avoid double counting."
   },
   {
     "id": "munchstats",
@@ -330,10 +338,11 @@
       "speed",
       "results"
     ],
-    "notes": "In-game doubles stats captured by MunchStats (a distinct method) plus Smogon mirrors. Reference / cross-check only.",
+    "notes": "In-game doubles usage stats.",
     "bar": "data",
     "barOrder": 6,
-    "icon": "/icons/leftovers.png"
+    "icon": "/icons/leftovers.png",
+    "aiNotes": "In-game doubles stats captured by MunchStats (a distinct method) plus Smogon mirrors. Reference / cross-check only."
   },
   {
     "id": "official-m-c",
@@ -397,9 +406,10 @@
       "results",
       "teams"
     ],
-    "notes": "UPSTREAM in the Frontier Brain pool: online M-C tournaments with full team lists, placings and records (public API; events with ≥16 players, custom-rule events skipped).",
+    "notes": "Team lists, placings and records from online tournaments.",
     "bar": "results",
-    "barOrder": 1
+    "barOrder": 1,
+    "aiNotes": "UPSTREAM in the Frontier Brain pool: online M-C tournaments with full team lists, placings and records (public API; events with ≥16 players, custom-rule events skipped)."
   },
   {
     "id": "pikalytics-tournaments",
