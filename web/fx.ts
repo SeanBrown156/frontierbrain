@@ -10,18 +10,26 @@ const noise=(c:string,pool:string)=>c===' '||/[^\p{L}\p{N}]/u.test(c)?c:pool[(Ma
 // Resolve an element's text from noise, left to right. Works on its own text nodes and stops if React changes them meanwhile.
 // `lock` holds the element's box while it runs, so wider noise glyphs never nudge the layout around it.
 const running=new WeakMap<Element,number>();
+// Every scrambled string written to a text node, with its real text, so noise can always be put back: by the effect
+// itself, by a fallback timer if animation frames stall (a background tab, a slow first render), or by a later effect.
+const scrambled=new WeakMap<Text,{final:string;noise:Set<string>}>();
+const restore=(n:Text)=>{const s=scrambled.get(n);if(s&&s.noise.has(n.data))n.data=s.final;scrambled.delete(n);};
 export function decode(el:Element,{duration=480,lock=false}:{duration?:number;lock?:boolean}={}){
   if(reduced()||running.has(el))return;const nodes:Text[]=[];const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
   for(let n=walk.nextNode();n;n=walk.nextNode())if((n as Text).data.trim())nodes.push(n as Text);
-  if(!nodes.length)return;const token=Date.now();running.set(el,token);const finals=nodes.map(n=>n.data);const written=[...finals];let start=0;
+  if(!nodes.length)return;nodes.forEach(restore);
+  const token=Date.now()+Math.random();running.set(el,token);const finals=nodes.map(n=>n.data);const written=[...finals];let start=0;
+  nodes.forEach((n,i)=>scrambled.set(n,{final:finals[i],noise:new Set()}));
   const box=el as HTMLElement;const {width,height,boxSizing}=box.style;
   if(lock){const r=box.getBoundingClientRect();Object.assign(box.style,{width:r.width+'px',height:r.height+'px',boxSizing:'border-box'});}
-  // Every node still showing noise gets its text back (a node React replaced keeps React's text), and the box is released.
-  const settle=()=>{nodes.forEach((n,i)=>{if(n.data===written[i])n.data=finals[i];});if(lock)Object.assign(box.style,{width,height,boxSizing});running.delete(el);};
-  // The clock starts on the first painted frame, so a page that takes a moment to render still shows the whole resolve.
+  // Any node still showing noise gets its real text back (a node React rewrote keeps React's text), and the box is released.
+  let settled=false;
+  const settle=()=>{if(settled)return;settled=true;clearTimeout(fallback);nodes.forEach(restore);if(lock)Object.assign(box.style,{width,height,boxSizing});if(running.get(el)===token)running.delete(el);};
+  const fallback=setTimeout(settle,duration+600);
   const step=(p:number)=>{for(let i=0;i<nodes.length;i++){const f=finals[i];const keep=Math.floor(f.length*p);
-    const next=f.slice(0,keep)+[...f.slice(keep)].map(c=>noise(c,NOISE)).join('');nodes[i].data=next;written[i]=next;}};
-  const frame=()=>{if(running.get(el)!==token)return;if(nodes.some((n,i)=>n.data!==written[i])){settle();return;}
+    const next=f.slice(0,keep)+[...f.slice(keep)].map(c=>noise(c,NOISE)).join('');scrambled.get(nodes[i])?.noise.add(next);nodes[i].data=next;written[i]=next;}};
+  // The clock starts on the first painted frame, so a page that takes a moment to render still shows the whole resolve.
+  const frame=()=>{if(settled||running.get(el)!==token){settle();return;}if(nodes.some((n,i)=>n.data!==written[i])){settle();return;}
     const now=performance.now();if(!start)start=now;const p=Math.min(1,(now-start)/duration);step(p);
     if(p<1)requestAnimationFrame(frame);else settle();};
   step(0);requestAnimationFrame(frame);

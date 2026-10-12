@@ -23,6 +23,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
   const shown=all?team.versions.find((v:any)=>v.id===team.activeVersionId):team.versions.find((v:any)=>v.id===versionId);
   const [pokepaste,setPokepaste]=useState(''),[publishing,setPublishing]=useState(false);
   const publish=async()=>{setPublishing(true);try{const r=await api('/pokepaste-create',{teamId:team.id,versionId:shown.id,configurationId:shown.currentConfigurationId,author:data.profile?.player??''});setPokepaste(r.url);void navigator.clipboard.writeText(r.url).catch(()=>{});}catch(e){notify((e as Error).message);}finally{setPublishing(false);}};
+  const pokepasteNow=async()=>{await paste();await publish();};
   const paste=async()=>{setPokepaste('');try{setExported((await api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`)).paste);}catch(e){notify((e as Error).message);}};
   const rename=async()=>{setRenaming(false);if(name.trim()&&name.trim()!==team.name)await mutate({type:'team-rename',teamId:team.id,name:name.trim()}).catch(()=>setName(team.name));};
   return <div className="team-hub">
@@ -33,7 +34,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} data={data} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
     {tab==='replays'&&<Replays team={team} data={data} versionId={all?'all':versionId} load={load} notify={notify}/>}
-    {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate} notify={notify} onExport={()=>void paste()}/>}
+    {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate} notify={notify} onExport={()=>void paste()} onPokepaste={()=>void pokepasteNow()} publishing={publishing}/>}
     {exported!==null&&<Modal title="Showdown export" onClose={()=>setExported(null)}><Notice>Champions stat points use the “EVs:” label only for Showdown compatibility.{shown.source==='observed'?' This version was rebuilt from replays; guessed fields are assumptions.':''}</Notice><textarea className="paste" aria-label="Team export" readOnly rows={20} value={exported}/><div className="button-row export-actions"><button className="primary" onClick={()=>{void navigator.clipboard.writeText(exported).then(()=>notify('Paste copied.')).catch(()=>notify('Select and copy the paste manually.'));}}>Copy paste</button>
       {pokepaste?<a className="button" href={pokepaste} target="_blank" rel="noreferrer">{pokepaste.replace('https://','')} ↗</a>:<button disabled={publishing} onClick={()=>void publish()}>{publishing?'Creating…':'Create PokePaste'}</button>}</div>
       {pokepaste&&<p className="footnote">Public link, copied to your clipboard.</p>}</Modal>}
@@ -118,8 +119,8 @@ function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:strin
 // Every version, newest first, each with its edit log. Older edits can be viewed and restored; nothing is overwritten.
 // History: every saved change, newest first, across the team's whole life. Versions are kept in the data (and older
 // milestones still exist) but the player never manages them; restoring an edit records it as a new change.
-// Manage: export, the format (and copying into another), every saved change, and deleting the team.
-function Versions({team,data,mutate,notify,onExport}:{team:any;data:any;games?:any[];mutate:Mutate;notify:(s:string)=>void;onExport:()=>void}){
+// Manage: export (Showdown paste or PokePaste), the format, duplicating, every saved change, and deleting the team.
+function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing}:{team:any;data:any;games?:any[];mutate:Mutate;notify:(s:string)=>void;onExport:()=>void;onPokepaste:()=>void;publishing:boolean}){
   const [viewing,setViewing]=useState<{version:any;config:any}|null>(null);
   const active=team.versions.find((v:any)=>v.id===team.activeVersionId);
   const entries=team.versions.flatMap((v:any)=>v.configurations.map((c:any,n:number)=>({v,c,first:n===0}))).sort((a:any,b:any)=>b.c.createdAt.localeCompare(a.c.createdAt));
@@ -128,8 +129,9 @@ function Versions({team,data,mutate,notify,onExport}:{team:any;data:any;games?:a
     await mutate({type:'team-configure',teamId:team.id,versionId:active.id,parentConfigurationId:active.currentConfigurationId,slots:e.c.slots,summary:`Restored from ${date(e.c.createdAt)}`}).catch(()=>{});};
   return <div className="versions history manage">
     <div className="manage-tiles">
-      <section className="manage-tile"><div><span className="eyebrow">Export</span><h3>Showdown paste</h3></div><div className="manage-actions"><button onClick={onExport}><Px icon={Share}/>Export</button></div></section>
+      <section className="manage-tile"><div><span className="eyebrow">Export</span><h3>Share this team</h3></div><div className="manage-actions"><button onClick={onExport}><Px icon={Share}/>Showdown paste</button><button onClick={onPokepaste} disabled={publishing}>{publishing?'Creating…':'PokePaste'}</button></div></section>
       <FormatTile team={team} mutate={mutate} notify={notify}/>
+      <DuplicateTile team={team} mutate={mutate} notify={notify}/>
     </div>
     <section className="manage-history"><h2 className="manage-title">History</h2>
     <ol className="history-list">{entries.map((e:any)=>{const now=e.c.id===active.currentConfigurationId;const sets=getView(team,data.db,e.v.id,e.c.id).sets;
@@ -153,13 +155,18 @@ export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:
 // A team's format is set when it's created. Changing rules can make sets illegal, so moving to another format copies
 // the current six (and the team strategy) into a new team for that format; this one is left exactly as it is.
 function FormatTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:string)=>void}){
-  const others=FORMATS.filter(f=>f.id!==team.format);const [target,setTarget]=useState<string>(others[0]?.id??''),[busy,setBusy]=useState(false);
-  const copy=async()=>{setBusy(true);try{const active=team.versions.find((v:any)=>v.id===team.activeVersionId);const {paste}=await api(`/export?team=${team.id}&version=${active.id}&configuration=${active.currentConfigurationId}`);
-      const label=FORMATS.find(f=>f.id===target)?.label.split('·').pop()?.trim()??target;
-      const r=await mutate({type:'import',name:`${team.name} (${label})`,paste,format:target,notes:active.notes??''});notify(`Copied into ${formatLabel(target)}. Check the sets against its rules.`);location.hash=teamHref(r.result.id,'overview');}
-    catch(e){notify((e as Error).message);}finally{setBusy(false);}};
+  const [target,setTarget]=useState<string>(team.format),[busy,setBusy]=useState(false);useEffect(()=>setTarget(team.format),[team.format]);
+  const change=async()=>{setBusy(true);try{await mutate({type:'team-format',teamId:team.id,format:target});notify(`Now ${formatLabel(target)}. Check the sets against its rules.`);}catch(e){notify((e as Error).message);}finally{setBusy(false);}};
   return <section className="format-tile manage-tile"><div><span className="eyebrow">Format</span><h3>{formatLabel(team.format)}</h3></div>
-    {others.length>0&&<div className="format-copy manage-actions"><label><span className="sr-only">Copy into</span><select value={target} onChange={e=>setTarget(e.target.value)}>{others.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button disabled={busy||!target} onClick={()=>void copy()}>{busy?'Copying…':'Copy team'}</button></div>}</section>;
+    <div className="format-copy manage-actions"><label><span className="sr-only">Format</span><select value={target} onChange={e=>setTarget(e.target.value)}>{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button disabled={busy||target===team.format} onClick={()=>void change()}>{busy?'Changing…':'Change format'}</button></div></section>;
+}
+// A copy of the current six (sets and notes) as a new team in the same format; change its format from its own Manage tab.
+function DuplicateTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:string)=>void}){
+  const [busy,setBusy]=useState(false);
+  const duplicate=async()=>{setBusy(true);try{const active=team.versions.find((v:any)=>v.id===team.activeVersionId);const {paste}=await api(`/export?team=${team.id}&version=${active.id}&configuration=${active.currentConfigurationId}`);
+      const r=await mutate({type:'import',name:`${team.name} (copy)`,paste,format:team.format,notes:active.notes??''});notify(`Duplicated as ${team.name} (copy).`);location.hash=teamHref(r.result.id,'history');}
+    catch(e){notify((e as Error).message);}finally{setBusy(false);}};
+  return <section className="manage-tile"><div><span className="eyebrow">Team</span><h3>Duplicate</h3></div><div className="manage-actions"><button disabled={busy} onClick={()=>void duplicate()}>{busy?'Duplicating…':'Duplicate team'}</button></div></section>;
 }
 // Background team builds: live steps while running, then a draft to review.
 const buildSteps:Record<string,string>={meta_overview:'Read the meta',team_pool_sets:'Pool sets',standard_set:'Typical set',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',usage_data:'Usage data',dex_lookup:'Dex',get_team:'Team',validation:'Rules check'};

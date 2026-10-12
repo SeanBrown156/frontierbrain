@@ -1980,3 +1980,12 @@ html.jade .modal>header h2{min-width:0;overflow-wrap:anywhere}
  html.jade .shell.scrolled .masthead-nav{max-height:calc(100dvh - 92px)}
 }
 @media (prefers-reduced-motion:reduce){html.jade .fx-glitch{animation:none!important}}
+
+/* Manage: Export, Format and Duplicate tiles share a row on wide screens and stack below 1000px. */
+html.jade .manage .manage-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:1000px){html.jade .manage .manage-tiles{grid-template-columns:minmax(0,1fr)}}
+html.jade .manage .manage-actions{flex-wrap:wrap}
+html.jade .manage .manage-tile{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px}
+html.jade .manage .manage-tile .manage-actions{justify-content:flex-start}
+html.jade .team-hub .manage .manage-tile.format-tile,html.jade .team-hub .manage .manage-tile.format-tile>div{text-align:left!important;align-items:stretch!important;justify-content:flex-start!important}
+html.jade .team-hub .manage .manage-tile.format-tile .format-copy{justify-content:flex-start!important;margin:0!important}
