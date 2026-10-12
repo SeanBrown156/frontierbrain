@@ -2139,4 +2139,7 @@ html.jade .mode-switch .ms-short{display:none}
   html.jade .plan-top .plan-head>.tag{order:2}
   html.jade .plan-top .plan-actions{order:3;margin-left:auto;align-items:center}
   html.jade .plan-top .plan-head>h3{order:4;flex:1 1 100%;min-width:0}
+  /* room between the title and the Pokémon row below it */
+  html.jade .plan-card header.plan-top{margin-bottom:14px!important}
+  html.jade .plan-card .plan-top+.front-back{margin-top:0}
 }
