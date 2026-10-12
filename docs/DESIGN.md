@@ -2,7 +2,7 @@
 
 ## Jade Glass (October 2026, branch `jade-glass-ui`)
 
-Chosen from the Round 3 lookbook: Sky Pillar inside a clear emerald shell. It supersedes the Round 2 cream palette (see `docs/history/emerald/`), which is kept as history. The system lives in `web/jade.css`, loaded after `style.css`. Every rule is scoped to `html.jade`, and the legacy tokens are remapped, so older components pick up the theme without edits.
+Chosen from the Round 3 lookbook: Sky Pillar inside a clear emerald shell. It supersedes the Round 2 cream palette (see `docs/history/emerald/`), which is kept as history. The system lives in one stylesheet, `web/jade.css`: an unscoped base section (element defaults and layout) followed by the theme, whose rules are scoped to `html.jade`.
 
 - **Themes.** Dark ("after hours") and light ("morning jade"). The app follows the system until the player picks one with the header toggle; the choice is stored in `localStorage` (`frontierbrain.theme`) and applied before first paint by `index.html`.
 - **Tokens.** Background, glass, sunk, text, muted, line, accent (`#1FD08A` dark, `#0B8A55` light), hot red (the LED), gold (stat points and eyebrows).
