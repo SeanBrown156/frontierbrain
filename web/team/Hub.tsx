@@ -1,6 +1,6 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge} from '../ui.tsx';
+import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge,TYPE_COLOURS} from '../ui.tsx';
 import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye,Check,WarningDiamond} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
@@ -50,13 +50,13 @@ function Overview({team,data,version,mutate}:{team:any;data:any;version:any;muta
 }
 // One of the six. A Mega Stone holder shows its Mega (render and types), since that's what it battles as.
 function MonCard({i,revision,href,active,art}:{i:number;revision:any;href:string;active:boolean;art:any}){
-  const s=revision.set;const obs=revision.provenance==='observed';const form=useBattleForm(s.species,s.item);
+  const s=revision.set;const obs=revision.provenance==='observed';const form=useBattleForm(s.species,s.item);const mt=useDex([],[],s.moves??[]).moves;
   return <a className={'mon-card'+(active?'':' read-only')} href={href} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
       <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
       <div className="mon-card-head"><Art name={form} fallback={s.species} art={art}/><div><h3 className="name-row">{s.nickname?`${s.nickname} (${s.species})`:s.species}{form!==s.species&&<MegaBadge/>}</h3><div className="mon-tags"><TypeBadges species={form}/></div></div></div>
       <p className="mon-item"><ItemIcon item={s.item}/>{s.item||'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}<span className="mon-meta">{s.ability} · {s.nature}</span></p>
       <SpBars species={form} points={s.statPoints??{}} nature={s.nature}/>
-      <ul className="move-list">{s.moves?.map((m:string)=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
+      <ul className="move-list">{s.moves?.map((m:string)=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{mt[m]&&<span className="type-badge mini" style={{'--type':TYPE_COLOURS[mt[m]]??'#888'} as any}>{mt[m]}</span>}<span>{m}</span></li>)}</ul>
 </a>;
 }
 // Card stat bars: the species' base stat with the set's stat points stacked on the end (the same drawing as the

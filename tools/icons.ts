@@ -54,11 +54,12 @@ export async function itemSheet():Promise<Buffer>{
   const bytes=Buffer.from(await res.arrayBuffer());await save(file,bytes);return bytes;
 }
 // Types for species and sheet positions for items, for badges and icons on cards.
-export function dexInfo(species:string[],items:string[]){
+export function dexInfo(species:string[],items:string[],moves:string[]=[]){
   const known=species.slice(0,60).map(n=>[n,dex.species.get(n)] as const);
   return {types:Object.fromEntries(known.map(([n,s])=>[n,s.exists?s.types:[]])),base:Object.fromEntries(known.filter(([,s])=>s.exists).map(([n,s])=>[n,s.baseStats])),
     // Mega forms a species can take, with the stone that triggers each (a holder battles as the Mega).
     megas:Object.fromEntries(known.filter(([,s])=>s.exists).map(([n,s])=>[n,(s.otherFormes??[]).map((f:string)=>dex.species.get(f)).filter((f:any)=>f.isMega&&f.requiredItem).map((f:any)=>({name:f.name,item:f.requiredItem,types:f.types,ability:Object.values(f.abilities)[0],baseStats:f.baseStats}))])),
+    moves:Object.fromEntries(moves.slice(0,60).map(n=>{const m=dex.moves.get(n);return [n,m.exists?m.type:''];})),
     items:Object.fromEntries(items.slice(0,60).map(n=>{const i=dex.items.get(n);return [n,i.exists?i.spritenum??0:0];}))};
 }
 

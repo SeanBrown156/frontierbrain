@@ -1,4 +1,5 @@
 import calc from '@smogon/calc';
+import {getFinalSpeed} from '@smogon/calc/dist/mechanics/util.js';
 import ps from 'pokemon-showdown';
 import {id} from './io.ts';
 
@@ -123,19 +124,25 @@ export function damage(input: CalcInput) {
   return out;
 }
 
-export interface SpeedInput {a:SetInput & {stage?:number;tailwind?:boolean;paralyzed?:boolean;multiplier?:number;priority?:number};b:SpeedInput['a'];trickRoom?:boolean;}
-export function effectiveSpeed(set:SpeedInput['a']) {
+export interface SpeedInput {a:SetInput & {stage?:number;tailwind?:boolean;paralyzed?:boolean;multiplier?:number;priority?:number};b:SpeedInput['a'];trickRoom?:boolean;field?:{weather?:string;terrain?:string};}
+// Effective Speed on the pinned calculator's own rules (getFinalSpeed): stat stage, Tailwind, weather and terrain
+// abilities (Swift Swim, Chlorophyll, Sand Rush, Slush Rush, Surge Surfer), Unburden, Quick Feet, Protosynthesis/Quark
+// Drive, Choice Scarf and Iron Ball, then paralysis. An explicit multiplier is applied on top for anything else.
+export function effectiveSpeed(set:SpeedInput['a'],field:SpeedInput['field']={}) {
   const stage=set.stage??0;if(!Number.isInteger(stage)||stage< -6||stage>6)throw new Error('Speed stage must be -6..6');
   const multiplier=set.multiplier??1;if(!Number.isFinite(multiplier)||multiplier<=0)throw new Error('Speed multiplier must be positive');
-  let v=Math.floor(finalStats(set).spe*(stage>=0?(2+stage)/2:2/(2-stage)));
-  v=Math.floor(v*multiplier*(set.tailwind?2:1));if(set.paralyzed)v=Math.floor(v/2);
+  const mon=pokemon({...set,boosts:{...set.boosts,spe:stage},status:set.paralyzed?'par':set.status});
+  const f=new calc.Field({gameType:'Doubles',weather:field?.weather as any,terrain:field?.terrain as any} as any);
+  const side=new calc.Side({isTailwind:!!set.tailwind} as any);
+  const v=Math.floor(getFinalSpeed(generation as any,mon,f,side)*multiplier);
   return Math.max(1,Math.min(10000,v));
 }
 export function speed(input:SpeedInput) {
-  const a=effectiveSpeed(input.a),b=effectiveSpeed(input.b);const pa=input.a.priority??0,pb=input.b.priority??0;
+  const a=effectiveSpeed(input.a,input.field),b=effectiveSpeed(input.b,input.field);const pa=input.a.priority??0,pb=input.b.priority??0;
   if([pa,pb].some(p=>!Number.isInteger(p)||p< -7||p>7))throw new Error('Move priority must be an integer -7..7');
   const order=pa!==pb?(pa>pb?'a':'b'):a===b?'tie':(input.trickRoom?a<b:a>b)?'a':'b';
-  return {a,b,first:order,trickRoom:!!input.trickRoom,versions:VERSIONS,assumptions:'Explicit stage, Tailwind, paralysis, multiplier and priority only. Verify special ordering and combined fractional modifiers in Showdown.'};
+  const w=input.field?.weather,t=input.field?.terrain;
+  return {a,b,first:order,trickRoom:!!input.trickRoom,versions:VERSIONS,assumptions:`Speed from the calculator's rules: stages, Tailwind, ${w?w+' ':''}${t?t+' Terrain ':''}weather/terrain abilities, Choice Scarf, Iron Ball and paralysis are included. Other effects need the explicit multiplier.`};
 }
 
 export function validateTeam(sets:SetInput[], format=FORMAT) {

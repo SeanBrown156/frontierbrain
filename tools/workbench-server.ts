@@ -156,7 +156,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       if(hostedMode){res.writeHead(302,{Location:faviconURL(host),'Cache-Control':'public, max-age=604800'});res.end();return;}
       const bytes=await favicon(host);if(!bytes)return respond(res,404,{error:'No icon for this site'});
       res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(bytes);return;}
-    if(req.method==='GET'&&path==='/api/dex-info'){const list=(k:string)=>(url.searchParams.get(k)??'').split('|').filter(Boolean);return respond(res,200,dexInfo(list('species'),list('items')));}
+    if(req.method==='GET'&&path==='/api/dex-info'){const list=(k:string)=>(url.searchParams.get(k)??'').split('|').filter(Boolean);return respond(res,200,dexInfo(list('species'),list('items'),list('moves')));}
     if(req.method==='GET'&&path==='/api/item-sheet'){if(hostedMode){res.writeHead(302,{Location:ITEM_SHEET_URL,'Cache-Control':'public, max-age=604800'});res.end();return;}
       res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(await itemSheet());return;}
     if(req.method==='GET'&&path==='/api/dex'){
