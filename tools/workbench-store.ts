@@ -181,8 +181,8 @@ export function cleanBrief(b:any){return {goal:checkText(b?.goal??'',1000),core:
 export function cleanCoaching(teamId:string,input:any,version:number):TeamCoaching{
   const status=(v:unknown)=>v==='proposed'?'proposed' as const:'active' as const;const ids=(v:unknown)=>names(v??[],40).map(shortId);
   return {teamId,version,updatedAt:now(),
-    leads:(input?.leads??[]).slice(0,40).map((l:any)=>({id:shortId(l.id),lead:names(l.lead,2),back:names(l.back??[],4),...(['core','situational','niche'].includes(l.role)?{role:l.role}:{}),when:checkText(l.when??'',4000),plan:checkText(l.plan??'',8000),calcIds:ids(l.calcIds),versionIds:ids(l.versionIds),status:status(l.status)})),
-    matchups:(input?.matchups??[]).slice(0,80).map((m:any)=>({id:shortId(m.id),opponent:checkText(m.opponent,300),threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring??[],4),...m.leadId?{leadId:shortId(m.leadId)}:{},plan:checkText(m.plan??'',8000),calcIds:ids(m.calcIds),versionIds:ids(m.versionIds),status:status(m.status)})),
+    leads:(input?.leads??[]).slice(0,40).map((l:any)=>({id:shortId(l.id),lead:names(l.lead,2),back:names(l.back??[],4),...(['core','situational','niche','avoid'].includes(l.role)?{role:l.role}:{}),when:checkText(l.when??'',4000),plan:checkText(l.plan??'',8000),calcIds:ids(l.calcIds),versionIds:ids(l.versionIds),status:status(l.status)})),
+    matchups:(input?.matchups??[]).slice(0,80).map((m:any)=>({id:shortId(m.id),opponent:checkText(m.opponent,300),...m.archetype?{archetype:checkText(m.archetype,80)}:{},...Array.isArray(m.examples)&&m.examples.length?{examples:names(m.examples,8)}:{},threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring??[],4),...m.leadId?{leadId:shortId(m.leadId)}:{},plan:checkText(m.plan??'',8000),calcIds:ids(m.calcIds),versionIds:ids(m.versionIds),status:status(m.status)})),
     objectives:(input?.objectives??[]).slice(0,100).map((o:any)=>({id:shortId(o.id),kind:o.kind==='todo'?'todo' as const:'test' as const,text:checkText(o.text,2000),done:o.done===true})),
     ...input?.brief?{brief:cleanBrief(input.brief)}:{}};
 }

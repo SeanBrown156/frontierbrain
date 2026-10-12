@@ -14,9 +14,11 @@ export interface Benchmark {id:string;bankId:string;revisionId:string;createdAt:
 export interface ReviewScope {teamId?:string;versionId?:string;configurationId?:string;replayIds:string[];}
 export interface CoachingFinding {category:'play'|'building'|'variance';title:string;detail:string;confidence:'high'|'medium'|'low';evidence:{replayId:string;turn:number;line:number}[];practiceGoal:string;experiment?:string;}
 export interface CoachingReview {id:string;createdAt:string;scope:ReviewScope;associationFingerprint:string;status:'complete'|'partial';findings:CoachingFinding[];limitations:string[];report:string;}
-export const LEAD_ROLES=['core','situational','niche'] as const;export type LeadRole=typeof LEAD_ROLES[number];
+export const LEAD_ROLES=['core','situational','niche','avoid'] as const;export type LeadRole=typeof LEAD_ROLES[number];
 export interface LeadPlan {id:string;lead:string[];back:string[];role?:LeadRole;when:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
-export interface MatchupPlan {id:string;opponent:string;threat:'low'|'medium'|'high';bring:string[];leadId?:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
+// Team styles shared by matchup plans and replay summaries, so a plan and the games it covers use the same words.
+export const TEAM_STYLES=['Trick Room','Tailwind','Rain','Sun','Sand','Snow','Psychic Terrain','Grassy Terrain','Electric Terrain','Perish Song','Hyper offense','Balance','Redirection','Setup'] as const;
+export interface MatchupPlan {id:string;opponent:string;archetype?:string;examples?:string[];threat:'low'|'medium'|'high';bring:string[];leadId?:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
 export interface Objective {id:string;kind:'test'|'todo';text:string;done:boolean;}
 // Why the team exists, agreed with the player while building it (with an assistant or by hand).
 export interface TeamBrief {goal:string;core:string[];gamePlan:string;ruledOut:string;updatedAt:string;}

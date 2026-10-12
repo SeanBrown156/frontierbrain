@@ -15,8 +15,8 @@ import {transcript,readGame,readSummary} from './replay-summary.ts';
 import {readPreferences,preferencesText} from './player.ts';
 
 const teamId={teamId:{type:'string',description:'Team id from list_teams'}};
-const plan={type:'object',properties:{lead:{type:'array',items:{type:'string'}},back:{type:'array',items:{type:'string'}},role:{type:'string',enum:['core','situational','niche'],description:'core = default lead; situational = into specific teams; niche = pocket option'},when:{type:'string'},plan:{type:'string'}},required:['lead','plan']};
-const matchup={type:'object',properties:{opponent:{type:'string'},threat:{type:'string',enum:['low','medium','high']},bring:{type:'array',items:{type:'string'}},plan:{type:'string'}},required:['opponent','bring','plan']};
+const plan={type:'object',properties:{lead:{type:'array',items:{type:'string'}},back:{type:'array',items:{type:'string'}},role:{type:'string',enum:['core','situational','niche','avoid'],description:'core = default lead; situational = into specific teams; niche = pocket option; avoid = a pairing not to lead'},when:{type:'string'},plan:{type:'string'}},required:['lead','plan']};
+const matchup={type:'object',properties:{opponent:{type:'string',description:'Short name of the matchup, e.g. "Tailwind offense"'},archetype:{type:'string',description:'Team style, e.g. Tailwind offense, Trick Room, Rain, Sun, Balance'},examples:{type:'array',items:{type:'string'},description:'Example opposing Pokémon (species names)'},threat:{type:'string',enum:['low','medium','high']},bring:{type:'array',items:{type:'string'}},plan:{type:'string'}},required:['opponent','bring','plan']};
 // get_team takes a teamId here (the app passes the open team instead).
 const shared=chatTools.map(t=>t.name==='get_team'?{...t,parameters:{type:'object',properties:teamId,required:['teamId']}}:t);
 const own=[
@@ -45,7 +45,7 @@ async function call(name:string,input:any){
     await mutateLatest(d=>applyAction(d,{type:'coaching-update',teamId:input.teamId,brief:{goal:b.goal??'',core:b.core??[],gamePlan:b.gamePlan??'',ruledOut:b.ruledOut??''}}));return {saved:true};}
   if(name==='propose_plans'){if(!db.teams.some(t=>t.id===input.teamId))throw new Error('Team not found');const id=()=>randomUUID().slice(0,10);
     const leads=(input.leads??[]).slice(0,8).map((p:any)=>({id:id(),lead:p.lead,back:p.back??[],role:p.role,when:p.when??'',plan:p.plan,calcIds:[],versionIds:[],status:'proposed'}));
-    const matchups=(input.matchups??[]).slice(0,12).map((p:any)=>({id:id(),opponent:p.opponent,threat:p.threat??'medium',bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'}));
+    const matchups=(input.matchups??[]).slice(0,12).map((p:any)=>({id:id(),opponent:p.opponent,archetype:p.archetype,examples:p.examples,threat:p.threat??'medium',bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'}));
     await mutateLatest(d=>applyAction(d,{type:'coaching-update',teamId:input.teamId,upsert:{leads,matchups}}));
     return {proposed:{leads:leads.length,matchups:matchups.length},note:'Saved as proposals in the team\'s Strategy tab for the player to accept.'};}
   return runTool(name,input,name==='get_team'?{teamId:input.teamId}:{},db);

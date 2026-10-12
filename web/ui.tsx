@@ -33,7 +33,10 @@ export const pct=(wins:number,games:number)=>games?`${(100*wins/games).toFixed(1
 // illustration and then a placeholder. `kind="art"` asks for the illustration first.
 export function Art({name,art,small=false,kind='home',fallback}:{name:string;art:any;small?:boolean;kind?:'home'|'art';fallback?:string}){
   const urls=(n:string)=>{const record=art?.[speciesId(n)];const official=record?.state==='cached'?(hostedSite&&/^https:\/\/raw\.githubusercontent\.com\//.test(record.url??'')?record.url:`/api/art?id=${speciesId(n)}`):null;const home=`/api/home?species=${encodeURIComponent(n)}`;return kind==='home'?[home,official]:[official,home];};
-  const sources=[...urls(name),...fallback&&fallback!==name?urls(fallback):[]].filter(Boolean) as string[];
+  // A Mega without its own HOME render shows the base form's HOME render before any illustration, so every
+  // render on a page keeps the same 3D style.
+  const alt=fallback&&fallback!==name?urls(fallback):[];
+  const sources=(kind==='home'&&alt.length?[urls(name)[0],alt[0],urls(name)[1],alt[1]]:[...urls(name),...alt]).filter(Boolean) as string[];
   const [step,setStep]=useState(0);useEffect(()=>setStep(0),[name]);const src=sources[step];
   return <span className={'art '+(small?'small':'')} title={name}>{src?<img key={src} src={src} alt={name} loading="lazy" onError={()=>setStep(step+1)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
 // Species types and item sheet positions, fetched once per name and shared by every card on the page.

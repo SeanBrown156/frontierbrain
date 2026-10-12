@@ -14,7 +14,7 @@ export default function Consent(){
     if(r.error){setError(r.error.message);setBusy(false);return;}if(r.data?.redirect_url)location.assign(r.data.redirect_url);else setBusy(false);};
   const name=details?.client?.name??details?.client?.client_name??'An app';
   return <main className="welcome"><div className="welcome-card consent">
-    <img src="/brand/mark.svg" alt="" width={48} height={48}/>
+    <img src="/brand/icon-64.png" alt="" width={48} height={48}/>
     {!id?<><h1>Nothing to approve</h1><p>This page opens when Claude, ChatGPT or another app asks to connect to Frontier Brain.</p><a className="button" href="/">Open Frontier Brain</a></>
     :account.kind!=='account'?<><h1>Connect to Frontier Brain</h1><p>Sign in to your Frontier Brain account to let this app use your teams and tools. Connectors need a free account.</p><button className="primary" onClick={()=>requireAccount('Sign in to connect Claude, ChatGPT or another app.')}>Sign in</button></>
     :error?<><h1>Couldn't connect</h1><p className="error">{error}</p><a className="button" href="/">Open Frontier Brain</a></>

@@ -1,9 +1,10 @@
 import type React from 'react';
 import {useState,useEffect,useRef} from 'react';
-import type {TeamCoaching,LeadPlan,MatchupPlan,Objective,TeamBrief} from '../../shared/workbench.ts';
+import {TEAM_STYLES,type TeamCoaching,type LeadPlan,type MatchupPlan,type Objective,type TeamBrief} from '../../shared/workbench.ts';
 import {api,Art,Panel,Modal,Notice,pct,Markdown,SetArt} from '../ui.tsx';
 import {useDirty} from '../save-state.ts';
-import {speciesOptions} from '../ai/SpeciesPicker.tsx';
+import SpeciesPicker from '../ai/SpeciesPicker.tsx';
+import {formName} from '../BenchmarkLab.tsx';
 import {versionName} from './editors.tsx';
 import {Px,Plus,Pencil,Check,Trash,ChevronDown} from '../icons.tsx';
 
@@ -11,17 +12,16 @@ const newId=()=>Math.random().toString(36).slice(2,12);
 const empty=(teamId:string):TeamCoaching=>({teamId,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]});
 const SMALL=5;
 // One plan: what it is at a glance (role or threat, Pokémon, a one-line summary); the full plan opens on demand.
-function PlanCard({status,head,meta,summary,body,more,accept,edit,remove}:{status:string;head:React.ReactNode;meta?:React.ReactNode;summary?:string;body:string;more:string;accept?:()=>void;edit:()=>void;remove:()=>void}){
-  const [open,setOpen]=useState(false);
+function PlanCard({status,head,meta,summary,body,foot,accept,edit,remove}:{status:string;head:React.ReactNode;meta?:React.ReactNode;summary?:string;body:string;foot?:React.ReactNode;more?:string;accept?:()=>void;edit:()=>void;remove:()=>void}){
   return <article className={'plan-card '+status}><header><div className="plan-head">{head}{status==='proposed'&&<span className="tag">AI draft</span>}</div>
       <div className="plan-actions">{accept&&<button className="compact primary" onClick={accept}>Accept</button>}<button className="icon" title="Edit" aria-label="Edit" onClick={edit}><Px icon={Pencil} size={15}/></button><button className="icon" title="Delete" aria-label="Delete" onClick={remove}><Px icon={Trash} size={15}/></button></div></header>
-    {meta&&<div className="plan-meta">{meta}</div>}
-    {summary&&<p className="plan-summary">{summary}</p>}
-    {body.trim()&&<><button className="plan-toggle" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?'Hide':more}<Px icon={ChevronDown} size={14}/></button>{open&&<div className="plan-text"><Markdown text={body}/></div>}</>}
+    {meta}
+    {(summary||body.trim())&&<div className="plan-body">{summary&&<p className="plan-summary">{summary}</p>}{body.trim()&&<Markdown text={body}/>}</div>}
+    {foot&&<div className="plan-foot">{foot}</div>}
   </article>;
 }
 // A lead's role: set explicitly, or read from an older plan's "CORE · …" prefix (shown as the pill, not repeated in the text).
-const ROLE_PREFIX=/^\s*(core|situational|niche)\s*[·:\-–]\s*/i;
+const ROLE_PREFIX=/^\s*(core|situational|niche|avoid)\s*[·:\-–]\s*/i;
 export const leadRole=(l:Pick<LeadPlan,'role'|'when'>)=>l.role??(l.when.match(ROLE_PREFIX)?.[1].toLowerCase() as LeadPlan['role']|undefined);
 const whenText=(l:LeadPlan)=>l.when.replace(ROLE_PREFIX,'');
 export function RolePill({role}:{role?:string}){return role?<span className={'role-pill '+role}>{role}</span>:null;}
@@ -43,18 +43,20 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
     <div className="team-detail-grid">
       <Panel title="Lead strategy" action={<button onClick={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
         <div className="plan-list">{coaching.leads.filter(inScope).map(l=><PlanCard key={l.id} status={l.status}
-          head={<><RolePill role={leadRole(l)}/><span className="plan-mons">{l.lead.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}</span><h3>{l.lead.join(' + ')}</h3></>}
-          meta={<>{l.back.length>0&&<span className="plan-back">Back {l.back.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}</span>}<LeadRecord stats={stats} lead={l.lead}/>{l.versionIds.length>0&&<span className="tag">{versionLabel(l.versionIds)}</span>}</>}
-          summary={whenText(l)} body={l.plan} more="Turn plan"
+          head={<RolePill role={leadRole(l)??'lead'}/>}
+          meta={<div className="front-back"><span className="fb-label">Front</span><span className="fb-mons">{l.lead.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span>
+            {l.back.length>0&&<><span className="fb-label">Back</span><span className="fb-mons">{l.back.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
+          summary={whenText(l)} body={l.plan} foot={<><LeadRecord stats={stats} lead={l.lead}/>{l.versionIds.length>0&&<span className="tag">{versionLabel(l.versionIds)}</span>}</>}
           accept={l.status==='proposed'?()=>void save({leads:upsert(coaching.leads,{...l,status:'active'})}):undefined} edit={()=>setEditLead(l)} remove={()=>{if(confirm(`Delete the ${l.lead.join(' + ')} lead plan?`))void save({leads:coaching.leads.filter(x=>x.id!==l.id)});}}/>)}</div>
         {!coaching.leads.filter(inScope).length&&<p className="muted">No lead plans yet. Add one, or ask Frontier Brain to draft them.</p>}
       </Panel>
       <Panel title="Matchup strategy" action={<button onClick={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
-        <div className="plan-list">{coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=>{const [title,...rest]=m.opponent.split(':');const sub=rest.join(':').trim();return <PlanCard key={m.id} status={m.status}
-          head={<><span className={'threat '+m.threat}>{m.threat}</span><h3>{title.trim()}</h3></>}
-          meta={<>{sub&&<span className="plan-sub">{sub}</span>}{m.bring.length>0&&<span className="plan-back">Bring {m.bring.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}</span>}{m.versionIds.length>0&&<span className="tag">{versionLabel(m.versionIds)}</span>}</>}
-          body={m.plan} more="Game plan"
-          accept={m.status==='proposed'?()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})}):undefined} edit={()=>setEditMatchup(m)} remove={()=>{if(confirm(`Delete the ${m.opponent} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}/>;})}</div>
+        <div className="plan-list">{coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=>{const o=splitOpponent(m);return <PlanCard key={m.id} status={m.status}
+          head={<><span className={'threat '+m.threat}>{m.threat}</span><h3>{o.title}</h3>{o.archetype!==o.title&&<span className="style-tag">{o.archetype}</span>}</>}
+          meta={<div className="front-back">{o.examples.length>0&&<><span className="fb-label">Examples</span><span className="fb-mons">{o.examples.map(p=><span key={p} className="fb-mon"><Art name={p} fallback={p.replace(/-(Mega(-[XYZ])?|[XYZ])$/,'')} art={data.art} small/>{formName(p)}</span>)}</span></>}
+            {m.bring.length>0&&<><span className="fb-label">Bring</span><span className="fb-mons">{m.bring.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
+          body={m.plan} foot={m.versionIds.length>0?<span className="tag">{versionLabel(m.versionIds)}</span>:undefined}
+          accept={m.status==='proposed'?()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})}):undefined} edit={()=>setEditMatchup(m)} remove={()=>{if(confirm(`Delete the ${o.archetype} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}/>;})}</div>
         {!coaching.matchups.filter(inScope).length&&<p className="muted">No matchup plans yet. Add one, or ask Frontier Brain to draft them.</p>}
       </Panel>
     </div>
@@ -73,15 +75,21 @@ function LeadEditor({plan,team,members,save,onClose}:{plan:LeadPlan;team:any;mem
   return <Modal title="Lead plan" onClose={close}><form onSubmit={async e=>{e.preventDefault();setBusy(true);try{if(!p.lead.filter(Boolean).length)throw new Error('Choose the lead');await save({...p,lead:p.lead.filter(Boolean)});}catch(err){setError((err as Error).message);setBusy(false);}}}>
     <div className="form-grid"><Pick label="Lead 1" value={lead[0]} options={members.filter(m=>m!==lead[1])} onChange={v=>setP({...p,lead:[v,lead[1]]})}/><Pick label="Lead 2" value={lead[1]} options={members.filter(m=>m!==lead[0])} onChange={v=>setP({...p,lead:[lead[0],v]})}/></div>
     <Choose label="Back" value={p.back} options={members.filter(m=>!lead.includes(m))} max={2} onChange={v=>setP({...p,back:v})}/>
-    <label>Role<select value={p.role??''} onChange={e=>setP({...p,role:(e.target.value||undefined) as LeadPlan['role']})}><option value="">Not set</option><option value="core">Core: your default lead</option><option value="situational">Situational: into specific teams</option><option value="niche">Niche: a pocket option</option></select></label>
+    <label>Role<select value={p.role??''} onChange={e=>setP({...p,role:(e.target.value||undefined) as LeadPlan['role']})}><option value="">Not set</option><option value="core">Core: your default lead</option><option value="situational">Situational: into specific teams</option><option value="niche">Niche: a pocket option</option><option value="avoid">Avoid: don't lead this pair</option></select></label>
     <label>When to use it<textarea rows={2} value={p.when} onChange={e=>setP({...p,when:e.target.value})}/></label><label>Turn 1–2 plan<textarea rows={5} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})}/></label>{error&&<p className="error">{error}</p>}<button className="primary" disabled={busy}>{busy?'Saving…':'Save lead plan'}</button></form></Modal>;}
-function MatchupEditor({plan,team,members,save,onClose}:{plan:MatchupPlan;team:any;members:string[];save:(m:MatchupPlan)=>Promise<void>;onClose:()=>void}){const [p,setP]=useState(plan),[error,setError]=useState(''),[options,setOptions]=useState<any[]>([]),[busy,setBusy]=useState(false);const close=useGuardedClose('matchup-'+plan.id,JSON.stringify(p)!==JSON.stringify(plan)&&!busy,onClose);
-  useEffect(()=>{speciesOptions().then(o=>setOptions(o.slice(0,80))).catch(()=>{});},[]);
-  return <Modal title="Matchup plan" onClose={close}><form onSubmit={async e=>{e.preventDefault();setBusy(true);try{await save(p);}catch(err){setError((err as Error).message);setBusy(false);}}}>
-    <div className="form-grid"><label>Opponent, core or archetype<input required list="opponent-options" value={p.opponent} onChange={e=>setP({...p,opponent:e.target.value})} placeholder="Pick a Pokémon or type e.g. Trick Room"/><datalist id="opponent-options">{options.map(o=><option key={o.name} value={o.name}>{o.usage}% of pooled teams</option>)}{['Trick Room','Tailwind offense','Rain','Sun','Psychic Terrain'].map(a=><option key={a} value={a}/>)}</datalist></label>
-      <Pick label="Threat" value={p.threat} options={['high','medium','low']} onChange={v=>setP({...p,threat:(v||'medium') as MatchupPlan['threat']})}/></div>
+// A matchup plan's parts: the team style (shared with replay tags), example opposing Pokémon, threat, who to bring and
+// the game plan. Older plans that kept everything in one "Style: Pokémon list" line are split on opening.
+export function splitOpponent(m:MatchupPlan){if(m.archetype||m.examples?.length)return {title:m.opponent||m.archetype!,archetype:m.archetype??m.opponent,examples:m.examples??[]};
+  const [head,...rest]=m.opponent.split(':');const list=rest.join(':').replace(/\([^)]*%[^)]*\)/g,'').split(/,|\/|\band\b/).map(x=>x.trim()).filter(x=>x&&x.length<30);return {title:head.trim(),archetype:head.trim(),examples:list};}
+function MatchupEditor({plan,team,members,save,onClose,styles=[]}:{plan:MatchupPlan;team:any;members:string[];save:(m:MatchupPlan)=>Promise<void>;onClose:()=>void;styles?:string[]}){
+  const [start]=useState(()=>{const o=splitOpponent(plan);return {...plan,archetype:o.archetype,examples:o.examples};});const [p,setP]=useState(start),[error,setError]=useState(''),[busy,setBusy]=useState(false);const close=useGuardedClose('matchup-'+plan.id,JSON.stringify(p)!==JSON.stringify(start)&&!busy,onClose);
+  const styleList=[...new Set([...TEAM_STYLES,...styles])];const ex=p.examples??[];
+  return <Modal title="Matchup plan" onClose={close}><form className="plan-form" onSubmit={async e=>{e.preventDefault();setBusy(true);try{if(!p.archetype?.trim())throw new Error('Choose the team style');await save({...p,opponent:(p.opponent&&p.opponent!==plan.opponent?p.opponent:plan.archetype?plan.opponent:p.archetype!).trim()});}catch(err){setError((err as Error).message);setBusy(false);}}}>
+    <div className="form-grid"><label>Opponent team style<input required list="style-options" value={p.archetype??''} onChange={e=>setP({...p,archetype:e.target.value})} placeholder="e.g. Tailwind offense"/><datalist id="style-options">{styleList.map(a=><option key={a} value={a}/>)}</datalist></label>
+      <label>Threat<select value={p.threat} onChange={e=>setP({...p,threat:e.target.value as MatchupPlan['threat']})}><option value="high">HIGH</option><option value="medium">MEDIUM</option><option value="low">LOW</option></select></label></div>
+    <div className="examples-field"><span className="field-label">Example Pokémon</span><div className="example-chips">{ex.map(m=><button type="button" key={m} className="chip on" onClick={()=>setP({...p,examples:ex.filter(x=>x!==m)})}>{m} ×</button>)}</div>{ex.length<8&&<SpeciesPicker label="Add an example Pokémon" placeholder="Add a Pokémon…" value="" onPick={sp=>setP({...p,examples:ex.includes(sp)?ex:[...ex,sp]})}/>}</div>
     <Choose label="Bring" value={p.bring} options={members} max={4} onChange={v=>setP({...p,bring:v})}/>
-    <label>Game plan<textarea rows={6} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})}/></label>{error&&<p className="error">{error}</p>}<button className="primary" disabled={busy}>{busy?'Saving…':'Save matchup plan'}</button></form></Modal>;}
+    <label>Game plan<textarea rows={5} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})} placeholder="The lead, the key move or switch, what wins it. A few sentences."/></label>{error&&<p className="error">{error}</p>}<div className="button-row"><button className="primary" disabled={busy}>{busy?'Saving…':'Save matchup plan'}</button></div></form></Modal>;}
 
 // The difference between two copies of a team's strategy, as one item-level update the server merges into the latest.
 export function coachingUpdate(teamId:string,before:Pick<TeamCoaching,'leads'|'matchups'|'objectives'>,after:Pick<TeamCoaching,'leads'|'matchups'|'objectives'>){

@@ -22,7 +22,8 @@ const BATTLE_KEYS=['curHP','status','boosts','abilityOn','alliesFainted','stage'
 type Pick={kind:'current'}|{kind:'saved';id:string;label:string;set:PokemonSet}|{kind:'spread';index:number}|{kind:'custom';set?:PokemonSet};
 type Side='mine'|'foe';
 const megaName=(name:string)=>/-Mega(-[A-Z])?$/.test(name);const baseName=(name:string)=>name.replace(/-Mega(-[A-Z])?$/,'');
-export const formName=(name:string)=>name.replace(/^(.*)-Mega(?:-([A-Z]))?$/,(_,b:string,x?:string)=>`Mega ${b}${x?' '+x:''}`);
+const REGIONS:Record<string,string>={Hisui:'Hisuian',Alola:'Alolan',Galar:'Galarian',Paldea:'Paldean'};
+export const formName=(name:string)=>name.replace(/^(.*)-Mega(?:-([A-Z]))?$/,(_,b:string,x?:string)=>`Mega ${b}${x?' '+x:''}`).replace(/^(.*)-(Hisui|Alola|Galar|Paldea)$/,(_,b:string,r:string)=>`${REGIONS[r]} ${b}`);
 const onlyTrue=(f:Record<string,boolean>)=>Object.fromEntries(Object.entries(f).filter(([,v])=>v));
 function Toggle({on,label,set}:{on:boolean;label:string;set:(v:boolean)=>void}){return <button type="button" className={'toggle'+(on?' on':'')} aria-pressed={on} onClick={()=>set(!on)}>{label}</button>;}
 
@@ -138,7 +139,7 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
       :<div className="field-box"><div className="field-row"><span className="ctx-label">Field</span><div className="toggles"><Toggle on={trickRoom} label="Trick Room" set={setTrickRoom}/></div></div></div>}</div>;
   const footer=<div className="result-foot"><button className="primary" disabled={calculating||!result||!!saved||!targetLabel||!realSet} title={!realSet?'Benchmarks re-check against your current set: switch back to it to save':targetLabel?undefined:'Pick an opponent set first'} onClick={()=>void saveBenchmark()}>{saved?'Saved as benchmark ✓':'Save as benchmark'}</button>{tab==='Damage'&&<button onClick={askSpread}>{outgoing?'Find a spread that guarantees this KO':'Find a spread that survives this'} →</button>}</div>;
   const body=<div className="lab"><Tabs tabs={['Damage','Speed']} value={tab} onChange={setTab}/>
-    {fromAsk&&<p className="from-ask" role="status"><img src="/brand/mark.svg" alt="" width={18} height={18}/>{fromAsk}</p>}
+    {fromAsk&&<p className="from-ask" role="status"><img src="/brand/icon-64.png" alt="" width={18} height={18}/>{fromAsk}</p>}
     <div className="matchup">{sideCard(order[0])}{axis}{sideCard(order[1])}</div>
     {error&&<p role="alert" className="error">{error}</p>}
     {result?.kind==='Damage'&&tab==='Damage'&&<div className={'lab-result'+(calculating?' busy':'')}><DamageViz result={result} name={formName((outgoing?otherC:ownC).species)} attackerName={formName((outgoing?ownC:otherC).species)} defender={(outgoing?otherC:ownC).species} fallback={(outgoing?other:own).species} art={data.art} move={move} attacker={(outgoing?ownC:otherC).species}/>
@@ -155,7 +156,7 @@ function Combatant({side,cardRef,role,set,art,mega,megaOn,setMega,species,picker
   const shown=mega&&megaOn?mega.name:set.species;
   return <section ref={cardRef} className={'combatant is-'+side+(role.includes('attacking')?' attacking':role.includes('defending')?' defending':'')}>
     <div className="combatant-art"><Art name={shown} fallback={set.species} art={art}/>{mega&&<button type="button" className={'mega-switch'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}: switch off to use ${set.species}`:`Switch on to battle as ${formName(mega.name)}`}><span className="knob"/>Mega</button>}</div>
-    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span>{species??<h3>{formName(shown)}</h3>}{mega&&megaOn&&<MegaBadge/>}<TypeBadges species={shown}/></div>
+    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span><span className="name-row">{species??<h3>{formName(shown)}</h3>}{mega&&megaOn&&<MegaBadge/>}</span><TypeBadges species={shown}/></div>
       {picker}
       <p className="combatant-sum"><ItemIcon item={set.item}/><span>{set.item||'No item'}</span><span>{mega&&megaOn?mega.ability:set.ability||'—'}</span><span>{set.nature}</span><span className="mono">{spLine(set)}</span></p>
       {note&&<p className="footnote">{note}</p>}

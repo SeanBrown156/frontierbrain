@@ -998,3 +998,53 @@ html.jade .plan-actions button.icon{box-shadow:none!important}
 .network-backdrop{z-index:0!important}
 html.jade .shell>:not(.network-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
 html.jade .shell>.masthead{z-index:30}
+/* dialogs: title flush with the content's left edge */
+html.jade .modal{padding:24px!important}
+html.jade .modal>header{padding:0 0 16px!important;margin:0 0 20px!important}
+html.jade .modal>header h2{margin:0!important;padding:0!important;text-align:left!important;flex:1;font-size:26px!important}
+html.jade .modal>header::before,html.jade .modal>header::after{display:none!important}
+/* renaming a team keeps the big title size */
+html.jade input.rename{font:800 clamp(36px,5vw,58px)/1.05 var(--fd)!important;text-transform:uppercase;letter-spacing:.005em;height:auto!important;padding:2px 8px!important;max-width:100%!important;width:min(900px,100%);background:transparent!important;border:1px dashed var(--ln-2)!important}
+/* strategy: paragraph, then the team, then the chosen Pokémon's notes */
+html.jade .guide-intro .markdown{font-size:17px;line-height:1.7;max-width:72ch}
+.guide-team{display:grid;gap:12px;padding-top:20px;border-top:1px solid var(--ln)}
+html.jade .guide-six button{display:grid;justify-items:center;gap:4px;padding:12px 4px!important;border-radius:14px!important;color:var(--mu)!important;background:transparent!important;border:1px solid transparent!important;box-shadow:none!important;height:auto!important;transition:background .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+html.jade .guide-six button:hover{background:var(--hover)!important;color:var(--tx)!important;transform:translateY(-3px)}
+html.jade .guide-six button.on{background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 16%,transparent),transparent 60%),var(--glass-2)!important;border-color:color-mix(in srgb,var(--ac) 50%,transparent)!important;color:var(--tx)!important}
+.guide-six button span:last-child{font:700 13px var(--fd);text-transform:uppercase;letter-spacing:.04em}
+.guide-mon{padding:20px;border-radius:14px;background:var(--sunk);border:1px solid var(--ln);animation:jPop .3s cubic-bezier(.2,.8,.2,1)}
+.guide-mon-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+html.jade .guide-mon-head h3{font:800 22px var(--fd)!important;text-transform:uppercase;margin:0}
+html.jade .guide-mon .markdown{font-size:15px}
+html.jade .guide-mon .markdown h2{font:700 12px var(--fb)!important;letter-spacing:.1em;color:var(--gd);margin:16px 0 6px}
+/* plan cards: Front / Back (or Examples / Bring) in one aligned grid */
+.front-back{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px 12px;align-items:center}
+.fb-label{font:700 10.5px var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.fb-mons{display:flex;flex-wrap:wrap;gap:4px 12px}
+.fb-mon{display:inline-flex;align-items:center;gap:2px;font-weight:600;font-size:14px}
+html.jade .fb-mon .art.small{width:32px!important;height:32px!important}
+html.jade .fb-mon .mega-orb{display:none}
+.plan-body{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--ln)}
+html.jade .plan-body .plan-summary{font-weight:600;-webkit-line-clamp:unset;display:block}
+html.jade .plan-body .markdown{font-size:14px;line-height:1.6}
+.plan-foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--mu)}
+html.jade .plan-head h3{font:800 20px/1.15 var(--fd)!important;text-transform:uppercase;letter-spacing:.02em}
+.role-pill.lead{display:none}
+/* plan editor */
+.examples-field{display:grid;gap:8px;margin-bottom:16px}
+.field-label{font-size:13px;font-weight:600}
+.example-chips{display:flex;flex-wrap:wrap;gap:8px}
+html.jade .guide-six button{min-height:0!important;max-height:none!important;overflow:visible}
+html.jade .guide-six .set-art .art{width:88px!important;height:88px!important}
+.role-pill.avoid{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 50%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent)}
+.style-tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;font:600 11px var(--fb);color:var(--mu);border:1px solid var(--ln-2)}
+/* Mega: rainbow keystone with the white Mega symbol, and the tag beside the name */
+.mega-orb{background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.55) 0 10%,transparent 40%),conic-gradient(from 210deg,#ff5e7e,#ffb35e,#ffe95e,#5effa8,#5ec8ff,#a35eff,#ff5e7e)!important}
+.mega-orb::after{inset:14%!important;border:0!important;transform:none!important;background:url(/brand/mega.svg) center/contain no-repeat;filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}
+.name-row{display:inline-flex!important;align-items:center;gap:10px;flex-wrap:wrap}
+html.jade h3.name-row{display:flex!important}
+html.jade .mega-badge{height:22px;padding:0 9px 0 3px;font-size:10.5px}
+html.jade .mega-badge .mega-orb{width:16px!important;height:16px!important}
+html.jade .set-art .mega-orb{width:18px!important;height:18px!important}
+html.jade .mega-switch.on .knob{position:relative}
+html.jade .mega-switch.on .knob::after{content:'';position:absolute;inset:16%;background:url(/brand/mega.svg) center/contain no-repeat}

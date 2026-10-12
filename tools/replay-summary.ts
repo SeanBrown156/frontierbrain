@@ -10,7 +10,9 @@ import {resolveTier} from './models.ts';
 import {readStore,currentTeam} from './workbench-store.ts';
 import {startTask,listJobs} from './ai-jobs.ts';
 
-export const STYLES=['Trick Room','Tailwind','Rain','Sun','Sand','Snow','Psychic Terrain','Grassy Terrain','Electric Terrain','Perish Song','Hyper offense','Balance','Redirection','Setup'] as const;
+import {TEAM_STYLES} from '../shared/workbench.ts';
+// The same team styles matchup plans use, so a plan and the games it covers share one vocabulary.
+export const STYLES=TEAM_STYLES;
 export interface ReplaySummary {gameId:string;summary:string;keyMoments:{turn:number;text:string}[];workOn:{title:string;detail:string;category:'play'|'building'|'variance';turn?:number}[];opponentStyle:string[];confidence:'high'|'medium'|'low';model:string;createdAt:string;association:string;setsBasis:string;}
 export interface TeamDigest {teamId:string;themes:{title:string;detail:string;games:string[];count:number;of:'losses'|'games';total:number}[];strengths:string[];games:number;model:string;createdAt:string;}
 const DIR='reports/replay-summaries',DIGESTS='reports/replay-digests';

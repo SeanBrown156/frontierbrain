@@ -4,7 +4,7 @@ import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon
 import {Px,Share,Home,Target,Play,Clock,ArrowLeft,Download,Pencil,Plus,Upload,Eye,Check,WarningDiamond} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
-import {getView,versionName,stats,natureEffect} from './editors.tsx';
+import {getView,versionName,stats,natureEffect,noteTitles} from './editors.tsx';
 import {useDraft,useOffers,takeOffer} from '../save-state.ts';
 import SetTile from '../ai/SetTile.tsx';
 import type {Mutate} from './PokemonWorkspace.tsx';
@@ -49,7 +49,7 @@ function MonCard({i,revision,href,active,art}:{i:number;revision:any;href:string
   const s=revision.set;const obs=revision.provenance==='observed';const form=useBattleForm(s.species,s.item);
   return <a className={'mon-card'+(active?'':' read-only')} href={href} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
       <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
-      <div className="mon-card-head"><Art name={form} fallback={s.species} art={art}/><div><h3>{s.nickname?`${s.nickname} (${s.species})`:s.species}</h3><div className="mon-tags">{form!==s.species&&<MegaBadge/>}<TypeBadges species={form}/></div></div></div>
+      <div className="mon-card-head"><Art name={form} fallback={s.species} art={art}/><div><h3 className="name-row">{s.nickname?`${s.nickname} (${s.species})`:s.species}{form!==s.species&&<MegaBadge/>}</h3><div className="mon-tags"><TypeBadges species={form}/></div></div></div>
       <p className="mon-item"><ItemIcon item={s.item}/>{s.item||'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}<span className="mon-meta">{s.ability} · {s.nature}</span></p>
       <SpBars species={form} points={s.statPoints??{}} nature={s.nature}/>
       <ul className="move-list">{s.moves?.map((m:string)=><li key={m} className={obs&&!revision.knownMoves?.includes(m)?'inferred':obs?'known':''}>{m}</li>)}</ul>
@@ -78,21 +78,24 @@ function Strategy({team,data,version,all,mutate}:{team:any;data:any;version:any;
     return mutate({type:'version-notes',teamId:team.id,versionId:version.id,notes:text},{quiet:true,before:()=>d.markSaved(text)}).then(()=>setError(''),e=>{d.markFailed();setError((e as Error).message);});};
   useEffect(()=>{if(!d.dirty)return;const t=setTimeout(()=>void save(),1000);return()=>clearTimeout(t);},[d.draft]);
   useEffect(()=>()=>void save(),[]);
-  return <section className="strategy-block"><div className="strategy-head"><h2>The team</h2><span className="grow"/>{editing?<button onClick={()=>{void save();setEditing(false);}}><Px icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Px icon={Pencil}/>Edit</button>}</div>
-    {editing?<textarea aria-label="Strategy" rows={14} value={d.draft} onChange={e=>d.setDraft(e.target.value)} placeholder={"## Game plan\nWhat the team does and how it wins, in a few short paragraphs. Lead and matchup plans live in their own cards below."} autoFocus/>:<TeamGuide team={team} data={data} version={version} text={d.draft}/>}
+  return <section className="strategy-block"><div className="strategy-head"><h2>Strategy</h2><span className="grow"/>{editing?<button onClick={()=>{void save();setEditing(false);}}><Px icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Px icon={Pencil}/>Edit</button>}</div>
+    {editing?<textarea aria-label="Strategy" rows={14} value={d.draft} onChange={e=>d.setDraft(e.target.value)} placeholder="What the team is for and how it wins, in a paragraph or two." autoFocus/>:<TeamGuide team={team} data={data} version={version} text={d.draft}/>}
     {error&&<p className="set-pending" role="status"><Px icon={WarningDiamond} size={12}/>Not saved yet: {error}</p>}
   </section>;
 }
-// The team's introduction: the six (linking to each Pokémon), the opening section of the write-up as the overview,
-// and every further section folded under its heading. Team members named in the text show as small sprites.
+// Strategy, then the team. The write-up is the team's intent in a paragraph or two; clicking one of the six opens that
+// Pokémon's own strategy (its notes from the Pokémon page) underneath, with a link through to its page.
+function mergedNotes(n:any){return [n?.role,...['benchmarks','partners','matchups'].map(k=>n?.[k]?.trim()?`## ${noteTitles[k as keyof typeof noteTitles]}\n${n[k].trim()}`:'')].filter((t:string)=>t?.trim()).join('\n\n');}
 function TeamGuide({team,data,version,text}:{team:any;data:any;version:any;text:string}){
   const view=getView(team,data.db,version.id);const mons:MonRef[]=view.sets.map((s:any,i:number)=>({name:s.species,set:s,href:monHref(team.id,version.id,i)}));
-  if(!text.trim())return <p className="muted">No game plan yet. Use Edit to write one, or ask Frontier Brain to draft a short introduction to the team.</p>;
-  const parts=text.split(/^(?=## )/m);const intro=parts[0].startsWith('## ')?parts.shift()!:parts.shift()!;const title=intro.match(/^## (.*)/)?.[1];const introBody=intro.replace(/^## .*\n?/,'');
+  const [open,setOpen]=useState<number|null>(null);const r=open===null?null:view.revisions[open];
   return <div className="team-guide">
-    <div className="guide-six">{view.sets.map((s:any,i:number)=><a key={i} href={monHref(team.id,version.id,i)} title={s.species}><SetArt set={s} art={data.art}/><span>{s.species}</span></a>)}</div>
-    <div className="guide-intro">{title&&<span className="eyebrow">{title}</span>}<Markdown text={introBody} mons={mons} art={data.art}/></div>
-    {parts.length>0&&<div className="guide-sections">{parts.map((p,i)=>{const h=p.match(/^## (.*)/)?.[1]??'More';return <details key={i}><summary>{h}</summary><Markdown text={p.replace(/^## .*\n?/,'')} mons={mons} art={data.art}/></details>;})}</div>}
+    {text.trim()?<div className="guide-intro"><Markdown text={text} mons={mons} art={data.art}/></div>:<p className="muted">No strategy yet. Use Edit to describe what the team is for and how it wins.</p>}
+    <div className="guide-team"><span className="eyebrow">The team</span>
+      <div className="guide-six" role="tablist">{view.sets.map((s:any,i:number)=><button key={i} role="tab" aria-selected={open===i} className={open===i?'on':''} onClick={()=>setOpen(open===i?null:i)}><SetArt set={s} art={data.art}/><span>{s.species}</span></button>)}</div>
+      {r&&<div className="guide-mon" role="tabpanel"><div className="guide-mon-head"><h3>{r.revision.set.species}</h3><a className="text-button" href={monHref(team.id,version.id,open!)}>Go to {r.revision.set.species} →</a></div>
+        {mergedNotes(r.revision.notes).trim()?<Markdown text={mergedNotes(r.revision.notes)} mons={mons} art={data.art}/>:<p className="muted">No strategy for {r.revision.set.species} yet. Add it on its page.</p>}</div>}
+    </div>
   </div>;
 }
 // "Save as V2": versions are milestones the player chooses (e.g. before an event). Edits in between are logged quietly.
