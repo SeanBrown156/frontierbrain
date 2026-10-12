@@ -4,6 +4,7 @@
 import {pokemonProfile} from './profile.ts';
 import {formatPrimer,formatRules} from './format.ts';
 import {readPreferences,updatePreferences,preferencesText} from './player.ts';
+import {whereToLook,LIBRARY_GUIDE} from './library.ts';
 import {playbook,playbookPrimer} from './playbook.ts';
 import {randomUUID} from 'node:crypto';
 import {ROOT,CODE,save,config,requestAI,environmentAI,hosted,type AIProvider} from './io.ts';
@@ -38,6 +39,7 @@ export const tools=[
   {type:'function',name:'meta_overview',description:'Team-pool overview: most-used Pokémon and pairs across all pooled teams, plus recent top-4 teams (official and online). Use for meta context, threat lists and team building.',parameters:{type:'object',properties:{lanes:{type:'array',items:{type:'string',enum:['official','online','shared']}},sinceDays:{type:'integer',minimum:7,maximum:365},top:{type:'integer',minimum:5,maximum:60}}}},
   {type:'function',name:'get_player_profile',description:'What the player has told Frontier Brain about themselves, kept across every chat and app: playstyle, Bo1/Bo3, how much explanation they want, goals, Pokémon they like or avoid, what they hate facing, notes. Read it before building or coaching; don\'t re-ask what is there.',parameters:{type:'object',properties:{}}},
   {type:'function',name:'update_player_profile',description:'Save something the player told you about themselves (only what they actually said). Send just the fields to replace; lists replace the whole list, so read first and include existing items you keep. They can see and edit this in Settings.',parameters:{type:'object',properties:{playstyle:{type:'string'},formats:{type:'string',enum:['Bo1','Bo3','both']},explain:{type:'string',enum:['brief','standard','detailed']},goals:{type:'string'},likes:{type:'array',items:{type:'string'}},dislikes:{type:'array',items:{type:'string'}},hateFacing:{type:'array',items:{type:'string'}},notes:{type:'array',items:{type:'string'}}}}},
+  {type:'function',name:'where_to_look',description:'Which sites and pages to go to for VGC information, by topic: rules, results (events and team lists), teams, reports (player-written team reports), usage, speed, fundamentals (classic Nugget Bridge, VGCGuide and Smogon articles), community, mechanics, practice. Gives each site\'s URL, what it\'s good for and whether it\'s upstream, composite or a mirror, plus dated links to recent events and reports. Call with no topic for the list. Browse these directly rather than searching the web.',parameters:{type:'object',properties:{topic:{type:'string',description:'e.g. "results", "reports", "fundamentals"'}}}},
   {type:'function',name:'vgc_playbook',description:'Doubles fundamentals adapted to Champions, paraphrased from classic community guides (Nugget Bridge, VGCGuide, Smogon) with links: thinking in fours and team preview, speed control and modes, Fake Out/redirection/Intimidate/positioning, damage and benchmarks, building around a Pokémon, Megas as modes, matchup planning, Bo1 vs Bo3 and open sheets, playtesting, playing well, collaborating. Call with no section for the list.',parameters:{type:'object',properties:{section:{type:'string',description:'Section number or a word from its title, e.g. "3" or "speed control"'}}}},
   {type:'function',name:'format_rules',description:'The rules of a format from the pinned validator and the verified regulation record: team size and how many you bring, level, species/item clauses, bans, Mega Evolutions per battle, open team sheets, Bo1/Bo3, timers and the regulation period, plus a plain-language primer. Defaults to the current regulation.',parameters:{type:'object',properties:{format:{type:'string',description:'Showdown format id, e.g. gen9championsvgc2026regmc (a team\'s format from get_team)'}}}},
   {type:'function',name:'pokemon_profile',description:'What makes a Pokémon distinctive in Champions doubles: its forms (incl. Mega stats/abilities), support, speed-control, disruption and spread moves it can learn, strongest STAB moves, coverage, how often the pool uses it, and a type + base-Speed sheet against the most-used Pokémon (who it threatens, who threatens it, what it outspeeds, what it beats under Trick Room). Use it before suggesting a Pokémon; when the player names Pokémon to build around, profile each and discuss what makes them distinctive before proposing a team.',parameters:{type:'object',properties:{species:{type:'string'},top:{type:'integer',minimum:5,maximum:40,description:'How many top pool Pokémon to compare against (default 20)'}},required:['species']}},
@@ -54,6 +56,7 @@ Rules:
 - If the engine rejects an input, say so plainly; do not approximate. Multi-hit moves report per-hit rolls and an exact KO chance; set moveOptions.hits when the hit count matters. Rage Fist, Last Respects, Stomping Tantrum, Avalanche, Assurance and Payback take moveOptions.context ({timesHit}, {faintedAllies}, {lastMoveFailed}, {hitFirst}, {targetDamaged}, {movesLast}); state the battle state you assumed.
 - Distinguish observations, assumptions and hypotheses. No win probabilities.
 - A team's own format (get_team / list_teams) wins over this default; call format_rules for it when it differs.
+- Where to look: ${LIBRARY_GUIDE} If you can't browse, give the player the links instead.
 
 ${formatPrimer()}
 
@@ -85,6 +88,7 @@ export async function runTool(name:string,input:any,ctx:ChatContext,db:Workbench
     case 'get_player_profile':return readPreferences();
     case 'update_player_profile':return {saved:await updatePreferences(input??{})};
     case 'vgc_playbook':return playbook(input.section);
+    case 'where_to_look':return whereToLook(input.topic);
     case 'format_rules':return {...formatRules(input.format||undefined),primer:formatPrimer(input.format||undefined)};
     case 'pokemon_profile':return pokemonProfile(input.species,{top:input.top});
     case 'dex_lookup':{const s=dex.species.get(input.species);if(!s.exists)throw new Error(`Unknown species ${input.species}`);return {name:s.name,types:s.types,baseStats:s.baseStats,abilities:Object.values(s.abilities)};}
