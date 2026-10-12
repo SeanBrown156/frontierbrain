@@ -68,7 +68,7 @@ function AboutYou(){
 // Anthropic for that one request and drops it: never written to the database or logs. The code is public to check.
 // Two ways to use AI: your own API key inside Frontier Brain, or your Claude/ChatGPT subscription connected over MCP.
 function AIPanel(){
-  const [mode,setMode]=useState<'key'|'mcp'>('key');
+  const [mode,setMode]=useState<'key'|'mcp'>(()=>{try{const v=sessionStorage.getItem('frontierbrain.ai-mode');sessionStorage.removeItem('frontierbrain.ai-mode');return v==='mcp'?'mcp':'key';}catch{return 'key';}});
   return <Panel title={<><Px icon={Sparkles}/> AI</>}>
     <ModeSwitch label="Connect your AI" value={mode} onChange={setMode as any} options={[{value:'key',label:'Connect with your API key',short:'API key'},{value:'mcp',label:'Connect via MCP',short:'MCP',icon:<MCPMark/>}]}/>
     {mode==='key'?<AIKey/>:<Connectors/>}
