@@ -1152,3 +1152,10 @@ html.jade .mon-card .move-list li{display:flex!important;align-items:center;gap:
 html.jade .mon-card .move-list li>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 html.jade .mon-card .move-list .type-badge.mini{flex:none;height:18px!important;padding:0 6px 0 5px!important;font-size:8.5px!important}
 html.jade .mon-card .move-list li>span:last-child{color:var(--tx);font-weight:500}
+/* Ask Frontier Brain: a floating glass panel over the page, not a sidebar that squeezes it */
+html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;width:min(460px,calc(100vw - 24px))!important;border-radius:22px!important;border:1px solid var(--ln-2)!important;
+ background:color-mix(in srgb,var(--bg) 90%,transparent)!important;-webkit-backdrop-filter:blur(28px) saturate(150%);backdrop-filter:blur(28px) saturate(150%);
+ box-shadow:0 40px 100px -30px rgba(0,0,0,.6),inset 0 1px 0 var(--hi)!important;overflow:hidden;z-index:60!important;animation:jDockIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes jDockIn{from{opacity:0;transform:translateX(24px) scale(.98)}to{opacity:1;transform:none}}
+@media (max-width:620px){html.jade .dock{top:0!important;right:0!important;bottom:0!important;width:100vw!important;border-radius:0!important}}
+@media (prefers-reduced-motion:reduce){html.jade .dock{animation:none}}
