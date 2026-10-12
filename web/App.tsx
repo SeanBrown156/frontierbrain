@@ -173,5 +173,5 @@ function ReferenceGroups({sources}:{sources:any[];compact?:boolean}){
   const behind=sources.filter(s=>s.behind);
   const card=(s:any)=><article key={s.id} className="source-card"><a href={s.url} target="_blank" rel="noreferrer"><SiteIcon url={s.url} icon={s.icon} size={18}/>{s.name} ↗</a><p>{s.notes}</p><span className="muted tiny">{host(s.url)}</span></article>;
   return <div className="reference-groups">{catalogueGroups.map(([key,title])=>{const rows=sources.filter(s=>s.bar===key).sort((a,b)=>a.barOrder-b.barOrder);return rows.length?<section key={key}><h3>{title}</h3><div className="source-grid">{rows.map(card)}</div></section>:null;})}
-    <section><h3>Behind Frontier Brain</h3><p className="muted">Rules, raw datasets and engine sources the app itself relies on.</p><div className="source-grid">{behind.map(card)}</div></section></div>;
+    <section><h3>Built on</h3><p className="muted">The official rules and open-source engines Frontier Brain's calculators and format checks are built on.</p><div className="source-grid">{behind.map(card)}</div></section></div>;
 }

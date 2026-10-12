@@ -35,7 +35,7 @@ export function whereToLook(topic?:string){
   const hit=Object.keys(TOPICS).find(k=>k===key||k.startsWith(key)||TOPICS[k].about.toLowerCase().includes(key));
   if(!hit)throw new Error(`No topic matching "${topic}". Topics: ${Object.keys(TOPICS).join(', ')}`);
   const t=TOPICS[hit];
-  const sites=catalogue.filter(s=>s.categories?.some((c:string)=>t.categories.includes(c))).map(s=>({name:s.name,url:s.url,useFor:s.aiNotes??s.notes,...role(s.aiNotes??s.notes)?{role:role(s.aiNotes??s.notes)}:{}}));
+  const sites=catalogue.filter(s=>s.categories?.some((c:string)=>t.categories.includes(c))).map(s=>({name:s.aiName??s.name,url:s.url,useFor:s.aiNotes??s.notes,...role(s.aiNotes??s.notes)?{role:role(s.aiNotes??s.notes)}:{}}));
   const routeFor:Record<string,string>={results:'tournament results',teams:'team sheets',reports:'authored reports'};
   const current=routeFor[hit]?routes.filter(r=>r.title.toLowerCase().includes(routeFor[hit])).flatMap(r=>r.body.split('\n').filter(l=>l.startsWith('- ')&&links(l).length).map(l=>({what:l.slice(2).replace(/\[([^\]]+)\]\([^)]+\)/g,'$1').replace(/\*\*/g,''),links:links(l)}))):[];
   const caveats=routes.find(r=>/access gaps/i.test(r.title))?.body.replace(/^##.*\n+/,'').trim();

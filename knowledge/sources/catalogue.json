@@ -346,46 +346,54 @@
   },
   {
     "id": "official-m-c",
-    "name": "Official Champions Regulation M-C",
+    "name": "Official Regulation M-C rules",
     "url": "https://champions-news.pokemon-home.com/en/page/816.html",
     "categories": [
       "rules"
     ],
-    "notes": "Authoritative duration, eligibility link, Mega restriction, items and timers. Refresh before builds.",
-    "behind": true
+    "notes": "The official rules for the format: dates, eligible Pokémon, Mega Evolution limits, items and timers.",
+    "behind": true,
+    "aiName": "Official Champions Regulation M-C",
+    "aiNotes": "Authoritative duration, eligibility link, Mega restriction, items and timers. Refresh before builds."
   },
   {
     "id": "smogon-stats",
-    "name": "Smogon original usage datasets",
+    "name": "Smogon usage stats",
     "url": "https://www.smogon.com/stats/",
     "categories": [
       "usage",
       "sets"
     ],
-    "notes": "Original published monthly ladder datasets; adapter downloads exact M-C Bo1/Bo3 files and chaos distributions.",
-    "behind": true
+    "notes": "Monthly Showdown ladder usage stats, published by Smogon.",
+    "behind": true,
+    "aiName": "Smogon original usage datasets",
+    "aiNotes": "Original published monthly ladder datasets; adapter downloads exact M-C Bo1/Bo3 files and chaos distributions."
   },
   {
     "id": "showdown-source",
-    "name": "Showdown Champions source",
+    "name": "Pokémon Showdown (Champions)",
     "url": "https://github.com/smogon/pokemon-showdown/tree/master/data/mods/champions",
     "categories": [
       "mechanics",
       "rules"
     ],
-    "notes": "Executable mod reference; installed commit pinned, changes require tests and deliberate upgrade.",
-    "behind": true
+    "notes": "The open-source battle engine, with Champions mechanics, that the calculators follow.",
+    "behind": true,
+    "aiName": "Showdown Champions source",
+    "aiNotes": "Executable mod reference; installed commit pinned, changes require tests and deliberate upgrade."
   },
   {
     "id": "calc-source",
-    "name": "Smogon calculator source",
+    "name": "Smogon damage calculator",
     "url": "https://github.com/smogon/damage-calc",
     "categories": [
       "mechanics",
       "calculators"
     ],
-    "notes": "Native Champions generation 0. Track engine version separately from source verification date.",
-    "behind": true
+    "notes": "The open-source damage calculator, with Champions support, that powers the damage numbers.",
+    "behind": true,
+    "aiName": "Smogon calculator source",
+    "aiNotes": "Native Champions generation 0. Track engine version separately from source verification date."
   },
   {
     "id": "pasrs",
