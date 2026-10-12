@@ -49,11 +49,12 @@ export default function App(){
   // Saves run one at a time in order, apply to the latest workspace on the server, and retry dropped connections.
   // They're silent: a save that truly fails (e.g. an illegal set, or a real clash) reports to the editor that made it.
   const queue=useRef<Promise<unknown>>(Promise.resolve());
+  // A save that works clears a leftover error toast (e.g. a failed import retried successfully); other messages stay.
   const mutate=(action:any,{quiet=false,before,optimistic}:{quiet?:boolean;before?:(result:any)=>void;optimistic?:(data:any)=>any}={})=>{
     // An optimistic edit shows straight away; the saved workspace replaces it when the save lands (or a reload, if it fails).
     if(optimistic&&dataRef.current){const next=optimistic(structuredClone(dataRef.current));loadSeq.current++;dataRef.current=next;setData(next);}
     const run=async()=>{saving();
-      for(let attempt=0;;attempt++){try{const result=await api('/action',{revision:revision.current,action});revision.current=result.revision;before?.(result);apply(result.workspace);saved();refreshSoon();return result;}
+      for(let attempt=0;;attempt++){try{const result=await api('/action',{revision:revision.current,action});revision.current=result.revision;before?.(result);apply(result.workspace);saved();setMessage(m=>m?.error?null:m);refreshSoon();return result;}
         catch(e){const status=(e as ApiError).status;if((status===0||status>=500)&&attempt<3){await new Promise(r=>setTimeout(r,500*(attempt+1)));continue;}
           failed((e as Error).message);if(status===409||optimistic)void load();if(!quiet)notify((e as Error).message,true);throw e;}}};
     const next=queue.current.then(run,run);queue.current=next.catch(()=>{});return next;};

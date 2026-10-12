@@ -59,7 +59,8 @@ test('Names are canonicalised when the engine knows them, otherwise kept as writ
 });
 test('A load that would shrink the hosted pool sharply is flagged; normal turnover is not',()=>{
   assert.match(shrinkage(396,7759)!,/396 teams .* 7759 \(95% fewer\)/);
-  assert.equal(shrinkage(7500,7759),null);assert.equal(shrinkage(8000,7759),null);assert.equal(shrinkage(10,null),null);
+  assert.ok(shrinkage(7633,8989),'a 15% drop (rate-limited online events) is refused');
+  assert.equal(shrinkage(8700,8989),null);assert.equal(shrinkage(9100,8989),null);assert.equal(shrinkage(10,null),null);
 });
 test('Name corrections: every target is a Champions name, no entry shadows a real one, and placeholders mean no item',async()=>{
   const {corrections,correctName}=await import('../pool-names.ts');const {dex}=await import('../mechanics.ts');
