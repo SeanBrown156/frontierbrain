@@ -2091,3 +2091,16 @@ html.jade .mode-switch .ms-short{display:none}
 
 /* phones: the logo stands alone in the nav, no wordmark */
 @media (max-width:620px){html.jade .masthead .brand .wordmark{display:none}}
+
+/* phones: the boot screen keeps the 16px gutter; the title wraps instead of running off the edge */
+@media (max-width:620px){
+  .boot{padding:0 16px;box-sizing:border-box}
+  .boot-inner{width:100%;max-width:100%;min-width:0}
+  .boot-exe{font-size:clamp(30px,10.5vw,44px);white-space:normal;overflow-wrap:anywhere;line-height:1}
+  .boot-lines{max-width:100%;font-size:12.5px;line-height:1.8}
+  .boot-lines div{gap:var(--s3);min-width:0}
+  .boot-lines span{white-space:normal;min-width:0;overflow-wrap:anywhere}
+  .boot-lines b{flex:none}
+  .boot-bar{max-width:100%}
+  .boot-bar b{min-width:48px;font-size:18px}
+}
