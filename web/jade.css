@@ -1132,3 +1132,8 @@ html.jade .cat.play{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 50%
 html.jade .cat.building{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 50%,transparent);background:color-mix(in srgb,var(--ac) 10%,transparent)}
 html.jade .cat.variance{color:#9aa8ff;border-color:color-mix(in srgb,#9aa8ff 45%,transparent)}
 html.jade .work-on:not(.full) li{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
+/* headings inside dialogs use the title font, like every other section heading */
+html.jade .modal :is(h3,h4){font:800 18px/1.2 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em;color:var(--tx);margin:24px 0 12px!important;padding-bottom:10px;border-bottom:1px solid var(--ln)}
+html.jade .modal .work-on h3,html.jade .modal .plan-card h3,html.jade .modal .set-tile h3,html.jade .modal .proposal-card h3{border:0;padding:0;margin:0!important;font-size:16px!important}
+html.jade .modal .game-summary.big{font-size:16px;line-height:1.65}
+html.jade .result.loss{color:var(--hot)!important;border-color:color-mix(in srgb,var(--hot) 50%,transparent)!important;background:color-mix(in srgb,var(--hot) 10%,transparent)!important}
