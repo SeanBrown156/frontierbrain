@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Frontier Brain mark: a cut-emerald brain in side profile, flat facets, stem below. Original artwork. -->
+  <polygon points="10,30 13,19 22,11 34,8 46,11 55,19 58,30 54,40 44,45 30,46 18,43 11,37" fill="#0b8a4f"/>
+  <polygon points="13,19 22,11 26,22" fill="#5ff0ae"/>
+  <polygon points="22,11 34,8 26,22" fill="#2fd38c"/>
+  <polygon points="34,8 46,11 38,21" fill="#7af5bd"/>
+  <polygon points="34,8 38,21 26,22" fill="#1fc47e"/>
+  <polygon points="46,11 55,19 38,21" fill="#2fd38c"/>
+  <polygon points="55,19 58,30 47,29" fill="#14a868"/>
+  <polygon points="38,21 55,19 47,29" fill="#1bbf7a"/>
+  <polygon points="10,30 13,19 26,22" fill="#20c983"/>
+  <polygon points="10,30 26,22 22,33" fill="#0f9e5d"/>
+  <polygon points="26,22 38,21 33,31" fill="#17b46e"/>
+  <polygon points="38,21 47,29 33,31" fill="#0e9658"/>
+  <polygon points="26,22 33,31 22,33" fill="#13a865"/>
+  <polygon points="58,30 54,40 47,29" fill="#0a7d48"/>
+  <polygon points="47,29 54,40 44,45" fill="#086b3d"/>
+  <polygon points="33,31 47,29 44,45" fill="#0b8a50"/>
+  <polygon points="33,31 44,45 30,46" fill="#097a46"/>
+  <polygon points="22,33 33,31 30,46" fill="#0d9155"/>
+  <polygon points="10,30 22,33 11,37" fill="#0c8b51"/>
+  <polygon points="11,37 22,33 18,43" fill="#08703f"/>
+  <polygon points="22,33 30,46 18,43" fill="#076437"/>
+  <polygon points="24,44 34,46 27,58" fill="#0fb565"/>
+  <polygon points="24,44 27,58 22,47" fill="#087a43"/>
+  <path d="M33 31 L38 21 M26 22 L33 31 M22 33 L33 31 M33 31 L44 45" stroke="#d9ffec" stroke-opacity=".35" stroke-width=".6" fill="none"/>
+  <path d="M14 33 C20 28 27 30 31 27 S41 22 47 26" stroke="#04331d" stroke-opacity=".55" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <path d="M30 13 C28 18 31 21 29 25 M44 30 C41 34 44 37 41 41" stroke="#04331d" stroke-opacity=".4" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M44 45 C47 41 52 41 54 40" stroke="#04331d" stroke-opacity=".5" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  <path d="M41 14 l1.2 3 3 1.2 -3 1.2 -1.2 3 -1.2 -3 -3 -1.2 3 -1.2z" fill="#fff"/>
+</svg>

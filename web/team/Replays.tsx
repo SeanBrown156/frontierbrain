@@ -46,7 +46,6 @@ function Digest({team,games,info,busy,refresh,art}:{team:any;games:any[];info:an
     {!d?<p className="muted">{r.n<2?'Add a couple of replays and Frontier Brain will summarise each game and pull out the patterns here.':busy?'Summarising your games…':'Summarise your games to see patterns.'}</p>
       :<ol className="themes">{d.themes.map((t:any,i:number)=><li key={i}><b>{t.title}</b> <span className="tag">{t.count} of {t.total} {t.of}</span><p>{t.detail}</p></li>)}</ol>}
     {d?.strengths?.length>0&&<p className="strengths"><b>Working well:</b> {d.strengths.join(' · ')}</p>}
-    {r.n>0&&r.n<5&&<p className="footnote">{r.n} game{r.n===1?'':'s'} is a small sample: treat these as things to test, not verdicts.</p>}
   </section>;
 }
 // At a glance: your record against what you've faced, counted from the linked games (and the summaries' archetype tags).
@@ -68,7 +67,7 @@ function AtAGlance({games,info,art}:{games:any[];info:any;art:any}){
       <div><h3>Team styles you struggle with</h3>{pillList(hard(styles),'bad')}</div>
       <div><h3>Types you struggle with</h3>{pillList(hard(types),'bad',true)}</div>
     </div>
-    <p className="footnote">Your win–loss in games where they were at team preview{min>1?' (at least 2 games each)':''}. Styles come from the replay summaries. {done.length<10?'A small sample: things to test, not verdicts.':''}</p></section>;
+    </section>;
 }
 
 function GameCard({g,s,pending,art,open}:{g:any;s:any;pending:boolean;art:any;open:()=>void}){
@@ -107,7 +106,7 @@ function AddReplays({team,versionId,load,notify,after}:{team:any;versionId:strin
   return <section className="add-replays"><div className="add-row"><textarea rows={links.includes('\n')?3:1} value={links} onChange={e=>setLinks(e.target.value)} placeholder="Paste Showdown replay links (one per line)" aria-label="Showdown replay links"/>
       <label className="button file-button"><Px icon={Upload}/>{files.length?`${files.length} file${files.length===1?'':'s'}`:'HTML files'}<input className="file-input" type="file" multiple accept=".html,.htm" onChange={e=>setFiles([...(e.target.files??[])])}/></label>
       <button className="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</button></div>
-    <p className="footnote">Each replay links to this team at the sets you had when you played it, checked against what the game showed.</p>
+    
     {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?(r.certainty==='inbox'?'not linked: its six don\'t match this team':`linked by team only${r.note?` (${r.note})`:''}`):r.error}</p>)}
   </section>;
 }

@@ -152,7 +152,7 @@ function History({entry,revision,load}:{entry:BankEntry;revision:SetRevision;loa
 function SetStrategy({species,text,readOnly,onChange}:{species:string;text:string;readOnly:boolean;onChange:(t:string)=>void}){
   const [editing,setEditing]=useState(false);
   return <section className="panel set-notes"><header className="panel-heading"><h2>Strategy</h2>{!readOnly&&(editing?<button onClick={()=>setEditing(false)}><Icon icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Icon icon={Pencil}/>Edit</button>)}</header>
-    {editing?<label className="set-notes-edit"><span className="sr-only">Strategy for {species} (Markdown)</span><textarea autoFocus rows={Math.max(8,text.split('\n').length+2)} placeholder={`## Role\nWhat ${species} does for the team.\n\n## Benchmarks\n- …\n\n## Partners and matchups\n- …`} value={text} onChange={e=>onChange(e.target.value)}/><span className="footnote">Markdown: ## headings, - lists, **bold**. Saves automatically.</span></label>
+    {editing?<label className="set-notes-edit"><span className="sr-only">Strategy for {species} (Markdown)</span><textarea autoFocus rows={Math.max(8,text.split('\n').length+2)} placeholder={`## Role\nWhat ${species} does for the team.\n\n## Benchmarks\n- …\n\n## Partners and matchups\n- …`} value={text} onChange={e=>onChange(e.target.value)}/></label>
       :text.trim()?<div className="set-guide"><Markdown text={text}/></div>:<p className="muted">No strategy yet. {readOnly?'':'Use Edit to write how this Pokémon plays: its role, benchmarks, partners and matchups.'}</p>}</section>;
 }
 const mergeNotes=(n:SetNotes)=>[n.role,...(['benchmarks','partners','matchups'] as const).filter(k=>n[k]?.trim()).map(k=>`## ${noteTitles[k]}\n${n[k].trim()}`)].filter(t=>t?.trim()).join('\n\n');

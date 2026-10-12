@@ -879,8 +879,8 @@ html.jade :is(.chip,.chip-row>button):hover{color:var(--tx)!important;border-col
 html.jade :is(.chip.on,.chip-row>button.on){background:color-mix(in srgb,var(--ac) 16%,transparent)!important;border-color:color-mix(in srgb,var(--ac) 60%,transparent)!important;color:var(--tx)!important}
 html.jade .style-tags .chip{height:26px;font-size:12px!important;cursor:default}
 /* default buttons: lighter glass and a softer edge so they sit in the panels rather than on top of them */
-html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction){border-color:var(--ln)!important;background:color-mix(in srgb,var(--glass-2) 70%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi)!important;color:var(--tx)}
-html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):hover:not(:disabled){border-color:color-mix(in srgb,var(--ac) 50%,var(--ln))!important;background:var(--hover)!important}
+html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):not(.title-button):not(.plan-toggle):not(.plan-actions .icon):not(.guide-six a):not(.masthead *):not(.ticker *){border-color:var(--ln)!important;background:color-mix(in srgb,var(--glass-2) 70%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi)!important;color:var(--tx)}
+html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):not(.title-button):not(.plan-toggle):not(.plan-actions .icon):not(.guide-six a):not(.masthead *):not(.ticker *):hover:not(:disabled){border-color:color-mix(in srgb,var(--ac) 50%,var(--ln))!important;background:var(--hover)!important}
 html.jade .digest .threat,html.jade .digest .tag{font-family:var(--fb)!important}
 html.jade .common{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 /* history strips: no Mega orbs at 32px; the render already shows the Mega */
@@ -928,3 +928,73 @@ html.jade .picker input{font:500 14px/1.4 var(--fb)!important;height:40px;min-he
 html.jade .picker .combo-list{min-width:300px;right:auto}
 html.jade .set-fields .moves .picker .combo-list{min-width:320px}
 html.jade .set-fields .moves .form-grid>.picker:nth-child(even) .combo-list{left:auto;right:0}
+/* team title: plain text, no button box */
+html.jade .title-button{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;height:auto!important;display:inline-flex;align-items:center;gap:12px}
+html.jade .title-button .px-icon{opacity:0;transition:opacity .2s;color:var(--mu)}
+html.jade .title-button:hover .px-icon{opacity:1}
+/* the team intro */
+.team-guide{display:grid;gap:24px}
+.guide-six{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.guide-six a{display:grid;justify-items:center;gap:4px;padding:12px 4px;border-radius:14px;color:var(--mu);transition:background .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.guide-six a:hover{background:var(--hover);transform:translateY(-3px);color:var(--tx)}
+html.jade .guide-six .art{width:88px!important;height:88px!important}
+.guide-six span:last-child{font:700 13px var(--fd);text-transform:uppercase;letter-spacing:.04em}
+.guide-intro{max-width:78ch}
+html.jade .guide-intro .markdown{font-size:16px;line-height:1.75}
+.guide-sections{display:grid;gap:8px}
+html.jade .guide-sections details{border:1px solid var(--ln);border-radius:12px;background:var(--sunk);padding:0 16px}
+html.jade .guide-sections summary{font:700 15px var(--fd)!important;text-transform:uppercase;letter-spacing:.04em;color:var(--tx)!important;padding:14px 0!important;list-style:none;display:flex;align-items:center;justify-content:space-between}
+html.jade .guide-sections summary::after{content:'+';font:400 20px var(--fb);color:var(--mu)}
+html.jade .guide-sections details[open] summary::after{content:'−'}
+html.jade .guide-sections details>.markdown{padding-bottom:16px}
+/* team members in prose */
+.mon-chip{display:inline-flex;align-items:center;gap:2px;font-weight:600;color:var(--tx);white-space:nowrap;vertical-align:-6px;border-radius:8px;padding-right:4px;transition:background .2s}
+.mon-chip:hover{background:var(--hover);color:var(--ac)}
+html.jade .mon-chip .art.small{width:26px!important;height:26px!important}
+html.jade .mon-chip .mega-orb{display:none}
+/* plan cards: a header line, a meta line, one summary line, the plan on demand */
+.plan-list{display:grid;gap:12px}
+html.jade .plan-card{padding:16px 20px!important;gap:10px!important;display:grid}
+html.jade .plan-card header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap!important}
+.plan-head{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+html.jade .plan-head h3{font:700 16px/1.3 var(--fb)!important;margin:0}
+.plan-mons{display:inline-flex;gap:0}
+html.jade .plan-mons .art.small{width:40px!important;height:40px!important}
+.plan-actions{display:flex;gap:4px;flex:none;opacity:.55;transition:opacity .2s}
+.plan-card:hover .plan-actions,.plan-card:focus-within .plan-actions{opacity:1}
+html.jade .plan-actions button.icon{width:32px!important;height:32px!important;padding:0!important;display:inline-grid;place-items:center;border-color:transparent!important;background:transparent!important}
+html.jade .plan-actions button.icon:hover{background:var(--hover)!important}
+html.jade .plan-actions .compact{height:32px}
+.plan-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--mu)}
+.plan-back{display:inline-flex;align-items:center;gap:2px}
+html.jade .plan-back .art.small{width:28px!important;height:28px!important}
+html.jade .plan-back .mega-orb{display:none}
+.plan-sub{flex-basis:100%;font-size:13px;color:var(--mu)}
+.plan-summary{margin:0!important;font-size:14px;line-height:1.55;color:var(--tx);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+html.jade .plan-toggle{justify-self:start;height:28px;padding:0 4px!important;border:0!important;background:none!important;box-shadow:none!important;color:var(--ac)!important;font-size:13px!important;gap:4px}
+html.jade .plan-toggle[aria-expanded=true] .px-icon{transform:rotate(180deg)}
+html.jade .plan-card .plan-text{padding-top:4px;border-top:1px dashed var(--ln)}
+html.jade .plan-card .plan-text .markdown{font-size:14px}
+html.jade .plan-card footer{display:none}
+html.jade .lead-record,html.jade .plan-meta .record{font-size:12.5px}
+/* add replays: a glass panel like the rest */
+html.jade .add-replays{margin-top:24px;padding:20px!important;border-radius:var(--r)!important;border:1px solid var(--ln)!important;background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 55%),var(--glass)!important;box-shadow:inset 0 1px 0 var(--hi)!important}
+html.jade .add-row textarea{flex:1;min-height:44px;height:44px;resize:vertical;margin:0}
+html.jade .add-row>*{margin:0!important}
+html.jade .add-row :is(button,label.button){height:44px!important}
+/* format: one tidy row */
+html.jade .format-tile{align-items:center!important;padding:16px 20px!important}
+html.jade .format-tile h3{font-size:20px!important;margin:4px 0 0!important}
+html.jade .format-copy{gap:8px}
+html.jade .format-copy select{min-width:220px;height:40px}
+html.jade .format-copy button{height:40px}
+/* team members in prose: no underline, sprite tight to the name */
+html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:2px}
+html.jade .mon-chip:hover{color:var(--ac)!important}
+html.jade .plan-toggle{background:none!important;border:0!important}
+.network-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
+html.jade .brand-logo{width:34px!important;height:34px!important;filter:drop-shadow(0 3px 8px var(--glow))}
+html.jade .plan-actions button.icon{box-shadow:none!important}
+.network-backdrop{z-index:0!important}
+html.jade .shell>:not(.network-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
+html.jade .shell>.masthead{z-index:30}

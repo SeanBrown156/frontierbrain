@@ -1,14 +1,25 @@
+import type React from 'react';
 import {useState,useEffect,useRef} from 'react';
 import type {TeamCoaching,LeadPlan,MatchupPlan,Objective,TeamBrief} from '../../shared/workbench.ts';
 import {api,Art,Panel,Modal,Notice,pct,Markdown,SetArt} from '../ui.tsx';
 import {useDirty} from '../save-state.ts';
 import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {versionName} from './editors.tsx';
-import {Px,Plus,Pencil,Check} from '../icons.tsx';
+import {Px,Plus,Pencil,Check,Trash,ChevronDown} from '../icons.tsx';
 
 const newId=()=>Math.random().toString(36).slice(2,12);
 const empty=(teamId:string):TeamCoaching=>({teamId,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]});
 const SMALL=5;
+// One plan: what it is at a glance (role or threat, Pokémon, a one-line summary); the full plan opens on demand.
+function PlanCard({status,head,meta,summary,body,more,accept,edit,remove}:{status:string;head:React.ReactNode;meta?:React.ReactNode;summary?:string;body:string;more:string;accept?:()=>void;edit:()=>void;remove:()=>void}){
+  const [open,setOpen]=useState(false);
+  return <article className={'plan-card '+status}><header><div className="plan-head">{head}{status==='proposed'&&<span className="tag">AI draft</span>}</div>
+      <div className="plan-actions">{accept&&<button className="compact primary" onClick={accept}>Accept</button>}<button className="icon" title="Edit" aria-label="Edit" onClick={edit}><Px icon={Pencil} size={15}/></button><button className="icon" title="Delete" aria-label="Delete" onClick={remove}><Px icon={Trash} size={15}/></button></div></header>
+    {meta&&<div className="plan-meta">{meta}</div>}
+    {summary&&<p className="plan-summary">{summary}</p>}
+    {body.trim()&&<><button className="plan-toggle" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?'Hide':more}<Px icon={ChevronDown} size={14}/></button>{open&&<div className="plan-text"><Markdown text={body}/></div>}</>}
+  </article>;
+}
 // A lead's role: set explicitly, or read from an older plan's "CORE · …" prefix (shown as the pill, not repeated in the text).
 const ROLE_PREFIX=/^\s*(core|situational|niche)\s*[·:\-–]\s*/i;
 export const leadRole=(l:Pick<LeadPlan,'role'|'when'>)=>l.role??(l.when.match(ROLE_PREFIX)?.[1].toLowerCase() as LeadPlan['role']|undefined);
@@ -31,18 +42,23 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
     <Brief team={team} brief={coaching.brief} art={data.art} mutate={mutate}/>
     <div className="team-detail-grid">
       <Panel title="Lead strategy" action={<button onClick={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
-        {coaching.leads.filter(inScope).map(l=><article key={l.id} className={'plan-card '+l.status}><header><div className="pair">{l.lead.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}<h3>{l.lead.join(' + ')}</h3><RolePill role={leadRole(l)}/>{l.back.length>0&&<span className="muted lead-back">Back: {l.back.join(', ')}</span>}</div>{l.status==='proposed'&&<span className="tag">AI draft</span>}</header>
-          {whenText(l)&&<p className="plan-when"><b>When:</b> {whenText(l)}</p>}<div className="plan-text"><Markdown text={l.plan}/></div><LeadRecord stats={stats} lead={l.lead}/><footer><span className="muted">{versionLabel(l.versionIds)}</span>{l.status==='proposed'&&<button onClick={()=>void save({leads:upsert(coaching.leads,{...l,status:'active'})})}>Accept</button>}<button onClick={()=>setEditLead(l)}>Edit</button><button onClick={()=>{if(confirm(`Delete the ${l.lead.join(' + ')} lead plan?`))void save({leads:coaching.leads.filter(x=>x.id!==l.id)});}}>Delete</button></footer></article>)}
-        {!coaching.leads.filter(inScope).length&&<p className="muted">No lead plans yet. Add one, start from a combo you've led with below, or ask Frontier Brain.</p>}
-        {leads.length>0&&<><h3 className="subhead">Lead combos in replays</h3><div className="table-scroll"><table className="stat-table"><thead><tr><th>Lead</th><th>Games</th><th>W–L</th><th>Win %</th><th/></tr></thead><tbody>{leads.map(([pair,r])=><tr key={pair}><td>{pair}</td><td>{r.games}</td><td>{r.wins}–{r.losses}</td><td>{r.games>=SMALL?pct(r.wins,r.games):<span className="muted">n={r.games}</span>}</td><td><button className="text-button" onClick={()=>setEditLead({id:newId(),lead:pair.split(' + '),back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}>Plan →</button></td></tr>)}</tbody></table></div></>}
+        <div className="plan-list">{coaching.leads.filter(inScope).map(l=><PlanCard key={l.id} status={l.status}
+          head={<><RolePill role={leadRole(l)}/><span className="plan-mons">{l.lead.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}</span><h3>{l.lead.join(' + ')}</h3></>}
+          meta={<>{l.back.length>0&&<span className="plan-back">Back {l.back.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}</span>}<LeadRecord stats={stats} lead={l.lead}/>{l.versionIds.length>0&&<span className="tag">{versionLabel(l.versionIds)}</span>}</>}
+          summary={whenText(l)} body={l.plan} more="Turn plan"
+          accept={l.status==='proposed'?()=>void save({leads:upsert(coaching.leads,{...l,status:'active'})}):undefined} edit={()=>setEditLead(l)} remove={()=>{if(confirm(`Delete the ${l.lead.join(' + ')} lead plan?`))void save({leads:coaching.leads.filter(x=>x.id!==l.id)});}}/>)}</div>
+        {!coaching.leads.filter(inScope).length&&<p className="muted">No lead plans yet. Add one, or ask Frontier Brain to draft them.</p>}
       </Panel>
       <Panel title="Matchup strategy" action={<button onClick={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
-        {coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=><article key={m.id} className={'plan-card '+m.status}><header><h3><span className={'threat '+m.threat}>{m.threat}</span> {m.opponent}</h3>{m.status==='proposed'&&<span className="tag">AI draft</span>}</header>{m.bring.length>0&&<div className="pair">{m.bring.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}<span className="muted">bring {m.bring.join(', ')}</span></div>}<div className="plan-text"><Markdown text={m.plan}/></div>
-          <footer><span className="muted">{versionLabel(m.versionIds)}</span>{m.status==='proposed'&&<button onClick={()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})})}>Accept</button>}<button onClick={()=>setEditMatchup(m)}>Edit</button><button onClick={()=>{if(confirm(`Delete the ${m.opponent} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}>Delete</button></footer></article>)}
-        {!coaching.matchups.filter(inScope).length&&<p className="muted">No matchup plans yet. Add one, pick an opponent below, or ask Frontier Brain.</p>}{opponents.length>0&&<><h3 className="subhead">Opponents at team preview</h3><div className="table-scroll"><table className="stat-table"><thead><tr><th>Pokémon</th><th>Seen</th><th>W–L when seen</th><th>Brought</th><th/></tr></thead><tbody>{opponents.slice(0,20).map(([mon,r])=><tr key={mon}><td><Art name={mon} art={data.art} small/> {mon}</td><td>{r.preview}</td><td>{r.previewWins}–{r.preview-r.previewWins}</td><td>{r.observed}{r.unknown?` (+${r.unknown} unknown)`:''}</td><td><button className="text-button" onClick={()=>setEditMatchup({id:newId(),opponent:mon,threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}>Plan →</button></td></tr>)}</tbody></table></div></>}
+        <div className="plan-list">{coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=>{const [title,...rest]=m.opponent.split(':');const sub=rest.join(':').trim();return <PlanCard key={m.id} status={m.status}
+          head={<><span className={'threat '+m.threat}>{m.threat}</span><h3>{title.trim()}</h3></>}
+          meta={<>{sub&&<span className="plan-sub">{sub}</span>}{m.bring.length>0&&<span className="plan-back">Bring {m.bring.map(p=><SetArt key={p} set={setOf(p)} art={data.art} small/>)}</span>}{m.versionIds.length>0&&<span className="tag">{versionLabel(m.versionIds)}</span>}</>}
+          body={m.plan} more="Game plan"
+          accept={m.status==='proposed'?()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})}):undefined} edit={()=>setEditMatchup(m)} remove={()=>{if(confirm(`Delete the ${m.opponent} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}/>;})}</div>
+        {!coaching.matchups.filter(inScope).length&&<p className="muted">No matchup plans yet. Add one, or ask Frontier Brain to draft them.</p>}
       </Panel>
     </div>
-    {(versionId||games.length>0)&&<p className="footnote">{versionId?'Plans for this version plus all-version plans. ':''}{games.length>0&&<>Replay tables use {games.length} linked game{games.length===1?'':'s'}; below {SMALL} games a record is an observation, not a diagnosis.</>}</p>}
+    
     {editLead&&<LeadEditor plan={editLead} team={team} members={members} onClose={()=>setEditLead(null)} save={async l=>{await save({leads:upsert(coaching.leads,l)});setEditLead(null);}}/>}
     {editMatchup&&<MatchupEditor plan={editMatchup} team={team} members={members} onClose={()=>setEditMatchup(null)} save={async m=>{await save({matchups:upsert(coaching.matchups,m)});setEditMatchup(null);}}/>}
   </div>;
@@ -87,7 +103,7 @@ function Brief({team,brief,art,mutate}:{team:any;brief?:TeamBrief;art:any;mutate
   // Until the save lands, show what was just written rather than flicking back to the empty state.
   const shown:TeamBrief|undefined=brief??(b.goal||b.gamePlan||b.core?{goal:b.goal,core:core(b.core),gamePlan:b.gamePlan,ruledOut:b.ruledOut,updatedAt:''}:undefined);
   const set=(k:string)=>(e:any)=>{touched.current=true;setB({...b,[k]:e.target.value});};
-  if(!shown&&!editing)return <p className="brief-empty muted">No team brief yet: why this team exists, what it's built around and how it wins. <button className="text-button" onClick={()=>{touched.current=false;setEditing(true);}}>Write one</button> or build it with Claude or ChatGPT and they'll save it.</p>;
+  if(!shown&&!editing)return null;
   return <section className="brief panel"><header className="panel-heading"><h2>Team brief</h2>{editing?<button onClick={()=>{save();setEditing(false);}}><Px icon={Check}/>Done</button>:<button onClick={()=>{touched.current=false;setEditing(true);}}><Px icon={Pencil}/>Edit</button>}</header>
     {editing?<div className="settings-form brief-form">
       <label>Why this team<input value={b.goal} onChange={set('goal')} placeholder="e.g. a Trick Room team that still beats Tailwind"/></label>
