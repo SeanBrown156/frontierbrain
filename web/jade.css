@@ -1591,3 +1591,10 @@ html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;wi
 fieldset.add-row{border:0;padding:0;margin:0;min-width:0}
 .add-replays.locked{opacity:.45;filter:grayscale(.5)}
 .add-replays.locked,.add-replays.locked *{cursor:not-allowed}
+
+/* OAuth consent: the brain behind the card; Allow/Deny fill the bottom of the card, side by side, stacked on phones. */
+.consent-page{position:relative;isolation:isolate}
+.consent-page>.welcome-card{position:relative;z-index:1}
+.consent .consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);width:100%;margin-top:var(--s2)}
+.consent .consent-actions button{width:100%;justify-content:center}
+@media (max-width:620px){.consent .consent-actions{grid-template-columns:1fr}}
