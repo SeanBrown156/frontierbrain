@@ -1838,29 +1838,8 @@ html.jade .manage .danger-zone{margin:0!important}
  html.jade .team-hub .hub-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;width:100%;margin:0!important}
  html.jade .team-hub .hub-tabs a{height:36px!important;padding:0 4px!important;gap:4px!important;justify-content:center;font-size:13px!important;letter-spacing:.04em}
 
- /* The six: two columns, three rows, compact cards. */
- html.jade .team-hub .six-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
- html.jade .six-grid .mon-card{padding:8px!important;gap:8px!important;border-radius:12px}
- html.jade .six-grid .mon-slot{top:8px!important;right:8px!important;font-size:16px!important}
- html.jade .six-grid .mon-card-head{min-height:0;gap:4px!important}
- html.jade .six-grid .mon-card-head .art{width:72px!important;height:72px!important;margin:0!important}
- html.jade .six-grid .mon-card-head>div{gap:4px!important}
- html.jade .six-grid .mon-card h3{font-size:16px!important;gap:4px!important;overflow-wrap:anywhere}
- html.jade .six-grid .mega-badge{height:auto;padding:0;font-size:0;gap:0;background:none!important;border:0!important;box-shadow:none!important}
- html.jade .six-grid .mon-tags .type-badges{gap:4px}
- html.jade .six-grid .mon-tags .type-badge{height:20px;padding:0 6px 0 4px;font-size:8.5px;gap:4px}
- html.jade .six-grid .mon-item{margin:0!important;gap:4px!important;font-size:12px;line-height:16px}
- html.jade .six-grid .mon-item .item-icon{flex:none}
- html.jade .six-grid .mon-meta{font-size:11px}
- html.jade .six-grid .sp-bars{gap:4px;margin:0}
- html.jade .six-grid .sp-bar{grid-template-columns:28px minmax(0,1fr) 44px!important;gap:4px}
- html.jade .six-grid .sp-bar .k{font-size:9px;letter-spacing:.02em}
- html.jade .six-grid .sp-bar .v{font-size:10px!important}
- html.jade .six-grid .sp-bar .v b{margin-left:1px}
- html.jade .six-grid .mon-card .move-list{grid-template-columns:minmax(0,1fr);gap:4px;margin:0}
- html.jade .six-grid .mon-card .move-list li{padding:4px 8px!important;font-size:12px;gap:4px;border-radius:8px}
- html.jade .six-grid .mon-card .move-list .type-badge.mini{width:8px;height:8px!important;padding:0!important;font-size:0!important;gap:0;border:0;background:none!important}
- html.jade .six-grid .mon-card .move-list .type-badge.mini::before{width:8px;height:8px}
+ /* The six: one per row, full-width cards. */
+ html.jade .team-hub .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
 
  /* Strategy write-up and the team row. */
  html.jade .team-hub .strategy-block{padding:12px!important;margin-top:16px!important;margin-bottom:16px!important}
@@ -2142,4 +2121,10 @@ html.jade .mode-switch .ms-short{display:none}
   /* room between the title and the Pokémon row below it */
   html.jade .plan-card header.plan-top{margin-bottom:14px!important}
   html.jade .plan-card .plan-top+.front-back{margin-top:0}
+}
+
+/* phones: the six Pokémon sit one per row so each card fills the width */
+@media (max-width:620px){
+  html.jade .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:14px}
+  html.jade .six-grid .mon-card{max-width:none}
 }
