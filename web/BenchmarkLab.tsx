@@ -1,7 +1,7 @@
 import {useRolling} from './fx.ts';
 import {useState,useEffect,useLayoutEffect,useRef,type ReactNode} from 'react';
 import type {BankEntry,SetRevision,PokemonSet} from '../shared/workbench.ts';
-import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,MegaBadge,type MegaForm} from './ui.tsx';
+import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,MegaOrb,type MegaForm} from './ui.tsx';
 import SpeciesPicker,{type SavedOption} from './ai/SpeciesPicker.tsx';
 import {ItemPicker,MovePicker} from './ai/Pickers.tsx';
 import {offer,useOffers} from './save-state.ts';
@@ -140,7 +140,7 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
             {starred.some(o=>o.species===other.species)&&<optgroup label="My sets">{starred.filter(o=>o.species===other.species).map(o=><option key={o.id} value={'saved:'+o.id}>★ {o.label}</option>)}</optgroup>}
             <option value="custom">Custom set</option></select></label>
           <label><span className="sr-only">Source</span><select value={source} title={sourceNames[source]} onChange={e=>{setSource(e.target.value);void loadFoe(other.species,e.target.value);}}>{Object.entries(sourceNames).map(([k])=><option key={k} value={k}>{sourceShort[k]}</option>)}</select></label></div>}
-        note={loading?'Loading sets…':metaError?metaError:targetLabel&&foe.kind!=='spread'?targetLabel:meta?<>{sourceNames[meta.source]} · {meta.population} · {meta.period}{meta.sample?` · ${meta.sample}`:''} · {meta.url?.startsWith('http')?<a href={meta.url} target="_blank" rel="noreferrer">source ↗</a>:<a href="#data">data pool</a>}{other.moves?.length?' · moves are the most used':''}</>:'Species only until a set loads.'}
+        note={loading?'Loading sets…':metaError?metaError:foe.kind==='spread'&&meta?.source!=='pool'&&meta?.url?.startsWith('http')?<a href={meta.url} target="_blank" rel="noreferrer" title={`${sourceNames[meta.source]} · ${meta.period}`}>source ↗</a>:''}
         context={context('foe',other,editFoe)} editor={<SetFields set={other} update={editFoe} dex={dex} form={otherC.species}/>} conditions={<BattleConditions set={other} update={editFoe}/>} editOpen={foe.kind==='custom'&&!targetLabel}/>;
   const swap=<button type="button" className="direction" onClick={()=>setDirection(outgoing?'incoming':'outgoing')} title="Swap who attacks"><span aria-hidden="true">↓</span>{formName((outgoing?ownC:otherC).species)} attacks {formName((outgoing?otherC:ownC).species)}<small>swap</small></button>;
   const axis=<div className="matchup-axis" key="axis">{tab==='Damage'?<>{swap}<div className="field-box"><div className="field-row"><span className="ctx-label">Field</span><label><span className="sr-only">Weather</span><select value={field.weather??''} onChange={e=>setField({...field,weather:e.target.value||undefined})}>{['','Sun','Rain','Sand','Snow','Harsh Sunshine','Heavy Rain','Strong Winds'].map(v=><option key={v} value={v}>{v?v:'No weather'}</option>)}</select></label><label><span className="sr-only">Terrain</span><select value={field.terrain??''} onChange={e=>setField({...field,terrain:e.target.value||undefined})}>{['','Electric','Grassy','Psychic','Misty'].map(v=><option key={v} value={v}>{v?`${v} Terrain`:'No terrain'}</option>)}</select></label></div>
@@ -164,8 +164,8 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
 function Combatant({side,cardRef,role,set,art,mega,megaOn,setMega,species,picker,note,context,editor,conditions,editOpen}:{side:Side;cardRef:(el:HTMLElement|null)=>void;role:string;set:any;art:any;mega?:MegaForm;megaOn:boolean;setMega:(v:boolean)=>void;species?:ReactNode;picker:ReactNode;note?:ReactNode;context:ReactNode;editor:ReactNode;conditions:ReactNode;editOpen:boolean}){
   const shown=mega&&megaOn?mega.name:set.species;
   return <section ref={cardRef} className={'combatant is-'+side+(role.includes('attacking')?' attacking':role.includes('defending')?' defending':'')}>
-    <div className="combatant-art"><Art name={shown} fallback={set.species} art={art}/>{mega&&<button type="button" className={'mega-switch'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}: switch off to use ${set.species}`:`Switch on to battle as ${formName(mega.name)}`}><span className="knob"/>Mega</button>}</div>
-    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span><span className="name-row">{species??<h3>{formName(shown)}</h3>}{mega&&megaOn&&<MegaBadge/>}</span><TypeBadges species={shown}/></div>
+    <div className="combatant-art"><Art name={shown} fallback={set.species} art={art}/></div>
+    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span><span className="name-row">{species??<h3>{formName(shown)}</h3>}{mega&&<button type="button" className={'mega-switch mega-badge mega-toggle'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}: switch off to use ${set.species}`:`Switch on to battle as ${formName(mega.name)}`}><MegaOrb size={14}/>Mega</button>}</span><TypeBadges species={shown}/></div>
       {picker}
       <p className="combatant-sum"><ItemIcon item={set.item}/><span>{set.item||'No item'}</span><span>{mega&&megaOn?mega.ability:set.ability||'—'}</span><span>{set.nature}</span><span className="mono">{spLine(set)}</span></p>
       {note&&<p className="footnote">{note}</p>}

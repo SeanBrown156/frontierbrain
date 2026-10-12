@@ -1669,3 +1669,81 @@ html.jade .brain-backdrop{transition:opacity 1.6s ease}
 .sprite-choice small{color:var(--mu);font-weight:400}
 
 @media (prefers-reduced-motion:reduce){.calc-run i,.calc-run b,.shell.power-on>*,.screen-sweep,.boot-exe .caret,.boot-lines div{animation:none!important}.screen-sweep{display:none}}
+
+/* ---------- Pokémon page and calc ---------- */
+/* Fieldsets default to min-width:min-content, which let long rows push past the set card. */
+html.jade .set-card fieldset{min-width:0}
+/* The calc result is one column that never grows past its box. */
+html.jade .lab-result{grid-template-columns:minmax(0,1fr)}
+html.jade :is(.dmg,.dmg-head,.race){min-width:0;grid-template-columns:minmax(0,1fr)}
+html.jade .dmg-head .eyebrow{overflow-wrap:anywhere}
+.calc-run span{flex:0 1 auto;min-width:0;max-width:none}
+.calc-run i{min-width:24px}
+.calc-run b{flex:none}
+.hp-head{flex-wrap:wrap;gap:0 12px}
+.hp-head b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Save as benchmark and the spread search stack, one per row. */
+html.jade .result-foot{flex-direction:column;align-items:flex-start;gap:8px}
+html.jade .result-foot button{align-self:auto!important;margin:0!important;max-width:100%;white-space:normal;text-align:left}
+
+/* Calc cards: the render on top, then the role, name and the rest at full width. */
+html.jade .matchup .combatant{grid-template-columns:minmax(0,1fr)!important;gap:12px}
+html.jade .matchup .combatant .combatant-art{flex-direction:row;justify-content:flex-start;width:96px!important;height:96px!important}
+html.jade .matchup .combatant .combatant-art .art{width:96px!important;height:96px!important}
+html.jade .matchup .combatant .combatant-art::after{left:12%;right:12%}
+/* The Mega pill by the name is the switch: lit when on, an outline with a dimmed orb when off. */
+html.jade .name-row{display:inline-flex;align-items:center;flex-wrap:wrap;gap:12px}
+html.jade .mega-switch.mega-toggle{height:24px!important;min-height:24px!important;max-height:24px!important;padding:0 10px 0 4px!important;gap:6px;border-radius:999px!important;font:700 11px/1 var(--fb)!important;letter-spacing:.08em;cursor:pointer;
+ color:var(--mu)!important;background:transparent!important;border:1px dashed var(--ln-2)!important;transition:color .2s,border-color .2s,background .2s}
+html.jade .mega-switch.mega-toggle .mega-orb{width:16px!important;height:16px!important;filter:grayscale(1);opacity:.45;transition:filter .2s,opacity .2s}
+html.jade .mega-switch.mega-toggle:hover{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important}
+html.jade .mega-switch.mega-toggle.on{color:var(--tx)!important;border-style:solid!important;border-color:color-mix(in srgb,var(--gd) 45%,transparent)!important;
+ background:linear-gradient(90deg,rgba(255,94,126,.14),rgba(255,233,94,.14),rgba(94,255,168,.14),rgba(94,200,255,.14),rgba(163,94,255,.14))!important}
+html.jade .mega-switch.mega-toggle.on .mega-orb{filter:none;opacity:1}
+html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+
+@media (max-width:620px){
+ /* Moves: one per row. */
+ html.jade .set-fields .moves .form-grid{grid-template-columns:minmax(0,1fr)!important}
+ html.jade .set-fields .moves .picker .combo-list,html.jade .set-fields .moves .form-grid>.picker:nth-child(even) .combo-list{min-width:0;left:0;right:0}
+ /* Slot switcher: a six-up strip across the top. */
+ html.jade nav.mon-switcher{gap:4px!important;padding:4px;margin:0 0 16px!important}
+ html.jade nav.mon-switcher a{padding:4px 0!important}
+ html.jade nav.mon-switcher .art.small{width:44px!important;height:44px!important}
+ html.jade nav.mon-switcher a.selected .art.small{transform:scale(1.08)}
+ /* Tighter panels so the content gets the width. */
+ html.jade .workspace-grid,html.jade .set-column{gap:16px!important}
+ html.jade .workspace .panel{padding:16px 12px!important}
+ html.jade .set-card fieldset.plain{padding:0!important;margin:0!important}
+ html.jade .set-fields fieldset,html.jade .set-card fieldset.set-history{padding:12px!important;margin:0 0 16px!important}
+ html.jade .set-card .form-grid{gap:12px!important}
+ html.jade .set-card-head{gap:12px!important}
+ html.jade .lab{gap:16px!important}
+ html.jade .matchup .combatant{padding:12px!important}
+ html.jade .matchup .combatant .combatant-art,html.jade .matchup .combatant .combatant-art .art{width:72px!important;height:72px!important}
+ html.jade .field-box{padding:12px}
+ html.jade .field-box .field-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+ html.jade .field-box .field-row>:is(.ctx-label,.toggles){grid-column:1/-1;justify-self:center}
+ html.jade .field-box .field-row label,html.jade .field-box .field-row select{width:100%;margin:0}
+ html.jade .combatant-head .combo{flex-basis:100%;max-width:none}
+ html.jade .lab-result{padding:12px!important;gap:12px!important}
+ /* Damage readout sized for a phone. */
+ html.jade .lab-big b{font-size:32px!important}
+ .lab-big{gap:4px 8px}
+ .calc-run{gap:8px;font-size:11px}
+ .dmg{gap:12px}
+ .dmg-target{grid-template-columns:48px minmax(0,1fr);gap:12px}
+ html.jade .dmg-art .art{width:48px!important;height:48px!important}
+ .hp-head b{font-size:16px}
+ html.jade .hp-head span{font-size:15px!important}
+ .rolls{gap:2px}
+ /* Save as benchmark and the spread search fill the column. */
+ html.jade .result-foot{align-items:stretch}
+ html.jade .result-foot button{width:100%;justify-content:center;text-align:center;height:auto!important;min-height:40px!important;max-height:none!important;padding:8px 12px!important}
+ /* History: date and action on top, the set and its spread below. */
+ html.jade .set-history li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"date act" "set sp";gap:4px 12px;padding:8px 12px}
+ html.jade .set-history .h-date{grid-area:date}
+ html.jade .set-history .h-set{grid-area:set}
+ html.jade .set-history .h-sp{grid-area:sp;justify-self:end}
+ html.jade .set-history li>:last-child{grid-area:act;justify-self:end}
+}
