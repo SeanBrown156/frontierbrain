@@ -1,5 +1,5 @@
 import type React from 'react';
-import {useState,useEffect,useRef} from 'react';
+import {useState,useEffect,useLayoutEffect,useRef} from 'react';
 import {TEAM_STYLES,type TeamCoaching,type LeadPlan,type MatchupPlan,type Objective,type TeamBrief} from '../../shared/workbench.ts';
 import {api,Art,Panel,Modal,Notice,pct,Markdown,SetArt} from '../ui.tsx';
 import {useDirty} from '../save-state.ts';
@@ -11,14 +11,24 @@ import {Px,Plus,Pencil,Check,Trash,ChevronDown} from '../icons.tsx';
 const newId=()=>Math.random().toString(36).slice(2,12);
 const empty=(teamId:string):TeamCoaching=>({teamId,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]});
 const SMALL=5;
-// One plan: what it is at a glance (role or threat, Pokémon, a one-line summary); the full plan opens on demand.
-function PlanCard({status,head,meta,summary,body,foot,accept,edit,remove}:{status:string;head:React.ReactNode;meta?:React.ReactNode;summary?:string;body:string;foot?:React.ReactNode;more?:string;accept?:()=>void;edit:()=>void;remove:()=>void}){
-  return <article className={'plan-card '+status}><header><div className="plan-head">{head}{status==='proposed'&&<span className="tag">AI draft</span>}</div>
-      <div className="plan-actions">{accept&&<button className="compact primary" onClick={accept}>Accept</button>}<button className="icon" title="Edit" aria-label="Edit" onClick={edit}><Px icon={Pencil} size={15}/></button><button className="icon" title="Delete" aria-label="Delete" onClick={remove}><Px icon={Trash} size={15}/></button></div></header>
+// One plan, lead or matchup, with the same header: title on the left, actions top right (above it on very small
+// screens). On a phone a long write-up folds to its first lines with a More toggle; desktop always shows it all.
+const FOLD=112;
+function PlanCard({status,head,meta,summary,body,foot,accept,edit,remove}:{status:string;head:React.ReactNode;meta?:React.ReactNode;summary?:string;body:string;foot?:React.ReactNode;accept?:()=>void;edit:()=>void;remove:()=>void}){
+  const [open,setOpen]=useState(false),[long,setLong]=useState(false);const inner=useRef<HTMLDivElement>(null);
+  // Measured from the children, which the fold never resizes, so toggling it can't flip the measurement.
+  useLayoutEffect(()=>{const el=inner.current;if(!el)return;const check=()=>setLong([...el.children].reduce((h,c)=>h+(c as HTMLElement).offsetHeight,0)>FOLD);check();const ro=new ResizeObserver(check);ro.observe(el);return()=>ro.disconnect();},[summary,body]);
+  return <article className={'plan-card '+status}><header className="plan-top"><div className="plan-head">{head}{status==='proposed'&&<span className="tag">AI draft</span>}</div>
+      <div className="plan-actions">{accept&&<button className="compact primary" onClick={accept}>Accept</button>}<button className="icon" title="Edit" aria-label="Edit" onClick={edit}><Px icon={Pencil} size={16}/></button><button className="icon" title="Delete" aria-label="Delete" onClick={remove}><Px icon={Trash} size={16}/></button></div></header>
     {meta}
-    {(summary||body.trim())&&<div className="plan-body">{summary&&<p className="plan-summary">{summary}</p>}{body.trim()&&<Markdown text={body}/>}</div>}
+    {(summary||body.trim())&&<div className={'plan-body'+(long&&!open?' folded':'')}><div className="plan-copy" ref={inner}>{summary&&<p className="plan-summary">{summary}</p>}{body.trim()&&<Markdown text={body}/>}</div>
+      {long&&<button type="button" className="text-button plan-more" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?'Less':'More'}<Px icon={ChevronDown} size={14}/></button>}</div>}
     {foot&&<div className="plan-foot">{foot}</div>}
   </article>;
+}
+// Lead and matchup plans share one panel: title, New, the list, and an empty line.
+function PlanPanel({title,onNew,empty,children}:{title:string;onNew:()=>void;empty?:string;children:React.ReactNode}){
+  return <Panel title={title} className="plan-panel" action={<button onClick={onNew}><Px icon={Plus}/>New</button>}><div className="plan-list">{children}</div>{empty&&<p className="muted">{empty}</p>}</Panel>;
 }
 // A lead's role: set explicitly, or read from an older plan's "CORE · …" prefix (shown as the pill, not repeated in the text).
 const ROLE_PREFIX=/^\s*(core|situational|niche|avoid)\s*[·:\-–]\s*/i;
@@ -41,24 +51,22 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
   return <div className="coaching">
     <Brief team={team} brief={coaching.brief} art={data.art} mutate={mutate}/>
     <div className="team-detail-grid">
-      <Panel title="Lead strategy" action={<button onClick={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
-        <div className="plan-list">{coaching.leads.filter(inScope).map(l=><PlanCard key={l.id} status={l.status}
+      <PlanPanel title="Lead strategy" onNew={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})} empty={coaching.leads.filter(inScope).length?undefined:'No lead plans yet. Add one, or ask Frontier Brain to draft them.'}>
+        {coaching.leads.filter(inScope).map(l=><PlanCard key={l.id} status={l.status}
           head={<><RolePill role={leadRole(l)??'lead'}/><h3>{l.title||l.lead.join(' + ')}</h3></>}
           meta={<div className="front-back"><span className="fb-label">Front</span><span className="fb-mons">{l.lead.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span>
-            {l.back.length>0&&<><span className="fb-label">Back</span><span className="fb-mons">{l.back.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
+            {l.back.length>0&&<><span className="fb-divider"/><span className="fb-label">Back</span><span className="fb-mons">{l.back.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
           summary={whenText(l)} body={l.plan} foot={<><LeadRecord stats={stats} lead={l.lead}/>{l.versionIds.length>0&&<span className="tag">{versionLabel(l.versionIds)}</span>}</>}
-          accept={l.status==='proposed'?()=>void save({leads:upsert(coaching.leads,{...l,status:'active'})}):undefined} edit={()=>setEditLead(l)} remove={()=>{if(confirm(`Delete the ${l.lead.join(' + ')} lead plan?`))void save({leads:coaching.leads.filter(x=>x.id!==l.id)});}}/>)}</div>
-        {!coaching.leads.filter(inScope).length&&<p className="muted">No lead plans yet. Add one, or ask Frontier Brain to draft them.</p>}
-      </Panel>
-      <Panel title="Matchup strategy" action={<button onClick={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
-        <div className="plan-list">{coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=>{const o=splitOpponent(m);return <PlanCard key={m.id} status={m.status}
+          accept={l.status==='proposed'?()=>void save({leads:upsert(coaching.leads,{...l,status:'active'})}):undefined} edit={()=>setEditLead(l)} remove={()=>{if(confirm(`Delete the ${l.lead.join(' + ')} lead plan?`))void save({leads:coaching.leads.filter(x=>x.id!==l.id)});}}/>)}
+      </PlanPanel>
+      <PlanPanel title="Matchup strategy" onNew={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})} empty={coaching.matchups.filter(inScope).length?undefined:'No matchup plans yet. Add one, or ask Frontier Brain to draft them.'}>
+        {coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=>{const o=splitOpponent(m);return <PlanCard key={m.id} status={m.status}
           head={<><span className={'threat '+m.threat}>{m.threat}</span><h3>{o.title}</h3></>}
           meta={<div className="front-back">{o.examples.length>0&&<><span className="fb-label">Examples</span><span className="fb-mons">{o.examples.map(p=><span key={p} className="fb-mon"><Art name={p} fallback={p.replace(/-(Mega(-[XYZ])?|[XYZ])$/,'')} art={data.art} small/>{formName(p)}</span>)}</span></>}
             {m.bring.length>0&&<><span className="fb-divider"/><span className="fb-label">Bring</span><span className="fb-mons">{m.bring.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
           body={m.plan} foot={m.versionIds.length>0?<span className="tag">{versionLabel(m.versionIds)}</span>:undefined}
-          accept={m.status==='proposed'?()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})}):undefined} edit={()=>setEditMatchup(m)} remove={()=>{if(confirm(`Delete the ${o.archetype} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}/>;})}</div>
-        {!coaching.matchups.filter(inScope).length&&<p className="muted">No matchup plans yet. Add one, or ask Frontier Brain to draft them.</p>}
-      </Panel>
+          accept={m.status==='proposed'?()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})}):undefined} edit={()=>setEditMatchup(m)} remove={()=>{if(confirm(`Delete the ${o.archetype} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}/>;})}
+      </PlanPanel>
     </div>
     
     {editLead&&<LeadEditor plan={editLead} team={team} members={members} onClose={()=>setEditLead(null)} save={async l=>{await save({leads:upsert(coaching.leads,l)});setEditLead(null);}}/>}

@@ -1669,3 +1669,140 @@ html.jade .brain-backdrop{transition:opacity 1.6s ease}
 .sprite-choice small{color:var(--mu);font-weight:400}
 
 @media (prefers-reduced-motion:reduce){.calc-run i,.calc-run b,.shell.power-on>*,.screen-sweep,.boot-exe .caret,.boot-lines div{animation:none!important}.screen-sweep{display:none}}
+
+/* ---------- team hub (header, grid, strategy, history) ----------
+   The header is the team name and its four tabs; Export and the format moved to Manage with the history and Delete.
+   Phones get a 2 × 3 grid of compact cards, one header pattern for lead and matchup plans (title left, actions top
+   right, above the title on the narrowest screens), folded plan text and tighter spacing. 4px rhythm throughout. */
+html.jade .team-hub .hub-nav{justify-content:flex-start!important}
+
+/* Plans: lead and matchup cards share one header. */
+html.jade .plan-card header.plan-top{display:flex!important;flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important;gap:8px!important;flex-wrap:nowrap!important;text-align:left!important}
+html.jade .plan-top .plan-head{flex:1;min-width:0;min-height:32px;display:flex;align-items:center;justify-content:flex-start;gap:8px;flex-wrap:wrap}
+html.jade .plan-top .plan-head h3{min-width:0;overflow-wrap:anywhere}
+html.jade .plan-top .plan-actions{display:flex;align-items:center;gap:4px;flex:none}
+html.jade .plan-top .plan-actions .compact{height:32px!important;min-height:32px!important;max-height:32px!important}
+@media (hover:none){.plan-actions{opacity:1!important}}
+.plan-copy{display:flow-root;min-width:0}
+.plan-copy>*{margin:0}
+.plan-copy>*+*{margin-top:8px}
+.plan-more{display:none!important}
+.plan-foot:empty{display:none}
+html.jade .manage .history-list .team-six.mini{justify-content:flex-start}
+/* Front and back (or examples and bring) are split by a dashed rule. */
+html.jade .fb-divider{grid-column:1/-1;height:0;margin:0;background:none;border-top:1px dashed var(--ln)}
+
+/* Manage: export and format, the history, then delete. */
+.manage{display:grid;gap:24px}
+html.jade .manage>*{margin:0!important}
+.manage-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:16px}
+html.jade .manage-tile{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 20px!important;border-radius:var(--r);border:1px solid var(--ln);background:var(--glass)}
+html.jade .manage-tile h3{font:800 20px/1.1 var(--fd)!important;text-transform:uppercase;margin:4px 0 0!important}
+.manage-actions{display:flex;align-items:center;gap:8px}
+html.jade .manage-actions label{margin:0}
+html.jade .manage-actions :is(button,select){height:40px!important;min-height:40px!important;max-height:40px!important;margin:0!important}
+html.jade .manage-actions select{min-width:220px}
+.manage-history{display:grid;gap:12px}
+html.jade .manage-title{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:0!important}
+html.jade .manage .history-list{margin:0!important;border-radius:var(--r);overflow:hidden}
+html.jade .manage .history-list .what{min-width:0;overflow-wrap:anywhere}
+html.jade .manage .history-list .button-row .compact{height:32px!important;min-height:32px!important;max-height:32px!important}
+html.jade .manage .danger-zone{margin:0!important}
+
+@media (max-width:1000px){.manage-tiles{grid-template-columns:minmax(0,1fr)}}
+
+@media (max-width:760px){
+ /* Header: tighter, and the four tabs on one row. */
+ html.jade .team-hub .back-link{margin:12px 0 4px!important}
+ html.jade .team-hub .hub-head{margin:4px 0 12px!important}
+ html.jade .team-hub .hub-nav{padding-bottom:12px!important;margin-bottom:16px!important;gap:8px!important}
+ html.jade .team-hub .hub-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;width:100%;margin:0!important}
+ html.jade .team-hub .hub-tabs a{height:36px!important;padding:0 4px!important;gap:4px!important;justify-content:center;font-size:13px!important;letter-spacing:.04em}
+
+ /* The six: two columns, three rows, compact cards. */
+ html.jade .team-hub .six-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html.jade .six-grid .mon-card{padding:8px!important;gap:8px!important;border-radius:12px}
+ html.jade .six-grid .mon-slot{top:8px!important;right:8px!important;font-size:16px!important}
+ html.jade .six-grid .mon-card-head{min-height:0;gap:4px!important}
+ html.jade .six-grid .mon-card-head .art{width:72px!important;height:72px!important;margin:0!important}
+ html.jade .six-grid .mon-card-head>div{gap:4px!important}
+ html.jade .six-grid .mon-card h3{font-size:16px!important;gap:4px!important;overflow-wrap:anywhere}
+ html.jade .six-grid .mega-badge{height:auto;padding:0;font-size:0;gap:0;background:none!important;border:0!important;box-shadow:none!important}
+ html.jade .six-grid .mon-tags .type-badges{gap:4px}
+ html.jade .six-grid .mon-tags .type-badge{height:20px;padding:0 6px 0 4px;font-size:8.5px;gap:4px}
+ html.jade .six-grid .mon-item{margin:0!important;gap:4px!important;font-size:12px;line-height:16px}
+ html.jade .six-grid .mon-item .item-icon{flex:none}
+ html.jade .six-grid .mon-meta{font-size:11px}
+ html.jade .six-grid .sp-bars{gap:4px;margin:0}
+ html.jade .six-grid .sp-bar{grid-template-columns:28px minmax(0,1fr) 44px!important;gap:4px}
+ html.jade .six-grid .sp-bar .k{font-size:9px;letter-spacing:.02em}
+ html.jade .six-grid .sp-bar .v{font-size:10px!important}
+ html.jade .six-grid .sp-bar .v b{margin-left:1px}
+ html.jade .six-grid .mon-card .move-list{grid-template-columns:minmax(0,1fr);gap:4px;margin:0}
+ html.jade .six-grid .mon-card .move-list li{padding:4px 8px!important;font-size:12px;gap:4px;border-radius:8px}
+ html.jade .six-grid .mon-card .move-list .type-badge.mini{width:8px;height:8px!important;padding:0!important;font-size:0!important;gap:0;border:0;background:none!important}
+ html.jade .six-grid .mon-card .move-list .type-badge.mini::before{width:8px;height:8px}
+
+ /* Strategy write-up and the team row. */
+ html.jade .team-hub .strategy-block{padding:12px!important;margin-top:16px!important;margin-bottom:16px!important}
+ html.jade .team-hub .strategy-head{padding-bottom:12px;margin-bottom:12px}
+ html.jade .team-hub .strategy-head h2{font-size:22px}
+ html.jade .team-hub .guide-intro .markdown{font-size:15px;line-height:1.6}
+ html.jade .team-hub .guide-team{gap:8px;padding-top:12px}
+ html.jade .team-hub .guide-six{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ html.jade .team-hub .guide-six button{padding:8px 4px!important;gap:4px;min-width:0}
+ html.jade .team-hub .guide-six .set-art .art{width:56px!important;height:56px!important}
+ html.jade .team-hub .guide-six button span:last-child{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ html.jade .team-hub .guide-mon{padding:12px}
+ html.jade .team-hub .guide-mon-head h3{font-size:18px!important}
+
+ /* Panels and plans. */
+ html.jade .team-hub .coaching .panel{padding:12px!important}
+ html.jade .team-hub .team-detail-grid{gap:16px!important}
+ html.jade .team-hub .panel-heading{flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;text-align:left!important;gap:8px;padding-bottom:12px;margin-bottom:12px}
+ html.jade .team-hub .panel-heading>div{width:auto;min-width:0}
+ html.jade .team-hub .panel-heading h2{font-size:22px}
+ html.jade .team-hub .plan-list{gap:8px}
+ html.jade .team-hub .plan-card{padding:12px!important;gap:8px!important}
+ html.jade .team-hub .plan-head h3{font-size:18px!important}
+ html.jade .team-hub .front-back{grid-template-columns:auto minmax(0,1fr);gap:4px 8px}
+ html.jade .team-hub .fb-label{font-size:10px;letter-spacing:.08em}
+ html.jade .team-hub .fb-mons{gap:0 8px}
+ html.jade .team-hub .fb-mon{font-size:13px;gap:0}
+ html.jade .team-hub .fb-mon .art.small{width:28px!important;height:28px!important}
+ html.jade .team-hub .plan-body{gap:4px;padding-top:8px}
+ html.jade .team-hub .plan-body .markdown{font-size:14px;line-height:1.55}
+ .plan-body.folded .plan-copy{max-height:88px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+ .plan-more{display:inline-flex!important;justify-self:start;align-items:center;gap:4px;padding:0!important;height:32px!important;min-height:32px!important;color:var(--ac)!important}
+ .plan-more .px-icon{transition:transform .2s}
+ .plan-more[aria-expanded=true] .px-icon{transform:rotate(180deg)}
+
+ /* Manage: full-width tiles and controls, a compact history and a full-width Delete. */
+ .manage{gap:16px}
+ .manage-tiles{gap:8px}
+ html.jade .manage-tile{flex-direction:column;align-items:stretch!important;gap:12px;padding:12px!important}
+ html.jade .manage-tile h3{font-size:18px!important}
+ .manage-actions{width:100%}
+ html.jade .manage-actions>button{flex:1}
+ html.jade .format-copy label{flex:1;min-width:0}
+ html.jade .format-copy select{min-width:0!important;width:100%}
+ html.jade .format-copy>button{flex:none}
+ html.jade .manage-title{font-size:20px!important}
+ html.jade .manage .history-list li{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"when when" "what what" "six act";gap:4px 8px!important;padding:12px!important}
+ html.jade .manage .history-list .when{grid-area:when;font-size:12px}
+ html.jade .manage .history-list .what{grid-area:what;font-weight:600;font-size:14px;line-height:20px}
+ html.jade .manage .history-list .team-six.mini{grid-area:six;order:0;grid-column:auto;gap:0;align-self:center}
+ html.jade .manage .history-list .team-six.mini .set-art .art.small{width:28px!important;height:28px!important}
+ html.jade .manage .history-list .team-six.mini .mega-orb{display:none}
+ html.jade .manage .history-list :is(.button-row,.tag){grid-area:act;align-self:center;justify-self:end;flex-wrap:nowrap;gap:4px}
+ html.jade .manage .history-list .button-row .compact{padding:0 8px!important}
+ html.jade .manage .danger-zone{flex-direction:column;align-items:stretch!important;text-align:left!important;gap:12px;padding:12px!important}
+ html.jade .manage .danger-zone button.danger{width:100%}
+}
+/* The narrowest phones: plan actions sit above the title. */
+@media (max-width:380px){
+ html.jade .plan-card header.plan-top{flex-direction:column-reverse!important;align-items:stretch!important;gap:4px!important}
+ html.jade .plan-top .plan-actions{align-self:flex-end}
+ html.jade .team-hub .hub-tabs a .px-icon{display:none}
+}
+html.jade .team-hub .guide-intro .markdown>:last-child{margin-bottom:0}
