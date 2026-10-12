@@ -1,9 +1,10 @@
 import ShowdownName from './ShowdownName.tsx';
 import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
-import {useState,useEffect,useRef} from 'react';
-import {api,Art,Modal,date,downloadOriginal,sentences,useDex,TYPE_COLOURS} from '../ui.tsx';
-import {Px,Upload,Sparkles,Reload} from '../icons.tsx';
-import SpeciesPicker from '../ai/SpeciesPicker.tsx';
+import {useState,useEffect,useLayoutEffect,useRef,useId,useMemo,type RefObject} from 'react';
+import {Search,Tag} from 'lucide-react';
+import {api,Art,Modal,date,downloadOriginal,sentences,useDex,TYPE_COLOURS,PokeIcon} from '../ui.tsx';
+import {Px,Upload,Sparkles,Reload,ChevronDown,Close,Check} from '../icons.tsx';
+import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
 import {record} from './Hub.tsx';
 import {versionName} from './editors.tsx';
@@ -14,28 +15,109 @@ const other=(g:any)=>g.ownSide==='p1'?'p2':'p1';
 // and one card per game with its AI summary. Details, the turn-by-turn log and link changes open per game.
 export default function Replays({team,data,versionId,load,notify}:{team:any;data:any;versionId:string;load:()=>Promise<void>;notify:(s:string,e?:boolean)=>void}){
   const all=versionId==='all';const games=data.games.filter((g:any)=>g.association?.teamId===team.id&&(all||g.association?.versionId===versionId)).sort((a:any,b:any)=>(b.date??'').localeCompare(a.date??''));
-  const [info,setInfo]=useState<any>({summaries:{},digest:null,running:[]}),[mons,setMons]=useState<string[]>([]),[styles,setStyles]=useState<string[]>([]),[result,setResult]=useState(''),[open,setOpen]=useState<string|null>(null);
+  const [info,setInfo]=useState<any>({summaries:{},digest:null,running:[]}),[mon,setMon]=useState(''),[picked,setPicked]=useState<GameTag[]>([]),[result,setResult]=useState(''),[open,setOpen]=useState<string|null>(null);
   const refresh=async()=>{try{setInfo(await api('/replay-summaries?team='+team.id));}catch{}};
   useEffect(()=>{void refresh();},[team.id,games.length]);
   useEffect(()=>{if(!info.running.length)return;const t=setInterval(()=>void refresh(),3000);return()=>clearInterval(t);},[info.running.length]);
   const ai=canUseAI(useAccount());
   const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in for free to summarise replays with your preferred AI tool.');try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
-  const shown=games.filter((g:any)=>(!result||g.result===result)&&mons.every(m=>g.preview[other(g)].includes(m))&&styles.every(s=>info.summaries[g.id]?.opponentStyle?.includes(s)));
-  const styleOptions=[...new Set(Object.values<any>(info.summaries).flatMap(s=>s.opponentStyle))];
+  const tags=new Map<string,Set<string>>(games.map((g:any)=>[g.id,new Set(gameTags(g,info.summaries[g.id]).map(tagKey))]));
+  const shown=games.filter((g:any)=>(!result||g.result===result)&&(!mon||g.preview[other(g)].includes(mon))&&picked.every(t=>tags.get(g.id)!.has(tagKey(t))));
   const missing=games.filter((g:any)=>!info.summaries[g.id]).map((g:any)=>g.id);const busy=info.running.length>0;
   return <div className="replays">{!data.profile?.player&&<ShowdownName reload={load}/>}
     <Digest team={team} games={games} info={info} busy={busy} refresh={()=>void summarise([])} art={data.art}/>
     <AtAGlance games={games} info={info} art={data.art}/>
     <AddReplays team={team} versionId={all?team.activeVersionId:versionId} load={load} notify={notify} after={()=>setTimeout(()=>void refresh(),800)}/>
-    {games.length>0&&<div className="replay-filters">
-      <div className="opponent-filter"><SpeciesPicker label="Opponent Pokémon" placeholder="Opponent had…" value="" onPick={sp=>setMons(m=>m.includes(sp)?m:[...m,sp])}/>{mons.map(m=><button key={m} className="chip on" onClick={()=>setMons(mons.filter(x=>x!==m))}>{m} ×</button>)}</div>
-      {styleOptions.length>0&&<div className="chip-row">{styleOptions.map(s=><button key={s} className={'chip'+(styles.includes(s)?' on':'')} onClick={()=>setStyles(styles.includes(s)?styles.filter(x=>x!==s):[...styles,s])}>{s}</button>)}</div>}
-      <div className="segmented" role="group" aria-label="Result">{[['','All'],['win','Wins'],['loss','Losses']].map(([v,l])=><button key={v} className={result===v?'on':''} onClick={()=>setResult(v)}>{l}</button>)}</div>
+    {games.length>0&&<div className="replay-filters rf">
+      <div className="rf-find"><TagSearch games={games} summaries={info.summaries} value={picked} onChange={setPicked}/><MonFilter games={games} value={mon} onChange={setMon}/></div>
+      <div className="segmented rf-result" role="group" aria-label="Result">{[['','All'],['win','Wins'],['loss','Losses']].map(([v,l])=><button key={v} className={result===v?'on':''} aria-pressed={result===v} onClick={()=>setResult(v)}>{l}</button>)}</div>
     </div>}
     {missing.length>0&&!busy&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
     <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)}/>)}
       {games.length>0&&!shown.length&&<p className="muted">No games match these filters.</p>}</div>
     {open&&<GameDrawer g={games.find((x:any)=>x.id===open)} s={info.summaries[open]} team={team} data={data} load={load} notify={notify} close={()=>setOpen(null)} resummarise={()=>void summarise([open])}/>}
+  </div>;
+}
+
+// What the replay search can match in one game, as {kind,label,value}: the opponent's team-style tags from the game's
+// summary and the Pokémon they showed at team preview. A richer tag vocabulary (issue #16) plugs in here; the search,
+// its suggestions and the filter all read from this one function.
+interface GameTag {kind:string;label:string;value:string}
+const kindLabel:Record<string,string>={style:'Team style',pokemon:'Pokémon'};
+function gameTags(g:any,s:any):GameTag[]{
+  return [...(s?.opponentStyle??[]).map((t:string)=>({kind:'style',label:t,value:t})),...(g.preview[other(g)] as string[]).map(m=>({kind:'pokemon',label:m,value:m}))];
+}
+const tagKey=(t:GameTag)=>t.kind+'\u0000'+t.value;
+// Box icons by species name, from the species list the pickers already load.
+function useIcons(){const [icons,setIcons]=useState<Record<string,number>>({});
+  useEffect(()=>{let alive=true;speciesOptions().then(l=>{if(alive)setIcons(Object.fromEntries(l.filter((o:any)=>o.icon!=null).map((o:any)=>[o.name,o.icon])));}).catch(()=>{});return()=>{alive=false;};},[]);return icons;}
+
+// The page's footer stacks above <main>, so a list keeps inside main: it shrinks to the room below, or opens upward.
+function useFitList(list:RefObject<HTMLUListElement|null>,deps:unknown[]){
+  useLayoutEffect(()=>{const el=list.current;if(!el)return;el.classList.remove('up');el.style.maxHeight='';
+    const main=el.closest('main')?.getBoundingClientRect();if(!main)return;const r=el.getBoundingClientRect();const anchor=el.parentElement!.getBoundingClientRect();
+    const below=main.bottom-r.top-8,above=anchor.top-main.top-12;
+    if(below>=Math.min(r.height,160))el.style.maxHeight=Math.min(320,below)+'px';else{el.classList.add('up');el.style.maxHeight=Math.min(320,Math.max(above,below))+'px';}},deps);
+}
+
+// Search the opponent's team: type to get matching tags, pick several (each becomes a chip), and games must match all.
+function TagSearch({games,summaries,value,onChange}:{games:any[];summaries:Record<string,any>;value:GameTag[];onChange:(v:GameTag[])=>void}){
+  const [text,setText]=useState(''),[open,setOpen]=useState(false),[active,setActive]=useState(0);const id=useId();const input=useRef<HTMLInputElement>(null),list=useRef<HTMLUListElement>(null);const icons=useIcons();
+  const options=useMemo(()=>{const m=new Map<string,GameTag&{n:number}>();
+    for(const g of games)for(const [k,t] of new Map(gameTags(g,summaries[g.id]).map(t=>[tagKey(t),t]))){const x=m.get(k);if(x)x.n++;else m.set(k,{...t,n:1});}
+    return [...m.values()];},[games,summaries]);
+  const q=text.trim().toLowerCase();const chosen=new Set(value.map(tagKey));
+  const starts=(o:GameTag)=>o.label.toLowerCase().startsWith(q)?0:1;
+  const rows=options.filter(o=>!chosen.has(tagKey(o))&&(!q||o.label.toLowerCase().includes(q))).sort((a,b)=>(q?starts(a)-starts(b):0)||b.n-a.n||a.label.localeCompare(b.label)).slice(0,50);
+  const shown=open&&rows.length>0;useFitList(list,[shown,rows.length]);
+  useEffect(()=>{setActive(0);},[q,open,value.length]);
+  useEffect(()=>{list.current?.querySelector('.active')?.scrollIntoView({block:'nearest'});},[active]);
+  const add=(t:GameTag)=>{onChange([...value,{kind:t.kind,label:t.label,value:t.value}]);setText('');};
+  const remove=(t:GameTag)=>{onChange(value.filter(x=>tagKey(x)!==tagKey(t)));input.current?.focus();};
+  return <div className={'rf-search'+(value.length?' has-chips':'')} onMouseDown={e=>{if(e.target===e.currentTarget){e.preventDefault();input.current?.focus();}}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setOpen(false);}}>
+    <span className="rf-search-icon"><Px icon={Search}/></span>
+    {value.map(t=><span key={tagKey(t)} className={'rf-chip '+t.kind}>{t.kind==='pokemon'&&<PokeIcon n={icons[t.label]}/>}<span>{t.label}</span>
+      <button type="button" aria-label={`Remove ${t.label}`} title={kindLabel[t.kind]??t.kind} onClick={()=>remove(t)}><Px icon={Close} size={12}/></button></span>)}
+    <input ref={input} role="combobox" aria-label="Search opponent's team" aria-expanded={shown} aria-controls={id} aria-autocomplete="list" aria-activedescendant={shown?`${id}-${active}`:undefined}
+      placeholder={value.length?'':'Search opponent’s team…'} value={text} autoComplete="off" spellCheck={false}
+      onFocus={()=>setOpen(true)} onChange={e=>{setText(e.target.value);setOpen(true);}}
+      onKeyDown={e=>{
+        if(e.key==='ArrowDown'){e.preventDefault();if(!open)setOpen(true);else setActive(a=>Math.min(a+1,rows.length-1));}
+        else if(e.key==='ArrowUp'){e.preventDefault();setActive(a=>Math.max(a-1,0));}
+        else if(e.key==='Enter'){if(shown&&rows[active]){e.preventDefault();add(rows[active]);}}
+        else if(e.key==='Escape'){if(shown){e.stopPropagation();setOpen(false);}else if(text){e.stopPropagation();setText('');}}
+        else if(e.key==='Backspace'&&!text&&value.length){e.preventDefault();onChange(value.slice(0,-1));}}}/>
+    {shown&&<ul className="combo-list rf-list" role="listbox" id={id} ref={list} aria-label="Suggestions">{rows.map((r,i)=><li key={tagKey(r)} id={`${id}-${i}`} role="option" aria-selected={i===active} className={(i===active?'active ':'')+r.kind}
+      onMouseDown={e=>e.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>add(r)}>
+      {r.kind==='pokemon'?<PokeIcon n={icons[r.label]}/>:<span className="rf-glyph"><Px icon={Tag} size={14}/></span>}<span>{r.label}</span><small>{kindLabel[r.kind]??r.kind}</small></li>)}</ul>}
+  </div>;
+}
+
+// One opponent Pokémon from this team's games: a button that opens a listbox (arrows, Home/End, type-ahead, Enter, Escape).
+function MonFilter({games,value,onChange}:{games:any[];value:string;onChange:(v:string)=>void}){
+  const [open,setOpen]=useState(false),[active,setActive]=useState(0);const id=useId();const button=useRef<HTMLButtonElement>(null),list=useRef<HTMLUListElement>(null);const icons=useIcons();
+  const rows=useMemo(()=>{const n=new Map<string,number>();for(const g of games)for(const m of new Set<string>(g.preview[other(g)]))n.set(m,(n.get(m)??0)+1);
+    return ['',...[...n].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([m])=>m)];},[games]);
+  useEffect(()=>{if(value&&!rows.includes(value))onChange('');},[rows,value]);
+  useFitList(list,[open]);useEffect(()=>{if(open)list.current?.focus();},[open]);
+  useEffect(()=>{list.current?.querySelector('.active')?.scrollIntoView({block:'nearest'});},[active,open]);
+  const show=(at?:number)=>{setActive(at??Math.max(rows.indexOf(value),0));setOpen(true);};
+  const close=()=>{setOpen(false);button.current?.focus();};
+  const choose=(i:number)=>{onChange(rows[i]);close();};
+  return <div className="rf-mon" onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setOpen(false);}}>
+    <button ref={button} type="button" className={'rf-mon-button'+(value?' picked':'')} aria-haspopup="listbox" aria-expanded={open} aria-controls={open?id:undefined}
+      aria-label={value?`Opponent's Pokémon: ${value}`:'Opponent’s Pokémon'} onClick={()=>open?setOpen(false):show()}
+      onKeyDown={e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();show();}}}>
+      {value&&<PokeIcon n={icons[value]}/>}<span>{value||'Pokémon'}</span><Px icon={ChevronDown}/></button>
+    {open&&<ul ref={list} className="combo-list rf-list" role="listbox" id={id} tabIndex={-1} aria-label="Opponent's Pokémon" aria-activedescendant={`${id}-${active}`}
+      onKeyDown={e=>{const last=rows.length-1;
+        if(e.key==='ArrowDown'){e.preventDefault();setActive(a=>Math.min(a+1,last));}else if(e.key==='ArrowUp'){e.preventDefault();setActive(a=>Math.max(a-1,0));}
+        else if(e.key==='Home'){e.preventDefault();setActive(0);}else if(e.key==='End'){e.preventDefault();setActive(last);}
+        else if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(active);}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();}else if(e.key==='Tab'){setOpen(false);}
+        else if(/^\S$/.test(e.key)){const k=e.key.toLowerCase();const at=rows.findIndex((m,i)=>i>active&&m.toLowerCase().startsWith(k));const first=rows.findIndex(m=>m.toLowerCase().startsWith(k));if(at>=0||first>=0)setActive(at>=0?at:first);}}}>
+      {rows.map((m,i)=><li key={m||'any'} id={`${id}-${i}`} role="option" aria-selected={m===value} className={(i===active?'active ':'')+(m===value?'chosen':'')}
+        onMouseDown={e=>e.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>choose(i)}>
+        {m?<PokeIcon n={icons[m]}/>:<span className="rf-glyph"/>}<span>{m||'Any Pokémon'}</span>{m===value&&<small><Px icon={Check} size={14}/></small>}</li>)}</ul>}
   </div>;
 }
 

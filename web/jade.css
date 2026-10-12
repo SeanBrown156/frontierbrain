@@ -1746,4 +1746,47 @@ html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);out
  html.jade .set-history .h-set{grid-area:set}
  html.jade .set-history .h-sp{grid-area:sp;justify-self:end}
  html.jade .set-history li>:last-child{grid-area:act;justify-self:end}
+/* ---------- replays filter ----------
+   One bar: search (multi-select chips inside the field) and the Pokémon dropdown on the left, All/Wins/Losses on the
+   right. Every control is 40px; chips are 24px, sitting 8px inside the field. Stacked full width on phones. */
+html.jade .replays .replay-filters.rf{position:relative;z-index:20;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;margin:0!important}
+.rf-find{display:flex;align-items:flex-start;gap:12px;flex:1 1 auto;min-width:0}
+.rf-search{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px;flex:0 1 400px;min-width:0;min-height:40px;box-sizing:border-box;padding:7px 12px 7px 40px;background:var(--field);border:1px solid var(--ln-2);border-radius:var(--rs);cursor:text;transition:border-color .2s,box-shadow .2s}
+.rf-search:hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
+.rf-search:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+.rf-search-icon{position:absolute;left:12px;top:11px;display:flex;color:var(--mu);pointer-events:none}
+html.jade .rf-search>input{flex:1 1 48px;width:auto;min-width:48px;height:24px!important;min-height:24px!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;font:400 14px/24px var(--fb);color:var(--tx)}
+.rf-search>input::placeholder{color:var(--mu);opacity:1}
+.rf-chip{display:inline-flex;align-items:center;gap:4px;height:24px;max-width:100%;box-sizing:border-box;padding:0 0 0 8px;border-radius:999px;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);color:var(--tx);font:600 12px/1 var(--fb);white-space:nowrap}
+.rf-chip>span:not(.poke-icon){overflow:hidden;text-overflow:ellipsis}
+.rf-chip.pokemon{padding-left:0}
+.rf-chip .poke-icon{transform:scale(.8);margin:-3px -4px -3px -4px}
+/* :not(#_) lifts these above the theme's broad button rule (a long :not() chain with !important). */
+html.jade .rf-chip>button:not(#_){width:20px;min-width:20px;height:20px!important;min-height:20px!important;max-height:20px!important;margin:0 1px 0 0;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none;color:var(--mu);transform:none!important}
+html.jade .rf-chip>button:not(#_):hover{background:var(--hover)!important;color:var(--tx)}
+html.jade .rf-chip>button:not(#_):focus-visible{outline-offset:0}
+.rf-mon{position:relative;display:flex;flex:0 0 200px}
+html.jade .rf-mon-button:not(#_){width:100%;height:40px!important;min-height:40px!important;max-height:40px!important;justify-content:flex-start;gap:8px;padding:0 12px!important;background:var(--field)!important;border:1px solid var(--ln-2)!important;border-radius:var(--rs);box-shadow:none!important;backdrop-filter:none;font:400 14px var(--fb);color:var(--mu);transform:none!important}
+html.jade .rf-mon-button:not(#_):hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))!important}
+html.jade .rf-mon-button:not(#_):is(:focus-visible,[aria-expanded=true]){outline:none;border-color:var(--ac)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)!important}
+html.jade .rf-mon-button.picked:not(#_){padding-left:0!important;gap:4px;color:var(--tx);font-weight:600}
+.rf-mon-button>span:not(.poke-icon){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.rf-mon-button>.px-icon{flex:none;color:var(--mu);transition:transform .2s}
+.rf-mon-button[aria-expanded=true]>.px-icon{transform:rotate(180deg)}
+html.jade .rf-list{top:calc(100% + 4px);left:0;right:auto;width:100%;min-width:280px;padding:4px!important;border-radius:12px!important;box-sizing:border-box}
+html.jade .rf-list:focus{outline:none}
+html.jade .rf-list.up{top:auto;bottom:calc(100% + 4px)}
+html.jade .rf-list li{text-align:left;justify-content:flex-start!important;min-height:40px;padding:4px 12px 4px 0!important;gap:4px;border-radius:8px!important}
+html.jade .rf-list li>small{font:500 12px var(--fb);color:var(--mu)}
+html.jade .rf-list li.chosen{color:var(--ac);font-weight:600}
+html.jade .rf-list li.chosen small{color:var(--ac)}
+html.jade .rf-list li>.rf-glyph,.rf-glyph{display:inline-flex;align-items:center;justify-content:center;flex:none!important;width:40px;height:30px;color:var(--mu)}
+html.jade .replays .rf-result{flex:none;margin:0!important;padding:3px;gap:4px;height:40px;box-sizing:border-box}
+html.jade .replays .rf-result>button{height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 16px!important;font-size:13px}
+@media (max-width:720px){
+ html.jade .replays .replay-filters.rf{flex-direction:column!important;align-items:stretch!important}
+ .rf-find{flex-direction:column;align-items:stretch}
+ .rf-search,.rf-mon{flex:none;width:100%}
+ html.jade .rf-list{min-width:0}
+ html.jade .replays .rf-result{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;align-self:stretch!important}
 }
