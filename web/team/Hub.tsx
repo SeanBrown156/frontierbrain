@@ -49,7 +49,7 @@ function Overview({team,data,version,mutate}:{team:any;data:any;version:any;muta
   </div>;
 }
 // One of the six. A Mega Stone holder shows its Mega (render and types), since that's what it battles as.
-function MonCard({i,revision,href,active,art}:{i:number;revision:any;href:string;active:boolean;art:any}){
+export function MonCard({i,revision,href,active,art}:{i:number;revision:any;href:string;active:boolean;art:any}){
   const s=revision.set;const obs=revision.provenance==='observed';const form=useBattleForm(s.species,s.item);const mt=useDex([],[],s.moves??[]).moves;
   return <a className={'mon-card'+(active?'':' read-only')} href={href} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
       <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>

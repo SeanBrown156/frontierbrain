@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
-import {api,Panel} from './ui.tsx';
+import {api,Panel,ModeSwitch} from './ui.tsx';
+import {MCPMark} from './landing-marks.tsx';
 import {Px,Download,Upload,Sparkles,Check} from './icons.tsx';
 import {supabase,useAccount,hostedSite,GoogleButton} from './auth.tsx';
 import {aiKey,setAIKey,type AIKey} from './ai/keys.tsx';
@@ -69,7 +70,7 @@ function AboutYou(){
 function AIPanel(){
   const [mode,setMode]=useState<'key'|'mcp'>('key');
   return <Panel title={<><Px icon={Sparkles}/> AI</>}>
-    <div className="segmented ai-mode" role="tablist"><button role="tab" aria-selected={mode==='key'} className={mode==='key'?'on':''} onClick={()=>setMode('key')}>Connect with your API key</button><button role="tab" aria-selected={mode==='mcp'} className={mode==='mcp'?'on':''} onClick={()=>setMode('mcp')}>Connect via MCP</button></div>
+    <ModeSwitch label="Connect your AI" value={mode} onChange={setMode as any} options={[{value:'key',label:'Connect with your API key',short:'API key'},{value:'mcp',label:'Connect via MCP',short:'MCP',icon:<MCPMark/>}]}/>
     {mode==='key'?<AIKey/>:<Connectors/>}
   </Panel>;
 }

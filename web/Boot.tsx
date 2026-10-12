@@ -13,10 +13,14 @@ const sleep=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
 export default function Boot({data,error,onDone}:{data:any;error:string;onDone:()=>void}){
   const [typed,setTyped]=useState(0),[lines,setLines]=useState<[string,string][]>([]),[pct,setPct]=useState(0),[leaving,setLeaving]=useState(false);
   const dataRef=useRef(data);dataRef.current=data;const errRef=useRef(error);errRef.current=error;const done=useRef(false);
-  const finish=()=>{if(done.current)return;done.current=true;try{sessionStorage.setItem(KEY,'1');}catch{}setLeaving(true);setTimeout(onDone,520);};
+  const finish=()=>{if(done.current)return;done.current=true;try{sessionStorage.setItem(KEY,'1');}catch{}
+    // the brain behind detonates first, then the boot text clears and the app switches on through it
+    dispatchEvent(new CustomEvent('fb-boot-progress',{detail:1}));dispatchEvent(new Event('fb-boot-explode'));
+    setTimeout(()=>setLeaving(true),650);setTimeout(onDone,1250);};
+  const sendProgress=(v:number)=>dispatchEvent(new CustomEvent('fb-boot-progress',{detail:v}));
   useEffect(()=>{const skip=()=>finish();addEventListener('keydown',skip);addEventListener('pointerdown',skip);return()=>{removeEventListener('keydown',skip);removeEventListener('pointerdown',skip);};},[]);
   useEffect(()=>{let alive=true;
-    (async()=>{for(let i=1;i<=TITLE.length;i++){if(!alive)return;setTyped(i);await sleep(42);}
+    (async()=>{for(let i=1;i<=TITLE.length;i++){if(!alive)return;setTyped(i);sendProgress(i/TITLE.length*0.25);await sleep(42);}
       await sleep(180);
       const steps:[string,()=>Promise<string>][]=[
         ['ENGINE   Champions mechanics, pinned',async()=>'OK'],
@@ -26,7 +30,7 @@ export default function Boot({data,error,onDone}:{data:any;error:string;onDone:(
         ['AI',async()=>{const k=aiKey();return k?`${k.provider.toUpperCase()} KEY`:hostedSite?'NO KEY':'LOCAL SERVER';}],
       ];
       for(let i=0;i<steps.length;i++){if(!alive)return;const [label,check]=steps[i];setLines(l=>[...l,[label,'']]);const res=await check();if(!alive)return;
-        setLines(l=>{const n=[...l];n[n.length-1]=[label,res];return n;});setPct(Math.round((i+1)/steps.length*100));await sleep(170);}
+        setLines(l=>{const n=[...l];n[n.length-1]=[label,res];return n;});setPct(Math.round((i+1)/steps.length*100));sendProgress(0.25+(i+1)/steps.length*0.7);await sleep(170);}
       setLines(l=>[...l,['READY','']]);await sleep(450);finish();})();
     return()=>{alive=false;};},[]);
   const text=TITLE.slice(0,typed);const dot=text.lastIndexOf('.');const ext=dot>15?text.slice(dot):'';

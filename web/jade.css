@@ -1636,7 +1636,7 @@ html.jade .lab-result::after{content:'';position:absolute;inset:0;pointer-events
 .shell.booting>:not(.brain-backdrop):not(.boot){visibility:hidden}
 html.jade .brain-backdrop.booting{opacity:.95!important}
 html.jade .brain-backdrop{transition:opacity 1.6s ease}
-.boot{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;padding:0 8vw;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 78%,transparent),color-mix(in srgb,var(--bg) 45%,transparent));transition:opacity .5s ease}
+.boot{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;padding:0 8vw;background:linear-gradient(90deg,color-mix(in srgb,var(--bg) 62%,transparent),color-mix(in srgb,var(--bg) 8%,transparent) 70%);transition:opacity .5s ease}
 .boot.leaving{opacity:0}
 .boot::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(180deg,var(--scan) 0 1px,transparent 1px 3px)}
 .boot-inner{position:relative;z-index:1;max-width:980px}
@@ -2057,3 +2057,37 @@ html.jade .data-pool .stat-table td:not(:has(.art)){white-space:nowrap}
  html.jade .data-pool .stat-table td:has(.art){width:100%;white-space:normal;overflow-wrap:anywhere}
  html.jade .data-pool .stat-table td:first-child{width:1%;color:var(--mu)}
 }
+
+/* Site footer: brand, a few links, and who makes it. */
+html.jade .site-footer{display:grid;grid-template-columns:minmax(0,1fr);justify-items:stretch;align-items:start;width:100%;gap:20px;padding:40px 0 32px;margin-top:var(--s8);border-top:1px solid var(--ln-2)!important;color:var(--mu)}
+html.jade .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:32px}
+html.jade .footer-brand{display:grid;gap:10px;align-content:start}
+html.jade .footer-word{font:800 22px/1 var(--fd);letter-spacing:.04em;color:var(--tx)}
+html.jade .footer-brand p{margin:0;max-width:26em;font-size:14.5px}
+html.jade .site-footer nav{display:grid;gap:9px;align-content:start}
+html.jade .site-footer nav h4{margin:0 0 4px;font:600 11px var(--fnum);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
+html.jade .site-footer nav a{margin:0;color:var(--tx);font-size:15px}
+html.jade .site-footer nav a:hover{color:var(--ac)}
+html.jade .footer-legal{display:grid;gap:6px;padding-top:16px;border-top:1px solid var(--ln);font:400 11px/1.55 var(--fb);color:var(--mu);opacity:.85}
+html.jade .footer-legal p{margin:0;max-width:none;font:inherit;color:inherit}
+html.jade .footer-mail{font:inherit;user-select:all}
+@media (max-width:720px){html.jade .footer-grid{grid-template-columns:1fr 1fr}html.jade .footer-brand{grid-column:1/-1}}
+
+/* two-way mode switch (API key / MCP): the app's dark field track with a tinted thumb that slides under the chosen label */
+html.jade .mode-switch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;padding:5px;margin:0 0 12px;border-radius:14px;background:var(--field);border:1px solid var(--ln-2)}
+html.jade .mode-switch .ms-thumb{position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px) / 2);border-radius:10px;pointer-events:none;
+  background:color-mix(in srgb,var(--ac) 22%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 60%,transparent);
+  transition:transform .35s cubic-bezier(.3,1.15,.4,1)}
+html.jade .mode-switch[data-pos="1"] .ms-thumb{transform:translateX(100%)}
+html.jade .mode-switch button{position:relative;z-index:1;min-width:0;min-height:52px;height:auto;padding:0 14px;border:0!important;border-radius:10px!important;background:none!important;box-shadow:none!important;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;color:var(--mu);font:700 15px/1.2 var(--fb);cursor:pointer;transition:color .25s}
+html.jade .mode-switch button svg{width:20px;height:20px;flex:none}
+html.jade .mode-switch button:hover{color:var(--tx)}
+html.jade .mode-switch button.on{color:var(--tx)}
+html.jade .mode-switch button:focus-visible{outline:2px solid var(--ac);outline-offset:-2px}
+html.jade .mode-switch .ms-short{display:none}
+@media (max-width:620px){html.jade .mode-switch .ms-full{display:none}html.jade .mode-switch .ms-short{display:inline}html.jade .mode-switch button{min-height:48px}}
+@media (prefers-reduced-motion:reduce){html.jade .mode-switch .ms-thumb{transition:none}}
+
+/* phones: the logo stands alone in the nav, no wordmark */
+@media (max-width:620px){html.jade .masthead .brand .wordmark{display:none}}

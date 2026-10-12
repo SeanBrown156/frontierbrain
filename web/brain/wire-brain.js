@@ -49,8 +49,8 @@ export const MODES = {
 };
 
 const PALETTE = {
-  dark: { base: 0x1fd08a, hi: 0x5ff0ae, pulse: 0xf4c443, hot: 0xff3d50, alpha: 1.0 },
-  light: { base: 0x0b8a55, hi: 0x05663e, pulse: 0xb07f06, hot: 0xd42a3e, alpha: 1.35 },
+  dark: { base: 0x1fd08a, hi: 0x5ff0ae, pulse: 0x9dffd2, hot: 0xd6ffec, alpha: 1.0 },
+  light: { base: 0x0b8a55, hi: 0x05663e, pulse: 0x14b877, hot: 0x0a7a49, alpha: 1.35 },
 };
 
 /* ------------------------------------------------------------------ helpers */
@@ -215,7 +215,7 @@ function buildGraph(density, seed = 7) {
 /* ------------------------------------------------------------------ shaders */
 
 const DEFORM = /* glsl */`
-uniform float uTime, uRipAmp, uTwist, uBreath, uShatter, uScanOn, uScanPlane;
+uniform float uTime, uRipAmp, uTwist, uBreath, uShatter, uScanOn, uScanPlane, uLitOn, uLitY;
 uniform vec4 uRip[4];
 uniform vec4 uScan;
 float hash3(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719)))*43758.5453); }
@@ -241,8 +241,11 @@ vec3 deform(vec3 p, out float fx){
   return p;
 }
 float scanFx(vec3 p){
-  if (uScanOn < 0.5) return 0.;
-  float f = exp(-pow((p.y - uScanPlane) * 9., 2.)) + 0.25 * exp(-pow((p.y - uScanPlane - 0.12) * 4., 2.));
+  float f = 0.;
+  // boot sweep: everything the plane has passed stays lit, with a bright front on the plane itself
+  if (uLitOn > 0.001) f += uLitOn * (smoothstep(uLitY - 0.05, uLitY + 0.07, p.y) * 0.5 + exp(-pow((p.y - uLitY) * 8., 2.)) * 1.3);
+  if (uScanOn < 0.5) return f;
+  f += exp(-pow((p.y - uScanPlane) * 9., 2.)) + 0.25 * exp(-pow((p.y - uScanPlane - 0.12) * 4., 2.));
   float age = uTime - uScan.w;
   if (age > 0. && age < 4.) { float r = age * 1.3; f += exp(-pow((distance(p, uScan.xyz) - r) * 7., 2.)) * (1. - age / 4.) * 1.5; }
   return f;
@@ -326,7 +329,7 @@ export function createWireBrain(canvas, options = {}) {
   const uniforms = {
     uTime: { value: 0 }, uRipAmp: { value: 0.06 }, uTwist: { value: 0 }, uBreath: { value: 0 }, uShatter: { value: 0 },
     uRip: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 0, -99)) },
-    uScan: { value: new THREE.Vector4(0, 0, 0, -99) }, uScanOn: { value: 0 }, uScanPlane: { value: 0 },
+    uScan: { value: new THREE.Vector4(0, 0, 0, -99) }, uScanOn: { value: 0 }, uScanPlane: { value: 0 }, uLitOn: { value: 0 }, uLitY: { value: 2 },
     uBase: { value: new THREE.Color() }, uHi: { value: new THREE.Color() }, uPulse: { value: new THREE.Color() }, uHot: { value: new THREE.Color() },
     uIntensity: { value: 1 }, uCamDist: { value: 5 }, uAlphaMul: { value: 1 },
     uEdgeBase: { value: 0.3 }, uCloudBase: { value: 0.1 }, uPointBase: { value: 0.5 },
@@ -414,7 +417,7 @@ export function createWireBrain(canvas, options = {}) {
     }
   }
   function ambient(dt) {
-    const rate = preset.rate * (0.4 + 0.6 * opts.intensity);
+    const rate = preset.rate * (0.4 + 0.6 * opts.intensity) * (opts.ambient ?? 1);
     let expected = rate * dt;
     while (expected > 0) {
       if (Math.random() < Math.min(1, expected)) {
@@ -468,12 +471,13 @@ export function createWireBrain(canvas, options = {}) {
   function setTheme(dark) {
     opts.dark = !!dark;
     const p = dark ? PALETTE.dark : PALETTE.light;
-    uniforms.uBase.value.setHex(p.base); uniforms.uHi.value.setHex(p.hi); uniforms.uPulse.value.setHex(p.pulse); uniforms.uHot.value.setHex(p.hot);
+    uniforms.uBase.value.setHex(p.base); uniforms.uHi.value.setHex(p.hi); pulseCol.setHex(p.pulse); elecCol.setHex(dark ? 0x7dffc0 : 0x0fbf7a); uniforms.uPulse.value.copy(pulseCol); uniforms.uHot.value.setHex(p.hot);
     uniforms.uAlphaMul.value = p.alpha; uniforms.uLight.value = dark ? 0 : 1;
     const bl = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
     for (const m of [lineMat, pointMat, pulseMat]) { m.blending = bl; m.needsUpdate = true; }
     if (!running) renderOnce();
   }
+  const pulseCol = new THREE.Color(), elecCol = new THREE.Color(0x7dffc0);
   let W = 1, H = 1, camDist = 5;
   function resize() {
     const r = canvas.getBoundingClientRect();
@@ -496,7 +500,7 @@ export function createWireBrain(canvas, options = {}) {
   /* ---------------- interaction */
   const tilt = { x: 0, y: 0, tx: 0, ty: 0 };
   const turn = { yaw: 0, pitch: 0, ty: 0, tp: 0 };
-  let spinAngle = opts.angle ?? 0.35, spinBoost = 0, ripIdx = 0, twistAt = -99, twistAmp = 0, shatterAt = -99, shatterAmp = 0;
+  let litAmt = -1, litFade = 1, elecAt = -99, spinAngle = opts.angle ?? 0.35, spinBoost = 0, ripIdx = 0, twistAt = -99, twistAmp = 0, shatterAt = -99, shatterAmp = 0;
   const tmp = new THREE.Vector3();
 
   function toNdc(x, y) { const r = canvas.getBoundingClientRect(); return [((x - r.left) / r.width) * 2 - 1, -(((y - r.top) / r.height) * 2 - 1), r]; }
@@ -534,6 +538,18 @@ export function createWireBrain(canvas, options = {}) {
     spinBoost = 1.2;
     if (!running) { simulate(0.7); renderOnce(); }
   }
+  // Boot: sweep(0..1) lights the brain from the top down; sweep(-1) clears it. explode() is the finale: a bright green
+  // electrical flood from many points at once, with the whole mesh flexing outward and settling back.
+  function sweep(v, fade = 1) { litAmt = v; litFade = fade; if (!running) renderOnce(); }
+  function explode() {
+    if (!G) return;
+    const wave = ++waveId;
+    for (let i = 0; i < 18; i++) fire(Math.floor(Math.random() * G.brainCount), 70, Infinity, 0, 2.2, 2.6, -1, wave);
+    for (let i = 0; i < 4; i++) { const n = Math.floor(Math.random() * G.brainCount), p = G.positions; uniforms.uRip.value[ripIdx++ % 4].set(p[n * 3], p[n * 3 + 1], p[n * 3 + 2], now); }
+    uniforms.uRipAmp.value = 0.16;
+    shatterAt = now; shatterAmp = 0.2; elecAt = now; spinBoost = 2.4;
+    if (!running) { simulate(0.7); renderOnce(); }
+  }
   function pointer(x, y) {
     const [nx, ny] = toNdc(x, y);
     tilt.tx = THREE.MathUtils.clamp(-ny, -1.2, 1.2) * 0.14;
@@ -550,6 +566,10 @@ export function createWireBrain(canvas, options = {}) {
     const ta = now - twistAt; uniforms.uTwist.value = ta < 5 ? twistAmp * Math.exp(-ta * 1.1) * Math.sin(ta * 4.2) : 0;
     const sa = now - shatterAt; uniforms.uShatter.value = sa < 4 ? shatterAmp * Math.exp(-sa * 1.6) * (sa < 0.12 ? sa / 0.12 : 1) : 0;
     uniforms.uScanOn.value = preset.scan ? 1 : 0;
+    uniforms.uLitOn.value = litAmt >= 0 ? litFade : 0;
+    if (litAmt >= 0) uniforms.uLitY.value = 1.45 - litAmt * 2.9;
+    const ea = now - elecAt, ek = ea >= 0 && ea < 4 ? Math.exp(-ea * 0.7) : 0;
+    uniforms.uPulse.value.copy(pulseCol).lerp(elecCol, ek > 0 ? Math.min(1, ek * 1.6) : 0);
     uniforms.uScanPlane.value = 1.25 - ((now * 0.42) % 1) * 2.7;
   }
   function simulate(dt) {
@@ -595,10 +615,11 @@ export function createWireBrain(canvas, options = {}) {
   if (opts.still || reduced) stillFrame(); else start();
 
   return {
-    click, pointer, setTheme,
+    click, pointer, setTheme, sweep, explode,
     setOptions(o = {}) {
       const rebuild = (o.density !== undefined && o.density !== opts.density) || (o.mode && o.mode !== opts.mode && o.density === undefined && opts.density == null);
       Object.assign(opts, o);
+      if (o.scale !== undefined) group.scale.setScalar(o.scale);
       if (o.mode) preset = MODES[o.mode] || preset;
       if (rebuild) build();
       if (o.offsetX !== undefined) resize();
