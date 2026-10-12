@@ -19,6 +19,19 @@ Chosen from the Round 3 lookbook: Sky Pillar inside a clear emerald shell. It su
 - **Calc, round 3.** The attacker's card sits on top and the defender's below; the swap reorders them (animated) and the arrow follows. Side effects belong to a Pokémon's side and follow it when you swap. The attacker's card shows its move and attack boosts (Helping Hand, Battery, Power Spot, Steely Spirit, crit). The defender's card shows its protection (Reflect, Light Screen, Aurora Veil, Friend Guard, Protect). The Field box between them holds weather, terrain, Gravity, the Rooms, the Ruin abilities and Trick Room. A Mega Stone holder battles as its Mega (switch on the card, on by default; the calc uses the Mega species and ability). Results: an HP bar that drains to the damage range (min–max hatched, colour by HP left, 25%/50% marks), a verdict pill and the 16 rolls (KO rolls red); speed is a race where the leader reaches the line and the other stops where its Speed takes it (reversed under Trick Room). Save as benchmark lives in the result box. Calcs run by Ask Frontier Brain on a Pokémon page load into the panel with their exact inputs ("Loaded from Ask Frontier Brain").
 - **Mega images.** HOME renders exist for the classic Megas (e.g. Mawile-Mega, Swampert-Mega); the cards, set card and calc show them. New Champions Megas without a render fall back to the base form.
 - **Pokémon Strategy.** Markdown, rendered as a guide with an Edit/Done toggle.
+- **Later rounds (12 Oct).**
+  - **Icons and type:** Lucide line icons replace the pixel icons, and the app uses two fonts: Saira Condensed for titles and big numbers, Hanken Grotesk for everything else.
+  - **Header:** the news and nav run full width as one bar and detach into a floating bar on scroll.
+  - **Ask Frontier Brain** is a floating overlay panel.
+  - **Brain backdrop:** a giant wireframe brain sits behind every page (`web/brain/wire-brain.js`, Constellation mode, calm settings), with glass panels about 85% opaque over it. The header and favicon use the flat emerald brain icon (`public/brand/icon-64.png`).
+  - **Megas** show their render (base-form HOME render when there's no Mega render), with the Mega symbol (`public/brand/mega.svg`) in a rainbow orb and a pill beside the name.
+  - **Strategy tab:** a short strategy paragraph, then the team; clicking a Pokémon shows its notes.
+  - **Plans:** lead plans have a title, a role (Core/Situational/Niche/Avoid) and Front/Back rows. Matchup plans have a title, a team style (one list shared with replay summaries), examples, threat and Bring.
+  - **Format** is chosen when a team is created and moved by copying.
+  - **Replays:** a Debrief (What's working / What to work on) and a "Who gives you trouble" grid.
+  - **Pickers:** items and moves get searchable pickers with sprites and types.
+  - **Speed** uses the calculator's `getFinalSpeed` (weather and terrain abilities, Choice Scarf, Iron Ball, Tailwind, paralysis), with weather and terrain on the Speed tab.
+  - **Export** can create a PokePaste on request.
 - **Avoid.** Sports-betting cues: odds chips, slanted score bars, loud tickers. The news strip is kept quiet: mono type, no red.
 
 ## Round 2 history: Frontier Brain × Emerald
