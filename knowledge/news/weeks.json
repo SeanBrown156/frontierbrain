@@ -1,17 +1,33 @@
 [
   {
-    "start": "2026-10-05",
-    "end": "2026-10-11",
+    "start": "2026-10-12",
+    "end": "2026-10-18",
     "partial": true,
-    "researchedAt": "2026-10-08T00:06:07.718Z",
+    "researchedAt": "2026-10-12T23:55:00.000Z",
     "digest": [
-      "A new player-authored PSYSPAM VIOLENCE report explains a Global Challenge I team; Liberty Note also published its M-6 doubles top-100 compilation.",
-      "Community questions this week focus on translating favourite Pokémon into a functional doubles team. These are discussion signals, not evidence of usage changes."
+      "The week has just begun and no articles have been verified yet.",
+      "Search snippets mention a Louisville Regional finishing around Oct 12, but its format and results were not opened or confirmed."
     ],
     "coverage": [
-      "Current week is incomplete. Curated discovery, not an exhaustive scrape of every source.",
-      "Liberty Note retrieved directly; Limitless and Reddit inspected. Pokémon Zone/Liquipedia raw access blocked; LabMaus access unresolved.",
-      "Calculator/reference sites are kept in Sources. Source dates below are publication dates except event results, which use event dates."
+      "Current week is incomplete and mostly unchecked: page fetches failed from the research environment, so nothing was opened or cited.",
+      "Curated discovery, not an exhaustive scrape; a later run should recheck Limitless, Victory Road, Liberty Note and community threads."
+    ],
+    "articles": [],
+    "signals": []
+  },
+  {
+    "start": "2026-10-05",
+    "end": "2026-10-11",
+    "partial": false,
+    "researchedAt": "2026-10-12T23:55:00.000Z",
+    "digest": [
+      "A player-authored PSYSPAM VIOLENCE report explains a Global Challenge I team, and Liberty Note published its M-6 doubles top-100 ladder compilation.",
+      "Community questions focused on turning favourite Pokémon into a functional doubles team; these are discussion signals, not evidence of usage changes."
+    ],
+    "coverage": [
+      "Final pass for the week: the articles below were opened in an earlier pass; during this pass page fetches (Limitless, Liberty Note, Victory Road, Pokémon Zone, pokemon.com, Reddit) failed from the research environment, so no new items were added.",
+      "Web search snippets (not opened, so not cited) suggest Champions M-C ladder and small online events ran this week, including Intimidators Champions Challenge #48 on Oct 5; regional or Day 2 team-list results were not verified.",
+      "Curated discovery, not an exhaustive scrape of every source. Source dates are publication dates except event results, which use event dates."
     ],
     "articles": [
       {
