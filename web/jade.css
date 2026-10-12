@@ -1746,6 +1746,8 @@ html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);out
  html.jade .set-history .h-set{grid-area:set}
  html.jade .set-history .h-sp{grid-area:sp;justify-self:end}
  html.jade .set-history li>:last-child{grid-area:act;justify-self:end}
+}
+
 /* ---------- replays filter ----------
    One bar: search (multi-select chips inside the field) and the Pokémon dropdown on the left, All/Wins/Losses on the
    right. Every control is 40px; chips are 24px, sitting 8px inside the field. Stacked full width on phones. */
@@ -1790,6 +1792,7 @@ html.jade .replays .rf-result>button{height:32px!important;min-height:32px!impor
  html.jade .rf-list{min-width:0}
  html.jade .replays .rf-result{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;align-self:stretch!important}
 }
+
 /* ---------- team hub (header, grid, strategy, history) ----------
    The header is the team name and its four tabs; Export and the format moved to Manage with the history and Delete.
    Phones get a 2 × 3 grid of compact cards, one header pattern for lead and matchup plans (title left, actions top
