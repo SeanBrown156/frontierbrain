@@ -157,9 +157,9 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
             <section><h3>What to work on</h3><ol className="themes"><li><div className="theme-head"><b>Switching into Fake Out</b><span className="tag">3 of 6 games</span></div><p>Back-to-back Protect turns leave the second slot exposed.</p></li></ol></section>
           </div></section></Tilt>
         <Tilt className="lp-r-glance lp-more" base={{y:6,x:-2,z:-2}}><section className="glance panel lp-panel"><header className="panel-heading"><div><span className="eyebrow">Example · 6 games</span><h2>Who gives you trouble</h2></div></header>
-          <div className="lp-glance">
-            <div><h3>Easiest Pokémon</h3><ul><li className="good"><Art name="Sableye" art={art} small/><span className="glance-name">Sableye</span><span className="glance-rec">2–0</span></li></ul></div>
+          <div className="glance-grid lp-glance">
             <div><h3>Toughest Pokémon</h3><ul><li className="bad"><Art name="Basculegion" art={art} small/><span className="glance-name">Basculegion</span><span className="glance-rec">0–2</span></li></ul></div>
+            <div><h3>Easiest Pokémon</h3><ul><li className="good"><Art name="Sableye" art={art} small/><span className="glance-name">Sableye</span><span className="glance-rec">2–0</span></li></ul></div>
           </div></section></Tilt>
       </div></div>
       <div className="lp-copy lp-rv"><span className="eyebrow">Replay analysis</span><h2 className="lp-title">Analyse replays.</h2>

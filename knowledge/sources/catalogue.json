@@ -113,7 +113,8 @@
     "notes": "Tournament teams and results from major events.",
     "bar": "data",
     "barOrder": 7,
-    "aiNotes": "COMPOSITE of Limitless, Victory Road, Play! and Showdown data. Cross-check only; never added to the pool."
+    "aiNotes": "COMPOSITE of Limitless, Victory Road, Play! and Showdown data. Cross-check only; never added to the pool.",
+    "icon": "/icons/suckerpunch.png"
   },
   {
     "id": "victory-road",
