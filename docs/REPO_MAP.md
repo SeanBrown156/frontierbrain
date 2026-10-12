@@ -16,7 +16,8 @@ Where things live in Frontier Brain. Code is in this repository. The player's ow
 | `public/` | Static files served as-is: app icons (`brand/`) and reference-site logos (`icons/`). |
 | `api/index.mjs` | Vercel function stub. The real hosted API is bundled into `build/api/` by `tools/build-api.mjs`. |
 | `supabase/migrations/` | Hosted database schema (workspaces, files, pool tables). |
-| `docs/` | `DESIGN.md` (the Jade Glass design system), this map, and `history/` (retired designs). |
+| `docs/` | `DESIGN.md` (the Jade Glass design system), this map, `hosting.md` (who owns the hosted Supabase and Vercel projects) and `history/` (retired designs). |
+| `.github/workflows/` | `hosted-pool.yml`: weekly pool refresh into Supabase. `hosted-news.yml`: seeds `knowledge/news/weeks.json` when it changes on main. |
 | `index.html`, `vite.config.ts`, `tsconfig*.json`, `vercel.json` | Build and deploy config. |
 | `.env.example`, `config.example.json` | Templates for `.env` (keys, `APP_DATA`) and the data directory's `config.json`. |
 
@@ -59,7 +60,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 - `format.ts`: format rules for validation and AI prompts. `../shared/benchmarks.ts`: saved calcs.
 
 **Metagame data** (never blended; see AGENTS.md)
-- `pool.ts`: the deduplicated team pool. `pool-db.ts`: the same pool as Supabase `pool_*` rows. `pool-import.ts`: pool team to editable team.
+- `pool.ts`: the deduplicated team pool. `pool-db.ts`: the same pool as Supabase `pool_*` rows. `pool-names.ts`: reviewed corrections for misspelled names in team lists. `pool-import.ts`: pool team to editable team.
 - `limitless.ts`, `vgcpastes.ts`, `meta-sets.ts`: upstream sources and standard opponent sets.
 - `typical-set.ts`, `profile.ts`: expected sets and per-species profiles.
 - `research.ts`, `library.ts`: `refresh`, source checks and the reference library.
@@ -94,6 +95,6 @@ Set by `APP_DATA`. Locally it's `data/` inside the checkout, a separate private 
 | `teams/`, `pokemon/` | Team milestones and edit logs; the Pokémon set library. `teams/index.json` is the manifest. |
 | `replays/originals/`, `replays/associations.json` | Saved replay HTML (never edited) and replay-to-team links. |
 | `reports/` | Coaching findings, replay summaries and digests, chats, daily and weekly reports. |
-| `knowledge/metagame/`, `knowledge/pool/`, `knowledge/news/` | Downloaded metagame data, the team pool and weekly news. Rebuilt by `refresh`. |
+| `knowledge/metagame/`, `knowledge/pool/`, `knowledge/news/` | Downloaded metagame data, the team pool and weekly news. Rebuilt by `refresh`. News also ships in the repository (`knowledge/news/weeks.json`, written weekly by the frontier-brain-news routine); per week the more recently researched copy wins. |
 | `knowledge/artwork/` | Cached sprites and renders. Re-downloaded on demand. |
 | `backups/` | Workspace backups. |
