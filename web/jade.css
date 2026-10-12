@@ -2117,3 +2117,26 @@ html.jade .mode-switch .ms-short{display:none}
   html.jade :is(.settings-actions,.button-row:not(.dock-controls),.manage-actions,.consent-actions,.lp-ctas){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:var(--s2);width:100%}
   html.jade :is(.settings-actions,.button-row:not(.dock-controls),.manage-actions,.consent-actions,.lp-ctas)>:is(button,a.button,.button,label){width:100%;max-width:none;justify-content:center;text-align:center;margin:0}
 }
+
+/* phones: the New team paste step is compact (tighter gaps, a paste box that is not a whole screen tall, full-width actions) */
+@media (max-width:620px){
+  html.jade .new-team{gap:0}
+  html.jade .new-team .format-choice{margin-bottom:12px!important}
+  html.jade .new-team>.tabs{margin-bottom:12px}
+  html.jade .new-team .paste-source{gap:10px}
+  html.jade .new-team .paste-source>button{justify-self:stretch;width:100%}
+  html.jade .new-team .draft-review{gap:12px;padding-top:12px;margin-top:12px}
+  html.jade .new-team .draft-review textarea[spellcheck=false]{height:200px;min-height:0;resize:vertical}
+  html.jade .new-team .draft-review>.primary{justify-self:stretch;align-self:stretch;width:100%;margin-left:0}
+  html.jade .new-team .footnote{margin:12px 0}
+}
+
+/* phones: plan cards put the role/threat pill on the same line as edit and delete; the title sits underneath */
+@media (max-width:620px){
+  html.jade .plan-card header.plan-top{flex-wrap:wrap!important;align-items:center!important;row-gap:8px!important}
+  html.jade .plan-top .plan-head{display:contents}
+  html.jade .plan-top .plan-head>:is(.role-pill,.threat){order:1}
+  html.jade .plan-top .plan-head>.tag{order:2}
+  html.jade .plan-top .plan-actions{order:3;margin-left:auto;align-items:center}
+  html.jade .plan-top .plan-head>h3{order:4;flex:1 1 100%;min-width:0}
+}

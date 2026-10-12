@@ -103,6 +103,9 @@ html.jade .lp-tog input::after{content:'';position:absolute;top:3px;left:3px;wid
 html.jade .lp-tog input:checked{background:color-mix(in srgb,var(--ac) 30%,transparent)}
 html.jade .lp-tog input:checked::after{transform:translateX(18px);background:var(--ac)}
 
+/* the 'who gives you trouble' lists are the app's own glance-grid; here it is one column in a narrow card */
+html.jade .lp-glance.glance-grid{grid-template-columns:minmax(0,1fr)}
+
 /* replays: three overlapping cards */
 html.jade .lp-rstack{position:relative;height:690px;perspective:1600px}
 html.jade .lp-rstack>*{position:absolute}
@@ -118,11 +121,6 @@ html.jade .lp-shot{position:relative;border-radius:10px;overflow:hidden;border:1
 html.jade .lp-shot img{width:100%;height:auto;display:block}
 html.jade .lp-hot{position:absolute;border-radius:8px;border:2px solid var(--ac-2);background:color-mix(in srgb,var(--ac-2) 18%,transparent);box-shadow:0 0 22px var(--glow);opacity:0;transition:opacity .25s;pointer-events:none}
 html.jade .lp-hot.on{opacity:1}
-html.jade .lp-glance{display:grid;gap:10px}
-html.jade .lp-glance>div{padding:12px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
-html.jade .lp-glance ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-html.jade .lp-glance li{display:flex;align-items:center;gap:8px}
-html.jade .lp-glance .glance-name{flex:1;min-width:0;font-weight:600}
 html.jade .lp-soon{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--ac) 55%,transparent);background:color-mix(in srgb,var(--ac) 9%,transparent);max-width:32em;width:100%}
 html.jade .lp-soon-ico{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}
 html.jade .lp-soon-ico svg{width:20px;height:20px}
@@ -214,11 +212,7 @@ html.jade .lp-xl{min-height:68px;padding:0 46px;border-radius:16px;font-size:20p
   html.jade #replays>.lp-vis{order:1}
   html.jade .lp-rstack{grid-template-columns:minmax(0,1fr)}
   /* the two lists stack inside the card so names and records stay in their boxes */
-  html.jade .lp-glance{grid-template-columns:minmax(0,1fr)}
-  html.jade .lp-glance>div{padding:10px;min-width:0;overflow:hidden}
-  html.jade .lp-glance li{min-width:0;flex-wrap:nowrap}
-  html.jade .lp-glance .glance-rec{flex:none}
-  html.jade .lp-tilt{transform:none!important}
+    html.jade .lp-tilt{transform:none!important}
   html.jade .lp-pop img{animation:none}
   html.jade .lp-cloud{height:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;perspective:none}
   html.jade .lp-src{position:static;transform:none;animation:none;font-size:16px;padding:8px 14px 8px 8px;gap:10px;min-width:0}
