@@ -14,5 +14,5 @@ test('Bounded parallel fetching preserves source order and inspects each result'
 });
 test('Every screenshot resource has a distinct catalogue entry',async()=>{
   const catalogue=await json('knowledge/sources/catalogue.json');assert.equal(new Set(catalogue.map((s:any)=>s.id)).size,catalogue.length);
-  for(const id of ['pokemon-zone','pokebase','pikalytics','pokepaste','showdown','limitless','suckerpunch','victory-road','vgcpastes','reddit-vgc','vgc-guide','top-cut','pikalytics-builder','pikalytics-speed','pikalytics-calc','liberty-note','liquipedia','reddit-champions','just-move-first','smogon','showdown-calc','labmaus','vgc-champions-calc','ncp-calc','statcrusher','munchstats'])assert.ok(catalogue.some((s:any)=>s.id===id),id);
+  for(const id of ['pokemon-zone','pokebase','pikalytics','pokepaste','showdown','limitless','suckerpunch','victory-road','vgcpastes','reddit-vgc','vgc-guide','top-cut','pikalytics-builder','pikalytics-speed','pikalytics-calc','liberty-note','liquipedia','reddit-champions','smogon','showdown-calc','labmaus','vgc-champions-calc','ncp-calc','statcrusher','munchstats'])assert.ok(catalogue.some((s:any)=>s.id===id),id);
 });

@@ -1,6 +1,6 @@
 import {json,optionalJSON,save,stamp,localDay,markdown,hash,config as profile} from './io.ts';
 
-export interface Source {id:string;name:string;url:string;categories:string[];notes:string;}
+export interface Source {id:string;name:string;url:string;categories:string[];notes:string;aiNotes?:string;}
 const agent='PokemonVGCWorkspace/1.0 (personal research; bounded requests)';
 // Network drops and 429/5xx are retried twice with backoff; other HTTP errors fail immediately.
 export async function fetchText(url:string,maxBytes=15_000_000,timeout=20000,tries=3):Promise<{text:string;finalURL:string;status:number;contentType:string|null}> {
@@ -40,7 +40,7 @@ export async function sourceIndex(checks:any[]=[]) {
   const catalogue=await json<Source[]>('knowledge/sources/catalogue.json');let text='# VGC source quick reference\n\n';
   text+='Use this index to find evidence quickly. [Verified research routes](research-routes.md) link current tournament results, team sheets and authored reports. Fetch dates are availability checks, not confirmation that a default page is the right format. Always record event/period/population. Treat mirrors of Smogon data as the same underlying evidence.\n\n';
   const categories=[...new Set(catalogue.flatMap(s=>s.categories))];
-  for(const category of categories){text+=`## ${category}\n\n`;for(const s of catalogue.filter(s=>s.categories.includes(category))){const c=checks.find(c=>c.id===s.id);text+=`- [${s.name}](${s.url}) — ${s.notes}${c?` Latest check: ${c.state} (${c.checkedAt.slice(0,10)}).`:''}\n`;}text+='\n';}
+  for(const category of categories){text+=`## ${category}\n\n`;for(const s of catalogue.filter(s=>s.categories.includes(category))){const c=checks.find(c=>c.id===s.id);text+=`- [${s.name}](${s.url}) — ${s.aiNotes??s.notes}${c?` Latest check: ${c.state} (${c.checkedAt.slice(0,10)}).`:''}\n`;}text+='\n';}
   await save('knowledge/sources/INDEX.md',text);return catalogue;
 }
 export async function refreshResearch() {

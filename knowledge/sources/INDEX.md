@@ -110,7 +110,6 @@ Use this index to find evidence quickly. [Verified research routes](research-rou
 ## speed
 
 - [Pikalytics | Speed Tiers](https://www.pikalytics.com/speed-tiers) — Consider priority, speed control, ties and spread assumptions. Latest check: reachable (2026-10-08).
-- [Just move first!](https://justmovefirst.com/) — Base-Speed recognition quiz, not usage data or full doubles effective-speed calculations. Latest check: reachable (2026-10-08).
 - [VGC Champions | Damage Calculator](https://vgcchampions.com/) — Champions web calculator and mobile toolkit. Verify mechanics/data version before cross-checks. Latest check: reachable (2026-10-08).
 - [StatCrusher](https://statcrusher.com/) — MIRROR of Smogon Showdown ladder stats (same Elo/Bo3/month cuts). Reference only; not ingested to avoid double counting. Latest check: reachable (2026-10-08).
 - [MunchStats](https://www.munchstats.com/) — In-game doubles stats captured by MunchStats (a distinct method) plus Smogon mirrors. Reference / cross-check only. Latest check: reachable (2026-10-08).
@@ -125,7 +124,6 @@ Use this index to find evidence quickly. [Verified research routes](research-rou
 
 ## practice
 
-- [Just move first!](https://justmovefirst.com/) — Base-Speed recognition quiz, not usage data or full doubles effective-speed calculations. Latest check: reachable (2026-10-08).
 
 ## iteration
 
