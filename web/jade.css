@@ -655,10 +655,10 @@ html.jade .dmg-art .art{width:64px!important;height:64px!important}
 /* speed race */
 .race{display:grid;gap:12px}
 .lane{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:center}
-.track{position:relative;height:72px;border-radius:14px;background:repeating-linear-gradient(90deg,transparent 0 47px,color-mix(in srgb,var(--tx) 7%,transparent) 47px 48px),var(--sunk);box-shadow:inset 0 0 0 1px var(--ln);overflow:hidden}
-.track .finish{position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-conic-gradient(var(--tx) 0 25%,transparent 0 50%) 0 0/10px 10px;opacity:.35}
-.track .runner{position:absolute;top:0;width:72px;height:72px;transition-property:left;transition-timing-function:cubic-bezier(.45,.05,.3,1)}
-html.jade .track .runner .art{width:72px!important;height:72px!important}
+\.race .track{position:relative;height:72px;border-radius:14px;background:repeating-linear-gradient(90deg,transparent 0 47px,color-mix(in srgb,var(--tx) 7%,transparent) 47px 48px),var(--sunk);box-shadow:inset 0 0 0 1px var(--ln);overflow:hidden}
+.race .track .finish{position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-conic-gradient(var(--tx) 0 25%,transparent 0 50%) 0 0/10px 10px;opacity:.35}
+.race .track .runner{position:absolute;top:0;width:72px;height:72px;transition-property:left;transition-timing-function:cubic-bezier(.45,.05,.3,1)}
+html.jade .race .track .runner .art{width:72px!important;height:72px!important}
 .lane.wins .track{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 50%,transparent)}
 .lane-stat{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .lane-stat b{font:900 30px/1 var(--fdot)}
@@ -676,7 +676,7 @@ html.jade .set-notes .panel-heading{align-items:center}
 
 @media (max-width:620px){
  .lane{grid-template-columns:minmax(0,1fr) 92px}
- .track,.track .runner,html.jade .track .runner .art{height:56px!important;width:auto}.track .runner{width:56px}html.jade .track .runner .art{width:56px!important}
+ .race .track,.race .track .runner,html.jade .race .track .runner .art{height:56px!important;width:auto}.race .track .runner{width:56px}html.jade .race .track .runner .art{width:56px!important}
  /* the Pokémon you're inspecting is already above: its calc card stays compact */
  html.jade .combatant.is-mine{grid-template-columns:minmax(0,1fr)!important}
  html.jade .combatant.is-mine .combatant-art{flex-direction:row;justify-content:flex-start}
@@ -690,7 +690,7 @@ html.jade .field-box .field-row{background:transparent;border:0;padding:0}
 html.jade .field-box .field-flags{background:transparent;padding:0}
 html.jade .field-box .footnote{background:transparent;padding:0;font-size:12px}
 .matchup-axis::before{border-left-style:solid!important;opacity:.6}
-.track .runner{transition-timing-function:cubic-bezier(.3,.1,.25,1)!important}
+.race .track .runner{transition-timing-function:cubic-bezier(.3,.1,.25,1)!important}
 /* with Ask open, the Pokémon page stacks (set above calc) until there's room for both columns */
 @media (max-width:1900px){html.jade .with-dock .workspace-grid{grid-template-columns:minmax(0,1fr)!important}html.jade .with-dock .set-card{position:static!important}}
 @media (max-width:1180px){html.jade .workspace-grid{grid-template-columns:minmax(0,1fr)!important}html.jade .set-card{position:static!important}}
