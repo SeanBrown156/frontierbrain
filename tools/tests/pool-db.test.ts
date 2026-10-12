@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {poolRows,resolveSpecies,playerId} from '../pool-db.ts';
+import {poolRows,resolveSpecies,playerId,shrinkage} from '../pool-db.ts';
 import type {PoolTeam} from '../pool.ts';
 
 // A tiny synthetic pool: one official team (Limitless display names, a merged paste), one online team (record,
@@ -56,4 +56,8 @@ test('Names are canonicalised when the engine knows them, otherwise kept as writ
   const pasted=rows.sets.filter(s=>s.hp_sp!==null&&s.nature!=='Careful');assert.equal(pasted.length,6);
   assert.ok(pasted.every(s=>s.nature==='Naive'&&!s.unresolved.length),'"naïve" resolves to Naive');
   assert.equal(Object.keys(rows.unresolved.species).length,0);
+});
+test('A load that would shrink the hosted pool sharply is flagged; normal turnover is not',()=>{
+  assert.match(shrinkage(396,7759)!,/396 teams .* 7759 \(95% fewer\)/);
+  assert.equal(shrinkage(7500,7759),null);assert.equal(shrinkage(8000,7759),null);assert.equal(shrinkage(10,null),null);
 });

@@ -75,6 +75,10 @@ export function consolidate(official:PoolTeam[],online:PoolTeam[],shared:PoolTea
     const key=`${playerKey(s.player)}:${JSON.stringify(s.sets.map(x=>[base(x.species),x.statPoints]).sort())}`;if(seen.has(key)){duplicates++;continue;}seen.add(key);kept.push(s);}
   return {teams:[...tournament,...kept],merged,duplicates};
 }
+// Keep the existing pool when any lane failed (or nothing came back) and there is one to keep.
+export const keepPreviousPool=(fresh:PoolTeam[],previous:{teams:PoolTeam[]}|null,errors:string[])=>!!previous?.teams.length&&(errors.length>0||!fresh.length);
+export function laneCounts(teams:PoolTeam[]){const n=(lane:string)=>teams.filter(t=>t.lane===lane).length;
+  return {official:n('official'),online:n('online'),shared:n('shared'),mergedSpreads:teams.filter(t=>t.spreadsFrom).length,total:teams.length,withSpreads:teams.filter(t=>t.sets.some(s=>s.statPoints)).length};}
 let running:Promise<unknown>|null=null;
 export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}:{minPlayers?:number;log?:Log}={}){
   if(running)return running;
@@ -82,9 +86,17 @@ export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}
     const safe=async<T>(name:string,fn:()=>Promise<T[]>)=>{try{return await fn();}catch(e){errors.push(`${name}: ${(e as Error).message}`);say(`${name} failed: ${(e as Error).message}`);return [] as T[];}};
     const official=await safe('Official',()=>officialTeams(say));const online=await safe('Online',()=>onlineTeams(say,minPlayers));const shared=await safe('Shared',()=>sharedTeams(say));
     const {teams,merged,duplicates}=consolidate(official,online,shared);
-    const status={refreshedAt:new Date().toISOString(),started,minPlayers,counts:{official:official.length,online:online.length,shared:shared.length,mergedSpreads:merged,duplicateShares:duplicates,total:teams.length,withSpreads:teams.filter(t=>t.sets.some(s=>s.statPoints)).length},
-      notes,errors,excluded:'Mirrors (StatCrusher, MunchStats Showdown tabs, Top Cut Explorer) and composites (Suckerpunch, Pikalytics, LabMaus) are not ingested; they repackage these upstreams or blend them.'};
-    if(teams.length||!(await optionalJSON(TEAMS,null))){await save(TEAMS,{refreshedAt:status.refreshedAt,teams});memo=null;}await save(STATUS,status);return status;})();
+    const counts={official:official.length,online:online.length,shared:shared.length,mergedSpreads:merged,duplicateShares:duplicates,total:teams.length,withSpreads:teams.filter(t=>t.sets.some(s=>s.statPoints)).length};
+    const excluded='Mirrors (StatCrusher, MunchStats Showdown tabs, Top Cut Explorer) and composites (Suckerpunch, Pikalytics, LabMaus) are not ingested; they repackage these upstreams or blend them.';
+    const now=new Date().toISOString(),previous=await optionalJSON<{refreshedAt:string;teams:PoolTeam[]}|null>(TEAMS,null);
+    // A failed lane would silently shrink the pool (and the hosted tables loaded from it), so the previous complete pool
+    // stays in place and its status keeps describing it; the failed attempt is recorded alongside.
+    if(keepPreviousPool(teams,previous,errors)){const before=await optionalJSON<any>(STATUS,null);
+      const status={...(before?.refreshedAt===previous!.refreshedAt?before:{counts:laneCounts(previous!.teams)}),refreshedAt:previous!.refreshedAt,errors,
+        notes:[...notes,`Kept the previous pool (refreshed ${previous!.refreshedAt}): this refresh had errors.`],lastAttempt:{started,at:now,counts,errors},excluded};
+      await save(STATUS,status);return status;}
+    const status={refreshedAt:now,started,minPlayers,counts,notes,errors,excluded};
+    await save(TEAMS,{refreshedAt:now,teams});memo=null;await save(STATUS,status);return status;})();
   try{return await running;}finally{running=null;}
 }
 export const poolStatus=()=>optionalJSON<any>(STATUS,null);

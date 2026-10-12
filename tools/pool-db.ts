@@ -1,6 +1,6 @@
 // The team pool as relational rows (Supabase `pool_*` tables), so usage questions become SQL.
 // poolRows() is a pure transform of knowledge/pool/teams.json; the CLI upserts the rows with the server's secret key:
-//   node tools/pool-db.ts --env .env.hosted [--pool <teams.json>] [--dry-run]
+//   node tools/pool-db.ts --env .env.hosted [--pool <teams.json>] [--dry-run] [--force]
 // Lanes stay separate (official | online | shared) and every team keeps its source URL. Names are checked against
 // the Showdown engine (`dex`): resolved names are stored in canonical spelling; anything the engine does not know is
 // stored exactly as the source wrote it and listed in the set's `unresolved` column, never guessed or corrected.
@@ -65,6 +65,10 @@ export function poolRows(teams:PoolTeam[],{refreshedAt,format='M-C'}:{refreshedA
   return {events:[...events.values()],players:[...players.values()],sets:[...sets.values()],teams:out,members,unresolved};
 }
 
+// A load that would shrink the hosted pool by more than `limit` (teams) is almost always a partial refresh.
+export function shrinkage(next:number,current:number|null,limit=0.2):string|null{
+  return current&&next<current*(1-limit)?`the pool has ${next} teams but the hosted tables hold ${current} (${Math.round(100*(1-next/current))}% fewer)`:null;}
+
 // Upserts in batches, then removes rows that the current pool no longer contains (older refreshed_at).
 async function load(args:string[]){
   const flag=(name:string)=>{const i=args.indexOf(name);return i>=0?args[i+1]:undefined;};const dry=args.includes('--dry-run');
@@ -75,12 +79,17 @@ async function load(args:string[]){
   const counts={events:rows.events.length,players:rows.players.length,sets:rows.sets.length,teams:rows.teams.length,members:rows.members.length};
   const flagged=Object.fromEntries(Object.entries(rows.unresolved).map(([k,v])=>[k,Object.values(v).reduce((a,b)=>a+b,0)]));
   console.log(`Pool ${file} · refreshed ${pool.refreshedAt}`);console.log('Rows',counts);console.log('Unresolved names (stored as written, flagged)',flagged);
-  if(dry){for(const [k,v] of Object.entries(rows.unresolved))if(Object.keys(v).length)console.log(`  ${k}:`,Object.entries(v).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([n,c])=>`${n} ×${c}`).join(', '));return;}
   const url=process.env.SUPABASE_URL??process.env.VITE_SUPABASE_URL,key=process.env.SUPABASE_SECRET_KEY;
-  if(!url||!key)throw new Error('SUPABASE_URL (or VITE_SUPABASE_URL) and SUPABASE_SECRET_KEY are required; pass --env <file>.');
-  const {createClient}=await import('@supabase/supabase-js');
-  const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  const db=url&&key?(await import('@supabase/supabase-js')).createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
   const fail=(what:string,error:{message:string}|null)=>{if(error)throw new Error(`${what}: ${error.message}`);};
+  // Compare with what the hosted tables hold now: a load replaces them, so a much smaller pool (a refresh whose
+  // sources failed) would delete most of the hosted pool. Refused unless --force.
+  let blocked:string|null=null;
+  if(db){const {data,error}=await db.from('pool_snapshots').select('refreshed_at,counts').not('loaded_at','is',null).order('loaded_at',{ascending:false}).limit(1);fail('pool_snapshots read',error);
+    const current=data?.[0];if(current){console.log(`Hosted now: refreshed ${current.refreshed_at}`,current.counts);blocked=shrinkage(counts.teams,current.counts?.teams??null);if(blocked)console.log(`Warning: ${blocked}`);}}
+  if(dry){for(const [k,v] of Object.entries(rows.unresolved))if(Object.keys(v).length)console.log(`  ${k}:`,Object.entries(v).sort((a,b)=>b[1]-a[1]).slice(0,12).map(([n,c])=>`${n} ×${c}`).join(', '));return;}
+  if(!db)throw new Error('SUPABASE_URL (or VITE_SUPABASE_URL) and SUPABASE_SECRET_KEY are required; pass --env <file>.');
+  if(blocked&&!args.includes('--force'))throw new Error(`Not loaded: ${blocked}. Refresh the pool first, or pass --force to replace the hosted pool anyway.`);
   const upsert=async(table:string,list:object[],onConflict:string)=>{for(let i=0;i<list.length;i+=500){const {error}=await db.from(table).upsert(list.slice(i,i+500),{onConflict});fail(`${table} upsert`,error);}console.log(`  ${table}: ${list.length} upserted`);};
   const {error:snapErr}=await db.from('pool_snapshots').upsert({refreshed_at:pool.refreshedAt,loaded_at:null,counts,unresolved:flagged},{onConflict:'refreshed_at'});fail('pool_snapshots',snapErr);
   await upsert('pool_events',rows.events,'id');await upsert('pool_players',rows.players,'id');await upsert('pool_sets',rows.sets,'id');
