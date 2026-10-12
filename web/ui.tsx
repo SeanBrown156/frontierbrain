@@ -1,5 +1,7 @@
+import {useSpriteStyle,spriteUrls} from './fx.ts';
 import {useEffect,useRef,useState,useId,type ReactNode} from 'react';
 import ReactMarkdown from 'react-markdown';
+import {createPortal} from 'react-dom';
 import {X} from 'lucide-react';
 import remarkGfm from 'remark-gfm';
 import {accessToken} from './auth.tsx';
@@ -36,9 +38,11 @@ export function Art({name,art,small=false,kind='home',fallback}:{name:string;art
   // A Mega without its own HOME render shows the base form's HOME render before any illustration, so every
   // render on a page keeps the same 3D style.
   const alt=fallback&&fallback!==name?urls(fallback):[];
-  const sources=(kind==='home'&&alt.length?[urls(name)[0],alt[0],urls(name)[1],alt[1]]:[...urls(name),...alt]).filter(Boolean) as string[];
-  const [step,setStep]=useState(0);useEffect(()=>setStep(0),[name]);const src=sources[step];
-  return <span className={'art '+(small?'small':'')} title={name}>{src?<img key={src} src={src} alt={name} loading="lazy" onError={()=>setStep(step+1)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
+  // The sprite setting (Settings) puts Showdown's animated sprites first; HOME renders stay the fallback.
+  const sprite=useSpriteStyle();const sprites=kind==='home'&&sprite!=='home'?[...spriteUrls(name,sprite),...(fallback&&fallback!==name?spriteUrls(fallback,sprite):[])]:[];
+  const sources=[...sprites,...(kind==='home'&&alt.length?[urls(name)[0],alt[0],urls(name)[1],alt[1]]:[...urls(name),...alt])].filter(Boolean) as string[];
+  const [step,setStep]=useState(0);useEffect(()=>setStep(0),[name,sprite]);const src=sources[step];const isSprite=step<sprites.length;
+  return <span className={'art '+(small?'small':'')+(isSprite?' sprite sprite-'+sprite:'')} title={name}>{src?<img key={src} src={src} alt={name} loading="lazy" onError={()=>setStep(step+1)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
 // Species types and item sheet positions, fetched once per name and shared by every card on the page.
 export type MegaForm={name:string;item:string;types:string[];ability:string;baseStats:Record<string,number>};
 const dexCache={types:{} as Record<string,string[]>,base:{} as Record<string,Record<string,number>>,megas:{} as Record<string,MegaForm[]>,moves:{} as Record<string,string>,items:{} as Record<string,number>};let dexWaiting:Promise<void>|null=null;const dexWant={species:new Set<string>(),items:new Set<string>(),moves:new Set<string>()};
@@ -70,7 +74,8 @@ export function SiteIcon({url,icon,size=20}:{url:string;icon?:string;size?:numbe
 // Box icon from the locally cached Showdown sheet (12 columns of 40×30); blank cell when unknown.
 export function PokeIcon({n}:{n?:number}){return <span className="poke-icon" aria-hidden="true" style={n?{backgroundPosition:`-${(n%12)*40}px -${Math.floor(n/12)*30}px`}:{backgroundImage:'none'}}/>;}
 export function Panel({title,kicker,children,className='',action}:{title:ReactNode;kicker?:string;children:ReactNode;className?:string;action?:ReactNode}){return <section className={'panel '+className}><header className="panel-heading"><div>{kicker&&<span className="eyebrow">{kicker}</span>}<h2>{title}</h2></div>{action}</header>{children}</section>;}
-export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);return <dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button className="icon dialog-close" aria-label="Close dialog" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>{children}</dialog>;}
+export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);// Rendered at the end of <body>, so styles scoped to the page section that opened it never reach the dialog.
+  return createPortal(<dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button className="icon dialog-close" aria-label="Close dialog" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>{children}</dialog>,document.body);}
 // Team members named in the text appear as small linked sprites beside their name (Mega names included).
 export type MonRef={name:string;set:{species:string;item?:string};href:string};
 function withMons(children:ReactNode,mons:MonRef[],art:any):ReactNode{

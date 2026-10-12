@@ -490,12 +490,12 @@ html.jade :is(.mon-card,.team-card,.set-card,.panel,.welcome-card)::after{conten
  background:radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) top left/6px 6px no-repeat,radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) top right/6px 6px no-repeat,
   radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) bottom left/6px 6px no-repeat,radial-gradient(circle,var(--screw) 1.4px,transparent 1.9px) bottom right/6px 6px no-repeat}
 
-/* hover: a light sweep across the glass and an emerald edge, never a dotted line */
+/* hover: a band of light sweeps down the glass (the same direction as a screen switching on) and an emerald edge, never a dotted line */
 html.jade :is(.mon-card,.team-card,.source-card,.game-card){position:relative;overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s}
 html.jade :is(.mon-card,.team-card,.source-card,.game-card)::before{content:'';position:absolute;inset:-1px;z-index:-1;pointer-events:none;border-radius:inherit;
- background:linear-gradient(105deg,transparent 30%,color-mix(in srgb,var(--ac-2) 22%,transparent) 45%,color-mix(in srgb,#fff 26%,transparent) 50%,color-mix(in srgb,var(--ac-2) 18%,transparent) 55%,transparent 70%) -160% 0/250% 100% no-repeat;
+ background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--ac-2) 22%,transparent) 45%,color-mix(in srgb,#fff 26%,transparent) 50%,color-mix(in srgb,var(--ac-2) 18%,transparent) 55%,transparent 70%) 0 160%/100% 250% no-repeat;
  transition:background-position 0s}
-html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover::before{background-position:160% 0;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
+html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover::before{background-position:0 -160%;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
 html.jade :is(.mon-card,.team-card,.source-card,.game-card):hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 55%,transparent)!important;
  box-shadow:inset 0 1px 0 var(--hi),0 0 0 1px color-mix(in srgb,var(--ac) 20%,transparent),0 24px 48px -26px var(--glow);color:inherit}
 
@@ -726,8 +726,8 @@ html.jade .wl-mon.on .art img{filter:drop-shadow(0 18px 24px var(--shade)) drop-
 .wl-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:34px 0}
 .wl-benefits article{position:relative;padding:22px 20px;border-radius:var(--r);border:1px solid var(--ln);background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 55%),var(--glass);box-shadow:inset 0 1px 0 var(--hi);
  -webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur));overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;animation:jRise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.4s + var(--i) * 80ms)}
-.wl-benefits article::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,transparent 30%,color-mix(in srgb,var(--ac-2) 20%,transparent) 46%,rgba(255,255,255,.2) 50%,transparent 66%) -160% 0/250% 100% no-repeat}
-.wl-benefits article:hover::before{background-position:160% 0;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
+.wl-benefits article::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--ac-2) 20%,transparent) 46%,rgba(255,255,255,.2) 50%,transparent 66%) 0 160%/100% 250% no-repeat}
+.wl-benefits article:hover::before{background-position:0 -160%;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
 .wl-benefits article:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 50%,transparent);box-shadow:inset 0 1px 0 var(--hi),0 24px 44px -26px var(--glow)}
 .wl-k{display:flex;align-items:center;gap:10px;font:600 10.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
 .wl-n{font:900 22px/1 var(--fdot);color:color-mix(in srgb,var(--tx) 30%,transparent);letter-spacing:0}
@@ -1305,8 +1305,8 @@ html.jade :is(.chip,.chip-row>button):hover{color:var(--tx)!important;border-col
 html.jade :is(.chip.on,.chip-row>button.on){background:color-mix(in srgb,var(--ac) 16%,transparent)!important;border-color:color-mix(in srgb,var(--ac) 60%,transparent)!important;color:var(--tx)!important}
 html.jade .style-tags .chip{height:26px;font-size:12px!important;cursor:default}
 /* default buttons: lighter glass and a softer edge so they sit in the panels rather than on top of them */
-html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):not(.title-button):not(.plan-toggle):not(.plan-actions .icon):not(.guide-six a):not(.masthead *):not(.ticker *){border-color:var(--ln)!important;background:color-mix(in srgb,var(--glass-2) 70%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi)!important;color:var(--tx)}
-html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):not(.title-button):not(.plan-toggle):not(.plan-actions .icon):not(.guide-six a):not(.masthead *):not(.ticker *):hover:not(:disabled){border-color:color-mix(in srgb,var(--ac) 50%,var(--ln))!important;background:var(--hover)!important}
+html.jade :is(button,.button):not(.primary):not(.danger):not(.selected):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):not(.title-button):not(.plan-toggle):not(.plan-actions .icon):not(.guide-six a):not(.masthead *):not(.ticker *){border-color:var(--ln)!important;background:color-mix(in srgb,var(--glass-2) 70%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi)!important;color:var(--tx)}
+html.jade :is(button,.button):not(.primary):not(.danger):not(.selected):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):not(.title-button):not(.plan-toggle):not(.plan-actions .icon):not(.guide-six a):not(.masthead *):not(.ticker *):hover:not(:disabled){border-color:color-mix(in srgb,var(--ac) 50%,var(--ln))!important;background:var(--hover)!important}
 html.jade .digest .threat,html.jade .digest .tag{font-family:var(--fb)!important}
 html.jade .common{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 /* history strips: no Mega orbs at 32px; the render already shows the Mega */
@@ -1422,7 +1422,7 @@ html.jade .plan-toggle{background:none!important;border:0!important}
 html.jade .brand-logo{width:34px!important;height:34px!important;filter:drop-shadow(0 3px 8px var(--glow))}
 html.jade .plan-actions button.icon{box-shadow:none!important}
 .brain-backdrop{z-index:0!important}
-html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
+html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle):not(.boot):not(.screen-sweep){position:relative;z-index:1}
 html.jade .shell>.masthead{z-index:30}
 /* dialogs: title flush with the content's left edge */
 html.jade .modal{padding:24px!important}
@@ -1496,7 +1496,7 @@ html.jade .theme-head b{font-size:15px}
 html.jade .debrief .themes p{margin:0;line-height:1.65;color:var(--tx);opacity:.9}
 @media (max-width:1000px){.debrief{grid-template-columns:minmax(0,1fr)}}
 .brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
-html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle){position:relative;z-index:1}
+html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle):not(.boot):not(.screen-sweep){position:relative;z-index:1}
 .wl-orb .wl-brain-hint{opacity:.8!important;bottom:4%}
 .brain-backdrop{opacity:.55;transition:opacity .6s}
 .brain-backdrop.hero{opacity:.9}
@@ -1509,17 +1509,13 @@ html.jade[data-theme=dark]{--glass:rgba(9,26,19,.84);--glass-2:rgba(18,44,33,.9)
 html.jade :is(.hub-tabs,.format-tag,.ticker,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
 html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
 
-/* ---------- top of page: news and nav run edge to edge as one bar; scrolling detaches the nav into a floating pill ---------- */
+/* ---------- top of page: news and nav run edge to edge as one bar, and the nav stays full width when you scroll ---------- */
 html.jade body{overflow-x:clip}
 html.jade{--edge:max(16px,calc((100vw - 1320px) / 2 + 16px))}
 html.jade .shell>.ticker{width:100vw;margin:0 0 0 calc(50% - 50vw)!important;padding:0 var(--edge)!important;height:34px;border-radius:0!important;
  background:color-mix(in srgb,var(--bg) 88%,transparent)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--ln)!important}
 html.jade .shell>.masthead{width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw)!important;top:0!important;border-radius:0!important;border-width:0 0 1px!important;padding:10px var(--edge)!important;
- background:color-mix(in srgb,var(--bg) 82%,transparent)!important;box-shadow:none!important;
- transition:width .35s cubic-bezier(.2,.8,.2,1),margin .35s cubic-bezier(.2,.8,.2,1),padding .35s,border-radius .35s,top .35s,box-shadow .35s,background .35s}
-html.jade .shell.scrolled>.masthead{width:min(1320px,calc(100vw - 32px));margin-left:calc(50% - min(1320px,calc(100vw - 32px)) / 2)!important;top:10px!important;
- border-radius:16px!important;border-width:1px!important;padding:6px 14px!important;background:var(--glass)!important;box-shadow:inset 0 1px 0 var(--hi),0 18px 40px -24px var(--shade)!important}
-html.jade .shell.scrolled .brand{font-size:19px!important}html.jade .shell.scrolled .brand-logo{width:28px!important;height:28px!important}
+ background:color-mix(in srgb,var(--bg) 82%,transparent)!important;box-shadow:none!important;}
 html.jade .shell>.masthead+*{margin-top:8px}
 /* news label: quiet hover, no red block */
 html.jade .ticker .ticker-label{border:0!important;box-shadow:none!important;padding:0 12px 0 0!important;height:100%}
@@ -1587,6 +1583,444 @@ html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;wi
 @media (prefers-reduced-motion:reduce){html.jade .dock{animation:none}}
 .crit-alt{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0!important}.crit-alt b{font:800 22px var(--fd)}
 
+/* ---------- Jade × Phosphor ----------
+   Saira stays for titles and Hanken for reading. IBM Plex Mono carries the numbers and the rare terminal moments (the
+   boot, the calc readout), glowing like phosphor in the dark theme and plain emerald in the light one. CRT texture is
+   kept to readouts, and a screen switches on with a downward sweep. All motion stops for prefers-reduced-motion. */
+html.jade{--fnum:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;--fdot:var(--fnum);
+ --phos:#0A7A4A;--phos-glow:none;--phos-title:0 2px 24px var(--bg);--phos-gold:none;--scan:rgba(8,32,26,.045)}
+@media (prefers-color-scheme:dark){html.jade:not([data-theme=light]){
+ --phos:#8DFFC4;--phos-glow:0 0 6px rgba(61,255,142,.5),0 0 18px rgba(61,255,142,.2);--phos-title:0 0 22px rgba(31,208,138,.32),0 0 2px rgba(95,240,174,.45);
+ --phos-gold:0 0 6px rgba(244,196,67,.5),0 0 16px rgba(244,196,67,.18);--scan:rgba(0,0,0,.26)}}
+html.jade[data-theme=dark]{
+ --phos:#8DFFC4;--phos-glow:0 0 6px rgba(61,255,142,.5),0 0 18px rgba(61,255,142,.2);--phos-title:0 0 22px rgba(31,208,138,.32),0 0 2px rgba(95,240,174,.45);
+ --phos-gold:0 0 6px rgba(244,196,67,.5),0 0 16px rgba(244,196,67,.18);--scan:rgba(0,0,0,.26)}
+
+/* Numbers: Plex Mono in phosphor. Mono runs wider than Saira Condensed, so the biggest sizes step down a little. */
+html.jade :is(.lab-big b,.lane-stat b,.wl-facts dd,.stat-final,.mon-slot,.wl-n,.card-record,.hp-head span,.sp-bar .v,.set-edit .sp-grid small,.sp-edit .stat-bars-head b,.common-mon small,.pool-counts b){
+ font-family:var(--fnum)!important;font-weight:600!important;color:var(--phos)!important;text-shadow:var(--phos-glow);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+html.jade .lab-big b{font-size:40px!important}
+html.jade .lane-stat b{font-size:28px!important}
+html.jade .stat-final{font-size:19px!important}
+html.jade .mon-slot{font-size:24px!important;opacity:.55}
+html.jade .stat-plus{font-family:var(--fnum)!important;font-weight:600!important;color:var(--gd)!important;text-shadow:var(--phos-gold)}
+html.jade :is(.lab-big span,.crit-alt b){font-family:var(--fnum);font-variant-numeric:tabular-nums}
+/* Data pool tables: only the number columns go mono (most used: share and count; pairs: share). */
+html.jade .data-pool .stat-table td:is(:nth-child(n+3),:nth-child(2):last-child){font-family:var(--fnum);font-variant-numeric:tabular-nums}
+html.jade .data-pool .stat-table td:is(:nth-child(3),:nth-child(2):last-child){color:var(--phos);text-shadow:var(--phos-glow);font-weight:600}
+
+/* Titles keep Saira and pick up a faint phosphor bloom in the dark. */
+html.jade main h1,html.jade :is(.landing-head,.hub-head) h1,html.jade .boot-exe{text-shadow:var(--phos-title)}
+
+/* Subtle CRT on readouts only: fine scanlines and a soft vignette over the calc result, nothing else. */
+html.jade .lab-result{position:relative;overflow:hidden}
+html.jade .lab-result::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+ background:repeating-linear-gradient(180deg,var(--scan) 0 1px,transparent 1px 3px),radial-gradient(130% 100% at 50% 50%,transparent 62%,var(--scan) 100%)}
+
+/* The calc running: a mono line whose bar draws across, then the result resolves (numbers roll in fx.ts). */
+.calc-run{display:flex;align-items:center;gap:12px;margin:0 0 var(--s3);font:500 12px/1.4 var(--fnum);letter-spacing:.05em;text-transform:uppercase;color:var(--phos);text-shadow:var(--phos-glow)}
+.calc-run span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65%}
+.calc-run i{flex:1;height:2px;border-radius:1px;background:linear-gradient(90deg,var(--ac),var(--ac-2));box-shadow:0 0 8px var(--glow);transform-origin:left;animation:fx-run .45s cubic-bezier(.6,0,.2,1) both}
+.calc-run b{font-weight:700;color:var(--phos);animation:fx-fade .2s ease .45s both}
+@keyframes fx-run{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fx-fade{from{opacity:0}to{opacity:1}}
+
+/* A screen switching on: after the boot, the page opens from a bright line; every page change sweeps light downward. */
+.shell.power-on>:is(main,.masthead,.ticker){animation:fx-power .75s cubic-bezier(.2,.7,.2,1) both}
+@keyframes fx-power{0%{clip-path:inset(49.7% 0 49.7% 0);opacity:.5}35%{clip-path:inset(49.7% 0 49.7% 0);opacity:1}100%{clip-path:inset(0 0 0 0)}}
+.screen-sweep{position:fixed;left:0;right:0;top:0;height:28vh;z-index:5;pointer-events:none;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--ac-2) 9%,transparent) 70%,color-mix(in srgb,var(--ac-2) 16%,transparent) 96%,transparent);animation:fx-sweep 1.1s cubic-bezier(.3,.1,.2,1) both}
+.shell.power-on .screen-sweep{animation-delay:.45s}
+@keyframes fx-sweep{from{transform:translateY(-30vh)}to{transform:translateY(110vh)}}
+
+/* Boot: the display face types "loading frontier-brain.exe" over the brain as it powers up; status lines in Plex Mono. */
+.shell.booting>:not(.brain-backdrop):not(.boot){visibility:hidden}
+html.jade .brain-backdrop.booting{opacity:.95!important}
+html.jade .brain-backdrop{transition:opacity 1.6s ease}
+.boot{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;padding:0 8vw;background:linear-gradient(180deg,color-mix(in srgb,var(--bg) 78%,transparent),color-mix(in srgb,var(--bg) 45%,transparent));transition:opacity .5s ease}
+.boot.leaving{opacity:0}
+.boot::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(180deg,var(--scan) 0 1px,transparent 1px 3px)}
+.boot-inner{position:relative;z-index:1;max-width:980px}
+.boot-exe{margin:0;font:800 clamp(34px,6.2vw,92px)/.95 var(--fd);white-space:nowrap;text-transform:uppercase;letter-spacing:.01em;color:var(--tx)}
+.boot-exe .ext{color:var(--ac)}
+.boot-exe .caret{display:inline-block;width:.4em;height:.76em;margin-left:.08em;vertical-align:-.04em;background:var(--ac);box-shadow:0 0 14px var(--glow);animation:fx-blink .9s steps(1) infinite}
+@keyframes fx-blink{50%{opacity:0}}
+.boot-lines{margin-top:var(--s6);font:400 14px/1.9 var(--fnum);color:var(--mu);max-width:620px}
+.boot-lines div{display:flex;gap:var(--s4);animation:fx-rise .22s ease-out both}
+.boot-lines span{flex:1;white-space:pre}
+.boot-lines b{font-weight:600;letter-spacing:.06em;color:var(--phos);text-shadow:var(--phos-glow)}
+.boot-lines b.warn{color:var(--hot);text-shadow:none}
+.boot-lines .ready span{color:var(--gd);font-weight:600}
+@keyframes fx-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.boot-bar{display:flex;align-items:center;gap:var(--s4);margin-top:var(--s4);max-width:620px}
+.boot-track{flex:1;height:4px;border-radius:2px;background:var(--ln);overflow:hidden}
+.boot-track i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac-2));box-shadow:0 0 10px var(--glow);transition:width .25s ease}
+.boot-bar b{min-width:64px;text-align:right;font:600 22px var(--fnum);color:var(--phos);text-shadow:var(--phos-glow)}
+.boot-skip{margin-top:var(--s6);font:500 11px var(--fnum);letter-spacing:.2em;text-transform:uppercase;color:var(--mu);opacity:.7}
+
+/* Pokémon art as Showdown sprites (Settings → Pokémon art): pixel-crisp Black/White, smooth XY. */
+.art.sprite img{object-fit:contain}
+.art.sprite-gen5 img{image-rendering:pixelated}
+.sprite-choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+html.jade .sprite-choice button.sprite-option:not(#_){max-height:none!important;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;height:auto!important;min-height:0!important;padding:12px 8px 16px!important;text-align:center;white-space:normal;border-radius:var(--r)!important}
+html.jade .sprite-choice button.sprite-option.on:not(#_){border-color:var(--ac)!important;box-shadow:0 0 0 1px var(--ac),0 0 18px -6px var(--glow)!important;background:color-mix(in srgb,var(--ac) 10%,transparent)!important}
+.sprite-preview{display:flex;align-items:flex-end;justify-content:center;width:100%;height:120px;padding-bottom:14px;box-sizing:border-box;margin-bottom:8px;border-radius:var(--rs);background:radial-gradient(42% 16% at 50% 84%,var(--floor),transparent 100%)}
+.sprite-preview img{max-width:100%;max-height:100%;object-fit:contain}
+.sprite-preview.sprite-home img{height:100px}
+.sprite-preview.sprite-gen5 img{height:96px;image-rendering:pixelated}
+.sprite-preview.sprite-xy img{max-height:104px}
+.sprite-choice b{font:700 15px var(--fb)}
+.sprite-choice small{color:var(--mu);font-weight:400;font-size:12px}
+@media (max-width:620px){.sprite-choice{gap:8px}.sprite-preview{height:96px;padding-bottom:10px}.sprite-preview.sprite-home img{height:76px}.sprite-preview.sprite-gen5 img{height:68px}.sprite-preview.sprite-xy img{max-height:76px}html.jade .sprite-choice button.sprite-option:not(#_){padding:8px 4px 12px!important}}
+
+@media (prefers-reduced-motion:reduce){.calc-run i,.calc-run b,.shell.power-on>*,.screen-sweep,.boot-exe .caret,.boot-lines div{animation:none!important}.screen-sweep{display:none}}
+
+/* ---------- Pokémon page and calc ---------- */
+/* Fieldsets default to min-width:min-content, which let long rows push past the set card. */
+html.jade .set-card fieldset{min-width:0}
+/* The calc result is one column that never grows past its box. */
+html.jade .lab-result{grid-template-columns:minmax(0,1fr)}
+html.jade :is(.dmg,.dmg-head,.race){min-width:0;grid-template-columns:minmax(0,1fr)}
+html.jade .dmg-head .eyebrow{overflow-wrap:anywhere}
+.calc-run span{flex:0 1 auto;min-width:0;max-width:none}
+.calc-run i{min-width:24px}
+.calc-run b{flex:none}
+.hp-head{flex-wrap:wrap;gap:0 12px}
+.hp-head b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Save as benchmark and the spread search stack, one per row. */
+html.jade .result-foot{flex-direction:column;align-items:flex-start;gap:8px}
+html.jade .result-foot button{align-self:auto!important;margin:0!important;max-width:100%;white-space:normal;text-align:left}
+
+/* Calc cards: the render on top, then the role, name and the rest at full width. */
+html.jade .matchup .combatant{grid-template-columns:minmax(0,1fr)!important;gap:12px}
+html.jade .matchup .combatant .combatant-art{flex-direction:row;justify-content:flex-start;width:96px!important;height:96px!important}
+html.jade .matchup .combatant .combatant-art .art{width:96px!important;height:96px!important}
+html.jade .matchup .combatant .combatant-art::after{left:12%;right:12%}
+/* The Mega pill by the name is the switch: lit when on, an outline with a dimmed orb when off. */
+html.jade .name-row{display:inline-flex;align-items:center;flex-wrap:wrap;gap:12px}
+html.jade .mega-switch.mega-toggle{height:24px!important;min-height:24px!important;max-height:24px!important;padding:0 10px 0 4px!important;gap:6px;border-radius:999px!important;font:700 11px/1 var(--fb)!important;letter-spacing:.08em;cursor:pointer;
+ color:var(--mu)!important;background:transparent!important;border:1px dashed var(--ln-2)!important;transition:color .2s,border-color .2s,background .2s}
+html.jade .mega-switch.mega-toggle .mega-orb{width:16px!important;height:16px!important;filter:grayscale(1);opacity:.45;transition:filter .2s,opacity .2s}
+html.jade .mega-switch.mega-toggle:hover{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important}
+html.jade .mega-switch.mega-toggle.on{color:var(--tx)!important;border-style:solid!important;border-color:color-mix(in srgb,var(--gd) 45%,transparent)!important;
+ background:linear-gradient(90deg,rgba(255,94,126,.14),rgba(255,233,94,.14),rgba(94,255,168,.14),rgba(94,200,255,.14),rgba(163,94,255,.14))!important}
+html.jade .mega-switch.mega-toggle.on .mega-orb{filter:none;opacity:1}
+html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+
+@media (max-width:620px){
+ /* Moves: one per row. */
+ html.jade .set-fields .moves .form-grid{grid-template-columns:minmax(0,1fr)!important}
+ html.jade .set-fields .moves .picker .combo-list,html.jade .set-fields .moves .form-grid>.picker:nth-child(even) .combo-list{min-width:0;left:0;right:0}
+ /* Slot switcher: a six-up strip across the top. */
+ html.jade nav.mon-switcher{gap:4px!important;padding:4px;margin:0 0 16px!important}
+ html.jade nav.mon-switcher a{padding:4px 0!important}
+ html.jade nav.mon-switcher .art.small{width:44px!important;height:44px!important}
+ html.jade nav.mon-switcher a.selected .art.small{transform:scale(1.08)}
+ /* Tighter panels so the content gets the width. */
+ html.jade .workspace-grid,html.jade .set-column{gap:16px!important}
+ html.jade .workspace .panel{padding:16px 12px!important}
+ html.jade .set-card fieldset.plain{padding:0!important;margin:0!important}
+ html.jade .set-fields fieldset,html.jade .set-card fieldset.set-history{padding:12px!important;margin:0 0 16px!important}
+ html.jade .set-card .form-grid{gap:12px!important}
+ html.jade .set-card-head{gap:12px!important}
+ html.jade .lab{gap:16px!important}
+ html.jade .matchup .combatant{padding:12px!important}
+ html.jade .matchup .combatant .combatant-art,html.jade .matchup .combatant .combatant-art .art{width:72px!important;height:72px!important}
+ html.jade .field-box{padding:12px}
+ html.jade .field-box .field-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+ html.jade .field-box .field-row>:is(.ctx-label,.toggles){grid-column:1/-1;justify-self:center}
+ html.jade .field-box .field-row label,html.jade .field-box .field-row select{width:100%;margin:0}
+ html.jade .combatant-head .combo{flex-basis:100%;max-width:none}
+ html.jade .lab-result{padding:12px!important;gap:12px!important}
+ /* Damage readout sized for a phone. */
+ html.jade .lab-big b{font-size:32px!important}
+ .lab-big{gap:4px 8px}
+ .calc-run{gap:8px;font-size:11px}
+ .dmg{gap:12px}
+ .dmg-target{grid-template-columns:48px minmax(0,1fr);gap:12px}
+ html.jade .dmg-art .art{width:48px!important;height:48px!important}
+ .hp-head b{font-size:16px}
+ html.jade .hp-head span{font-size:15px!important}
+ .rolls{gap:2px}
+ /* Save as benchmark and the spread search fill the column. */
+ html.jade .result-foot{align-items:stretch}
+ html.jade .result-foot button{width:100%;justify-content:center;text-align:center;height:auto!important;min-height:40px!important;max-height:none!important;padding:8px 12px!important}
+ /* History: date and action on top, the set and its spread below. */
+ html.jade .set-history li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"date act" "set sp";gap:4px 12px;padding:8px 12px}
+ html.jade .set-history .h-date{grid-area:date}
+ html.jade .set-history .h-set{grid-area:set}
+ html.jade .set-history .h-sp{grid-area:sp;justify-self:end}
+ html.jade .set-history li>:last-child{grid-area:act;justify-self:end}
+}
+
+/* ---------- replays filter ----------
+   One bar: search (multi-select chips inside the field) and the Pokémon dropdown on the left, All/Wins/Losses on the
+   right. Every control is 40px; chips are 24px, sitting 8px inside the field. Stacked full width on phones. */
+html.jade .replays .replay-filters.rf{position:relative;z-index:20;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;margin:0!important}
+.rf-find{display:flex;align-items:flex-start;gap:12px;flex:1 1 auto;min-width:0}
+.rf-search{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px;flex:0 1 560px;min-width:0;min-height:40px;box-sizing:border-box;padding:7px 12px 7px 40px;background:var(--field);border:1px solid var(--ln-2);border-radius:var(--rs);cursor:text;transition:border-color .2s,box-shadow .2s}
+.rf-search:hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
+.rf-search:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+.rf-search-icon{position:absolute;left:12px;top:11px;display:flex;color:var(--mu);pointer-events:none}
+html.jade .rf-search>input{flex:1 1 48px;width:auto;min-width:48px;height:24px!important;min-height:24px!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;font:400 14px/24px var(--fb);color:var(--tx)}
+.rf-search>input::placeholder{color:var(--mu);opacity:1}
+.rf-chip{display:inline-flex;align-items:center;gap:4px;height:24px;max-width:100%;box-sizing:border-box;padding:0 0 0 8px;border-radius:999px;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);color:var(--tx);font:600 12px/1 var(--fb);white-space:nowrap}
+.rf-chip>span:not(.poke-icon){overflow:hidden;text-overflow:ellipsis}
+.rf-chip.pokemon{padding-left:0}
+.rf-chip .poke-icon{transform:scale(.8);margin:-3px -4px -3px -4px}
+/* :not(#_) lifts these above the theme's broad button rule (a long :not() chain with !important). */
+html.jade .rf-chip>button:not(#_){width:20px;min-width:20px;height:20px!important;min-height:20px!important;max-height:20px!important;margin:0 1px 0 0;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none;color:var(--mu);transform:none!important}
+html.jade .rf-chip>button:not(#_):hover{background:var(--hover)!important;color:var(--tx)}
+html.jade .rf-chip>button:not(#_):focus-visible{outline-offset:0}
+html.jade .rf-list{top:calc(100% + 4px);left:0;right:auto;width:100%;min-width:280px;padding:4px!important;border-radius:12px!important;box-sizing:border-box}
+html.jade .rf-list:focus{outline:none}
+html.jade .rf-list.up{top:auto;bottom:calc(100% + 4px)}
+html.jade .rf-list li{text-align:left;justify-content:flex-start!important;min-height:40px;padding:4px 12px 4px 0!important;gap:4px;border-radius:8px!important}
+html.jade .rf-list li>small{font:500 12px var(--fb);color:var(--mu)}
+html.jade .rf-list li.chosen{color:var(--ac);font-weight:600}
+html.jade .rf-list li.chosen small{color:var(--ac)}
+html.jade .rf-list li>.rf-glyph,.rf-glyph{display:inline-flex;align-items:center;justify-content:center;flex:none!important;width:40px;height:30px;color:var(--mu)}
+html.jade .replays .rf-result{flex:none;margin:0!important;padding:3px;gap:4px;height:40px;box-sizing:border-box}
+html.jade .replays .rf-result>button{height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 16px!important;font-size:13px}
+@media (max-width:720px){
+ html.jade .replays .replay-filters.rf{flex-direction:column!important;align-items:stretch!important}
+ .rf-find{flex-direction:column;align-items:stretch}
+ .rf-search,.rf-mon{flex:none;width:100%}
+ html.jade .rf-list{min-width:0}
+ html.jade .replays .rf-result{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;align-self:stretch!important}
+}
+
+/* ---------- team hub (header, grid, strategy, history) ----------
+   The header is the team name and its four tabs; Export and the format moved to Manage with the history and Delete.
+   Phones get a 2 × 3 grid of compact cards, one header pattern for lead and matchup plans (title left, actions top
+   right, above the title on the narrowest screens), folded plan text and tighter spacing. 4px rhythm throughout. */
+html.jade .team-hub .hub-nav{justify-content:flex-start!important}
+
+/* Plans: lead and matchup cards share one header. */
+html.jade .plan-card header.plan-top{display:flex!important;flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important;gap:8px!important;flex-wrap:nowrap!important;text-align:left!important}
+html.jade .plan-top .plan-head{flex:1;min-width:0;min-height:32px;display:flex;align-items:center;justify-content:flex-start;gap:8px;flex-wrap:wrap}
+html.jade .plan-top .plan-head h3{min-width:0;overflow-wrap:anywhere}
+html.jade .plan-top .plan-actions{display:flex;align-items:center;gap:4px;flex:none}
+html.jade .plan-top .plan-actions .compact{height:32px!important;min-height:32px!important;max-height:32px!important}
+@media (hover:none){.plan-actions{opacity:1!important}}
+.plan-copy{display:flow-root;min-width:0}
+.plan-copy>*{margin:0}
+.plan-copy>*+*{margin-top:8px}
+.plan-more{display:none!important}
+.plan-foot:empty{display:none}
+html.jade .manage .history-list .team-six.mini{justify-content:flex-start}
+/* Front and back (or examples and bring) are split by a dashed rule. */
+html.jade .fb-divider{grid-column:1/-1;height:0;margin:0;background:none;border-top:1px dashed var(--ln)}
+
+/* Manage: export and format, the history, then delete. */
+.manage{display:grid;gap:24px}
+html.jade .manage>*{margin:0!important}
+.manage-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:16px}
+html.jade .manage-tile{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 20px!important;border-radius:var(--r);border:1px solid var(--ln);background:var(--glass)}
+html.jade .manage-tile h3{font:800 20px/1.1 var(--fd)!important;text-transform:uppercase;margin:4px 0 0!important}
+.manage-actions{display:flex;align-items:center;gap:8px}
+html.jade .manage-actions label{margin:0}
+html.jade .manage-actions :is(button,select){height:40px!important;min-height:40px!important;max-height:40px!important;margin:0!important}
+html.jade .manage-actions select{min-width:220px}
+.manage-history{display:grid;gap:12px}
+html.jade .manage-title{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:0!important}
+html.jade .manage .history-list{margin:0!important;border-radius:var(--r);overflow:hidden}
+html.jade .manage .history-list .what{min-width:0;overflow-wrap:anywhere}
+html.jade .manage .history-list .button-row .compact{height:32px!important;min-height:32px!important;max-height:32px!important}
+html.jade .manage .danger-zone{margin:0!important}
+
+@media (max-width:1000px){.manage-tiles{grid-template-columns:minmax(0,1fr)}}
+
+@media (max-width:760px){
+ /* Header: tighter, and the four tabs on one row. */
+ html.jade .team-hub .back-link{margin:12px 0 4px!important}
+ html.jade .team-hub .hub-head{margin:4px 0 12px!important}
+ html.jade .team-hub .hub-nav{padding-bottom:12px!important;margin-bottom:16px!important;gap:8px!important}
+ html.jade .team-hub .hub-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;width:100%;margin:0!important}
+ html.jade .team-hub .hub-tabs a{height:36px!important;padding:0 4px!important;gap:4px!important;justify-content:center;font-size:13px!important;letter-spacing:.04em}
+
+ /* The six: two columns, three rows, compact cards. */
+ html.jade .team-hub .six-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html.jade .six-grid .mon-card{padding:8px!important;gap:8px!important;border-radius:12px}
+ html.jade .six-grid .mon-slot{top:8px!important;right:8px!important;font-size:16px!important}
+ html.jade .six-grid .mon-card-head{min-height:0;gap:4px!important}
+ html.jade .six-grid .mon-card-head .art{width:72px!important;height:72px!important;margin:0!important}
+ html.jade .six-grid .mon-card-head>div{gap:4px!important}
+ html.jade .six-grid .mon-card h3{font-size:16px!important;gap:4px!important;overflow-wrap:anywhere}
+ html.jade .six-grid .mega-badge{height:auto;padding:0;font-size:0;gap:0;background:none!important;border:0!important;box-shadow:none!important}
+ html.jade .six-grid .mon-tags .type-badges{gap:4px}
+ html.jade .six-grid .mon-tags .type-badge{height:20px;padding:0 6px 0 4px;font-size:8.5px;gap:4px}
+ html.jade .six-grid .mon-item{margin:0!important;gap:4px!important;font-size:12px;line-height:16px}
+ html.jade .six-grid .mon-item .item-icon{flex:none}
+ html.jade .six-grid .mon-meta{font-size:11px}
+ html.jade .six-grid .sp-bars{gap:4px;margin:0}
+ html.jade .six-grid .sp-bar{grid-template-columns:28px minmax(0,1fr) 44px!important;gap:4px}
+ html.jade .six-grid .sp-bar .k{font-size:9px;letter-spacing:.02em}
+ html.jade .six-grid .sp-bar .v{font-size:10px!important}
+ html.jade .six-grid .sp-bar .v b{margin-left:1px}
+ html.jade .six-grid .mon-card .move-list{grid-template-columns:minmax(0,1fr);gap:4px;margin:0}
+ html.jade .six-grid .mon-card .move-list li{padding:4px 8px!important;font-size:12px;gap:4px;border-radius:8px}
+ html.jade .six-grid .mon-card .move-list .type-badge.mini{width:8px;height:8px!important;padding:0!important;font-size:0!important;gap:0;border:0;background:none!important}
+ html.jade .six-grid .mon-card .move-list .type-badge.mini::before{width:8px;height:8px}
+
+ /* Strategy write-up and the team row. */
+ html.jade .team-hub .strategy-block{padding:12px!important;margin-top:16px!important;margin-bottom:16px!important}
+ html.jade .team-hub .strategy-head{padding-bottom:12px;margin-bottom:12px}
+ html.jade .team-hub .strategy-head h2{font-size:22px}
+ html.jade .team-hub .guide-intro .markdown{font-size:15px;line-height:1.6}
+ html.jade .team-hub .guide-team{gap:8px;padding-top:12px}
+ html.jade .team-hub .guide-six{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ html.jade .team-hub .guide-six button{padding:8px 4px!important;gap:4px;min-width:0}
+ html.jade .team-hub .guide-six .set-art .art{width:56px!important;height:56px!important}
+ html.jade .team-hub .guide-six button span:last-child{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ html.jade .team-hub .guide-mon{padding:12px}
+ html.jade .team-hub .guide-mon-head h3{font-size:18px!important}
+
+ /* Panels and plans. */
+ html.jade .team-hub .coaching .panel{padding:12px!important}
+ html.jade .team-hub .team-detail-grid{gap:16px!important}
+ html.jade .team-hub .panel-heading{flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;text-align:left!important;gap:8px;padding-bottom:12px;margin-bottom:12px}
+ html.jade .team-hub .panel-heading>div{width:auto;min-width:0}
+ html.jade .team-hub .panel-heading h2{font-size:22px}
+ html.jade .team-hub .plan-list{gap:8px}
+ html.jade .team-hub .plan-card{padding:12px!important;gap:8px!important}
+ html.jade .team-hub .plan-head h3{font-size:18px!important}
+ html.jade .team-hub .front-back{grid-template-columns:auto minmax(0,1fr);gap:4px 8px}
+ html.jade .team-hub .fb-label{font-size:10px;letter-spacing:.08em}
+ html.jade .team-hub .fb-mons{gap:0 8px}
+ html.jade .team-hub .fb-mon{font-size:13px;gap:0}
+ html.jade .team-hub .fb-mon .art.small{width:28px!important;height:28px!important}
+ html.jade .team-hub .plan-body{gap:4px;padding-top:8px}
+ html.jade .team-hub .plan-body .markdown{font-size:14px;line-height:1.55}
+ .plan-body.folded .plan-copy{max-height:88px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+ .plan-more{display:inline-flex!important;justify-self:start;align-items:center;gap:4px;padding:0!important;height:32px!important;min-height:32px!important;color:var(--ac)!important}
+ .plan-more .px-icon{transition:transform .2s}
+ .plan-more[aria-expanded=true] .px-icon{transform:rotate(180deg)}
+
+ /* Manage: full-width tiles and controls, a compact history and a full-width Delete. */
+ .manage{gap:16px}
+ .manage-tiles{gap:8px}
+ html.jade .manage-tile{flex-direction:column;align-items:stretch!important;gap:12px;padding:12px!important}
+ html.jade .manage-tile h3{font-size:18px!important}
+ .manage-actions{width:100%}
+ html.jade .manage-actions>button{flex:1}
+ html.jade .format-copy label{flex:1;min-width:0}
+ html.jade .format-copy select{min-width:0!important;width:100%}
+ html.jade .format-copy>button{flex:none}
+ html.jade .manage-title{font-size:20px!important}
+ html.jade .manage .history-list li{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"when when" "what what" "six act";gap:4px 8px!important;padding:12px!important}
+ html.jade .manage .history-list .when{grid-area:when;font-size:12px}
+ html.jade .manage .history-list .what{grid-area:what;font-weight:600;font-size:14px;line-height:20px}
+ html.jade .manage .history-list .team-six.mini{grid-area:six;order:0;grid-column:auto;gap:0;align-self:center}
+ html.jade .manage .history-list .team-six.mini .set-art .art.small{width:28px!important;height:28px!important}
+ html.jade .manage .history-list .team-six.mini .mega-orb{display:none}
+ html.jade .manage .history-list :is(.button-row,.tag){grid-area:act;align-self:center;justify-self:end;flex-wrap:nowrap;gap:4px}
+ html.jade .manage .history-list .button-row .compact{padding:0 8px!important}
+ html.jade .manage .danger-zone{flex-direction:column;align-items:stretch!important;text-align:left!important;gap:12px;padding:12px!important}
+ html.jade .manage .danger-zone button.danger{width:100%}
+}
+/* The narrowest phones: plan actions sit above the title. */
+@media (max-width:380px){
+ html.jade .plan-card header.plan-top{flex-direction:column-reverse!important;align-items:stretch!important;gap:4px!important}
+ html.jade .plan-top .plan-actions{align-self:flex-end}
+ html.jade .team-hub .hub-tabs a .px-icon{display:none}
+}
+html.jade .team-hub .guide-intro .markdown>:last-child{margin-bottom:0}
+
+/* ---------- shell (nav, modals, text fx) ---------- */
+/* The wordmark trims to its cap height so it centres optically against the logo and the 40px controls. */
+html.jade .wordmark{display:inline-block;white-space:nowrap;text-box:trim-both cap alphabetic}
+/* Its rare flicker: a few frames of jitter with the glow split emerald and gold, then still again. */
+html.jade .fx-glitch{animation:fx-glitch .42s steps(1,end)}
+@keyframes fx-glitch{
+ 0%{transform:translateX(-2px) skewX(-8deg);text-shadow:2px 0 var(--ac-2),-2px 0 color-mix(in srgb,var(--gd) 60%,transparent);opacity:.8}
+ 14%{transform:translateX(1px);text-shadow:-1px 0 var(--ac-2);opacity:1}
+ 28%{transform:none;text-shadow:none;opacity:.35}
+ 40%{opacity:1;text-shadow:0 0 12px var(--glow)}
+ 58%{transform:translateX(1px);opacity:.65}
+ 72%{transform:none;opacity:1;text-shadow:none}}
+
+/* Selected tabs (dialog tabs, the news weeks). The general Jade button rule used to repaint them as plain glass while
+   their old emerald-on-ink text colour stayed, which read as dark, unlabelled buttons in dialogs. */
+html.jade :is(.tabs:not(.lab>.tabs),.week-tabs)>button.selected{
+ background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 18%,transparent),transparent 70%),var(--glass-2)!important;
+ border-color:color-mix(in srgb,var(--ac) 55%,transparent)!important;color:var(--tx)!important;
+ box-shadow:inset 0 1px 0 var(--hi),0 0 0 1px color-mix(in srgb,var(--ac) 18%,transparent)!important}
+html.jade .week-tabs>button small{color:var(--mu)}
+html.jade .week-tabs>button.selected small{color:var(--ac)}
+
+/* Dialog header: the close button sits in the row instead of over a long title. */
+html.jade .modal>header .dialog-close{position:static!important}
+html.jade .modal>header h2{min-width:0;overflow-wrap:anywhere}
+
+@media (max-width:720px){
+ /* Dialogs: a tighter frame, and the news weeks stack as full-width rows. */
+ html.jade .modal{padding:16px!important}
+ html.jade .modal>header{padding:0 0 12px!important;margin:0 0 16px!important;gap:12px}
+ html.jade .modal>header h2{font-size:22px!important;line-height:1.1}
+ html.jade .week-tabs{grid-template-columns:minmax(0,1fr)!important;gap:8px}
+ html.jade .week-tabs>button{flex-direction:row!important;justify-content:space-between;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0 16px!important}
+
+ /* Top bar: one 40px row on a 4px grid. Empty grid rows no longer add their gaps, so there is no dead band under it. */
+ html.jade .shell>.masthead{grid-template-rows:auto!important;row-gap:0!important;column-gap:8px!important;padding:12px 16px!important;align-items:center}
+ html.jade .masthead .brand{height:40px;gap:8px!important;font-size:22px!important;align-items:center}
+ html.jade .masthead .brand-logo{width:32px!important;height:32px!important}
+ html.jade .masthead :is(.theme-toggle,.menu-toggle,.account-button){width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:0!important;justify-content:center}
+ html.jade .masthead .account-menu{width:40px!important;height:40px}
+ html.jade .masthead .save-pill{margin-top:8px}
+ /* The menu: 40px rows with 4px between them, under a hairline. */
+ html.jade .masthead-nav{gap:4px!important;padding-top:12px!important;margin-top:12px;border-top:1px solid var(--ln)!important}
+ html.jade .masthead-nav .quickbar{gap:4px!important}
+ html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news){height:40px!important;min-height:40px!important;padding:0 12px!important}
+}
+@media (prefers-reduced-motion:reduce){html.jade .fx-glitch{animation:none!important}}
+
+/* Manage: Export, Format and Duplicate tiles share a row on wide screens and stack below 1000px. */
+html.jade .manage .manage-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:1000px){html.jade .manage .manage-tiles{grid-template-columns:minmax(0,1fr)}}
+html.jade .manage .manage-actions{flex-wrap:wrap}
+html.jade .manage .manage-tile{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px}
+html.jade .manage .manage-tile .manage-actions{justify-content:flex-start}
+html.jade .team-hub .manage .manage-tile.format-tile,html.jade .team-hub .manage .manage-tile.format-tile>div{text-align:left!important;align-items:stretch!important;justify-content:flex-start!important}
+html.jade .team-hub .manage .manage-tile.format-tile .format-copy{justify-content:flex-start!important;margin:0!important}
+/* Manage tiles: a small label over buttons that share the full width. */
+html.jade .team-hub .manage .manage-tile{gap:8px}
+html.jade .team-hub .manage .manage-actions{display:flex;flex-wrap:nowrap;gap:8px;width:100%}
+html.jade .team-hub .manage .manage-actions>button{flex:1 1 0;min-width:0;justify-content:center;height:40px}
+html.jade .team-hub .manage .format-copy>label{flex:1.6 1 0;min-width:0}
+html.jade .team-hub .manage .format-copy select{width:100%;height:40px}
+/* Format tile: the select takes the room, Change keeps its width, and Change drops below when the tile is narrow. */
+html.jade .team-hub .manage .format-copy{flex-wrap:wrap!important}
+html.jade .team-hub .manage .format-copy>label{flex:1 1 200px!important;min-width:0}
+html.jade .team-hub .manage .format-copy>label select{text-overflow:ellipsis}
+html.jade .team-hub .manage .format-copy>button{flex:0 0 auto!important;min-width:120px}
+@media (max-width:620px){html.jade .team-hub .manage .format-copy>button{flex:1 1 100%!important}}
+html.jade .team-hub .manage .manage-actions>button{white-space:nowrap}
+html.jade .team-hub .manage .manage-tile:first-child .manage-actions{flex-wrap:wrap}
+html.jade .team-hub .manage .manage-tile:first-child .manage-actions>button{flex:1 1 140px}
+
+/* ---------- Settings: About you ----------
+   One field pattern throughout (label, control, then chips), two columns that align row by row, one column on phones. */
+html.jade .about-you{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 16px;align-items:start;margin-top:16px}
+html.jade .about-you .pref-field{display:flex;flex-direction:column;gap:8px;margin:0!important;min-width:0}
+html.jade .about-you .pref-field.wide{grid-column:1/-1}
+html.jade .about-you .pref-label{font:600 13px/1.2 var(--fb);color:var(--tx);margin:0}
+html.jade .about-you :is(input,select,textarea){width:100%;margin:0!important;box-sizing:border-box}
+html.jade .about-you input{height:40px}
+html.jade .about-you .segmented{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);height:40px;margin:0!important}
+html.jade .about-you .segmented button{height:100%!important;min-height:0!important}
+html.jade .about-you .picker,html.jade .about-you .combo{width:100%}
+.pref-chips{display:flex;flex-wrap:wrap;gap:4px}
+html.jade .pref-chips .chip{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 4px 0 10px;font-size:13px}
+html.jade .pref-chips .chip button:not(#_){display:inline-flex;align-items:center;justify-content:center;width:20px!important;height:20px!important;min-height:0!important;padding:0!important;border:0!important;background:none!important;color:inherit;border-radius:50%!important;box-shadow:none!important}
+html.jade .pref-chips .chip button:not(#_):hover{background:color-mix(in srgb,var(--tx) 12%,transparent)!important}
+@media (max-width:620px){html.jade .about-you{grid-template-columns:minmax(0,1fr);gap:16px}}
+
+/* Favourite star on phones: inside the artwork's bottom-right corner instead of hanging off its top-left. */
+@media (max-width:620px){
+ html.jade .set-card-head .art-wrap{position:relative}
+ html.jade .set-card-head .art-wrap .fav:not(#_){top:auto!important;left:auto!important;right:4px!important;bottom:4px!important}
+}
+
 /* Replays: the add form is a fieldset (one `disabled` locks every control); locked until a Showdown name is set. */
 fieldset.add-row{border:0;padding:0;margin:0;min-width:0}
 .add-replays.locked{opacity:.45;filter:grayscale(.5)}
@@ -1606,3 +2040,20 @@ fieldset.add-row{border:0;padding:0;margin:0;min-width:0}
 .account-signin{align-items:center;gap:var(--s6)}
 .account-signin>div{display:grid;gap:var(--s2);flex:1;min-width:0}.account-signin p{margin:0}
 @media (max-width:620px){.account-signin{flex-direction:column;align-items:stretch}.account-signin .google-button{width:100%}}
+
+/* AI settings: the explainer and the connector address use the glass radius like every other box. */
+html.jade .ai-explainer,html.jade .copy-line{border-radius:var(--rs)!important;overflow:hidden}
+html.jade .ai-mode{margin-bottom:12px}
+/* Showdown names: label, box and chips spaced like the About you fields. */
+html.jade .settings .examples-field{display:flex;flex-direction:column;gap:8px;margin:12px 0 0}
+html.jade .settings .examples-field>.field-label{margin:0!important;font:600 13px/1.2 var(--fb);color:var(--tx)}
+html.jade .settings .examples-field :is(input){margin:0!important;height:40px}
+
+/* Data pool tables: numbers never wrap; on phones the name column gives way instead. */
+html.jade .data-pool .stat-table td:not(:has(.art)){white-space:nowrap}
+@media (max-width:620px){
+ html.jade .data-pool .stat-table{table-layout:auto}
+ html.jade .data-pool .stat-table td{padding:8px 4px!important;font-size:12px}
+ html.jade .data-pool .stat-table td:has(.art){width:100%;white-space:normal;overflow-wrap:anywhere}
+ html.jade .data-pool .stat-table td:first-child{width:1%;color:var(--mu)}
+}
