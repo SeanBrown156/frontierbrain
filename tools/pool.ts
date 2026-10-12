@@ -13,6 +13,7 @@ import {fetchText} from './research.ts';
 import {dex,resolveSpecies} from './mechanics.ts';
 import {recentEvents,standings,teamList} from './limitless.ts';
 import {pasteIndex,setsFromPaste} from './vgcpastes.ts';
+import {correctName,type NameKind} from './pool-names.ts';
 import type {MetaSets,Share,MetaSpread} from './meta-sets.ts';
 
 export type Lane='official'|'online'|'shared';
@@ -105,7 +106,10 @@ export const poolStatus=()=>optionalJSON<any>(STATUS,null);
 // Parsed once per minute per server (the file is ~19 MB); a refresh shows up within that minute.
 let memo:{at:number;teams:Promise<PoolTeam[]>}|null=null;
 export function poolTeams():Promise<PoolTeam[]>{if(memo&&Date.now()-memo.at<60_000)return memo.teams;const teams=loadPoolTeams();memo={at:Date.now(),teams};teams.catch(()=>{memo=null;});return teams;}
-async function loadPoolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species)}))}));}
+async function loadPoolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species),...corrected(s)}))}));}
+// The reviewed name corrections (tools/pool-names.ts) apply on read, as in the hosted tables.
+const fix=(kind:NameKind,v:string)=>{const c=correctName(kind,v);return c===undefined?v:c??'';};
+const corrected=(s:PoolSet)=>({item:fix('item',s.item),ability:fix('ability',s.ability),nature:fix('nature',s.nature),moves:s.moves.map(m=>fix('move',m))});
 export interface PoolQuery {lanes?:Lane[];sinceDays?:number;}
 const inScope=(t:PoolTeam,q:PoolQuery)=>(!q.lanes||q.lanes.includes(t.lane))&&(!q.sinceDays||!t.date||Date.parse(t.date)>=Date.now()-q.sinceDays*86400_000);
 const tally=(values:string[],n:number):Share[]=>{const m=new Map<string,number>();for(const v of values)if(v)m.set(v,(m.get(v)??0)+1);return [...m].sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count,percent:Math.round(1000*count/Math.max(1,n))/10}));};
