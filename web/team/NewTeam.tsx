@@ -1,3 +1,4 @@
+import {FORMATS} from '../../shared/formats.ts';
 import {useState} from 'react';
 import {useEffect} from 'react';
 import {api,Modal,Notice,Tabs,Markdown,PokeIcon} from '../ui.tsx';
@@ -13,19 +14,19 @@ export default function NewTeam({mutate,load,onClose,notify,review}:{mutate:(a:a
   const account=useAccount();
   const [tab,setTab]=useState(review?'Paste or PokePaste link':'From tournaments'),[prompt,setPrompt]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const initial=review?{...review.proposal,sets:review.proposal.roles??[]}:null;
-  const [draft]=useState<any>(initial),[name,setName]=useState(initial?.name??''),[paste,setPaste]=useState(initial?.paste??''),[strategy,setStrategy]=useState(initial?.strategy??''),[link,setLink]=useState(''),[slots,setSlots]=useState<{species:string;spread:string;basis:string}[]>([]);
+  const [format,setFormat]=useState<string>(FORMATS[0].id),[draft]=useState<any>(initial),[name,setName]=useState(initial?.name??''),[paste,setPaste]=useState(initial?.paste??''),[strategy,setStrategy]=useState(initial?.strategy??''),[link,setLink]=useState(''),[slots,setSlots]=useState<{species:string;spread:string;basis:string}[]>([]);
   // Builds run as background jobs: the dialog closes and progress shows on the Teams page.
   const build=async()=>{setBusy(true);setError('');try{await api('/ai-jobs',{area:'build',messages:[{role:'user',content:prompt}]});notify('Building in the background. Progress is on the Teams page.');onClose();}catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   const fetchPaste=async()=>{setBusy(true);setError('');try{const r=await api('/pokepaste?url='+encodeURIComponent(link.trim()));setPaste(r.paste);if(r.title)setName(r.title);setStrategy([r.notes,`Imported from ${r.source}${r.author?` (by ${r.author})`:''}.`].filter(Boolean).join('\n\n'));}catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   const create=async()=>{setBusy(true);setError('');try{
       const setNotes=draft?Object.fromEntries(draft.sets.map((x:any)=>[x.species,{role:x.role,benchmarks:x.notes}])):undefined;
-      const r=await mutate({type:'import',name:name.trim()||'New team',paste,notes:strategy,setNotes});const team=r.result;
+      const r=await mutate({type:'import',name:name.trim()||'New team',paste,format,notes:strategy,setNotes});const team=r.result;
       if(draft&&(draft.leads.length||draft.matchups.length)){const v=[team.activeVersionId];
         await api('/action',{revision:r.revision,action:{type:'coaching-save',teamId:team.id,parentVersion:0,coaching:{leads:draft.leads.map((l:any)=>({...l,id:newId(),calcIds:[],versionIds:v,status:'proposed'})),matchups:draft.matchups.map((m:any)=>({...m,id:newId(),calcIds:[],versionIds:v,status:'proposed'})),objectives:[]}}});}
       if(review)await api('/ai-job-dismiss',{id:review.jobId}).catch(()=>{});await load();location.hash=teamHref(team.id,'overview');onClose();
     }catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   const hasPaste=paste.trim().length>0;
-  return <Modal title={review?'Review AI draft':'New team'} onClose={onClose}><div className="new-team">{!review&&<Tabs tabs={['From tournaments','Build from a prompt','Paste or PokePaste link']} value={tab} onChange={setTab} icons={{'Build from a prompt':<Px icon={Sparkles}/>}}/>}
+  return <Modal title={review?'Review AI draft':'New team'} onClose={onClose}><div className="new-team"><label className="format-choice">Format<select value={format} onChange={e=>setFormat(e.target.value)}>{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select><span className="footnote">Chosen once: it sets which rules the team is checked against. To move a team to another format later, copy it from its History tab.</span></label>{!review&&<Tabs tabs={['From tournaments','Build from a prompt','Paste or PokePaste link']} value={tab} onChange={setTab} icons={{'Build from a prompt':<Px icon={Sparkles}/>}}/>}
     {tab==='Build from a prompt'&&!canUseAI(account)&&<SignInForAI verb="build"/>}{tab==='Build from a prompt'&&canUseAI(account)&&<><label>What should this team do?<textarea rows={5} value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="e.g. A Trick Room team around Mega Gengar Perish Song with a Belly Drum Kommo-o win condition. It should handle Rillaboom/Incineroar balance and Tailwind offense."/></label>
       <div className="button-row"><button className="primary" disabled={busy||!prompt.trim()} onClick={()=>void build()}><Px icon={Sparkles}/>{busy?'Starting…':'Build team'}</button><span className="muted">Model</span><ModelPicker tier="build"/></div>
       <p className="footnote">Takes a few minutes: it researches the data pool, runs calcs and checks the rules. You can keep using the app meanwhile.</p></>}

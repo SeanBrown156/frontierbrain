@@ -62,7 +62,7 @@ export function ItemIcon({item}:{item?:string}){const d=useDex([],item?[item]:[]
 export function SiteIcon({url,icon,size=20}:{url:string;icon?:string;size?:number}){
   let host='';try{host=new URL(url).hostname.replace(/^www\./,'');}catch{}
   const [failed,setFailed]=useState(false),[loaded,setLoaded]=useState(false);const src=icon??(host?`/api/favicon?host=${encodeURIComponent(host)}`:'');
-  return <span className={'site-icon'+(loaded&&!failed?' loaded':'')} style={{width:size,height:size}} aria-hidden="true"><span className="mono-tile">{(host[0]??'?').toUpperCase()}</span>{src&&!failed&&<img src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onLoad={()=>setLoaded(true)} onError={()=>setFailed(true)}/>}</span>;
+  return <span className={'site-icon'+(loaded&&!failed?' loaded':'')+(failed||!src?' failed':'')} style={{width:size,height:size}} aria-hidden="true"><span className="mono-tile">{(host[0]??'?').toUpperCase()}</span>{src&&!failed&&<img src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onLoad={()=>setLoaded(true)} onError={()=>setFailed(true)}/>}</span>;
 }
 // Box icon from the locally cached Showdown sheet (12 columns of 40×30); blank cell when unknown.
 export function PokeIcon({n}:{n?:number}){return <span className="poke-icon" aria-hidden="true" style={n?{backgroundPosition:`-${(n%12)*40}px -${Math.floor(n/12)*30}px`}:{backgroundImage:'none'}}/>;}

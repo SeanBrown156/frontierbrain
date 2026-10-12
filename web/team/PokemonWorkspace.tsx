@@ -6,6 +6,7 @@ import {Px,ArrowLeft,WarningDiamond} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
 import Benchmarks from './Benchmarks.tsx';
 import SpeciesPicker,{type SavedOption} from '../ai/SpeciesPicker.tsx';
+import {ItemPicker,MovePicker} from '../ai/Pickers.tsx';
 import {getView,versionName,stats,statLabel,noteTitles} from './editors.tsx';
 import {teamHref,monHref} from './Hub.tsx';
 import {useDraft,useDirty,useOffers,takeOffer} from '../save-state.ts';
@@ -113,11 +114,11 @@ function SetFields({set,update,inferred,others}:{set:PokemonSet;update:(p:Partia
   const taken=new Set(others.map(o=>o.item).filter(Boolean));
   return <div className="set-fields">
     <div className="form-grid">
-      <label className="item-field">Item {guess('item')}<ItemIcon item={set.item}/><input list="set-items" value={set.item??''} onChange={e=>update({item:e.target.value})} className={set.item&&taken.has(set.item)?'invalid':''}/></label>
+      <label className="item-field">Item {guess('item')}<ItemPicker value={set.item??''} onChange={v=>update({item:v})} dex={dex} taken={[...taken].filter(Boolean) as string[]}/></label>
       <label>Ability {guess('ability')}<select value={set.ability??''} onChange={e=>update({ability:e.target.value})}>{abilities.map(a=><option key={a}>{a}</option>)}</select></label>
       <label>Nature {guess('nature')}<select value={set.nature??'Serious'} onChange={e=>update({nature:e.target.value})}>{(dex?.natures??[set.nature]).map((n:string)=><option key={n}>{n}</option>)}</select></label>
     </div>
-    <fieldset className="moves"><legend>Moves {guess('moves')}</legend><div className="form-grid">{[0,1,2,3].map(i=><input key={i} aria-label={`Move ${i+1}`} list="set-moves" value={set.moves?.[i]??''} onChange={e=>{const moves=[...(set.moves??[])];while(moves.length<4)moves.push('');moves[i]=e.target.value;update({moves});}}/>)}</div></fieldset>
+    <fieldset className="moves"><legend>Moves {guess('moves')}</legend><div className="form-grid">{[0,1,2,3].map(i=><MovePicker key={i} label={`Move ${i+1}`} dex={dex} value={set.moves?.[i]??''} exclude={(set.moves??[]).filter(Boolean) as string[]} onChange={v=>{const moves=[...(set.moves??[])];while(moves.length<4)moves.push('');moves[i]=v;update({moves});}}/>)}</div></fieldset>
     <fieldset className="stat-points"><legend>Stat points <b className={total>66?'error':''}>{total} / 66</b> {guess('statPoints')}</legend>
       <StatBars base={shown?.baseStats} final={final} points={set.statPoints??{}} setPoint={(k,v)=>update({statPoints:{...set.statPoints,[k]:v}})}
         head={mega?<div className="segmented stat-form" role="group" aria-label="Stats for">{[['mega',mega.name.replace(/^(.*)-Mega(-[XYZ])?$/,(_:string,b:string,x?:string)=>`Mega ${b}${x?' '+x.slice(1):''}`)],['base',set.species]].map(([v,l])=><button key={v} type="button" className={form===v?'on':''} aria-pressed={form===v} onClick={()=>setForm(v as any)}>{l}</button>)}</div>:null}/></fieldset>

@@ -792,3 +792,139 @@ html.jade .dialog-close{width:40px!important;height:40px!important;min-width:40p
 html.jade .toast button.icon{width:32px;height:32px;padding:0;display:inline-grid;place-items:center;border:0;background:transparent;box-shadow:none}
 /* team switcher tiles size to their content */
 html.jade nav.mon-switcher a{width:auto!important;height:auto!important;min-height:0!important}
+
+/* ---------- danger zone: the whole tile reads as destructive ---------- */
+html.jade .danger-zone{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:24px!important;border-radius:var(--r)!important;
+ background:linear-gradient(135deg,color-mix(in srgb,var(--hot) 26%,transparent),color-mix(in srgb,var(--hot) 12%,transparent))!important;border:1px solid color-mix(in srgb,var(--hot) 70%,transparent)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hot) 20%,transparent),0 18px 40px -26px color-mix(in srgb,var(--hot) 60%,transparent)!important}
+html.jade .danger-zone::after{display:none}
+html.jade .danger-zone h3{color:var(--hot);font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+html.jade .danger-zone p{color:var(--tx);opacity:.85;margin:0}
+html.jade .danger-zone button.danger{background:var(--hot)!important;color:#fff!important;border-color:transparent!important;height:44px;padding:0 20px!important;font-weight:700;box-shadow:0 10px 24px -10px color-mix(in srgb,var(--hot) 80%,transparent)!important}
+html.jade .danger-zone button.danger:hover{filter:brightness(1.08)}
+
+/* ---------- favourite star: quiet until you hover; gold only when saved ---------- */
+html.jade .fav{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;background:color-mix(in srgb,var(--bg) 55%,transparent)!important;border:0!important;box-shadow:none!important;color:var(--mu)!important;opacity:.75;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+html.jade .fav svg{width:16px!important;height:16px!important}
+html.jade .art-wrap:hover .fav,html.jade .fav:focus-visible{opacity:1}
+html.jade .fav:hover{color:var(--gd)!important;background:color-mix(in srgb,var(--gd) 14%,transparent)!important}
+html.jade .fav.on{opacity:1;color:var(--gd)!important;background:color-mix(in srgb,var(--gd) 16%,transparent)!important;box-shadow:none!important}
+html.jade .set-card-head .fav{top:0!important;left:0!important}
+
+/* ---------- reference icons: just the icon, no tile; a monogram only if it truly fails ---------- */
+.site-icon{background:transparent!important;box-shadow:none!important;border-radius:4px}
+.site-icon img{background:transparent!important;padding:0!important;border-radius:4px}
+.site-icon .mono-tile{width:100%;height:100%;display:grid;place-items:center;border-radius:4px;background:var(--sunk);opacity:0}
+.site-icon.failed .mono-tile{opacity:1}
+
+/* ---------- format ---------- */
+.format-tile{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:24px;border-radius:var(--r);border:1px solid var(--ln);background:var(--glass)}
+.format-tile h3{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:4px 0 8px}
+.format-tile p{max-width:60ch;margin:0}
+.format-copy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+html.jade .format-copy label{margin:0}
+html.jade .format-tag{height:32px;display:inline-flex!important;align-items:center}
+html.jade .format-choice{margin-bottom:20px!important}
+html.jade .format-choice select{max-width:360px}
+/* header controls sit directly on the frosted bar: no second blur behind icons */
+html.jade .masthead :is(button,.button,a){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.jade :is(.toggle,.text-button,.theme-toggle,.fav,.dialog-close,.direction){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* the save star sits off the render, top-left, in a soft round chip */
+html.jade .set-card-head .fav{top:-14px!important;left:-14px!important;border-radius:50%!important;background:var(--glass-2)!important;box-shadow:inset 0 0 0 1px var(--ln),0 4px 12px -6px var(--shade)!important;opacity:1}
+html.jade .set-card-head .fav.on{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gd) 50%,transparent),0 4px 12px -6px var(--shade)!important}
+/* the live 3D mark on the welcome page */
+.wl-brain{position:relative;width:min(320px,70%);aspect-ratio:1;margin:-24px 0 -8px -20px}
+.wl-brain canvas,.wl-brain img{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+.wl-brain canvas:active{cursor:grabbing}
+.wl-brain::before{content:'';position:absolute;inset:18% 12% 8%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 30%,transparent),transparent);filter:blur(18px);z-index:-1}
+.wl-brain-hint{position:absolute;left:24px;bottom:6px;font:600 11px var(--fb);letter-spacing:.06em;color:var(--mu);opacity:0;transition:opacity .3s}
+.wl-brain:hover .wl-brain-hint{opacity:1}
+html.jade .brand-logo{width:38px!important;height:38px!important;object-fit:contain;filter:drop-shadow(0 4px 10px var(--glow))}
+html.jade .dock-mark{object-fit:contain}
+/* the 3D brain sits beside the headline rather than above it */
+.wl-copy{position:relative}
+.wl-brain{position:absolute!important;top:-36px;right:-12px;width:230px!important;margin:0!important;z-index:1}
+.wl-brain-hint{left:50%;transform:translateX(-50%);bottom:-6px;white-space:nowrap}
+@media (max-width:1000px){.wl-brain{position:relative!important;top:0;right:0;width:200px!important;margin:0 auto -12px!important}}
+/* hero: copy on the left, the brain in its network on the right */
+.wl-orb{position:relative;height:min(600px,70vh);min-height:420px;margin:-40px -40px -40px 0}
+.wl-orb canvas,.wl-orb>img{width:100%;height:100%;display:block;cursor:grab;touch-action:none;object-fit:contain}
+.wl-orb canvas:active{cursor:grabbing}
+.wl-orb::before{content:'';position:absolute;inset:20% 18%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 26%,transparent),transparent);filter:blur(30px);z-index:-1}
+.wl-orb .wl-brain-hint{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);opacity:.0;font:600 11px var(--fb);letter-spacing:.06em;color:var(--mu);transition:opacity .3s;white-space:nowrap}
+.wl-orb:hover .wl-brain-hint{opacity:1}
+.wl-team{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:32px;align-items:center;margin:24px 0 8px}
+.wl-team-head h2{font-size:34px!important;margin:8px 0 12px}
+.wl-team .wl-stage{height:480px}
+@media (max-width:1000px){.wl-orb{height:420px;margin:0}.wl-team{grid-template-columns:minmax(0,1fr)}.wl-team .wl-stage{height:420px}}
+@media (max-width:620px){.wl-orb{height:340px;min-height:0}.wl-team .wl-stage{height:320px}}
+/* history and other strips: renders keep their size inside the Mega wrapper */
+html.jade .set-art{flex:none}
+html.jade .set-art>.art{flex:none!important;max-width:none!important}
+html.jade .team-six>.set-art{flex:1 1 0;min-width:0;display:inline-flex;justify-content:center}
+html.jade .history-list .team-six.mini .set-art .art.small{width:32px!important;height:32px!important}
+/* labels styled as buttons stay one row: icon left, text right */
+html.jade label:is(.button,.file-button){flex-direction:row!important;align-items:center;gap:8px;margin:0!important;height:40px;padding:0 14px!important;white-space:nowrap}
+html.jade .file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+html.jade .add-row{display:flex;align-items:flex-start;gap:8px}
+/* replay filters: one 36px row, everything centred on the same line */
+html.jade .replay-filters{display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;flex-wrap:wrap;margin:24px 0 16px!important}
+html.jade .opponent-filter{display:flex;align-items:center!important;gap:8px!important;margin:0}
+html.jade .opponent-filter .combo input,html.jade .opponent-filter input{height:36px!important;min-height:36px!important;margin:0}
+html.jade .replay-filters>.chip-row{margin:0!important;align-items:center}
+html.jade .replay-filters .segmented{height:auto;margin:0}
+html.jade .replay-filters .segmented>button{height:30px}
+/* chips: the same quiet pills as the calc toggles, never heavy outlines */
+html.jade :is(.chip,.chip-row>button){height:30px;display:inline-flex!important;align-items:center;padding:0 12px!important;border-radius:999px!important;font:600 12.5px/1 var(--fb)!important;background:transparent!important;border:1px solid var(--ln-2)!important;color:var(--mu)!important;box-shadow:none!important;transform:none!important}
+html.jade :is(.chip,.chip-row>button):hover{color:var(--tx)!important;border-color:color-mix(in srgb,var(--ac) 55%,var(--ln-2))!important}
+html.jade :is(.chip.on,.chip-row>button.on){background:color-mix(in srgb,var(--ac) 16%,transparent)!important;border-color:color-mix(in srgb,var(--ac) 60%,transparent)!important;color:var(--tx)!important}
+html.jade .style-tags .chip{height:26px;font-size:12px!important;cursor:default}
+/* default buttons: lighter glass and a softer edge so they sit in the panels rather than on top of them */
+html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction){border-color:var(--ln)!important;background:color-mix(in srgb,var(--glass-2) 70%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi)!important;color:var(--tx)}
+html.jade :is(button,.button):not(.primary):not(.danger):not(.toggle):not(.chip):not(.text-button):not(.theme-toggle):not(.fav):not(.mega-switch):not(.segmented>button):not(.dock-toggle):not(.lab>.tabs button):not(.direction):hover:not(:disabled){border-color:color-mix(in srgb,var(--ac) 50%,var(--ln))!important;background:var(--hover)!important}
+html.jade .digest .threat,html.jade .digest .tag{font-family:var(--fb)!important}
+html.jade .common{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* history strips: no Mega orbs at 32px; the render already shows the Mega */
+html.jade .team-six.mini .mega-orb{display:none}
+/* replays: at a glance */
+html.jade .glance{margin-top:24px}
+.glance-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.glance-grid>div{padding:16px;border-radius:14px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .glance-grid h3{font:700 11px/1.3 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--gd);margin:0 0 12px}
+.glance-grid ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.glance-grid li{display:flex;align-items:center;gap:8px;min-height:32px}
+html.jade .glance-grid .art.small{width:36px!important;height:36px!important}
+.glance-name{flex:1;min-width:0;font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.glance-grid li .type-badge{margin-right:auto}
+.glance-rec{font:800 15px var(--fd);font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:8px}
+.glance-grid li.bad .glance-rec{color:var(--hot);background:color-mix(in srgb,var(--hot) 10%,transparent)}
+.glance-grid li.good .glance-rec{color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,transparent)}
+@media (max-width:1100px){.glance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.glance-grid{grid-template-columns:minmax(0,1fr)}}
+/* dropdown lists: solid, never see-through */
+html.jade .combo-list{background:var(--bg)!important;border:1px solid var(--ln-2)!important;border-radius:14px!important;box-shadow:0 24px 48px -16px var(--shade)!important;padding:6px!important;max-height:320px;z-index:60}
+html.jade .combo-list li{display:flex;align-items:center;gap:8px;padding:8px 10px!important;border-radius:10px!important;font-size:14px;min-height:36px}
+html.jade .combo-list li.active{background:var(--hover)!important}
+html.jade .combo-list li.group-start::before{content:attr(data-group);display:none}
+html.jade .combo-list li[data-group]{margin-top:22px;position:relative}
+html.jade .combo-list li[data-group]::after{content:attr(data-group);position:absolute;left:10px;top:-18px;font:700 10px var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--gd)}
+html.jade .combo-list li:first-child[data-group]{margin-top:18px}
+.row-main{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.row-main span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.jade .combo-list li small{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:var(--mu)}
+html.jade .combo-list li small b{font:800 13px var(--fd);color:var(--tx);min-width:24px;text-align:right}
+/* pickers: an icon (item sprite or move type) inside the field */
+.picker{position:relative}
+.picker .picker-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);display:inline-flex;pointer-events:none}
+html.jade .picker:has(.picker-icon) input{padding-left:40px}
+html.jade .move-picker:has(.picker-icon) input{padding-left:88px}
+html.jade .type-badge.mini{height:20px!important;padding:0 8px 0 6px!important;font-size:9.5px!important;gap:4px}
+html.jade .type-badge.mini::before{width:5px;height:5px}
+.move-cat{font:700 10px var(--fb);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:var(--sunk)}
+.move-cat.physical{color:#ff9a6b}.move-cat.special{color:#7ab8ff}.move-cat.status{color:var(--mu)}
+html.jade .item-field .item-icon{position:static}
+html.jade .item-field input{padding-left:40px}
+html.jade .set-fields .moves .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html.jade .picker input{font:500 14px/1.4 var(--fb)!important;height:40px;min-height:40px;width:100%;text-overflow:ellipsis}
+html.jade .picker .combo-list{min-width:300px;right:auto}
+html.jade .set-fields .moves .picker .combo-list{min-width:320px}
+html.jade .set-fields .moves .form-grid>.picker:nth-child(even) .combo-list{left:auto;right:0}

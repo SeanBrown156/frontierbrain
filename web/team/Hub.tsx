@@ -28,11 +28,11 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     <div className="hub-head"><div className="hub-title">{renaming?<input className="rename" aria-label="Team name" autoFocus value={name} onChange={e=>setName(e.target.value)} onBlur={()=>void rename()} onKeyDown={e=>{if(e.key==='Enter')void rename();if(e.key==='Escape'){setName(team.name);setRenaming(false);}}}/>
         :<h1><button className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></button></h1>}</div></div>
     <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav>
-      <div className="version-bar"><label className="format-picker"><span className="sr-only">Format</span><select title="Format" value={team.format} onChange={e=>void mutate({type:'team-format',teamId:team.id,format:e.target.value}).catch(()=>{})}>{FORMATS.some(f=>f.id===team.format)?null:<option value={team.format}>{team.format}</option>}{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button onClick={()=>void paste()}><Px icon={Share}/>Export</button></div></div>
+      <div className="version-bar"><span className="tag format-tag" title="Set when the team was created. To move it to another format, copy it from History.">{formatLabel(team.format)}</span><button onClick={()=>void paste()}><Px icon={Share}/>Export</button></div></div>
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
     {tab==='replays'&&<Replays team={team} data={data} versionId={all?'all':versionId} load={load} notify={notify}/>}
-    {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate}/>}
+    {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate} notify={notify}/>}
     {exported!==null&&<Modal title="Showdown export" onClose={()=>setExported(null)}><Notice>Champions stat points use the “EVs:” label only for Showdown compatibility.{shown.source==='observed'?' This version was rebuilt from replays; guessed fields are assumptions.':''}</Notice><textarea className="paste" aria-label="Team export" readOnly rows={20} value={exported}/><button className="primary" onClick={()=>{void navigator.clipboard.writeText(exported).then(()=>notify('Paste copied.')).catch(()=>notify('Select and copy the paste manually.'));}}>Copy paste</button></Modal>}
   </div>;
 }
@@ -100,7 +100,7 @@ function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:strin
 // Every version, newest first, each with its edit log. Older edits can be viewed and restored; nothing is overwritten.
 // History: every saved change, newest first, across the team's whole life. Versions are kept in the data (and older
 // milestones still exist) but the player never manages them; restoring an edit records it as a new change.
-function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:Mutate}){
+function Versions({team,data,mutate,notify}:{team:any;data:any;games?:any[];mutate:Mutate;notify:(s:string)=>void}){
   const [viewing,setViewing]=useState<{version:any;config:any}|null>(null);
   const active=team.versions.find((v:any)=>v.id===team.activeVersionId);
   const entries=team.versions.flatMap((v:any)=>v.configurations.map((c:any,n:number)=>({v,c,first:n===0}))).sort((a:any,b:any)=>b.c.createdAt.localeCompare(a.c.createdAt));
@@ -113,6 +113,7 @@ function Versions({team,data,mutate}:{team:any;data:any;games?:any[];mutate:Muta
         <span className="team-six mini">{sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</span>
         {now?<span className="tag ok">Current</span>:<span className="button-row"><button className="compact" onClick={()=>setViewing({version:e.v,config:e.c})}><Px icon={Eye} size={12}/>View</button><button className="compact" onClick={()=>void restore(e)}>Restore</button></span>}</li>;})}</ol>
     {viewing&&<Modal title={`Team on ${date(viewing.config.createdAt)}`} onClose={()=>setViewing(null)}><p className="muted">{viewing.config.summary||'Saved'}</p><div className="proposals">{getView(team,data.db,viewing.version.id,viewing.config.id).sets.map((s:any,i:number)=><SetTile key={i} set={s} art={data.art}/>)}</div></Modal>}
+    <FormatTile team={team} mutate={mutate} notify={notify}/>
     <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Deletes the team, its history, strategy, replays and their analysis. Its sets stay in your Pokémon library.</p></div>
       <button className="danger" onClick={()=>{if(confirm(`Delete “${team.name}” and its replays? This can't be undone.`))void mutate({type:'team-delete',teamId:team.id}).then(()=>{location.hash='#teams';}).catch(()=>{});}}>Delete team</button></section>
   </div>;
@@ -126,6 +127,17 @@ export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:
     </div>;
 }
 
+// A team's format is set when it's created. Changing rules can make sets illegal, so moving to another format copies
+// the current six (and the team strategy) into a new team for that format; this one is left exactly as it is.
+function FormatTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:string)=>void}){
+  const others=FORMATS.filter(f=>f.id!==team.format);const [target,setTarget]=useState<string>(others[0]?.id??''),[busy,setBusy]=useState(false);
+  const copy=async()=>{setBusy(true);try{const active=team.versions.find((v:any)=>v.id===team.activeVersionId);const {paste}=await api(`/export?team=${team.id}&version=${active.id}&configuration=${active.currentConfigurationId}`);
+      const label=FORMATS.find(f=>f.id===target)?.label.split('·').pop()?.trim()??target;
+      const r=await mutate({type:'import',name:`${team.name} (${label})`,paste,format:target,notes:active.notes??''});notify(`Copied into ${formatLabel(target)}. Check the sets against its rules.`);location.hash=teamHref(r.result.id,'overview');}
+    catch(e){notify((e as Error).message);}finally{setBusy(false);}};
+  return <section className="format-tile"><div><span className="eyebrow">Format</span><h3>{formatLabel(team.format)}</h3><p className="muted">Set when the team was created. A different format can change which Pokémon, items and moves are legal, so the team isn't converted in place: copy it into the new format and check the sets there. This team stays as it is.</p></div>
+    {others.length>0&&<div className="format-copy"><label><span className="sr-only">Copy into</span><select value={target} onChange={e=>setTarget(e.target.value)}>{others.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button disabled={busy||!target} onClick={()=>void copy()}>{busy?'Copying…':'Copy into this format'}</button></div>}</section>;
+}
 // Background team builds: live steps while running, then a draft to review.
 const buildSteps:Record<string,string>={meta_overview:'Read the meta',team_pool_sets:'Pool sets',standard_set:'Typical set',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',usage_data:'Usage data',dex_lookup:'Dex',get_team:'Team',validation:'Rules check'};
 function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>void;art:any}){

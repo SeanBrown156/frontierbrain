@@ -1,7 +1,7 @@
 import ShowdownName from './ShowdownName.tsx';
 import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Modal,date,pct,downloadOriginal,sentences} from '../ui.tsx';
+import {api,Art,Modal,date,pct,downloadOriginal,sentences,useDex,TYPE_COLOURS} from '../ui.tsx';
 import {Px,Upload,Sparkles,Reload} from '../icons.tsx';
 import SpeciesPicker from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
@@ -25,6 +25,7 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
   const missing=games.filter((g:any)=>!info.summaries[g.id]).map((g:any)=>g.id);const busy=info.running.length>0;
   return <div className="replays">{!data.profile?.player&&<ShowdownName reload={load}/>}
     <Digest team={team} games={games} info={info} busy={busy} refresh={()=>void summarise([])} art={data.art}/>
+    <AtAGlance games={games} info={info} art={data.art}/>
     <AddReplays team={team} versionId={all?team.activeVersionId:versionId} load={load} notify={notify} after={()=>setTimeout(()=>void refresh(),800)}/>
     {games.length>0&&<div className="replay-filters">
       <div className="opponent-filter"><SpeciesPicker label="Opponent Pokémon" placeholder="Opponent had…" value="" onPick={sp=>setMons(m=>m.includes(sp)?m:[...m,sp])}/>{mons.map(m=><button key={m} className="chip on" onClick={()=>setMons(mons.filter(x=>x!==m))}>{m} ×</button>)}</div>
@@ -34,21 +35,40 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
     {missing.length>0&&!busy&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
     <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)}/>)}
       {games.length>0&&!shown.length&&<p className="muted">No games match these filters.</p>}</div>
-    {games.length>=3&&<Patterns games={shown}/>}
     {open&&<GameDrawer g={games.find((x:any)=>x.id===open)} s={info.summaries[open]} team={team} data={data} load={load} notify={notify} close={()=>setOpen(null)} resummarise={()=>void summarise([open])}/>}
   </div>;
 }
 
 function Digest({team,games,info,busy,refresh,art}:{team:any;games:any[];info:any;busy:boolean;refresh:()=>void;art:any}){
-  const r=record(games);const d=info.digest;const seen:Record<string,number>={};for(const g of games)for(const m of g.preview[other(g)])seen[m]=(seen[m]??0)+1;const common=Object.entries(seen).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const r=record(games);const d=info.digest;
   return <section className="digest panel"><header className="digest-head"><div><h2>What to work on</h2><span className="muted">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}{d?` · from ${d.games} summarised games · ${d.model} · ${date(d.createdAt)}`:''}</span></div>
       {r.n>=2&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Reload}/>Refresh</>}</button>}</header>
     {!d?<p className="muted">{r.n<2?'Add a couple of replays and Frontier Brain will summarise each game and pull out the patterns here.':busy?'Summarising your games…':'Summarise your games to see patterns.'}</p>
       :<ol className="themes">{d.themes.map((t:any,i:number)=><li key={i}><b>{t.title}</b> <span className="tag">{t.count} of {t.total} {t.of}</span><p>{t.detail}</p></li>)}</ol>}
     {d?.strengths?.length>0&&<p className="strengths"><b>Working well:</b> {d.strengths.join(' · ')}</p>}
-    {common.length>0&&<div className="common"><span className="muted">Faced most:</span>{common.map(([m,n])=><span key={m} className="common-mon" title={`${m}: ${n} game${n===1?'':'s'}`}><Art name={m} art={art} small/><small>{n}</small></span>)}</div>}
     {r.n>0&&r.n<5&&<p className="footnote">{r.n} game{r.n===1?'':'s'} is a small sample: treat these as things to test, not verdicts.</p>}
   </section>;
+}
+// At a glance: your record against what you've faced, counted from the linked games (and the summaries' archetype tags).
+// Pokémon count when they were at team preview; types count once per game. Nothing here is a verdict below a few games.
+function AtAGlance({games,info,art}:{games:any[];info:any;art:any}){
+  const done=games.filter(g=>g.result==='win'||g.result==='loss');const seen=[...new Set(done.flatMap(g=>g.preview[other(g)] as string[]))];
+  const dex=useDex(seen,[]);
+  const tally=(keys:(g:any)=>string[])=>{const t:Record<string,{n:number;w:number}>={};for(const g of done)for(const k of new Set(keys(g))){const x=t[k]??={n:0,w:0};x.n++;if(g.result==='win')x.w++;}return Object.entries(t).map(([k,v])=>({k,...v,rate:v.w/v.n}));};
+  const mons=tally(g=>g.preview[other(g)]);const types=tally(g=>(g.preview[other(g)] as string[]).flatMap(m=>dex.types[m]??[]));const styles=tally(g=>info.summaries[g.id]?.opponentStyle??[]);
+  const min=done.length>=6?2:1;const hard=(l:any[])=>l.filter(x=>x.n>=min&&x.w<x.n).sort((a,b)=>a.rate-b.rate||b.n-a.n).slice(0,4);const easy=(l:any[])=>l.filter(x=>x.n>=min&&x.w>0).sort((a,b)=>b.rate-a.rate||b.n-a.n).slice(0,4);
+  if(done.length<2)return null;
+  const rec=(x:any)=><span className="glance-rec">{x.w}–{x.n-x.w}</span>;
+  const monList=(l:any[],tone:string)=>l.length?<ul>{l.map(x=><li key={x.k} className={tone}><Art name={x.k} art={art} small/><span className="glance-name">{x.k}</span>{rec(x)}</li>)}</ul>:<p className="muted">Nothing yet.</p>;
+  const pillList=(l:any[],tone:string,type=false)=>l.length?<ul>{l.map(x=><li key={x.k} className={tone}>{type?<span className="type-badge" style={{'--type':TYPE_COLOURS[x.k]??'#888'} as any}>{x.k}</span>:<span className="glance-name">{x.k}</span>}{rec(x)}</li>)}</ul>:<p className="muted">{type?'Nothing yet.':'Summarise games to tag team styles.'}</p>;
+  return <section className="glance panel"><header className="panel-heading"><div><span className="eyebrow">At a glance · {done.length} games</span><h2>Who gives you trouble</h2></div></header>
+    <div className="glance-grid">
+      <div><h3>Toughest Pokémon</h3>{monList(hard(mons),'bad')}</div>
+      <div><h3>Easiest Pokémon</h3>{monList(easy(mons),'good')}</div>
+      <div><h3>Team styles you struggle with</h3>{pillList(hard(styles),'bad')}</div>
+      <div><h3>Types you struggle with</h3>{pillList(hard(types),'bad',true)}</div>
+    </div>
+    <p className="footnote">Your win–loss in games where they were at team preview{min>1?' (at least 2 games each)':''}. Styles come from the replay summaries. {done.length<10?'A small sample: things to test, not verdicts.':''}</p></section>;
 }
 
 function GameCard({g,s,pending,art,open}:{g:any;s:any;pending:boolean;art:any;open:()=>void}){
@@ -57,7 +77,7 @@ function GameCard({g,s,pending,art,open}:{g:any;s:any;pending:boolean;art:any;op
     <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.players[o].name}</span>{s?.stale&&<span className="tag">link changed</span>}</div>
     <div className="game-teams"><div className="six">{g.preview[o].map((m:string)=><span key={m} className={g.leads[o].includes(m)?'lead':g.revealed[o].includes(m)?'brought':'benched'} title={m}><Art name={m} art={art} small/></span>)}</div></div>
     {s?<><div className="game-summary">{sentences(s.summary).map((t,i)=><p key={i} className={i?'game-rest':'game-lead'}>{t}</p>)}</div>{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
-      {s.opponentStyle.length>0&&<div className="chip-row">{s.opponentStyle.map((t:string)=><span key={t} className="chip small">{t}</span>)}</div>}</>
+      {s.opponentStyle.length>0&&<div className="chip-row style-tags">{s.opponentStyle.map((t:string)=><span key={t} className="chip small">{t}</span>)}</div>}</>
       :<p className="muted">{pending?'Summarising…':'No summary yet.'}</p>}
   </article>;
 }
