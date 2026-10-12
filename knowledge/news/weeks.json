@@ -1,0 +1,206 @@
+[
+  {
+    "start": "2026-10-05",
+    "end": "2026-10-11",
+    "partial": true,
+    "researchedAt": "2026-10-08T00:06:07.718Z",
+    "digest": [
+      "A new player-authored PSYSPAM VIOLENCE report explains a Global Challenge I team; Liberty Note also published its M-6 doubles top-100 compilation.",
+      "Community questions this week focus on translating favourite Pokémon into a functional doubles team. These are discussion signals, not evidence of usage changes."
+    ],
+    "coverage": [
+      "Current week is incomplete. Curated discovery, not an exhaustive scrape of every source.",
+      "Liberty Note retrieved directly; Limitless and Reddit inspected. Pokémon Zone/Liquipedia raw access blocked; LabMaus access unresolved.",
+      "Calculator/reference sites are kept in Sources. Source dates below are publication dates except event results, which use event dates."
+    ],
+    "articles": [
+      {
+        "id": "psyspam-2026-10-06",
+        "title": "PSYSPAM VIOLENCE — Global Challenge I, rank 131",
+        "url": "https://liberty-note.com/2026/10/06/gc2027-1-131th/",
+        "source": "Liberty Note",
+        "publishedAt": "2026-10-06",
+        "category": "report",
+        "format": "Champions M-C · Global Challenge",
+        "summary": "Authored report on Indeedee-F/Armarouge pressure with both Trick Room and Tailwind options. Useful strategic context; not a representative metagame sample."
+      },
+      {
+        "id": "m6-top100",
+        "title": "Champions M-6 doubles — top-100 compilation",
+        "url": "https://liberty-note.com/2026/10/07/champions-seasonm6-top100/",
+        "source": "Liberty Note",
+        "publishedAt": "2026-10-07",
+        "category": "report",
+        "format": "Champions · in-game ranked doubles",
+        "summary": "A collection of high-finishing ladder teams and linked posts. Ladder placements should not be confused with tournament results or population usage."
+      },
+      {
+        "id": "community-team-2026-10-06",
+        "title": "Community: turning six favourites into a doubles team",
+        "url": "https://www.reddit.com/r/PokemonChampions/comments/1wzat1k/doubt_regarding_team/",
+        "source": "r/PokemonChampions",
+        "publishedAt": "2026-10-06",
+        "category": "community",
+        "format": "Champions · unverified discussion",
+        "summary": "A new-player team thread prompts suggestions about support and coherent team roles. Treat individual recommendations as hypotheses, not verified strength rankings."
+      }
+    ],
+    "signals": [
+      {
+        "kind": "report",
+        "title": "PSYSPAM has two speed modes—and a rain problem",
+        "summary": "Translated takeaway from Meteora’s Liberty Note report: Indeedee-F supplies Trick Room and redirection, while Salamence offers Tailwind. The author identifies Focus Sash Basculegion-F rain teams as a difficult matchup.",
+        "articleIds": [
+          "psyspam-2026-10-06"
+        ]
+      },
+      {
+        "kind": "report",
+        "title": "Champions ladder finishes are a separate signal",
+        "summary": "Liberty Note’s M-6 compilation lists high-finishing in-game doubles teams and links to player posts; some entries lack full team details.",
+        "articleIds": [
+          "m6-top100"
+        ]
+      }
+    ]
+  },
+  {
+    "start": "2026-09-28",
+    "end": "2026-10-04",
+    "partial": false,
+    "researchedAt": "2026-10-08T00:06:07.718Z",
+    "digest": [
+      "Recife adds another completed M-C regional result: Juan Francisco Salerno finished first. Event-specific usage remains available through the original statistics link.",
+      "Global Challenge I results and post-event discussion provide team ideas and player reflections. Self-reported records and rank compilations are not a usage census."
+    ],
+    "coverage": [
+      "Curated coverage: Limitless Recife results, Liberty Note and r/VGC. Not all publishers have accessible feeds.",
+      "Reddit is anecdotal evidence. The Quick Questions thread was published Sunday, not in the following week."
+    ],
+    "articles": [
+      {
+        "id": "recife-444",
+        "title": "Recife Regional — results and teams",
+        "url": "https://limitlessvgc.com/tournaments/444",
+        "source": "Limitless VGC",
+        "publishedAt": "2026-10-03",
+        "category": "tournament",
+        "format": "Champions M-C · regional · event date",
+        "summary": "Juan Francisco Salerno finished first at the 222-player event. The separate statistics page covers phase 2, not all entrants."
+      },
+      {
+        "id": "gc-top150",
+        "title": "Global Challenge 2027 I — top-150 compilation",
+        "url": "https://liberty-note.com/2026/09/28/gc2027-i-top150/",
+        "source": "Liberty Note",
+        "publishedAt": "2026-09-28",
+        "category": "report",
+        "format": "Champions M-C · Global Challenge",
+        "summary": "A ranked-results compilation with links for further team discovery. Preserve the online-event population rather than merging it into Showdown ladder data."
+      },
+      {
+        "id": "gc-discussion",
+        "title": "Global Challenge I — post-tournament discussion",
+        "url": "https://www.reddit.com/r/VGC/comments/1ws7o6z/global_challenge_1_2027_posttournament_discussion/",
+        "source": "r/VGC",
+        "publishedAt": "2026-09-29",
+        "category": "community",
+        "format": "Champions M-C · player anecdotes",
+        "summary": "Players discuss preparation, their results and borrowed team ideas. Useful for finding questions to test, not for estimating win probabilities."
+      },
+      {
+        "id": "quick-questions",
+        "title": "VGC Quick Questions — 4 October",
+        "url": "https://www.reddit.com/r/VGC/comments/1wx958k/vgc_quick_questions_thread_october_04_2026/",
+        "source": "r/VGC",
+        "publishedAt": "2026-10-04",
+        "category": "community",
+        "format": "Mixed · verify each answer",
+        "summary": "Weekly community questions. Follow any mechanics claims back to primary documentation or reproducible tests."
+      }
+    ],
+    "signals": [
+      {
+        "kind": "community",
+        "title": "Player reflections suggest questions, not rankings",
+        "summary": "The saved Global Challenge discussion captures self-reported preparation and results. Those experiences can generate testing ideas, but they are not a representative performance sample.",
+        "articleIds": [
+          "gc-discussion"
+        ]
+      },
+      {
+        "kind": "measured",
+        "title": "Recife’s phase-2 sample is not the whole field",
+        "summary": "Recife’s public results cover a 222-player event; the saved usage sample covers 31 phase-2 teams.",
+        "articleIds": [
+          "recife-444"
+        ]
+      }
+    ]
+  },
+  {
+    "start": "2026-09-21",
+    "end": "2026-09-27",
+    "partial": false,
+    "researchedAt": "2026-10-08T00:06:07.718Z",
+    "digest": [
+      "Frankfurt and Brisbane supply two large M-C regional reference points. Eric Rios won Frankfurt; compare the separate phase-2 usage samples without treating either as the whole field.",
+      "Liberty Note published an interview with Worlds runner-up cona. Its publication belongs to this week, but the underlying Worlds event predates M-C."
+    ],
+    "coverage": [
+      "Limitless Frankfurt/Brisbane results and Liberty Note interview checked. Publication week differs from the date of the event discussed.",
+      "No verified relevant community item was selected for this week; this does not imply no discussions occurred."
+    ],
+    "articles": [
+      {
+        "id": "frankfurt-443",
+        "title": "Frankfurt Regional — results and teams",
+        "url": "https://limitlessvgc.com/tournaments/443",
+        "source": "Limitless VGC",
+        "publishedAt": "2026-09-26",
+        "category": "tournament",
+        "format": "Champions M-C · regional · event date",
+        "summary": "Eric Rios finished first at the 1,129-player event. Public phase-2 statistics are a selected population rather than overall entrant usage."
+      },
+      {
+        "id": "brisbane-442",
+        "title": "Brisbane Regional — results and teams",
+        "url": "https://limitlessvgc.com/tournaments/442",
+        "source": "Limitless VGC",
+        "publishedAt": "2026-09-26",
+        "category": "tournament",
+        "format": "Champions M-C · regional · event date",
+        "summary": "Results and team discovery from the 327-player event. Use the event-specific statistics with their phase-2 population label."
+      },
+      {
+        "id": "cona-interview",
+        "title": "Worlds 2026 runner-up cona — interview",
+        "url": "https://liberty-note.com/2026/09/23/wcs2026-cona-interview/",
+        "source": "Liberty Note",
+        "publishedAt": "2026-09-23",
+        "category": "report",
+        "format": "Historical Worlds context · not M-C results",
+        "summary": "Interview published this week about an earlier event. A historical perspective, not a current-regulation tournament report."
+      }
+    ],
+    "signals": [
+      {
+        "kind": "measured",
+        "title": "Keep Frankfurt and Brisbane populations distinct",
+        "summary": "The saved regional evidence covers separate phase-2 samples: 163 teams in Frankfurt and 47 in Brisbane, from events with 1,129 and 327 entrants respectively.",
+        "articleIds": [
+          "frankfurt-443",
+          "brisbane-442"
+        ]
+      },
+      {
+        "kind": "report",
+        "title": "Historical interviews still offer preparation lessons",
+        "summary": "Liberty Note’s cona interview was published this week but discusses an earlier Worlds event.",
+        "articleIds": [
+          "cona-interview"
+        ]
+      }
+    ]
+  }
+]

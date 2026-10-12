@@ -1,6 +1,6 @@
 import {readdir,readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ROOT,json,optionalJSON,save,id,hash,localDay,listDir,readText,config} from './io.ts';
+import {ROOT,CODE,json,optionalJSON,save,id,hash,localDay,listDir,readText,config} from './io.ts';
 import {dex} from './mechanics.ts';
 import {fetchText,parseUsage,pool} from './research.ts';
 import {loadGames,type Game} from './replays.ts';
@@ -8,6 +8,13 @@ import {readStore,currentTeam,sameRoster,legacyTeams} from './workbench-store.ts
 import type {Workbench,NewsWeek} from '../shared/workbench.ts';
 
 export function weekStart(date:string):string{const d=new Date(date.slice(0,10)+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);}
+// Weekly news comes from the repository (the news routine commits it to main) and from the data directory (a local
+// research run). Per week, the more recently researched copy wins, so neither silently shadows the other.
+export function mergeNews(...sources:NewsWeek[][]):NewsWeek[]{const byStart=new Map<string,NewsWeek>();
+  for(const w of sources.flat()){const had=byStart.get(w.start);if(!had||Date.parse(w.researchedAt)>Date.parse(had.researchedAt))byStart.set(w.start,w);}
+  return [...byStart.values()].sort((a,b)=>b.start.localeCompare(a.start));}
+async function newsWeeks(){const shipped=await readFile(resolve(CODE,'knowledge/news/weeks.json'),'utf8').then(t=>JSON.parse(t) as NewsWeek[]).catch(()=>[]);
+  return mergeNews(shipped,await optionalJSON<NewsWeek[]>('knowledge/news/weeks.json',[]));}
 export function newsWindow(weeks:NewsWeek[],today=localDay()){
   const start=weekStart(today);return [0,1,2].map(n=>{const d=new Date(start+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-7*n);const s=d.toISOString().slice(0,10);d.setUTCDate(d.getUTCDate()+6);const e=d.toISOString().slice(0,10);const existing=weeks.find(w=>w.start===s);return existing?{...existing,partial:n===0}:{start:s,end:e,partial:n===0,digest:['Research has not been completed for this week.'],articles:[],coverage:['No saved digest; run weekly research.'],researchedAt:null};});
 }
@@ -77,7 +84,7 @@ export function coachStats(games:Game[]){
   return {total:games.length,games:complete.length,wins,losses,ties,incomplete:games.length-complete.length,bring,leads,matchups,moves,leadMatchups,megas};
 }
 export async function dashboard(storageRoot=ROOT){
-  const [db,games,usage,news,sources,art,index,events,historyCheck]=await Promise.all([readStore(storageRoot),loadGames(),usageHistory(),optionalJSON<NewsWeek[]>('knowledge/news/weeks.json',[]),json('knowledge/sources/catalogue.json'),optionalJSON('knowledge/artwork/manifest.json',{}),optionalJSON<any>('replays/index.json',{games:[],errors:[]}),optionalJSON('knowledge/metagame/events.json',[]),optionalJSON('knowledge/metagame/history-check.json',null)]);
+  const [db,games,usage,news,sources,art,index,events,historyCheck]=await Promise.all([readStore(storageRoot),loadGames(),usageHistory(),newsWeeks(),json('knowledge/sources/catalogue.json'),optionalJSON('knowledge/artwork/manifest.json',{}),optionalJSON<any>('replays/index.json',{games:[],errors:[]}),optionalJSON('knowledge/metagame/events.json',[]),optionalJSON('knowledge/metagame/history-check.json',null)]);
   const summaries=games.map(g=>{const suggestions=db.teams.filter(t=>sameRoster(g.preview[g.ownSide],currentTeam(db,t).sets.map(s=>s.species))).map(t=>t.id);return {...g,events:undefined,turns:undefined,finalState:undefined,suggestions,association:db.associations[g.id]??null,reviewPath:index.games.find((e:any)=>e.id===g.id)?.reviewPath??null};});
   const teams=db.teams.map(t=>({...t,view:currentTeam(db,t)}));
   const reportNames=await listDir('reports/replay-reviews');const coaching=reportNames.filter(f=>f.endsWith('-coaching.md')).sort().at(-1);const overview=coaching?await readText(`reports/replay-reviews/${coaching}`):'';

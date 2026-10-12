@@ -1,0 +1,39 @@
+# Seeds the weekly news into the hosted site whenever knowledge/news/weeks.json changes on main (the
+# frontier-brain-news Claude routine commits it there). No AI here; the routine never holds a database key.
+name: Hosted news seed
+
+on:
+  push:
+    branches: [main]
+    paths: ['knowledge/news/weeks.json']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hosted-news
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # The same schema test the routine runs; a malformed file is never seeded.
+      - run: node --test tools/tests/news.test.ts
+
+      # APP_DATA unset: the repository is the data root, so the seed reads the committed weeks.json.
+      - run: node tools/hosted-seed.ts --only knowledge/news/
