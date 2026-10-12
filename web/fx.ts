@@ -8,17 +8,32 @@ const DIGITS='0123456789';
 const noise=(c:string,pool:string)=>c===' '||/[^\p{L}\p{N}]/u.test(c)?c:pool[(Math.random()*pool.length)|0];
 
 // Resolve an element's text from noise, left to right. Works on its own text nodes and stops if React changes them meanwhile.
+// `lock` holds the element's box while it runs, so wider noise glyphs never nudge the layout around it.
 const running=new WeakMap<Element,number>();
-export function decode(el:Element,{duration=480}:{duration?:number}={}){
+export function decode(el:Element,{duration=480,lock=false}:{duration?:number;lock?:boolean}={}){
   if(reduced()||running.has(el))return;const nodes:Text[]=[];const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
   for(let n=walk.nextNode();n;n=walk.nextNode())if((n as Text).data.trim())nodes.push(n as Text);
-  if(!nodes.length)return;const token=Date.now();running.set(el,token);const finals=nodes.map(n=>n.data);const written=[...finals];const start=performance.now();
-  const frame=(t:number)=>{if(running.get(el)!==token)return;const p=Math.min(1,(t-start)/duration);
-    for(let i=0;i<nodes.length;i++){if(nodes[i].data!==written[i]){running.delete(el);return;}const f=finals[i];const keep=Math.floor(f.length*p);
-      const next=f.slice(0,keep)+[...f.slice(keep)].map(c=>noise(c,NOISE)).join('');nodes[i].data=next;written[i]=next;}
-    if(p<1)requestAnimationFrame(frame);else{nodes.forEach((n,i)=>{if(n.data===written[i])n.data=finals[i];});running.delete(el);}};
-  requestAnimationFrame(frame);
+  if(!nodes.length)return;const token=Date.now();running.set(el,token);const finals=nodes.map(n=>n.data);const written=[...finals];let start=0;
+  const box=el as HTMLElement;const {width,height,boxSizing}=box.style;
+  if(lock){const r=box.getBoundingClientRect();Object.assign(box.style,{width:r.width+'px',height:r.height+'px',boxSizing:'border-box'});}
+  // Every node still showing noise gets its text back (a node React replaced keeps React's text), and the box is released.
+  const settle=()=>{nodes.forEach((n,i)=>{if(n.data===written[i])n.data=finals[i];});if(lock)Object.assign(box.style,{width,height,boxSizing});running.delete(el);};
+  // The clock starts on the first painted frame, so a page that takes a moment to render still shows the whole resolve.
+  const step=(p:number)=>{for(let i=0;i<nodes.length;i++){const f=finals[i];const keep=Math.floor(f.length*p);
+    const next=f.slice(0,keep)+[...f.slice(keep)].map(c=>noise(c,NOISE)).join('');nodes[i].data=next;written[i]=next;}};
+  const frame=()=>{if(running.get(el)!==token)return;if(nodes.some((n,i)=>n.data!==written[i])){settle();return;}
+    const now=performance.now();if(!start)start=now;const p=Math.min(1,(now-start)/duration);step(p);
+    if(p<1)requestAnimationFrame(frame);else settle();};
+  step(0);requestAnimationFrame(frame);
 }
+
+// Pointing at a name decodes it once; the same name then rests for a moment, so sweeping back and forth never strobes.
+const lastHover=new WeakMap<Element,number>();
+export function hoverDecode(el:Element,duration=340){const now=Date.now();if(now-(lastHover.get(el)??0)<1500)return;lastHover.set(el,now);decode(el,{duration,lock:true});}
+
+// A brief phosphor flicker: the element jitters and its glow splits for a moment (keyframes in jade.css).
+export function glitch(el:Element){if(reduced()||el.classList.contains('fx-glitch'))return;el.classList.add('fx-glitch');
+  const done=()=>el.classList.remove('fx-glitch');el.addEventListener('animationend',done,{once:true});setTimeout(done,800);}
 
 // A number (or any text) that rolls its digits for a moment whenever `key` changes, then settles on the real value.
 export function useRolling(text:string,key:string,duration=520){
