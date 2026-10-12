@@ -26,10 +26,10 @@ test('A backup restores into another workspace, merging without duplicating same
       const rain=JSON.parse(await readFile(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[2].paste;
       await mutateStore(storeA.db.revision,db=>{const t=makeTeam(db,'My rain team',rain) as any;associateReplay(db,game,{teamId:t.id,versionId:currentTeam(db,t).version.id,certainty:'family'});});
       return createBackup();});
-    assert.equal(backup.store.teams.length,5);assert.equal(backup.games.length,1);assert.ok(Object.keys(backup.files).some(p=>p.startsWith('replays/originals/')));
+    assert.equal(backup.store.teams.length,3,"two samples and one team");assert.equal(backup.games.length,1);assert.ok(Object.keys(backup.files).some(p=>p.startsWith('replays/originals/')));
     await withData({user:fileBackend(b),shared:fileBackend(b,CODE),store:storeB,hosted:true},async()=>{
       const sent=JSON.parse(JSON.stringify(backup));sent.store.teams[0].name='Renamed team';
-      const r=await restoreBackup(sent);assert.equal(r.teams,5);assert.equal(r.games,1);assert.equal(r.replays,1);
+      const r=await restoreBackup(sent);assert.equal(r.teams,3);assert.equal(r.games,1);assert.equal(r.replays,1);
       assert.equal((await loadGames()).length,1);assert.match(await readText('config.json'),/Someone/);
       const again=await restoreBackup(sent);assert.equal(again.teams,0,'same ids and names are skipped');assert.equal(again.games,0);
       await assert.rejects(restoreBackup({format:'nope'}),/not a Frontier Brain backup/);

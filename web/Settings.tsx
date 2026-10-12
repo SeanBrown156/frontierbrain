@@ -3,6 +3,7 @@ import {api,Panel} from './ui.tsx';
 import {Px,Download,Upload,Sparkles,Check} from './icons.tsx';
 import {supabase,useAccount,requireAccount,hostedSite} from './auth.tsx';
 import {aiKey,setAIKey,type AIKey} from './ai/keys.tsx';
+import {ShowdownNamesField} from './team/ShowdownName.tsx';
 
 // Settings (#account): who you are, your Showdown name, your AI key, backups. The avatar in the header opens it.
 export default function Settings({profile,reload,notify}:{profile?:any;reload:()=>Promise<void>;notify:(text:string,error?:boolean)=>void}){
@@ -23,16 +24,8 @@ export default function Settings({profile,reload,notify}:{profile?:any;reload:()
 }
 
 function ShowdownName({profile,reload,notify}:{profile?:any;reload:()=>Promise<void>;notify:(t:string,e?:boolean)=>void}){
-  const [name,setName]=useState(''),[aliases,setAliases]=useState(''),[busy,setBusy]=useState(false);
-  useEffect(()=>{setName(profile?.player??'');setAliases((profile?.aliases??[]).join(', '));},[profile?.player,(profile?.aliases??[]).join(',')]);
-  const dirty=name.trim()!==(profile?.player??'')||aliases!==(profile?.aliases??[]).join(', ');
-  const save=async()=>{setBusy(true);try{await api('/profile',{player:name.trim(),aliases:aliases.split(',').map(a=>a.trim()).filter(Boolean)});await reload();notify('Showdown name saved.');}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
-  return <Panel title="Showdown name"><p className="muted">Replays are read from your side, so Frontier Brain needs to know which player is you.</p>
-    <form className="settings-form" onSubmit={e=>{e.preventDefault();void save();}}>
-      <label>Showdown name<input value={name} onChange={e=>setName(e.target.value)} placeholder="YourName"/></label>
-      <label>Other names (optional)<input value={aliases} onChange={e=>setAliases(e.target.value)} placeholder="alt1, alt2"/></label>
-      <button className="primary" disabled={busy||!dirty||!name.trim()}>{busy?'Saving…':!dirty&&profile?.player?<><Px icon={Check}/>Saved</>:'Save'}</button>
-    </form></Panel>;
+  return <Panel title="Showdown names"><p className="muted">Replays are read from your side, so Frontier Brain needs to know which player is you. Add every name you play under; the first is your main one.</p>
+    <ShowdownNamesField profile={profile} reload={reload} onError={m=>notify(m,true)}/></Panel>;
 }
 
 // What Frontier Brain remembers about you. Claude, ChatGPT and the in-app assistant all read it (and save what you

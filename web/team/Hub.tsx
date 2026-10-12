@@ -177,5 +177,5 @@ function SampleTeams({data,reload}:{data:any;reload?:()=>Promise<void>}){
   const [busy,setBusy]=useState(false),[error,setError]=useState('');
   if(data.teams.length)return null;
   const add=async()=>{setBusy(true);setError('');try{await api('/samples',{});await reload?.();}catch(e){setError((e as Error).message);}finally{setBusy(false);}};
-  return <div className="sample-offer"><p>Want examples to explore? Add five sample teams: recent Regional top-8 teams with the players' own spreads, and a ladder team with replays.</p><button disabled={busy} onClick={()=>void add()}>{busy?'Adding…':'Add sample teams'}</button>{error&&<p className="error">{error}</p>}</div>;
+  return <div className="sample-offer"><p>Want examples to explore? Add the two latest Regional-winning teams as samples. Where a player didn't publish spreads, the most common competitive spread is filled in and labelled.</p><button disabled={busy} onClick={()=>void add()}>{busy?'Adding…':'Add sample teams'}</button>{error&&<p className="error">{error}</p>}</div>;
 }

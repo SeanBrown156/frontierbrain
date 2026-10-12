@@ -114,6 +114,8 @@ export const poolStatus=()=>optionalJSON<any>(STATUS,null);
 // A team that lists the same Pokémon twice is a source error; it counts once.
 // Parsed once per minute per server (the file is ~19 MB); a refresh shows up within that minute.
 let memo:{at:number;teams:Promise<PoolTeam[]>}|null=null;
+// Tests (and anything that swaps the data root) drop the cached pool.
+export const forgetPool=()=>{memo=null;};
 export function poolTeams():Promise<PoolTeam[]>{if(memo&&Date.now()-memo.at<60_000)return memo.teams;const teams=loadPoolTeams();memo={at:Date.now(),teams};teams.catch(()=>{memo=null;});return teams;}
 async function loadPoolTeams():Promise<PoolTeam[]>{return (await optionalJSON<{teams:PoolTeam[]}>(TEAMS,{teams:[]})).teams.map(t=>({...t,pokemon:[...new Set(t.pokemon.map(species))],sets:t.sets.map(s=>({...s,species:species(s.species),...corrected(s)}))}));}
 // The reviewed name corrections (tools/pool-names.ts) apply on read, as in the hosted tables.

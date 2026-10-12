@@ -9,6 +9,16 @@ local, untracked `.env.hosted`.
 | Web app and API | Vercel team **Sean's projects** (`seans-projects-95ee1f5b`), project **frontierbrain** (`prj_Q6T4APAT62jHiJZBgPngzOU7hloh`) | Region `syd1`; production at https://frontierbrain.vercel.app |
 | Source and automation | GitHub `SeanBrown156/frontierbrain` | Actions secrets `SUPABASE_URL`, `SUPABASE_SECRET_KEY` |
 
+## Accounts
+
+- Sign-in is **Google only**, plus anonymous guest sessions. There are no email/password accounts, so no confirmation
+  or reset emails and no SMTP sender. In Supabase → Authentication → Sign In / Providers: Google and anonymous
+  sign-ins on, Email off.
+- A guest who signs in with Google is upgraded in place (`linkIdentity`); signing in to an existing account carries
+  the guest's teams over (`stashGuestWork` / `bringGuestWork` in `web/auth.tsx`).
+- Settings → Delete your account calls `POST /api/account-delete`: it revokes every session, then deletes the user
+  with the secret key; workspaces and files cascade.
+
 ## Billing
 
 - Supabase: org **Frontier Brain**, Free plan (checked 2026-10-12).

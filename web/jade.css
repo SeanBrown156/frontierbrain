@@ -1586,3 +1586,8 @@ html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;wi
 @media (max-width:620px){html.jade .dock{top:0!important;right:0!important;bottom:0!important;width:100vw!important;border-radius:0!important}}
 @media (prefers-reduced-motion:reduce){html.jade .dock{animation:none}}
 .crit-alt{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0!important}.crit-alt b{font:800 22px var(--fd)}
+
+/* Replays: the add form is a fieldset (one `disabled` locks every control); locked until a Showdown name is set. */
+fieldset.add-row{border:0;padding:0;margin:0;min-width:0}
+.add-replays.locked{opacity:.45;filter:grayscale(.5)}
+.add-replays.locked,.add-replays.locked *{cursor:not-allowed}

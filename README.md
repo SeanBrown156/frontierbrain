@@ -4,7 +4,7 @@
 
 Frontier Brain is free and open source. AI is bring-your-own: plug in your own OpenAI or Anthropic key, or connect your own Claude or ChatGPT over MCP. Nobody pays for anyone else's AI.
 
-> **Status:** early. It runs locally today. A hosted version with accounts (email and Google sign-in) and an MCP connector for Claude and ChatGPT is in progress.
+> **Status:** early. It runs locally today. A hosted version with accounts (Google sign-in, or try it as a guest) and an MCP connector for Claude and ChatGPT is in progress.
 
 > Not affiliated with or endorsed by Nintendo, The Pokémon Company, Game Freak or Creatures. Pokémon and Pokémon character names are trademarks of Nintendo. Battle mechanics come from [Pokémon Showdown](https://github.com/smogon/pokemon-showdown) and [@smogon/calc](https://github.com/smogon/damage-calc) (MIT).
 
