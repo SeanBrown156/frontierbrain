@@ -2073,20 +2073,20 @@ html.jade .footer-legal p{margin:0;max-width:none;font:inherit;color:inherit}
 html.jade .footer-mail{font:inherit;user-select:all}
 @media (max-width:720px){html.jade .footer-grid{grid-template-columns:1fr 1fr}html.jade .footer-brand{grid-column:1/-1}}
 
-/* two-way mode switch (API key / MCP): the app's dark field track with a tinted thumb that slides under the chosen label */
-html.jade .mode-switch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;padding:5px;margin:0 0 12px;border-radius:14px;background:var(--field);border:1px solid var(--ln-2)}
-html.jade .mode-switch .ms-thumb{position:absolute;top:5px;bottom:5px;left:5px;width:calc((100% - 10px) / 2);border-radius:10px;pointer-events:none;
-  background:color-mix(in srgb,var(--ac) 22%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 60%,transparent);
-  transition:transform .35s cubic-bezier(.3,1.15,.4,1)}
-html.jade .mode-switch[data-pos="1"] .ms-thumb{transform:translateX(100%)}
-html.jade .mode-switch button{position:relative;z-index:1;min-width:0;min-height:52px;height:auto;padding:0 14px;border:0!important;border-radius:10px!important;background:none!important;box-shadow:none!important;
-  display:inline-flex;align-items:center;justify-content:center;gap:9px;color:var(--mu);font:700 15px/1.2 var(--fb);cursor:pointer;transition:color .25s}
-html.jade .mode-switch button svg{width:20px;height:20px;flex:none}
-html.jade .mode-switch button:hover{color:var(--tx)}
-html.jade .mode-switch button.on{color:var(--tx)}
-html.jade .mode-switch button:focus-visible{outline:2px solid var(--ac);outline-offset:-2px}
+/* two-way toggle switch (API key / MCP): a dark pill, a tinted thumb that slides to the chosen side with its label inside */
+html.jade .mode-switch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;width:100%;height:60px;min-height:60px;max-height:60px;padding:6px;margin:0 0 14px;border-radius:999px;
+  background:var(--field)!important;border:1px solid var(--ln-2)!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.28)!important;cursor:pointer;text-align:center}
+html.jade .mode-switch .ms-thumb{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 2);border-radius:999px;pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 38%,var(--bg)),color-mix(in srgb,var(--ac) 24%,var(--bg)));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 70%,transparent),0 0 22px -6px var(--glow);transition:transform .38s cubic-bezier(.3,1.2,.4,1)}
+html.jade .mode-switch.right .ms-thumb{transform:translateX(100%)}
+html.jade .mode-switch .ms-side{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:0;padding:0 12px;color:var(--mu);font:700 16px/1.2 var(--fb);transition:color .25s}
+html.jade .mode-switch .ms-side svg{width:20px;height:20px;flex:none}
+html.jade .mode-switch .ms-side.on{color:var(--tx);text-shadow:var(--phos-title)}
+html.jade .mode-switch:hover .ms-side:not(.on){color:var(--tx)}
+html.jade .mode-switch:focus-visible{outline:2px solid var(--ac);outline-offset:3px}
 html.jade .mode-switch .ms-short{display:none}
-@media (max-width:620px){html.jade .mode-switch .ms-full{display:none}html.jade .mode-switch .ms-short{display:inline}html.jade .mode-switch button{min-height:48px}}
+@media (max-width:620px){html.jade .mode-switch{height:52px;min-height:52px;max-height:52px}html.jade .mode-switch .ms-full{display:none}html.jade .mode-switch .ms-short{display:inline}html.jade .mode-switch .ms-side{font-size:15px}}
 @media (prefers-reduced-motion:reduce){html.jade .mode-switch .ms-thumb{transition:none}}
 
 /* phones: the logo stands alone in the nav, no wordmark */

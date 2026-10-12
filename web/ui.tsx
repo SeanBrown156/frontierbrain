@@ -92,13 +92,14 @@ export function Tabs({tabs,value,onChange,icons={}}:{tabs:string[];value:string;
 export function Notice({children}:{children:ReactNode}){return <p className="notice">{children}</p>;}
 export function JobStatus({jobs,kinds}:{jobs:any;kinds:string[]}){return <div className="context-jobs" aria-live="polite">{jobs?.current.filter((j:any)=>kinds.includes(j.kind)).slice(0,2).map((j:any)=><div className="job" key={j.id}><span className={'status '+j.status}>{j.status}</span><span>{j.phase}</span>{j.error&&<p role="alert">{j.error}</p>}</div>)}</div>;}
 
-// A two-way switch: one solid pill, a light thumb that slides under the chosen label. Either label or an arrow key flips it.
+// A two-way toggle switch: one pill, a thumb that slides to the chosen side with that label inside it; the other label is
+// plain text on the track. The whole pill is a single control (role "switch"), so there are no buttons inside it.
 // `short` replaces the label on narrow screens (CSS swaps them); `icon` sits before it.
 export function ModeSwitch<T extends string>({value,options,onChange,label}:{value:T;options:{value:T;label:string;short?:string;icon?:React.ReactNode}[];onChange:(v:T)=>void;label:string}){
-  const idx=Math.max(0,options.findIndex(o=>o.value===value));
-  return <div className="mode-switch" role="radiogroup" aria-label={label} data-pos={idx} onKeyDown={e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();onChange(options[(idx+1)%2].value);}}}>
-    <span className="ms-thumb" aria-hidden="true"/>
-    {options.map(o=><button key={o.value} type="button" role="radio" aria-checked={o.value===value} aria-label={o.label} tabIndex={o.value===value?0:-1} className={o.value===value?'on':''} onClick={()=>onChange(o.value)}>
-      {o.icon}<span className="ms-full">{o.label}</span><span className="ms-short">{o.short??o.label}</span></button>)}
-  </div>;
+  const right=value===options[1].value;
+  const side=(o:typeof options[number])=><span className={'ms-side'+(o.value===value?' on':'')}>{o.icon}<span className="ms-full">{o.label}</span><span className="ms-short">{o.short??o.label}</span></span>;
+  return <button type="button" role="switch" aria-checked={right} aria-label={`${label}: ${options[right?1:0].label}. Switch to ${options[right?0:1].label}`} className={'mode-switch'+(right?' right':'')}
+    onClick={e=>{const r=e.currentTarget.getBoundingClientRect();const x=e.clientX-r.left;onChange(options[e.clientX&&x>0?(x>r.width/2?1:0):(right?0:1)].value);}}>
+    <span className="ms-thumb" aria-hidden="true"/>{side(options[0])}{side(options[1])}
+  </button>;
 }
