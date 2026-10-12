@@ -2104,3 +2104,16 @@ html.jade .mode-switch .ms-short{display:none}
   .boot-bar{max-width:100%}
   .boot-bar b{min-width:48px;font-size:18px}
 }
+
+/* phones: Pokémon art options stack one per row at full size (no squeezing); button groups fill the row, sitting side by
+   side only when each still has room and stacking full width otherwise */
+@media (max-width:620px){
+  html.jade .sprite-choice{grid-template-columns:minmax(0,1fr);gap:12px}
+  html.jade .sprite-preview{height:120px;padding-bottom:14px}
+  html.jade .sprite-preview.sprite-home img{height:100px}
+  html.jade .sprite-preview.sprite-gen5 img{height:96px}
+  html.jade .sprite-preview.sprite-xy img{max-height:104px}
+  html.jade .sprite-choice button.sprite-option:not(#_){padding:12px 8px 16px!important}
+  html.jade :is(.settings-actions,.button-row:not(.dock-controls),.manage-actions,.consent-actions,.lp-ctas){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:var(--s2);width:100%}
+  html.jade :is(.settings-actions,.button-row:not(.dock-controls),.manage-actions,.consent-actions,.lp-ctas)>:is(button,a.button,.button,label){width:100%;max-width:none;justify-content:center;text-align:center;margin:0}
+}
