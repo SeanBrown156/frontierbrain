@@ -2048,3 +2048,12 @@ html.jade .ai-mode{margin-bottom:12px}
 html.jade .settings .examples-field{display:flex;flex-direction:column;gap:8px;margin:12px 0 0}
 html.jade .settings .examples-field>.field-label{margin:0!important;font:600 13px/1.2 var(--fb);color:var(--tx)}
 html.jade .settings .examples-field :is(input){margin:0!important;height:40px}
+
+/* Data pool tables: numbers never wrap; on phones the name column gives way instead. */
+html.jade .data-pool .stat-table td:not(:has(.art)){white-space:nowrap}
+@media (max-width:620px){
+ html.jade .data-pool .stat-table{table-layout:auto}
+ html.jade .data-pool .stat-table td{padding:8px 4px!important;font-size:12px}
+ html.jade .data-pool .stat-table td:has(.art){width:100%;white-space:normal;overflow-wrap:anywhere}
+ html.jade .data-pool .stat-table td:first-child{width:1%;color:var(--mu)}
+}
