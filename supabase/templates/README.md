@@ -9,7 +9,8 @@ stylesheets and web fonts.
 | `confirm-signup.html` | Confirm signup | Confirm your Frontier Brain email |
 | `reset-password.html` | Reset password | Reset your Frontier Brain password |
 | `magic-link.html` | Magic link | Your Frontier Brain sign-in link |
-| `change-email.html` | Change email address | Confirm your new email |
+| `change-email.html` | Change email address | Confirm your Frontier Brain email |
 
-Real users only receive these once a custom SMTP sender is configured; Supabase's built-in sender delivers only to
+A guest who creates an account with email gets **Change email address** (their guest user gains an email), so that
+template is worded for both a new account and a later change. Real users only receive these once a custom SMTP sender is configured; Supabase's built-in sender delivers only to
 members of the project's team.
