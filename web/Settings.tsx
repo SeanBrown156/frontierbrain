@@ -69,7 +69,7 @@ function AboutYou(){
 function AIPanel(){
   const [mode,setMode]=useState<'key'|'mcp'>('key');
   return <Panel title={<><Px icon={Sparkles}/> AI</>}>
-    <div className="segmented ai-mode" role="tablist"><button role="tab" aria-selected={mode==='key'} className={mode==='key'?'on':''} onClick={()=>setMode('key')}>Your API key</button><button role="tab" aria-selected={mode==='mcp'} className={mode==='mcp'?'on':''} onClick={()=>setMode('mcp')}>Connect Claude or ChatGPT</button></div>
+    <div className="segmented ai-mode" role="tablist"><button role="tab" aria-selected={mode==='key'} className={mode==='key'?'on':''} onClick={()=>setMode('key')}>Connect with your API key</button><button role="tab" aria-selected={mode==='mcp'} className={mode==='mcp'?'on':''} onClick={()=>setMode('mcp')}>Connect via MCP</button></div>
     {mode==='key'?<AIKey/>:<Connectors/>}
   </Panel>;
 }

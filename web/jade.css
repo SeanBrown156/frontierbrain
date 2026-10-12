@@ -2040,3 +2040,11 @@ fieldset.add-row{border:0;padding:0;margin:0;min-width:0}
 .account-signin{align-items:center;gap:var(--s6)}
 .account-signin>div{display:grid;gap:var(--s2);flex:1;min-width:0}.account-signin p{margin:0}
 @media (max-width:620px){.account-signin{flex-direction:column;align-items:stretch}.account-signin .google-button{width:100%}}
+
+/* AI settings: the explainer and the connector address use the glass radius like every other box. */
+html.jade .ai-explainer,html.jade .copy-line{border-radius:var(--rs)!important;overflow:hidden}
+html.jade .ai-mode{margin-bottom:12px}
+/* Showdown names: label, box and chips spaced like the About you fields. */
+html.jade .settings .examples-field{display:flex;flex-direction:column;gap:8px;margin:12px 0 0}
+html.jade .settings .examples-field>.field-label{margin:0!important;font:600 13px/1.2 var(--fb);color:var(--tx)}
+html.jade .settings .examples-field :is(input){margin:0!important;height:40px}
