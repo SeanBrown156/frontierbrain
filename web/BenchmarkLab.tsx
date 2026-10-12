@@ -18,7 +18,7 @@ const sourceShort:Record<string,string>={pool:'Pool',pokebase:'PokéBase',vgcpas
 const ATTACK_SIDE=[['isHelpingHand','Helping Hand'],['isBattery','Battery'],['isPowerSpot','Power Spot'],['isSteelySpirit','Steely Spirit']] as const;
 const DEFEND_SIDE=[['isReflect','Reflect'],['isLightScreen','Light Screen'],['isAuroraVeil','Aurora Veil'],['isFriendGuard','Friend Guard'],['isProtected','Protect']] as const;
 const FIELD_FLAGS=[['isGravity','Gravity'],['isMagicRoom','Magic Room'],['isWonderRoom','Wonder Room'],['isBeadsOfRuin','Beads of Ruin'],['isSwordOfRuin','Sword of Ruin'],['isTabletsOfRuin','Tablets of Ruin'],['isVesselOfRuin','Vessel of Ruin']] as const;
-const BATTLE_KEYS=['curHP','status','boosts','abilityOn','alliesFainted','stage','multiplier','priority','tailwind','paralyzed'] as const;
+const BATTLE_KEYS=['curHP','status','boosts','abilityOn','alliesFainted','stage','multiplier','priority','tailwind','paralyzed','move','quickClaw','itemUsed','intimidated'] as const;
 type Pick={kind:'current'}|{kind:'saved';id:string;label:string;set:PokemonSet}|{kind:'spread';index:number}|{kind:'custom';set?:PokemonSet};
 type Side='mine'|'foe';
 const megaName=(name:string)=>/-Mega(-[A-Z])?$/.test(name);const baseName=(name:string)=>name.replace(/-Mega(-[A-Z])?$/,'');
@@ -61,7 +61,7 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const dx=useDex([mineBase.species,other.species],[]);
   const megaFor=(s:any)=>(dx.megas[s.species]??[]).find((m:MegaForm)=>m.item===s.item);
   const mineMega=megaFor(own),foeMega=megaFor(other);
-  const asForm=(s:any,m:MegaForm|undefined,on:boolean)=>m&&on?{...s,species:m.name,ability:m.ability}:s;
+  const asForm=(s:any,m:MegaForm|undefined,on:boolean)=>{const {itemUsed,intimidated,...x}=s;const f=m&&on?{...x,species:m.name,ability:m.ability}:x;return itemUsed?{...f,item:''}:f;};
   const ownC=asForm(own,mineMega,megaOn.mine),otherC=asForm(other,foeMega,megaOn.foe);
   const outgoing=direction==='outgoing';const attackerSide:Side=outgoing?'mine':'foe',defenderSide:Side=outgoing?'foe':'mine';
   const attackerSet=outgoing?mineBase:other;
@@ -74,6 +74,8 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const key=JSON.stringify(tab==='Speed'?speedInput:damageInput);
   useEffect(()=>{if(!dex){setCalculating(false);return;}let alive=true;setCalculating(true);const timer=setTimeout(()=>{api('/calculate',{kind:tab==='Speed'?'speed':'damage',input:JSON.parse(key)}).then(r=>{if(alive){setResult({...r,kind:tab});setError('');}}).catch(e=>{if(alive){setResult(null);setError(e.message);}}).finally(()=>{if(alive)setCalculating(false);});},250);return()=>{alive=false;clearTimeout(timer);};},[key,tab,!!dex]);
   useEffect(()=>setSaved(''),[key,tab]);
+  // The other side of the crit question: if the main result isn't a crit, also show the crit range (and vice versa).
+  const [alt,setAlt]=useState<any>(null);useEffect(()=>{setAlt(null);if(tab!=='Damage'||!dex)return;let alive=true;const t=setTimeout(()=>{api('/calculate',{kind:'damage',input:{...damageInput,moveOptions:{...options,isCrit:!options.isCrit}}}).then(r=>{if(alive)setAlt(r);}).catch(()=>{});},400);return()=>{alive=false;clearTimeout(t);};},[key,tab,!!dex]);
   // A calc run by Ask Frontier Brain on this Pokémon lands here with its exact inputs.
   const panel=useRef<HTMLElement>(null);
   const isMine=(s:any)=>!!s&&baseName(s.species)===draftSet.species;
@@ -109,15 +111,21 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const foeValue=foe.kind==='spread'?'spread:'+foe.index:foe.kind==='saved'?'saved:'+foe.id:'custom';
   const role=(side:Side)=>tab==='Speed'?(side==='mine'?'You':'Opponent'):`${side==='mine'?'You':'Opponent'} · ${side===attackerSide?'attacking':'defending'}`;
   // What each card shows for its role: the attacker chooses the move and its boosts; the defender its protection.
-  const context=(side:Side,s:any,update:(x:any)=>void)=>tab==='Speed'?<div className="ctx">
-      <div className="lab-row"><label>Speed stage<input type="number" min="-6" max="6" value={s.stage??0} onChange={e=>update({...s,stage:Number(e.target.value)})}/></label><label title="Item or ability multiplier, entered explicitly (e.g. 1.5 for Choice Scarf)">Multiplier<input type="number" min="0.1" step="0.1" value={s.multiplier??1} onChange={e=>update({...s,multiplier:Number(e.target.value)})}/></label><label>Move priority<input type="number" min="-7" max="7" value={s.priority??0} onChange={e=>update({...s,priority:Number(e.target.value)})}/></label></div>
-      <div className="toggles"><Toggle on={!!s.tailwind} label="Tailwind" set={v=>update({...s,tailwind:v})}/><Toggle on={!!s.paralyzed} label="Paralysed" set={v=>update({...s,paralyzed:v})}/></div></div>
+  const context=(side:Side,s:any,update:(x:any)=>void)=>{const base=side==='mine'?mineBase:other;const moves:string[]=(base.moves??[]).filter(Boolean);const itemId=String(s.item??'').toLowerCase();const abilityName=side==='mine'?ownC.ability:otherC.ability;
+    const used=<Toggle on={!!s.itemUsed} label={s.item?`${s.item} used up`:'Item used up'} set={v=>update({...s,itemUsed:v})}/>;
+    return tab==='Speed'?<div className="ctx">
+      <span className="ctx-label">Move this turn</span><div className="move-chips"><button type="button" className={'toggle'+(!s.move?' on':'')} aria-pressed={!s.move} onClick={()=>update({...s,move:undefined})}>Any (no priority)</button>{moves.map(m=><button type="button" key={m} className={'toggle'+(s.move===m?' on':'')} aria-pressed={s.move===m} onClick={()=>update({...s,move:m})}>{m}</button>)}</div>
+      <div className="lab-row"><label>Speed stage<input type="number" min="-6" max="6" value={s.stage??0} onChange={e=>update({...s,stage:Number(e.target.value)})}/></label><label title="Anything the calculator doesn't already include">Extra multiplier<input type="number" min="0.1" step="0.1" value={s.multiplier??1} onChange={e=>update({...s,multiplier:Number(e.target.value)})}/></label><label title="Leave blank to work it out from the move and ability">Priority<input type="number" min="-7" max="7" placeholder="Auto" value={s.priority??''} onChange={e=>update({...s,priority:e.target.value===''?undefined:Number(e.target.value)})}/></label></div>
+      <div className="toggles"><Toggle on={!!s.tailwind} label="Tailwind" set={v=>update({...s,tailwind:v})}/><Toggle on={!!s.paralyzed} label="Paralysed" set={v=>update({...s,paralyzed:v})}/>
+        {/unburden/i.test(abilityName??'')&&<Toggle on={!!s.abilityOn} label="Unburden active" set={v=>update({...s,abilityOn:v||undefined})}/>}
+        {(itemId==='quick claw'||itemId==='custap berry')&&<Toggle on={!!s.quickClaw} label={`${s.item} activates`} set={v=>update({...s,quickClaw:v})}/>}{s.item&&used}</div></div>
     :side===attackerSide?<div className="ctx"><span className="ctx-label">Move</span>
       {attackerMoves.length>0&&<div className="move-chips">{attackerMoves.map((m:string)=><button type="button" key={m} className={'toggle'+(m===move?' on':'')} aria-pressed={m===move} onClick={()=>{setMove(m);setOptions(({hits,context,...o}:any)=>o);}}>{m}</button>)}</div>}
       <div className="move-input"><MovePicker label="Another move" dex={dex} value={attackerMoves.includes(move)?'':move} onChange={v=>{setMove(v);setOptions(({hits,context,...o}:any)=>o);}}/></div>
       <MoveContext move={move} dex={dex} options={options} setOptions={setOptions}/>
-      <span className="ctx-label">Boosting this attack</span><div className="toggles">{ATTACK_SIDE.map(([k,l])=><Toggle key={k} on={!!flags[side][k]} label={l} set={v=>setFlag(side,k,v)}/>)}<Toggle on={!!options.isCrit} label="Critical hit" set={v=>setOptions({...options,isCrit:v})}/></div></div>
-    :<div className="ctx"><span className="ctx-label">Protecting this Pokémon</span><div className="toggles">{DEFEND_SIDE.map(([k,l])=><Toggle key={k} on={!!flags[side][k]} label={l} set={v=>setFlag(side,k,v)}/>)}</div></div>;
+      <span className="ctx-label">Boosting this attack</span><div className="toggles">{ATTACK_SIDE.map(([k,l])=><Toggle key={k} on={!!flags[side][k]} label={l} set={v=>setFlag(side,k,v)}/>)}<Toggle on={!!options.isCrit} label="Critical hit" set={v=>setOptions({...options,isCrit:v})}/></div>
+      <span className="ctx-label">Already happened</span><div className="toggles"><Toggle on={(s.boosts?.atk??0)<0&&s.intimidated} label="Intimidated (−1 Atk)" set={v=>update({...s,intimidated:v,boosts:{...s.boosts,atk:(s.boosts?.atk??0)+(v?-1:1)}})}/>{s.item&&used}</div></div>
+    :<div className="ctx"><span className="ctx-label">Protecting this Pokémon</span><div className="toggles">{DEFEND_SIDE.map(([k,l])=><Toggle key={k} on={!!flags[side][k]} label={l} set={v=>setFlag(side,k,v)}/>)}</div>{s.item&&<><span className="ctx-label">Already happened</span><div className="toggles">{used}</div></>}</div>;};
   const sideCard=(side:Side)=>side==='mine'
     ?<Combatant key="mine" side="mine" cardRef={el=>{cards.current.mine=el;}} role={role('mine')} set={own} art={data.art} mega={mineMega} megaOn={megaOn.mine} setMega={v=>setMegaOn(x=>({...x,mine:v}))}
         picker={<label className="combatant-pick"><span className="sr-only">Your set</span><select value={mineValue} onChange={e=>{const v=e.target.value;if(v==='current')setMine({kind:'current'});else if(v==='custom')setMine({kind:'custom',set:structuredClone(mineBase)});else{const o=mySaved.find(x=>'saved:'+x.id===v);if(o)setMine({kind:'saved',id:o.id,label:o.label,set:o.value});}}}>
@@ -143,8 +151,8 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
     <div className="matchup">{sideCard(order[0])}{axis}{sideCard(order[1])}</div>
     {error&&<p role="alert" className="error">{error}</p>}
     {result?.kind==='Damage'&&tab==='Damage'&&<div className={'lab-result'+(calculating?' busy':'')}><DamageViz result={result} name={formName((outgoing?otherC:ownC).species)} attackerName={formName((outgoing?ownC:otherC).species)} defender={(outgoing?otherC:ownC).species} fallback={(outgoing?other:own).species} art={data.art} move={move} attacker={(outgoing?ownC:otherC).species}/>
-      <details><summary>Rolls, description and assumptions</summary><p className="lab-desc">{result.description}</p>{result.perHit&&<p className="muted">Per hit: {result.perHit.map((h:number[])=>`${h[0]}–${h.at(-1)}`).join(' + ')}</p>}<p className="mono">{result.rolls.join(', ')}</p>{result.assumptions.map((a:string,i:number)=><p key={i}>{a}</p>)}<pre>{JSON.stringify(result.versions,null,2)}</pre></details>{saved&&<Notice>{saved}</Notice>}{footer}</div>}
-    {result?.kind==='Speed'&&tab==='Speed'&&<div className={'lab-result'+(calculating?' busy':'')}><SpeedRace a={{name:ownC.species,fallback:own.species,speed:result.a}} b={{name:otherC.species,fallback:other.species,speed:result.b}} first={result.first} trickRoom={trickRoom} art={data.art}/>
+      {alt&&<p className="crit-alt"><span className="ctx-label">{options.isCrit?'Without a crit':'If it crits'}</span><b>{alt.percentOfMaxHP.map((v:number)=>v.toFixed(1)).join('–')}%</b><span className="muted">{alt.range.join('–')} HP{alt.koChanceOnHit>0?` · ${(alt.koChanceOnHit*100).toFixed(1)}% to KO`:''}</span></p>}<details><summary>Rolls, description and assumptions</summary><p className="lab-desc">{result.description}</p>{result.perHit&&<p className="muted">Per hit: {result.perHit.map((h:number[])=>`${h[0]}–${h.at(-1)}`).join(' + ')}</p>}<p className="mono">{result.rolls.join(', ')}</p>{result.assumptions.map((a:string,i:number)=><p key={i}>{a}</p>)}<pre>{JSON.stringify(result.versions,null,2)}</pre></details>{saved&&<Notice>{saved}</Notice>}{footer}</div>}
+    {result?.kind==='Speed'&&tab==='Speed'&&<div className={'lab-result'+(calculating?' busy':'')}><SpeedRace a={{name:ownC.species,fallback:own.species,speed:result.a}} b={{name:otherC.species,fallback:other.species,speed:result.b}} first={result.first} trickRoom={trickRoom} art={data.art} decidedBy={result.decidedBy}/>
       {saved&&<Notice>{saved}</Notice>}{footer}</div>}
     {calculating&&!result&&<p role="status" className="muted">Calculating…</p>}
     <datalist id="lab-moves">{dex?.moves.map((m:string)=><option key={m} value={m}/>)}</datalist><datalist id="lab-items">{dex?.items.map((s:string)=><option key={s} value={s}/>)}</datalist><datalist id="lab-abilities">{dex?.abilities.map((s:string)=><option key={s} value={s}/>)}</datalist></div>;
@@ -172,7 +180,7 @@ function DamageViz({result,name,attackerName,defender,fallback,move,art}:{result
   const rolls:number[]=result.rolls??[];const top=Math.max(...rolls,1),bottom=Math.min(...rolls,top);
   const [go,setGo]=useState(false);const k=rolls.join()+':'+cur+':'+max;useEffect(()=>{setGo(false);const t=setTimeout(()=>setGo(true),reduced()?0:120);return()=>clearTimeout(t);},[k]);
   const ko=result.koChanceOnHit;const phrase=String(result.description??'').split(' -- ')[1]??'';
-  const verdict=ko>=1?'Guaranteed KO':ko>0?`${(ko*100).toFixed(1)}% chance to KO`:phrase?phrase[0].toUpperCase()+phrase.slice(1):'No KO from this HP';
+  const verdict=hi===0?'No effect':ko>=1?'Guaranteed KO':ko>0?`${(ko*100).toFixed(1)}% chance to KO`:phrase?phrase[0].toUpperCase()+phrase.slice(1):'No KO from this HP';
   const tone=(leftHi>50?'ok':leftHi>20?'warn':'low');
   return <div className="dmg">
     <div className="dmg-head"><span className="eyebrow">{attackerName} · {move} → {name}</span><div className="lab-big"><b>{result.percentOfMaxHP.map((v:number)=>v.toFixed(1)).join('–')}%</b><span>{lo}–{hi} HP</span></div><span className={'verdict'+(ko>=1?' ko':ko>0?' maybe':'')}>{verdict}</span></div>
@@ -188,7 +196,7 @@ function DamageViz({result,name,attackerName,defender,fallback,move,art}:{result
 
 // Speed: a race. Each runner's pace comes from its effective Speed (reversed under Trick Room); whoever acts first,
 // including by priority, reaches the line first.
-function SpeedRace({a,b,first,trickRoom,art}:{a:{name:string;fallback:string;speed:number};b:{name:string;fallback:string;speed:number};first:'a'|'b'|'tie';trickRoom:boolean;art:any}){
+function SpeedRace({a,b,first,trickRoom,art,decidedBy}:{a:{name:string;fallback:string;speed:number};b:{name:string;fallback:string;speed:number};first:'a'|'b'|'tie';trickRoom:boolean;art:any;decidedBy?:string}){
   const [go,setGo]=useState(false);const k=`${a.name}${a.speed}-${b.name}${b.speed}-${trickRoom}-${first}`;
   useEffect(()=>{setGo(false);const t=setTimeout(()=>setGo(true),reduced()?0:80);return()=>clearTimeout(t);},[k]);
   // Distance covered when the leader crosses: proportional to Speed (inverted under Trick Room). Priority can put the
@@ -200,7 +208,7 @@ function SpeedRace({a,b,first,trickRoom,art}:{a:{name:string;fallback:string;spe
     <div className="track"><span className="finish"/><span className="runner" style={{left:go?`calc((100% - 72px) * ${d.toFixed(3)})`:'0px',transitionDuration:go&&!reduced()?'1.6s':'0s'}}><Art name={r.name} fallback={r.fallback} art={art} small/></span></div>
     <div className="lane-stat"><b>{r.speed}</b><span>{formName(r.name)}</span>{go&&wins&&<em style={{animationDelay:reduced()?'0s':'1.5s'}}>{first==='tie'?'Tie':'1st'}</em>}</div></div>;};
   return <div className={'race'+(trickRoom?' tr':'')}><span className="eyebrow">{trickRoom?'Trick Room · slower moves first':'Speed · faster moves first'}</span>{lane('a',a,da)}{lane('b',b,db)}
-    <p className="race-verdict">{first==='tie'?'Speed tie: a coin flip each turn.':`${formName(first==='a'?a.name:b.name)} acts first under these conditions.`}</p></div>;
+    <p className="race-verdict">{first==='tie'?'Speed tie: a coin flip each turn.':`${formName(first==='a'?a.name:b.name)} acts first${decidedBy==='priority'?' on priority':decidedBy==='item or ability order'?' (item or ability order)':''}.`}</p></div>;
 }
 function SetFields({set,update,dex,form}:{set:any;update:(s:any)=>void;dex:any;form:string}){const [final,setFinal]=useState<any>(null);const key=JSON.stringify({species:form,nature:set.nature,statPoints:set.statPoints});useEffect(()=>{let alive=true;api('/calculate',{kind:'stats',input:JSON.parse(key)}).then(s=>{if(alive)setFinal(s);}).catch(()=>{if(alive)setFinal(null);});return()=>{alive=false;};},[key]);return <div className="set-edit"><div className="lab-row"><label>Nature<select value={set.nature??'Serious'} onChange={e=>update({...set,nature:e.target.value})}>{(dex?.natures??[set.nature??'Serious']).map((s:string)=><option key={s}>{s}</option>)}</select></label><label>Ability<input list="lab-abilities" value={set.ability??''} onChange={e=>update({...set,ability:e.target.value})}/></label></div><label>Item<ItemPicker value={set.item??''} onChange={v=>update({...set,item:v})} dex={dex}/></label><SpEditBars set={set} form={form} final={final} update={update}/></div>;}
 // Stat points as bars: base stat in emerald, points stacked on the end in gold, the change beside it, then the final stat.

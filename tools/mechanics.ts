@@ -124,7 +124,7 @@ export function damage(input: CalcInput) {
   return out;
 }
 
-export interface SpeedInput {a:SetInput & {stage?:number;tailwind?:boolean;paralyzed?:boolean;multiplier?:number;priority?:number};b:SpeedInput['a'];trickRoom?:boolean;field?:{weather?:string;terrain?:string};}
+export interface SpeedInput {a:SetInput & {stage?:number;tailwind?:boolean;paralyzed?:boolean;multiplier?:number;priority?:number;move?:string;quickClaw?:boolean};b:SpeedInput['a'];trickRoom?:boolean;field?:{weather?:string;terrain?:string};}
 // Effective Speed on the pinned calculator's own rules (getFinalSpeed): stat stage, Tailwind, weather and terrain
 // abilities (Swift Swim, Chlorophyll, Sand Rush, Slush Rush, Surge Surfer), Unburden, Quick Feet, Protosynthesis/Quark
 // Drive, Choice Scarf and Iron Ball, then paralysis. An explicit multiplier is applied on top for anything else.
@@ -137,12 +137,25 @@ export function effectiveSpeed(set:SpeedInput['a'],field:SpeedInput['field']={})
   const v=Math.floor(getFinalSpeed(generation as any,mon,f,side)*multiplier);
   return Math.max(1,Math.min(10000,v));
 }
+// Priority from the move and ability: the move's own bracket, +1 for Prankster on status moves, +1 for Gale Wings on
+// Flying moves at full HP, +3 for Triage on healing moves. An explicit priority overrides it.
+export function movePriority(set:SpeedInput['a']){
+  if(set.priority!==undefined)return set.priority;if(!set.move)return 0;const m=dex.moves.get(set.move);if(!m.exists)throw new Error(`Unknown move ${set.move}`);
+  const ability=id(set.ability??'');let p=m.priority??0;
+  if(ability==='prankster'&&m.category==='Status')p+=1;
+  if(ability==='galewings'&&m.type==='Flying'&&(set.curHP===undefined||set.curHP>=finalStats(set).hp))p+=1;
+  if(ability==='triage'&&(m.flags as any)?.heal)p+=3;
+  return p;
+}
+// Within a priority bracket: Quick Claw/Custap (when they activate) go first; Lagging Tail, Full Incense and Stall go last.
+const bracket=(set:SpeedInput['a'])=>{const item=id(set.item??''),ability=id(set.ability??'');if(set.quickClaw)return 1;if(item==='laggingtail'||item==='fullincense'||ability==='stall')return -1;return 0;};
 export function speed(input:SpeedInput) {
-  const a=effectiveSpeed(input.a,input.field),b=effectiveSpeed(input.b,input.field);const pa=input.a.priority??0,pb=input.b.priority??0;
+  const a=effectiveSpeed(input.a,input.field),b=effectiveSpeed(input.b,input.field);const pa=movePriority(input.a),pb=movePriority(input.b);
   if([pa,pb].some(p=>!Number.isInteger(p)||p< -7||p>7))throw new Error('Move priority must be an integer -7..7');
-  const order=pa!==pb?(pa>pb?'a':'b'):a===b?'tie':(input.trickRoom?a<b:a>b)?'a':'b';
-  const w=input.field?.weather,t=input.field?.terrain;
-  return {a,b,first:order,trickRoom:!!input.trickRoom,versions:VERSIONS,assumptions:`Speed from the calculator's rules: stages, Tailwind, ${w?w+' ':''}${t?t+' Terrain ':''}weather/terrain abilities, Choice Scarf, Iron Ball and paralysis are included. Other effects need the explicit multiplier.`};
+  const ba=bracket(input.a),bb=bracket(input.b);
+  const order=pa!==pb?(pa>pb?'a':'b'):ba!==bb?(ba>bb?'a':'b'):a===b?'tie':(input.trickRoom?a<b:a>b)?'a':'b';
+  const w=input.field?.weather,t=input.field?.terrain;const why=pa!==pb?'priority':ba!==bb?'item or ability order':'speed';
+  return {a,b,priorityA:pa,priorityB:pb,first:order,decidedBy:why,trickRoom:!!input.trickRoom,versions:VERSIONS,assumptions:`Speed from the calculator's rules: stages, Tailwind, ${w?w+' ':''}${t?t+' Terrain ':''}weather/terrain abilities, Unburden, Choice Scarf, Iron Ball and paralysis. Priority from the move and Prankster/Gale Wings/Triage; Quick Claw/Custap when set; Lagging Tail, Full Incense and Stall move last in their bracket.`};
 }
 
 export function validateTeam(sets:SetInput[], format=FORMAT) {

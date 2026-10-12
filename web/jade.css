@@ -1159,3 +1159,4 @@ html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;wi
 @keyframes jDockIn{from{opacity:0;transform:translateX(24px) scale(.98)}to{opacity:1;transform:none}}
 @media (max-width:620px){html.jade .dock{top:0!important;right:0!important;bottom:0!important;width:100vw!important;border-radius:0!important}}
 @media (prefers-reduced-motion:reduce){html.jade .dock{animation:none}}
+.crit-alt{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0!important}.crit-alt b{font:800 22px var(--fd)}
