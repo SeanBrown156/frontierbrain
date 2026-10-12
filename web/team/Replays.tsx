@@ -41,11 +41,13 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
 
 function Digest({team,games,info,busy,refresh,art}:{team:any;games:any[];info:any;busy:boolean;refresh:()=>void;art:any}){
   const r=record(games);const d=info.digest;
-  return <section className="digest panel"><header className="digest-head"><div><h2>What to work on</h2><span className="muted">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}{d?` · from ${d.games} summarised games · ${d.model} · ${date(d.createdAt)}`:''}</span></div>
+  return <section className="digest panel"><header className="panel-heading"><div><span className="eyebrow">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}{d?` · ${d.games} summarised · ${date(d.createdAt)}`:''}</span><h2>Debrief</h2></div>
       {r.n>=2&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Reload}/>Refresh</>}</button>}</header>
-    {!d?<p className="muted">{r.n<2?'Add a couple of replays and Frontier Brain will summarise each game and pull out the patterns here.':busy?'Summarising your games…':'Summarise your games to see patterns.'}</p>
-      :<ol className="themes">{d.themes.map((t:any,i:number)=><li key={i}><b>{t.title}</b> <span className="tag">{t.count} of {t.total} {t.of}</span><p>{t.detail}</p></li>)}</ol>}
-    {d?.strengths?.length>0&&<p className="strengths"><b>Working well:</b> {d.strengths.join(' · ')}</p>}
+    {!d?<p className="muted">{r.n<2?'Add a couple of replays to get a debrief.':busy?'Summarising your games…':'Summarise your games to get a debrief.'}</p>
+      :<div className="debrief">
+        {d.strengths?.length>0&&<section><h3>What's working</h3><ul className="debrief-good">{d.strengths.map((t:string,i:number)=><li key={i}>{t}</li>)}</ul></section>}
+        <section><h3>What to work on</h3><ol className="themes">{d.themes.map((t:any,i:number)=><li key={i}><div className="theme-head"><b>{t.title}</b><span className="tag">{t.count} of {t.total} {t.of}</span></div><p>{t.detail}</p></li>)}</ol></section>
+      </div>}
   </section>;
 }
 // At a glance: your record against what you've faced, counted from the linked games (and the summaries' archetype tags).

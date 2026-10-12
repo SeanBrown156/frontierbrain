@@ -1048,3 +1048,24 @@ html.jade .mega-badge .mega-orb{width:16px!important;height:16px!important}
 html.jade .set-art .mega-orb{width:18px!important;height:18px!important}
 html.jade .mega-switch.on .knob{position:relative}
 html.jade .mega-switch.on .knob::after{content:'';position:absolute;inset:16%;background:url(/brand/mega.svg) center/contain no-repeat}
+/* reading widths: prose fills the panel up to a comfortable ~90 characters; cards use their full width */
+html.jade .guide-intro,html.jade .guide-intro .markdown,html.jade .guide-intro .markdown>*{max-width:92ch!important}
+html.jade .guide-intro .markdown{font-size:16.5px;line-height:1.7}
+html.jade .guide-mon .markdown,html.jade .guide-mon .markdown>*{max-width:92ch!important}
+html.jade .plan-body .markdown>*,html.jade .plan-summary{max-width:none!important}
+html.jade .markdown>*{max-width:92ch}
+/* Examples / Bring: a hairline between the two rows */
+.fb-divider{grid-column:1/-1;height:1px;background:var(--ln);margin:2px 0}
+/* replays debrief: two clear sections */
+.debrief{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:24px}
+html.jade .debrief>section{padding:20px;border-radius:14px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .debrief h3{font:700 11px/1.3 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--gd);margin:0 0 14px}
+html.jade .debrief-good{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+html.jade .debrief-good li{position:relative;padding-left:22px;line-height:1.6;margin:0}
+html.jade .debrief-good li::before{content:'';position:absolute;left:2px;top:.55em;width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 8px var(--glow)}
+html.jade .debrief .themes{margin:0;padding-left:20px;display:grid;gap:18px}
+html.jade .debrief .themes li{margin:0;padding-left:4px}
+html.jade .theme-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+html.jade .theme-head b{font-size:15px}
+html.jade .debrief .themes p{margin:0;line-height:1.65;color:var(--tx);opacity:.9}
+@media (max-width:1000px){.debrief{grid-template-columns:minmax(0,1fr)}}

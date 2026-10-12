@@ -90,11 +90,11 @@ function TeamGuide({team,data,version,text}:{team:any;data:any;version:any;text:
   const view=getView(team,data.db,version.id);const mons:MonRef[]=view.sets.map((s:any,i:number)=>({name:s.species,set:s,href:monHref(team.id,version.id,i)}));
   const [open,setOpen]=useState<number|null>(null);const r=open===null?null:view.revisions[open];
   return <div className="team-guide">
-    {text.trim()?<div className="guide-intro"><Markdown text={text} mons={mons} art={data.art}/></div>:<p className="muted">No strategy yet. Use Edit to describe what the team is for and how it wins.</p>}
+    {text.trim()?<div className="guide-intro"><Markdown text={text}/></div>:<p className="muted">No strategy yet. Use Edit to describe what the team is for and how it wins.</p>}
     <div className="guide-team"><span className="eyebrow">The team</span>
       <div className="guide-six" role="tablist">{view.sets.map((s:any,i:number)=><button key={i} role="tab" aria-selected={open===i} className={open===i?'on':''} onClick={()=>setOpen(open===i?null:i)}><SetArt set={s} art={data.art}/><span>{s.species}</span></button>)}</div>
       {r&&<div className="guide-mon" role="tabpanel"><div className="guide-mon-head"><h3>{r.revision.set.species}</h3><a className="text-button" href={monHref(team.id,version.id,open!)}>Go to {r.revision.set.species} →</a></div>
-        {mergedNotes(r.revision.notes).trim()?<Markdown text={mergedNotes(r.revision.notes)} mons={mons} art={data.art}/>:<p className="muted">No strategy for {r.revision.set.species} yet. Add it on its page.</p>}</div>}
+        {mergedNotes(r.revision.notes).trim()?<Markdown text={mergedNotes(r.revision.notes)}/>:<p className="muted">No strategy for {r.revision.set.species} yet. Add it on its page.</p>}</div>}
     </div>
   </div>;
 }

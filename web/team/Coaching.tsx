@@ -43,7 +43,7 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
     <div className="team-detail-grid">
       <Panel title="Lead strategy" action={<button onClick={()=>setEditLead({id:newId(),lead:['',''],back:[],when:'',plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
         <div className="plan-list">{coaching.leads.filter(inScope).map(l=><PlanCard key={l.id} status={l.status}
-          head={<RolePill role={leadRole(l)??'lead'}/>}
+          head={<><RolePill role={leadRole(l)??'lead'}/><h3>{l.title||l.lead.join(' + ')}</h3></>}
           meta={<div className="front-back"><span className="fb-label">Front</span><span className="fb-mons">{l.lead.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span>
             {l.back.length>0&&<><span className="fb-label">Back</span><span className="fb-mons">{l.back.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
           summary={whenText(l)} body={l.plan} foot={<><LeadRecord stats={stats} lead={l.lead}/>{l.versionIds.length>0&&<span className="tag">{versionLabel(l.versionIds)}</span>}</>}
@@ -52,9 +52,9 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
       </Panel>
       <Panel title="Matchup strategy" action={<button onClick={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})}><Px icon={Plus}/>New</button>}>
         <div className="plan-list">{coaching.matchups.filter(inScope).sort((a,b)=>['high','medium','low'].indexOf(a.threat)-['high','medium','low'].indexOf(b.threat)).map(m=>{const o=splitOpponent(m);return <PlanCard key={m.id} status={m.status}
-          head={<><span className={'threat '+m.threat}>{m.threat}</span><h3>{o.title}</h3>{o.archetype!==o.title&&<span className="style-tag">{o.archetype}</span>}</>}
+          head={<><span className={'threat '+m.threat}>{m.threat}</span><h3>{o.title}</h3></>}
           meta={<div className="front-back">{o.examples.length>0&&<><span className="fb-label">Examples</span><span className="fb-mons">{o.examples.map(p=><span key={p} className="fb-mon"><Art name={p} fallback={p.replace(/-(Mega(-[XYZ])?|[XYZ])$/,'')} art={data.art} small/>{formName(p)}</span>)}</span></>}
-            {m.bring.length>0&&<><span className="fb-label">Bring</span><span className="fb-mons">{m.bring.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
+            {m.bring.length>0&&<><span className="fb-divider"/><span className="fb-label">Bring</span><span className="fb-mons">{m.bring.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
           body={m.plan} foot={m.versionIds.length>0?<span className="tag">{versionLabel(m.versionIds)}</span>:undefined}
           accept={m.status==='proposed'?()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})}):undefined} edit={()=>setEditMatchup(m)} remove={()=>{if(confirm(`Delete the ${o.archetype} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}/>;})}</div>
         {!coaching.matchups.filter(inScope).length&&<p className="muted">No matchup plans yet. Add one, or ask Frontier Brain to draft them.</p>}
@@ -65,7 +65,7 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
     {editMatchup&&<MatchupEditor plan={editMatchup} team={team} members={members} onClose={()=>setEditMatchup(null)} save={async m=>{await save({matchups:upsert(coaching.matchups,m)});setEditMatchup(null);}}/>}
   </div>;
 }
-function LeadRecord({stats,lead}:{stats:any;lead:string[]}){const key=[...lead].sort().join(' + ');const r=stats?.leads?.[key];return r?<p className="muted">In replays: {r.wins}–{r.losses} over {r.games} game(s){r.games<SMALL?' (small sample)':''}.</p>:null;}
+function LeadRecord({stats,lead}:{stats:any;lead:string[]}){const key=[...lead].sort().join(' + ');const r=stats?.leads?.[key];return r?<span className="lead-record">{r.wins}–{r.losses} in replays</span>:null;}
 const csv=(s:string)=>s.split(',').map(x=>x.trim()).filter(Boolean);
 function Pick({label,value,options,onChange}:{label:string;value:string;options:string[];onChange:(v:string)=>void}){return <label>{label}<select value={value} onChange={e=>onChange(e.target.value)}><option value="">—</option>{options.map(o=><option key={o}>{o}</option>)}</select></label>;}
 function Choose({label,value,options,max,onChange}:{label:string;value:string[];options:string[];max:number;onChange:(v:string[])=>void}){return <fieldset><legend>{label} ({value.length}/{max})</legend><div className="choose-row">{options.map(o=><label key={o} className={'choose'+(value.includes(o)?' on':'')}><input type="checkbox" checked={value.includes(o)} disabled={!value.includes(o)&&value.length>=max} onChange={e=>onChange(e.target.checked?[...value,o]:value.filter(x=>x!==o))}/>{o}</label>)}</div></fieldset>;}
@@ -73,6 +73,7 @@ function Choose({label,value,options,max,onChange}:{label:string;value:string[];
 const useGuardedClose=(key:string,dirty:boolean,onClose:()=>void)=>{useDirty(key,dirty,'plan');return ()=>{if(!dirty||confirm('Discard changes to this plan?'))onClose();};};
 function LeadEditor({plan,team,members,save,onClose}:{plan:LeadPlan;team:any;members:string[];save:(l:LeadPlan)=>Promise<void>;onClose:()=>void}){const [start]=useState(()=>({...plan,role:leadRole(plan),when:plan.when.replace(ROLE_PREFIX,'')}));const [p,setP]=useState(start),[error,setError]=useState(''),[busy,setBusy]=useState(false);const lead=[p.lead[0]??'',p.lead[1]??''];const close=useGuardedClose('lead-'+plan.id,JSON.stringify(p)!==JSON.stringify(start)&&!busy,onClose);
   return <Modal title="Lead plan" onClose={close}><form onSubmit={async e=>{e.preventDefault();setBusy(true);try{if(!p.lead.filter(Boolean).length)throw new Error('Choose the lead');await save({...p,lead:p.lead.filter(Boolean)});}catch(err){setError((err as Error).message);setBusy(false);}}}>
+    <label>Title<input value={p.title??''} onChange={e=>setP({...p,title:e.target.value||undefined})} placeholder="e.g. Rain blitz"/></label>
     <div className="form-grid"><Pick label="Lead 1" value={lead[0]} options={members.filter(m=>m!==lead[1])} onChange={v=>setP({...p,lead:[v,lead[1]]})}/><Pick label="Lead 2" value={lead[1]} options={members.filter(m=>m!==lead[0])} onChange={v=>setP({...p,lead:[lead[0],v]})}/></div>
     <Choose label="Back" value={p.back} options={members.filter(m=>!lead.includes(m))} max={2} onChange={v=>setP({...p,back:v})}/>
     <label>Role<select value={p.role??''} onChange={e=>setP({...p,role:(e.target.value||undefined) as LeadPlan['role']})}><option value="">Not set</option><option value="core">Core: your default lead</option><option value="situational">Situational: into specific teams</option><option value="niche">Niche: a pocket option</option><option value="avoid">Avoid: don't lead this pair</option></select></label>
