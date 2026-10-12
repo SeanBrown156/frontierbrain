@@ -20,11 +20,13 @@ export function decode(el:Element,{duration=480,lock=false}:{duration?:number;lo
   if(!nodes.length)return;nodes.forEach(restore);
   const token=Date.now()+Math.random();running.set(el,token);const finals=nodes.map(n=>n.data);const written=[...finals];let start=0;
   nodes.forEach((n,i)=>scrambled.set(n,{final:finals[i],noise:new Set()}));
-  const box=el as HTMLElement;const {width,height,boxSizing}=box.style;
-  if(lock){const r=box.getBoundingClientRect();Object.assign(box.style,{width:r.width+'px',height:r.height+'px',boxSizing:'border-box'});}
+  const box=el as HTMLElement;const {width,height,boxSizing,whiteSpace,overflow}=box.style;
+  // Noise glyphs run wider than the real text: hold the box's size, and keep one-line text on one line while it resolves.
+  if(lock){const r=box.getBoundingClientRect();const lh=parseFloat(getComputedStyle(box).lineHeight)||parseFloat(getComputedStyle(box).fontSize)*1.2;
+    Object.assign(box.style,{width:r.width+'px',height:r.height+'px',boxSizing:'border-box'});if(r.height<lh*1.6)Object.assign(box.style,{whiteSpace:'nowrap',overflow:'hidden'});}
   // Any node still showing noise gets its real text back (a node React rewrote keeps React's text), and the box is released.
   let settled=false;
-  const settle=()=>{if(settled)return;settled=true;clearTimeout(fallback);nodes.forEach(restore);if(lock)Object.assign(box.style,{width,height,boxSizing});if(running.get(el)===token)running.delete(el);};
+  const settle=()=>{if(settled)return;settled=true;clearTimeout(fallback);nodes.forEach(restore);if(lock)Object.assign(box.style,{width,height,boxSizing,whiteSpace,overflow});if(running.get(el)===token)running.delete(el);};
   const fallback=setTimeout(settle,duration+600);
   const step=(p:number)=>{for(let i=0;i<nodes.length;i++){const f=finals[i];const keep=Math.floor(f.length*p);
     const next=f.slice(0,keep)+[...f.slice(keep)].map(c=>noise(c,NOISE)).join('');scrambled.get(nodes[i])?.noise.add(next);nodes[i].data=next;written[i]=next;}};

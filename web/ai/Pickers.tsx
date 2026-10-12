@@ -1,5 +1,6 @@
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
 import {TYPE_COLOURS} from '../ui.tsx';
+import {TEAM_STYLES} from '../../shared/team-styles.ts';
 
 // A searchable list that opens under its field, like the species picker: type to filter, arrows to move, Enter or
 // click to choose, Escape to close. Free text is kept on blur, so an unlisted item or move can still be entered.
@@ -39,4 +40,11 @@ export function MovePicker({value,onChange,dex,label,exclude=[]}:{value:string;o
     rows={q=>{const match=(n:string)=>!q||n.toLowerCase().includes(q)||info[n]?.[0].toLowerCase()===q;
       const row=(n:string,group:string)=>({value:n,group,label:<>{info[n]&&typePill(info[n][0])}<span>{n}</span></>,hint:info[n]?<>{cat(info[n][1])}{info[n][2]?<b>{info[n][2]}</b>:null}</>:undefined,off:exclude.includes(n)&&n!==value});
       const own=[...learn].filter(match).map(n=>row(n,'Learns'));const rest=q?all.filter(n=>!learn.has(n)&&match(n)).map(n=>row(n,'Other moves')):[];return [...own,...rest];}}/>;
+}
+
+// Team styles (shared/team-styles.ts), grouped; styles already chosen are shown but can't be picked again. Anything
+// typed that isn't listed is kept as written.
+export function StylePicker({onPick,taken=[],label,placeholder}:{onPick:(v:string)=>void;taken?:string[];label:string;placeholder?:string}){
+  const rows=(q:string)=>TEAM_STYLES.flatMap(g=>g.styles.filter(s=>!q||s.toLowerCase().includes(q)).map(s=>({value:s,label:s,group:g.group,off:taken.includes(s)})));
+  return <Combo value="" onChange={v=>{if(v&&!taken.includes(v))onPick(v);}} rows={rows} label={label} placeholder={placeholder} className="style-picker"/>;
 }

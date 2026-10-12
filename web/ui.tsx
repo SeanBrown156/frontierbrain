@@ -1,6 +1,7 @@
 import {useSpriteStyle,spriteUrls} from './fx.ts';
 import {useEffect,useRef,useState,useId,type ReactNode} from 'react';
 import ReactMarkdown from 'react-markdown';
+import {createPortal} from 'react-dom';
 import {X} from 'lucide-react';
 import remarkGfm from 'remark-gfm';
 import {accessToken} from './auth.tsx';
@@ -73,7 +74,8 @@ export function SiteIcon({url,icon,size=20}:{url:string;icon?:string;size?:numbe
 // Box icon from the locally cached Showdown sheet (12 columns of 40×30); blank cell when unknown.
 export function PokeIcon({n}:{n?:number}){return <span className="poke-icon" aria-hidden="true" style={n?{backgroundPosition:`-${(n%12)*40}px -${Math.floor(n/12)*30}px`}:{backgroundImage:'none'}}/>;}
 export function Panel({title,kicker,children,className='',action}:{title:ReactNode;kicker?:string;children:ReactNode;className?:string;action?:ReactNode}){return <section className={'panel '+className}><header className="panel-heading"><div>{kicker&&<span className="eyebrow">{kicker}</span>}<h2>{title}</h2></div>{action}</header>{children}</section>;}
-export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);return <dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button className="icon dialog-close" aria-label="Close dialog" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>{children}</dialog>;}
+export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);// Rendered at the end of <body>, so styles scoped to the page section that opened it never reach the dialog.
+  return createPortal(<dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button className="icon dialog-close" aria-label="Close dialog" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>{children}</dialog>,document.body);}
 // Team members named in the text appear as small linked sprites beside their name (Mega names included).
 export type MonRef={name:string;set:{species:string;item?:string};href:string};
 function withMons(children:ReactNode,mons:MonRef[],art:any):ReactNode{

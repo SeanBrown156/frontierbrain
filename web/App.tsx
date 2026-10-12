@@ -37,9 +37,13 @@ export default function App(){
   useEffect(()=>{if(!data||booting||decodedPage.current===page)return;
     // A page can paint its title a few frames late; look for it briefly before giving up.
     let id=0,tries=0;const run=()=>{const titles=document.querySelectorAll('main h1');if(!titles.length&&++tries<30){id=requestAnimationFrame(run);return;}
-      decodedPage.current=page;titles.forEach(el=>decode(el,{duration:560,lock:true}));};
+      decodedPage.current=page;
+      // Short titles (the Teams page) resolve too fast to read at 560ms, so they get a flicker and a slower resolve.
+      titles.forEach(el=>{const short=(el.textContent??'').length<14;if(short)glitch(el);decode(el,{duration:short?900:560,lock:true});});};
     id=requestAnimationFrame(run);return()=>cancelAnimationFrame(id);},[page,!!data,booting]);
-  useEffect(()=>{const over=(e:PointerEvent)=>{if(e.pointerType==='touch')return;const el=(e.target as HTMLElement).closest?.(DECODE_ON_HOVER);if(el&&!el.contains(e.relatedTarget as Node))hoverDecode(el);};
+  useEffect(()=>{const over=(e:PointerEvent)=>{if(e.pointerType==='touch')return;const el=(e.target as HTMLElement).closest?.(DECODE_ON_HOVER);if(el&&!el.contains(e.relatedTarget as Node)){
+      // Team names on the Teams page get the full title treatment: a flicker, then the same slow resolve as a page title.
+      if(el.closest('.team-card')){glitch(el);hoverDecode(el,800);}else hoverDecode(el);}};
     addEventListener('pointerover',over,{passive:true});return()=>removeEventListener('pointerover',over);},[]);
   useEffect(()=>setMenuOpen(false),[route]);
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
