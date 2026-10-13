@@ -10,17 +10,21 @@ export const shouldBoot=()=>{if(reduced())return false;try{return !sessionStorag
 const TITLE='loading frontier-brain.exe';
 const sleep=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
 
-export default function Boot({data,error,onDone}:{data:any;error:string;onDone:()=>void}){
+export default function Boot({data,error,onDone,quick=false}:{data:any;error:string;onDone:()=>void;quick?:boolean}){
   const [typed,setTyped]=useState(0),[lines,setLines]=useState<[string,string][]>([]),[pct,setPct]=useState(0),[leaving,setLeaving]=useState(false);
   const dataRef=useRef(data);dataRef.current=data;const errRef=useRef(error);errRef.current=error;const done=useRef(false);
   const finish=()=>{if(done.current)return;done.current=true;try{sessionStorage.setItem(KEY,'1');}catch{}
     // the brain behind detonates first, then the boot text clears and the app switches on through it
     dispatchEvent(new CustomEvent('fb-boot-progress',{detail:1}));dispatchEvent(new Event('fb-boot-explode'));
-    setTimeout(()=>setLeaving(true),650);setTimeout(onDone,1250);};
+    setTimeout(()=>setLeaving(true),quick?450:650);setTimeout(onDone,quick?900:1250);};
   const sendProgress=(v:number)=>dispatchEvent(new CustomEvent('fb-boot-progress',{detail:v}));
   useEffect(()=>{const skip=()=>finish();addEventListener('keydown',skip);addEventListener('pointerdown',skip);return()=>{removeEventListener('keydown',skip);removeEventListener('pointerdown',skip);};},[]);
   useEffect(()=>{let alive=true;
-    (async()=>{for(let i=1;i<=TITLE.length;i++){if(!alive)return;setTyped(i);sendProgress(i/TITLE.length*0.25);await sleep(42);}
+    (async()=>{
+      // A repeat visit: the title is already there, the brain sweeps while the data comes in, then it lights up.
+      if(quick){setTyped(TITLE.length);for(let i=0;i<100&&alive&&!dataRef.current&&!errRef.current;i++){sendProgress(Math.min(.92,.25+i*.035));await sleep(80);}
+        if(!alive)return;sendProgress(.97);setPct(100);await sleep(120);finish();return;}
+      for(let i=1;i<=TITLE.length;i++){if(!alive)return;setTyped(i);sendProgress(i/TITLE.length*0.25);await sleep(42);}
       await sleep(180);
       const steps:[string,()=>Promise<string>][]=[
         ['ENGINE   Champions mechanics, pinned',async()=>'OK'],
@@ -38,7 +42,7 @@ export default function Boot({data,error,onDone}:{data:any;error:string;onDone:(
     <div className="boot-inner">
       <p className="boot-exe">{ext?text.slice(0,dot):text}<span className="ext">{ext}</span><span className="caret" aria-hidden="true"/></p>
       <div className="boot-lines">{lines.map(([a,b],i)=><div key={i} className={a==='READY'?'ready':''}><span>{a}</span>{b&&<b className={b==='LOST'||b==='NO KEY'?'warn':''}>{b}</b>}</div>)}</div>
-      <div className="boot-bar"><div className="boot-track"><i style={{width:pct+'%'}}/></div><b>{pct}%</b></div>
+      {!quick&&<div className="boot-bar"><div className="boot-track"><i style={{width:pct+'%'}}/></div><b>{pct}%</b></div>}
       <p className="boot-skip">Press any key</p>
     </div>
   </div>;
