@@ -2210,3 +2210,13 @@ html.jade .summary-edit{display:grid;gap:var(--s2)}html.jade .summary-edit texta
 html.jade .game-summary .icon-text{display:inline-flex;vertical-align:middle;padding:2px 4px;margin-left:4px;height:auto;min-height:0;border:0;box-shadow:none;background:transparent;color:var(--mu)}
 html.jade .inline-edit input,html.jade .inline-edit textarea{width:100%}html.jade .inline-edit .theme-head input{flex:1;min-width:0}
 html.jade .earlier{margin-top:var(--s2);font-size:13px}
+/* Add replays: one regular panel (same padding and edge as the others); the field grows, the two actions sit beside it, and stack full-width on phones. */
+html.jade .replay-add{margin-top:0}
+html.jade .replay-add.locked{opacity:.45;filter:grayscale(.5)}html.jade .replay-add.locked,html.jade .replay-add.locked *{cursor:not-allowed}
+html.jade .ra-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:start;border:0;margin:0;padding:0;min-width:0}
+html.jade .ra-form textarea{width:100%;min-width:0;min-height:44px;height:44px;margin:0;padding:10px 12px;line-height:1.5;resize:vertical;box-sizing:border-box}
+html.jade .ra-actions{display:flex;gap:var(--s2)}
+html.jade .ra-actions>*{height:44px!important;min-height:44px!important;margin:0!important;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);box-sizing:border-box;white-space:nowrap}
+html.jade .ra-file{position:relative}
+html.jade .replay-add .footnote,html.jade .replay-add .error{margin:var(--s3) 0 0}
+@media(max-width:720px){html.jade .ra-form{grid-template-columns:minmax(0,1fr)}html.jade .ra-actions{display:grid;grid-template-columns:1fr 1fr}}
