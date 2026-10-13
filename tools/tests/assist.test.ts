@@ -37,3 +37,21 @@ test('Matchup proposals use the team-style vocabulary: valid kept, near-misses m
   assert.throws(()=>validateProposals('coaching',plan('Gimmick teams'),six),/not a team style[\s\S]*Trick Room, Tailwind/);
   assert.equal('archetype' in validateProposals('coaching',{proposals:[{kind:'matchup',opponent:'x',bring,plan:'y'}]},six).proposals[0],false,'no archetype stays blank');
 });
+
+test('Bench proposals add a candidate: standard strategy required, the replaced Pokémon must be on the team',async()=>{
+  const six=await team();const cand={species:'Golisopod',ability:'Emergency Exit',item:'Chople Berry',nature:'Adamant',moves:['First Impression','Liquidation','Leech Life','Close Combat'],statPoints:{hp:32,atk:32}};
+  const strategy='## Role\nPivot.\n\n## How to play\nLead.\n\n## Watch out for\nFake Out.';
+  const ok=validateProposals('assist',{reply:'r',proposals:[{kind:'bench',set:cand,replaces:six[1].species,why:'x',strategy}]},six,undefined,'bench');assert.equal(ok.proposals[0].kind,'bench');assert.equal(ok.proposals[0].replaces,six[1].species);
+  assert.throws(()=>validateProposals('assist',{reply:'r',proposals:[{kind:'bench',set:cand,strategy:'nope'}]},six,undefined,'bench'),/How to play/);
+  assert.throws(()=>validateProposals('assist',{reply:'r',proposals:[{kind:'bench',set:cand,replaces:'Mew',strategy}]},six,undefined,'bench'),/not on the team/);
+});
+
+test('Promote proposals are checked against the bench, the slot and the format before the player sees them',async()=>{
+  const six=await team();const ok={set:{species:'Golisopod',ability:'Emergency Exit',item:'Chople Berry',nature:'Adamant',moves:['First Impression','Liquidation','Leech Life','Close Combat'],statPoints:{hp:32,atk:32}},strategy:'## Role\nPivot.'};
+  const clash={set:{...ok.set,item:six[0].item!},strategy:''};const bench={candidates:{good:ok,clash},revisions:six.map((_,i)=>`rev-${i}`)};
+  const run=(p:any)=>validateProposals('assist',{reply:'r',proposals:[{kind:'promote',why:'because',...p}]},six,undefined,'bench',bench);
+  const r=run({benchId:'good',slot:1}).proposals[0];assert.equal(r.kind,'promote');assert.equal(r.replacing,six[1].species);assert.equal(r.baseRevisionId,'rev-1');assert.equal(r.forSpecies,six[1].species);assert.equal(r.set.species,'Golisopod');assert.match(r.strategy,/Pivot/);
+  assert.throws(()=>run({benchId:'nope',slot:1}),/No candidate/);assert.throws(()=>run({benchId:'good',slot:9}),/slot/);
+  assert.throws(()=>run({benchId:'clash',slot:1}),/not legal in slot 1/);run({benchId:'clash',slot:0});
+  assert.throws(()=>validateProposals('assist',{reply:'r',proposals:[{kind:'promote',benchId:'good',slot:1}]},six,undefined,'bench'),/No candidate/,'no bench context means nothing can be promoted');
+});

@@ -7,21 +7,24 @@ import {useAccount,canUseAI,requireAccount,SignInForAI} from '../auth.tsx';
 import SetTile from './SetTile.tsx';
 import {getView} from '../team/editors.tsx';
 import {teamHref,addPlans} from '../team/Hub.tsx';
+import {benchHref} from '../team/Bench.tsx';
+import {BENCH_LABEL} from '../../shared/workbench.ts';
 import {coachingUpdate} from '../team/Coaching.tsx';
 import {offer,leaveOffer,useOffers} from '../save-state.ts';
 
-export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'objective'|'strategy';status?:'accepted'|'rejected'|'saving';error?:string;[k:string]:any;}
-export interface DockContext {page:'overview'|'slot'|'strategy'|'replays'|'versions'|'general';versionId:string;slot?:number;label?:string;}
+export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'objective'|'strategy'|'bench'|'promote';status?:'accepted'|'rejected'|'saving';error?:string;[k:string]:any;}
+export interface DockContext {page:'overview'|'slot'|'strategy'|'replays'|'versions'|'bench'|'general';versionId:string;slot?:number;benchId?:string;label?:string;}
 interface Turn {role:'user'|'assistant';content:string;page?:string;proposals?:Proposal[];jobId?:string;failed?:boolean;model?:string;seconds?:number;note?:string;}
 const stepNames:Record<string,string>={get_team:'Reading the team',team_pool_sets:'Looking up pool sets',meta_overview:'Reading the meta',standard_set:'Typical set',usage_data:'Usage data',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',dex_lookup:'Dex',validation:'Fixing a rules problem'};
 const load=(key:string):Turn[]=>{try{return JSON.parse(localStorage.getItem(key)??'[]');}catch{return [];}};
 // Old per-panel chats (before the dock) are cleared once.
 try{for(const k of Object.keys(localStorage))if(/^pokecoach\.assist\.(slot|strategy|coaching)-/.test(k))localStorage.removeItem(k);}catch{}
-const describe=(p:Proposal)=>p.kind==='set'?`${p.set.species} for slot ${p.slot+1}`:p.kind==='team'?p.name:p.lead?.join(' + ')??p.opponent??p.text?.slice(0,60);
+const describe=(p:Proposal)=>p.kind==='set'?`${p.set.species} for slot ${p.slot+1}`:p.kind==='bench'?`${p.set.species} for the ${BENCH_LABEL}`:p.kind==='promote'?`promote ${p.species} for ${p.replacing}`:p.kind==='team'?p.name:p.lead?.join(' + ')??p.opponent??p.text?.slice(0,60);
 // What the model sees: the last 10 turns, with the page each question was asked from and what the player did with proposals.
 const asMessage=(t:Turn)=>t.role==='user'?{role:'user' as const,content:t.page?`[Asked from: ${t.page}]\n${t.content}`:t.content}:{role:'assistant' as const,content:[t.content,...(t.proposals??[]).map(p=>`[${p.kind} proposal ${describe(p)}: ${p.status??'no decision yet'}]`)].join('\n')};
 const suggestionsFor=(page:string,species?:string)=>page==='slot'?[`What do top players run on ${species}? Match the best set`,`Retune ${species}'s spread for the most common threats`,`How much does ${species} do to a typical Incineroar?`]
   :page==='strategy'?['Write the overall game plan','Fill out lead plans for this team','Matchup plans for the 5 most common threats']
+  :page==='bench'?['Suggest a Pokémon that could replace my weakest slot','What could replace the Pokémon that loses to Trick Room?','Add the most common Mega that fits this team']
   :page==='general'?['What’s winning in Regulation M-C right now?','What’s the most common Incineroar spread?','Which Pokémon handle Trick Room best?']
   :page==='replays'?['What do my games say about this team so far?','Which matchups should I plan for, given my results?']
   :['What are this team’s biggest weaknesses in the current meta?','Rewrite the strategy as a one-page game plan','Suggest one slot swap to handle Trick Room better'];
@@ -34,7 +37,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   const end=useRef<HTMLDivElement>(null);const input=useRef<HTMLTextAreaElement>(null);const ai=canUseAI(useAccount());
   const versionId=!team?'':context.versionId==='all'?team.activeVersionId:context.versionId;const view=team?getView(team,data.db,versionId):null;
   const species=context.slot!==undefined?view?.sets[context.slot]?.species:undefined;
-  const pageLabel=!team?context.label??'Frontier Brain':context.page==='slot'?`${species} (slot ${(context.slot??0)+1})`:context.page==='strategy'?'Strategy':context.page==='replays'?'Replays':context.page==='versions'?'Versions':'Team overview';
+  const pageLabel=!team?context.label??'Frontier Brain':context.page==='slot'?`${species} (slot ${(context.slot??0)+1})`:context.page==='strategy'?'Strategy':context.page==='replays'?'Replays':context.page==='bench'?(context.benchId?`${(team.bench??[]).find((b:any)=>b.id===context.benchId)?.replaces??'Candidate'} candidate · ${BENCH_LABEL}`:BENCH_LABEL):context.page==='versions'?'Versions':'Team overview';
   const last=turns.at(-1);const pending=last?.jobId&&!last.proposals&&!last.failed?last.jobId:undefined;
   const save=(next:Turn[]|((prev:Turn[])=>Turn[]))=>setTurns(prev=>{const value=typeof next==='function'?next(prev):next;try{localStorage.setItem(key,JSON.stringify(value.slice(-40)));}catch{}return value;});
   useEffect(()=>{end.current?.scrollIntoView({block:'nearest'});},[turns.length,steps.length,open]);
@@ -63,6 +66,11 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
       await mutate({type:'team-replace-sets',teamId:team.id,versionId,sets:[{slot:p.slot,set:p.set,baseRevisionId:v.slots[p.slot].revisionId,...p.strategy?{notes:{role:p.strategy,benchmarks:''}}:{note:`AI: ${p.why}`}}],summary:`AI: ${p.set.species} in slot ${p.slot+1}`});return;}
     if(p.kind==='team'){const r=await mutate({type:'team-replace-sets',teamId:team.id,versionId,parentConfigurationId:v.version.currentConfigurationId,sets:p.sets.map((set:any,slot:number)=>({slot,set})),summary:`AI rebuild: ${p.name}`,newVersion:true,notes:p.strategy||v.version.notes});
       await addPlans(t,dataRef.current,mutate,p,r.result.versionId);location.hash=teamHref(team.id,'overview',r.result.versionId);return 'Saved as a new version (not active). Make it active from its page when you are happy.';}
+    if(p.kind==='bench'){const r=await mutate({type:'bench-add',teamId:team.id,set:p.set,replaces:p.replaces,notes:{role:p.strategy,benchmarks:''},source:'assistant'});location.hash=benchHref(team.id,r.result.id);return `Added to the ${BENCH_LABEL}. Your six is unchanged.`;}
+    if(p.kind==='promote'){const now=v.sets[p.slot];
+      // A slot that holds a different Pokémon than when this was proposed needs a second look; the same one is replaced as it is now.
+      if(p.replacing&&now?.species!==p.replacing&&!confirm(`Slot ${p.slot+1} is now ${now?.species}, not ${p.replacing}. Promote ${p.species} into it anyway?`))throw new Error('Not applied.');
+      await mutate({type:'bench-promote',teamId:team.id,benchId:p.benchId,slot:p.slot,baseRevisionId:v.slots[p.slot].revisionId});location.hash=benchHref(team.id);return `${p.species} is in. ${p.replacing} is on the ${BENCH_LABEL}.`;}
     if(p.kind==='strategy'){if(offer(`strategy:${team.id}`,p.text))return 'Loaded into the strategy editor. Review it, then Save.';leaveOffer(`strategy:${team.id}`,p.text);location.hash=teamHref(team.id,'strategy',context.versionId);return 'Opened in the strategy editor.';}
     await saveCoaching([p]);};
   const saveCoaching=async(ps:Proposal[])=>{const latest=dataRef.current;const c=latest.db.coaching?.[team.id]??{teamId:team.id,version:0,leads:[],matchups:[],objectives:[]};const id=()=>Math.random().toString(36).slice(2,12);const scope=context.versionId==='all'?[]:[context.versionId];
@@ -107,6 +115,8 @@ function ProposalCard({p,art,current,decide}:{p:Proposal;art:any;current:(slot:n
   const note=p.error&&<p className={p.status==='accepted'?'muted':'error'}>{p.error}</p>;
   const foot=<>{note}<div className="button-row">{actions}</div></>;
   if(p.kind==='set')return <SetTile set={p.set} current={current(p.slot)} art={art} note={p.why} strategy={p.strategy} actions={<>{note}{actions}</>}/>;
+  if(p.kind==='bench')return <SetTile set={p.set} art={art} note={`${p.why}${p.replaces?` Could replace ${p.replaces}.`:''} Accepting adds it to the ${BENCH_LABEL}; your six is unchanged.`} strategy={p.strategy} actions={<>{note}{actions}</>}/>;
+  if(p.kind==='promote')return <SetTile set={p.set} current={current(p.slot)} art={art} note={`${p.why} Promotes it from the ${BENCH_LABEL}; ${p.replacing} goes onto the ${BENCH_LABEL}.`} strategy={p.strategy} actions={<>{note}{actions}</>}/>;
   if(p.kind==='team')return <article className="proposal-card"><h3>{p.name}</h3><div className="team-six">{p.sets.map((s:PokemonSet)=><SetArt key={s.species} set={s} art={art} small/>)}</div><details><summary>Sets, strategy and plans</summary><pre className="paste">{p.paste}</pre><Markdown text={p.strategy}/><p className="muted">{p.leads.length} lead plan(s) and {p.matchups.length} matchup plan(s) come with it as drafts.</p></details><p className="muted">Accepting saves it as a new version; your current version stays active.</p>{foot}</article>;
   if(p.kind==='lead')return <article className="proposal-card"><div className="pair">{p.lead.map((m:string)=><Art key={m} name={m} art={art} small/>)}<h3>{p.lead.join(' + ')}</h3></div>{p.back?.length>0&&<p className="muted">Back: {p.back.join(', ')}</p>}{p.when&&<p><b>When:</b> {p.when}</p>}<Markdown text={p.plan}/>{foot}</article>;
   if(p.kind==='matchup')return <article className="proposal-card"><h3><span className={'threat '+p.threat}>{p.threat}</span> {p.opponent}</h3><div className="pair">{p.bring.map((m:string)=><Art key={m} name={m} art={art} small/>)}</div><Markdown text={p.plan}/>{foot}</article>;

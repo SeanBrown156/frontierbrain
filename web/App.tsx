@@ -5,6 +5,7 @@ import AssistDock,{type DockContext} from './ai/AssistDock.tsx';
 import {useSaveState,saving,saved,failed,hasDirty,confirmDiscard} from './save-state.ts';
 import TeamHub,{TeamsLanding} from './team/Hub.tsx';
 import PokemonWorkspace from './team/PokemonWorkspace.tsx';
+import {BenchWorkspace} from './team/Bench.tsx';
 import NewTeam from './team/NewTeam.tsx';
 import DataPool from './DataPool.tsx';
 import {hostedSite} from './auth.tsx';
@@ -92,8 +93,9 @@ export default function App(){
   const openReport=async(path:string)=>{try{setReport((await api('/report?path='+encodeURIComponent(path))).text);}catch(e){notify((e as Error).message,true);}};
   // Routes: teams · team/<id>/<tab>/<version|all> · team/<id>/mon/<version>/<slot>[/swap] · news · data · references
   const parts=route.split('/');const team=parts[0]==='team'?data?.teams.find((t:any)=>t.id===parts[1]):null;const pageData=data?{...data,jobs}:null;
+  const candidate=team&&parts[2]==='bench'&&parts[3]?(team.bench??[]).find((b:any)=>b.id===parts[3]):undefined;
   // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
-  const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
+  const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions',bench:'bench'} as any)[parts[2]]??'overview'),versionId:candidate?'all':parts[3]??'all',...candidate?{benchId:candidate.id}:{}}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
   // The same route state also tells the server what is open, so an assistant connected over MCP can answer "this one" (get_focus).
   const focusTeam=team?.id,focusVersion=dock.versionId==='all'?undefined:dock.versionId,focusPage=team?dock.page:(['welcome','teams','news','data','references','account'].includes(parts[0])?parts[0]:'teams');
@@ -113,7 +115,8 @@ export default function App(){
       {route==='welcome'&&<Welcome data={data} onOpen={openApp}/>}
       {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} reload={load} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
-      {team&&parts[2]!=='mon'&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
+      {team&&parts[2]==='bench'&&candidate&&<BenchWorkspace key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} benchId={candidate.id}/>}
+      {team&&parts[2]!=='mon'&&!candidate&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
       {route==='account'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Settings profile={data.profile} reload={load} notify={notify}/></>}
       {route==='news'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
       {route==='data'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><DataPool art={data.art}/></>}

@@ -25,7 +25,7 @@ export async function restoreBackup(input:any){
   const result=await mutateStore(current.revision,db=>{
     // A team is skipped if this workspace already has one with the same id or name (e.g. the sample teams).
     const added=(b.store.teams??[]).filter(t=>!db.teams.some(x=>x.id===t.id||x.name===t.name));db.teams.push(...added);
-    const used=new Set(added.flatMap(t=>t.versions.flatMap(v=>v.configurations.flatMap(c=>c.slots.map(s=>s.bankId)))));
+    const used=new Set(added.flatMap(t=>[...t.versions.flatMap(v=>v.configurations.flatMap(c=>c.slots.map(s=>s.bankId))),...(t.bench??[]).map(b=>b.bankId)]));
     const pokemon=(b.store.bank??[]).filter(e=>used.has(e.id)&&!db.bank.some(x=>x.id===e.id));db.bank.push(...pokemon);
     const ids=new Set(added.map(t=>t.id));db.coaching??={};for(const [id,c] of Object.entries(b.store.coaching??{}))if(ids.has(id)&&!db.coaching[id])db.coaching[id]=c;
     let replays=0;for(const [id,a] of Object.entries(b.store.associations??{}))if(ids.has(a.teamId)&&!db.associations[id]){db.associations[id]=a;replays++;}

@@ -7,7 +7,7 @@ import {randomUUID} from 'node:crypto';
 import {ROOT,dataContext} from './io.ts';
 import {speciesKey,dex,points,finalStats,validateTeam,FORMAT,damage,speed,spreadSearch} from './mechanics.ts';
 import {importText,exportText} from './teams.ts';
-import {setStrategyText} from '../shared/workbench.ts';
+import {setStrategyText,BENCH_LIMIT} from '../shared/workbench.ts';
 import type {Workbench,Slot,SetNotes,SetRevision,PokemonSet,Formula,Configuration,TeamCoaching} from '../shared/workbench.ts';
 import type {Game} from './replays.ts';
 
@@ -81,6 +81,7 @@ export function applyAction(db:Workbench,action:any):unknown {
     if(parts.length)v.notes=checkText([parts.join('\n\n'),v.notes==='Imported paste.'?'':v.notes].filter(Boolean).join('\n\n'),12000);}
   for(const b of db.bank)for(const r of b.revisions)if('partners' in (r.notes??{})||'matchups' in (r.notes??{}))r.notes=cleanNotes(r.notes);
   if(!action||typeof action.type!=='string')throw new Error('Action required');
+  if(action.type.startsWith('bench-'))return applyBench(db,action);
   if(action.type==='benchmark-save'){
     const entry=db.bank.find(b=>b.id===action.bankId);if(!entry?.revisions.some(r=>r.id===action.revisionId))throw new Error('Unknown benchmark revision');
     const methods={damage,speed,spread:spreadSearch};if(!Object.hasOwn(methods,action.kind))throw new Error('Unknown benchmark kind');
@@ -102,7 +103,9 @@ export function applyAction(db:Workbench,action:any):unknown {
     const replays:string[]=[];for(const [id,a] of Object.entries(db.associations))if(a.teamId===action.teamId){delete db.associations[id];replays.push(id);}db.matches=db.matches.filter(m=>!m.replayIds.some(r=>replays.includes(r)));return {deleted:action.teamId,unlinked:replays.length,replays};}
   // Deleting one replay drops its link and any saved match that included it. The caller removes the files (tools/replay-intake.ts).
   if(action.type==='replay-delete'){const id=String(action.replayId??'');const a=db.associations[id];delete db.associations[id];const before=db.matches.length;db.matches=db.matches.filter(m=>!m.replayIds.includes(id));return {deleted:id,teamId:a?.teamId,matchesRemoved:before-db.matches.length};}
-  if(action.type==='import')return makeTeam(db,action.name,action.paste,action.format??FORMAT,{notes:action.notes,setNotes:action.setNotes&&typeof action.setNotes==='object'&&!Array.isArray(action.setNotes)?action.setNotes:undefined});
+  if(action.type==='import'){const team=makeTeam(db,action.name,action.paste,action.format??FORMAT,{notes:action.notes,setNotes:action.setNotes&&typeof action.setNotes==='object'&&!Array.isArray(action.setNotes)?action.setNotes:undefined});
+    // Duplicating a team brings its bench along (the candidates are shared library entries, so nothing is copied twice).
+    const from=action.benchFrom?db.teams.find(t=>t.id===action.benchFrom):undefined;if(from?.bench?.length)team.bench=from.bench.map(b=>({...b,id:uid('bench')}));return team;}
   if(action.type==='bank-import'){const sets=importText(checkText(action.paste));if(sets.length!==1)throw new Error('Paste one Pokémon for a bank entry');return applyAction(db,{type:'bank-create',name:action.name,set:sets[0],notes:blankNotes()});}
   if(action.type==='bank-create'){const set=cleanSet(action.set);const revision={id:uid('set'),number:1,createdAt:now(),set,notes:cleanNotes(action.notes)};const entry={id:uid('bank'),name:checkText(action.name,120),revisions:[revision]};db.bank.push(entry);return entry;}
   if(action.type==='bank-revise'){
@@ -191,6 +194,65 @@ export function applyAction(db:Workbench,action:any):unknown {
   }
   throw new Error('Unknown action');
 }
+// The bench (see BenchEntry in shared/workbench.ts): candidates are library revisions kept per team until promoted.
+function applyBench(db:Workbench,action:any):unknown {
+  const team=db.teams.find(t=>t.id===action.teamId);if(!team)throw new Error('Team not found');const bench=team.bench??=[];
+  const find=(id:unknown)=>{const b=bench.find(x=>x.id===id);if(!b)throw new Error('That candidate is no longer on the bench.');return b;};
+  const lookup=(bankId:string,revisionId:string)=>{const e=db.bank.find(x=>x.id===bankId);const r=e?.revisions.find(x=>x.id===revisionId);if(!e||!r)throw new Error('Unknown library revision');return {e,r};};
+  const hint=(v:unknown)=>checkText(v??'',100).trim()||undefined;const same=(a:PokemonSet,b:PokemonSet)=>JSON.stringify(cleanSet(a))===JSON.stringify(cleanSet(b));
+  const dropPending=(benchId:string)=>{db.pending=(db.pending??[]).filter(x=>!(x.teamId===team.id&&x.proposal.kind==='promote'&&x.proposal.benchId===benchId));};
+  const saved=(item:typeof bench[number])=>{const {e,r}=lookup(item.bankId,item.revisionId);return {...item,species:r.set.species,name:e.name};};
+  if(action.type==='bench-add'){
+    if(bench.length>=BENCH_LIMIT)throw new Error(`The bench holds up to ${BENCH_LIMIT} candidates. Remove one first.`);
+    let bankId:string,revisionId:string;
+    if(action.bankId){lookup(action.bankId,action.revisionId);bankId=action.bankId;revisionId=action.revisionId;
+      if(bench.some(b=>b.revisionId===revisionId))throw new Error('That set is already on the bench.');}
+    else{let given=action.set;if(action.paste!==undefined){const sets=importText(checkText(action.paste));if(sets.length!==1)throw new Error('Paste one Pokémon.');given=sets[0];}
+      const set=cleanSet(given);
+      if(bench.some(b=>same(lookup(b.bankId,b.revisionId).r.set,set)))throw new Error(`${set.species} with this set is already on the bench.`);
+      const revision:SetRevision={id:uid('set'),number:1,createdAt:now(),set,notes:action.notes?cleanNotes({...blankNotes(),...action.notes}):blankNotes(),provenance:'manual'};
+      const entry={id:uid('bank'),name:`${set.species} · ${team.name}`,revisions:[revision]};db.bank.push(entry);bankId=entry.id;revisionId=revision.id;}
+    const item={id:uid('bench'),bankId,revisionId,...hint(action.replaces)?{replaces:hint(action.replaces)}:{},addedAt:now(),source:action.source==='assistant'?'assistant' as const:'player' as const};bench.push(item);return saved(item);
+  }
+  if(action.type==='bench-remove'){const item=find(action.benchId);const out=saved(item);team.bench=bench.filter(b=>b.id!==item.id);dropPending(item.id);return out;}
+  if(action.type==='bench-update'){
+    const item=find(action.benchId);
+    if('replaces' in action)item.replaces=hint(action.replaces),item.replaces===undefined&&delete item.replaces;
+    if(action.set===undefined&&action.notes===undefined)return saved(item);
+    // Same rule as a team slot: a save builds on the revision the editor started from.
+    if(action.baseRevisionId!==item.revisionId)throw new Conflict('This candidate was changed elsewhere. Reload before saving.');
+    const {e:entry,r:prev}=lookup(item.bankId,item.revisionId);const set=action.set!==undefined?cleanSet(action.set):prev.set;const notes=action.notes!==undefined?cleanNotes(action.notes):prev.notes;
+    // Reusing a set that is already saved (a restore, a starred set) points at it, so its benchmarks stay attached.
+    if(action.reuse===true){const found=db.bank.flatMap(b=>b.revisions.map(x=>({b,x}))).find(({x})=>same(x.set,set));
+      if(found){if(bench.some(b=>b.id!==item.id&&b.revisionId===found.x.id))throw new Error('That set is already on the bench.');item.bankId=found.b.id;item.revisionId=found.x.id;return saved(item);}}
+    if(same(prev.set,set)){prev.notes=notes;return saved(item);}
+    const fresh=(t:string)=>Date.now()-Date.parse(t)<AMEND_WINDOW;
+    const amend=action.amend===true&&fresh(prev.createdAt)&&!prev.starred&&dex.species.get(prev.set.species).baseSpecies===dex.species.get(set.species).baseSpecies
+      &&!(db.benchmarks??[]).some(b=>b.revisionId===prev.id)&&!db.teams.some(t=>t.versions.some(v=>v.configurations.some(c=>c.slots.some(s=>s.revisionId===prev.id)))||(t.bench??[]).some(b=>b.id!==item.id&&b.revisionId===prev.id));
+    if(amend){Object.assign(prev,{set,notes,createdAt:now(),...certainty(prev,set)});if(prev.provenance==='manual'){delete prev.fields;delete prev.knownMoves;}return {...saved(item),amended:true};}
+    if(dex.species.get(prev.set.species).baseSpecies===dex.species.get(set.species).baseSpecies){const revision:SetRevision={id:uid('set'),number:entry.revisions.length+1,createdAt:now(),set,notes,...certainty(prev,set)};entry.revisions.push(revision);item.revisionId=revision.id;}
+    else{const revision:SetRevision={id:uid('set'),number:1,createdAt:now(),set,notes,provenance:'manual'};const fresh2={id:uid('bank'),name:`${set.species} · ${team.name}`,revisions:[revision]};db.bank.push(fresh2);item.bankId=fresh2.id;item.revisionId=revision.id;}
+    return saved(item);
+  }
+  // Promote: the candidate's saved set goes into the chosen slot as a new step in History; whatever it displaces takes
+  // its place on the bench (same position), so the swap can be undone from the bench.
+  if(action.type==='bench-promote'){
+    const item=find(action.benchId);const {r:cand}=lookup(item.bankId,item.revisionId);const old=currentTeam(db,team);
+    if(!Number.isInteger(action.slot)||action.slot<0||action.slot>5)throw new Error('Choose which slot it takes.');
+    const current=old.configuration.slots[action.slot];
+    if(action.baseRevisionId!==undefined&&current.revisionId!==action.baseRevisionId)throw new Conflict('That slot was changed elsewhere. Reload before promoting.');
+    if(current.revisionId===item.revisionId)throw new Error('That set is already in this slot.');
+    const slots=structuredClone(old.configuration.slots);slots[action.slot]={bankId:item.bankId,revisionId:item.revisionId};
+    const errors=validation(resolveSlots(db,slots),team.format);if(errors.length)throw new Error(errors.join('\n'));
+    const out=lookup(current.bankId,current.revisionId).r.set;
+    const configuration={id:uid('config'),createdAt:now(),slots,summary:checkText(action.summary??`Promoted ${cand.set.species} from the bench, replacing ${out.species}`,500)};
+    old.version.configurations.push(configuration);old.version.currentConfigurationId=configuration.id;
+    const index=bench.indexOf(item);const displaced=bench.some(b=>b.revisionId===current.revisionId)?undefined:{id:uid('bench'),bankId:current.bankId,revisionId:current.revisionId,replaces:cand.set.species,addedAt:now(),source:'player' as const};
+    if(displaced)bench.splice(index,1,displaced);else bench.splice(index,1);dropPending(item.id);
+    return {versionId:old.version.id,configurationId:configuration.id,promoted:cand.set.species,displaced:out.species,benchId:displaced?.id};
+  }
+  throw new Error('Unknown action');
+}
 const shortId=(value:unknown)=>{const v=checkText(value??uid('c'),80);if(!/^[a-zA-Z0-9_-]+$/.test(v))throw new Error('Invalid coaching identifier');return v;};
 const names=(value:unknown,max=6)=>{if(!Array.isArray(value)||value.length>max)throw new Error('Expected a short list of Pokémon');return value.map(v=>checkText(v,100));};
 export function cleanCoaching(teamId:string,input:any,version:number):TeamCoaching{
@@ -207,6 +269,7 @@ export function validateStoreReferences(db:Workbench){
   const ids=new Set<string>();for(const b of db.bank){recordId(b.id);for(const r of b.revisions){recordId(r.id);if(ids.has(r.id))throw new Error('Duplicate revision');ids.add(r.id);}}
   for(const t of db.teams){recordId(t.id);currentTeam(db,t);for(const v of t.versions){recordId(v.id);for(const c of v.configurations){recordId(c.id);resolveSlots(db,c.slots);}}}
   for(const a of Object.values(db.associations)){const t=db.teams.find(t=>t.id===a.teamId);if(!t)throw new Error('Dangling replay team');if(a.certainty==='exact'){if(!a.versionId||!a.configurationId)throw new Error('Missing exact replay identifiers');currentTeam(db,t,a.versionId,a.configurationId);}else if(a.versionId)currentTeam(db,t,a.versionId);}
+  for(const t of db.teams)for(const b of t.bench??[]){recordId(b.id);if(!db.bank.find(p=>p.id===b.bankId)?.revisions.some(r=>r.id===b.revisionId))throw new Error('Dangling bench entry');}
   for(const [teamId,c] of Object.entries(db.coaching??{})){if(!db.teams.some(t=>t.id===teamId)||c.teamId!==teamId)throw new Error('Dangling coaching record');}
   for(const b of db.benchmarks??[])if(!db.bank.find(p=>p.id===b.bankId)?.revisions.some(r=>r.id===b.revisionId))throw new Error('Dangling benchmark');
 }

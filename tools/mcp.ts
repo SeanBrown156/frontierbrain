@@ -24,6 +24,7 @@ import {showdownReplayId} from './replay-links.ts';
 import {createPokepaste} from './pokepaste.ts';
 import {activeAI,config as profile} from './io.ts';
 import {focusTools,focusCall,focusInstructions} from './focus.ts';
+import {benchTools,benchNames,benchCall,benchGuidance} from './mcp-bench.ts';
 
 const teamId={teamId:{type:'string',description:'Team id from list_teams'}};
 const str={type:'string'};
@@ -80,7 +81,7 @@ const own=[
   {name:'create_pokepaste',description:'PUBLISHES the team\'s six to pokepast.es, a public paste site: anyone with the link can read it and it cannot be taken back from here. Only when the player explicitly asked to publish this team: needs playerAgreed: true. Returns the paste URL. The author defaults to the player\'s Showdown name, as the app\'s PokePaste button does; pass author to use something else (an empty string posts none).',parameters:{type:'object',properties:{...teamId,author:{...str,description:'Optional name shown on the paste (max 60 characters)'},notes:{...str,description:'Optional note shown on the paste (max 1000 characters)'},playerAgreed:{type:'boolean',description:'True only when the player has just asked you to publish this team publicly to pokepast.es.'}},required:['teamId','playerAgreed']}},
   {name:'backup_info',description:'What a Frontier Brain backup would hold (counts) and where to make or restore one. A backup is one file with every replay\'s full log, which does not fit in a chat tool result, so backup and restore are only available in the app: Settings (avatar in the header) → Backup → Download backup / Restore. Restoring merges and never overwrites.',parameters:{type:'object',properties:{}}},
 ];
-const all=[...own,...shared];
+const all=[...own,...benchTools,...shared];
 all.push(...focusTools as any[]); // get_focus (tools/focus.ts)
 // "What's changing": the same before → after the app's suggestion tiles show, as markdown for the chat.
 const changeLines=(before:any,after:any):string[]=>{const L:string[]=[];
@@ -116,8 +117,8 @@ async function call(name:string,input:any){
   if(name==='set_team_format'){await mutateLatest(d=>applyAction(d,{type:'team-format',teamId:input.teamId,format:input.format} as any));return {format:input.format};}
   if(name==='export_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');return {name:t.name,paste:exportText(currentTeam(db,t).sets as any,t.format,{validate:false}),legal:!currentTeam(db,t).errors.length};}
   if(name==='duplicate_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const view=currentTeam(db,t);
-    const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name||`${t.name} (copy)`).slice(0,120),paste:exportText(view.sets as any,t.format,{validate:false}),format:t.format,notes:view.version.notes??''} as any));
-    const n:any=r.result;return {created:n.id,name:n.name,note:'A copy of the six and the game-plan text. Plans and replays stay with the original.'};}
+    const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name||`${t.name} (copy)`).slice(0,120),paste:exportText(view.sets as any,t.format,{validate:false}),format:t.format,notes:view.version.notes??'',benchFrom:t.id} as any));
+    const n:any=r.result;return {created:n.id,name:n.name,note:'A copy of the six, the game-plan text and the bench. Plans and replays stay with the original.'};}
   if(name==='replace_pokemon'||name==='star_set'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const view=currentTeam(db,t);
     const slot=view.sets.findIndex((s:any)=>String(s.species).toLowerCase()===String(input.pokemon).toLowerCase());if(slot<0)throw new Error(`"${input.pokemon}" is not on this team (${view.sets.map((s:any)=>s.species).join(', ')}).`);
     if(name==='star_set'){const r:any=await mutateLatest(d=>applyAction(d,{type:input.unstar?'set-unstar':'set-star',teamId:t.id,slot,label:input.label} as any));return {pokemon:view.sets[slot].species,starred:!input.unstar,label:r.result?.starred?.label??null};}
@@ -265,6 +266,7 @@ async function call(name:string,input:any){
     // Same as the app: a deleted team takes its replays and their analysis with it.
     const gone=await deleteReplays(r.result?.replays??[]);await removeFile(`reports/replay-digests/${t.id}.json`).catch(()=>{});
     return {deleted:t.name,replaysDeleted:gone};}
+  if(benchNames.has(name))return benchCall(name,input,db);
   const focused=await focusCall(name,db,input,()=>runTool(name,input,{},db)); // get_focus, and calcs handed to the app
   if(focused!==undefined)return focused;
   return runTool(name,input,name==='get_team'?{teamId:input.teamId}:{},db);
@@ -301,7 +303,7 @@ function server(prefs:string){
   // Clients that show connector icons read them from the server info (MCP 2025-11-25); some fall back to /favicon.ico.
   const SITE='https://frontierbrain.vercel.app';
   const info={name:'frontier-brain',title:'Frontier Brain',version:'1.0.0',websiteUrl:SITE,icons:[{src:`${SITE}/brand/icon-512.png`,mimeType:'image/png',sizes:['512x512']},{src:`${SITE}/brand/icon-192.png`,mimeType:'image/png',sizes:['192x192']}]};
-  const s=new Server(info,{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}\n${prefs}`});
+  const s=new Server(info,{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}\n${benchGuidance}\n${prefs}`});
   s.setRequestHandler(ListPromptsRequestSchema,async()=>({prompts:prompts.map(({text,...p})=>p)}));
   s.setRequestHandler(GetPromptRequestSchema,async req=>{const p=prompts.find(x=>x.name===req.params.name);if(!p)throw new Error(`Unknown prompt ${req.params.name}`);
     return {description:p.description,messages:[{role:'user',content:{type:'text',text:p.text(req.params.arguments??{})}}]};});

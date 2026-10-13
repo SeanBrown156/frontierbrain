@@ -8,7 +8,7 @@ import {hostedSite} from '../auth.tsx';
 const base=(s?:string)=>String(s??'').replace(/-Mega(-[A-Z])?$/,'');
 const involves=(c:any,species:string)=>[c.input?.attacker,c.input?.defender,c.input?.a,c.input?.b].some(x=>base(x?.species)===species);
 const ago=(at:string)=>{const m=Math.round((Date.now()-Date.parse(at))/60000);return m<1?'just now':m<60?`${m} min ago`:`${Math.round(m/60)} h ago`;};
-export default function AssistantCalcs({teamId,slot,species}:{teamId:string;slot:number;species:string}){
+export default function AssistantCalcs({teamId,slot,species}:{teamId:string;slot:number|string;species:string}){
   const [list,setList]=useState<any[]>([]),[note,setNote]=useState('');
   useEffect(()=>{let alive=true;const tick=()=>{if(document.visibilityState==='visible')api('/assistant-calcs').then(l=>{if(alive)setList(l);}).catch(()=>{});};
     tick();const t=setInterval(tick,hostedSite?6000:4000);document.addEventListener('visibilitychange',tick);

@@ -1,9 +1,11 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
 import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge,TYPE_COLOURS} from '../ui.tsx';
-import {Px,Share,Home,Target,Play,ArrowLeft,Pencil,Plus,Eye,Check,WarningDiamond,SettingsCog,Copy,Link,Swap} from '../icons.tsx';
+import {Px,Share,Home,Target,Play,ArrowLeft,Pencil,Plus,Eye,Check,WarningDiamond,SettingsCog,Copy,Link,Swap,Users} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
+import Bench from './Bench.tsx';
+import {BENCH_LABEL} from '../../shared/workbench.ts';
 import {getView,versionName,stats,natureEffect} from './editors.tsx';
 import {setStrategyText} from '../../shared/workbench.ts';
 import {useDraft,useOffers,takeOffer} from '../save-state.ts';
@@ -13,7 +15,7 @@ import type {Mutate} from './PokemonWorkspace.tsx';
 export const teamHref=(teamId:string,tab:string,versionId='all')=>`#team/${teamId}/${tab}/${versionId}`;
 export const monHref=(teamId:string,versionId:string,slot:number,swap=false)=>`#team/${teamId}/mon/${versionId}/${slot}${swap?'/swap':''}`;
 export function record(games:any[]){const w=games.filter(g=>g.result==='win').length,l=games.filter(g=>g.result==='loss').length;return {w,l,n:games.length,label:games.length?`${w}–${l}`:'no games'};}
-const tabs=[['overview','Pokémon',Home],['strategy','Strategy',Target],['replays','Replays',Play],['history','Manage',SettingsCog]] as const;
+const tabs=[['overview','Pokémon',Home],['strategy','Strategy',Target],['bench',BENCH_LABEL,Users],['replays','Replays',Play],['history','Manage',SettingsCog]] as const;
 const statLabel:Record<string,string>={hp:'HP',atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
 export const sourceName=(v:any)=>v.source==='observed'?'from replays':v.source==='paste'||v.number===1?'from paste':v.configurations?.[0]?.summary?.startsWith('Restored')?v.configurations[0].summary.toLowerCase():'saved version';
 
@@ -41,6 +43,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav></div>
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} data={data} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
+    {tab==='bench'&&<Bench team={team} data={data} mutate={mutate} notify={notify}/>}
     {tab==='replays'&&<Replays team={team} data={data} versionId={all?'all':versionId} load={load} notify={notify}/>}
     {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate} notify={notify} onExport={()=>void copyShowdown()} onPokepaste={()=>void openPokepaste()} publishing={publishing} copied={copied}/>}
   </div>;
@@ -54,10 +57,10 @@ function Overview({team,data,version,mutate}:{team:any;data:any;version:any;muta
   </div>;
 }
 // One of the six. A Mega Stone holder shows its Mega (render and types), since that's what it battles as.
-export function MonCard({i,revision,href,active,art}:{i:number;revision:any;href:string;active:boolean;art:any}){
+export function MonCard({i,revision,href,active,art,numbered=true}:{i:number;revision:any;href:string;active:boolean;art:any;numbered?:boolean}){
   const s=revision.set;const obs=revision.provenance==='observed';const form=useBattleForm(s.species,s.item);const mt=useDex([],[],s.moves??[]).moves;
   return <a className={'mon-card'+(active?'':' read-only')} href={href} aria-label={`${s.species}: open set and calc`} style={{'--i':i} as any}>
-      <span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>
+      {numbered&&<span className="mon-slot" aria-hidden="true">{String(i+1).padStart(2,'0')}</span>}
       <div className="mon-card-head"><Art name={form} fallback={s.species} art={art}/><div><h3 className="name-row">{s.nickname?`${s.nickname} (${s.species})`:s.species}{form!==s.species&&<MegaBadge/>}</h3><div className="mon-tags"><TypeBadges species={form}/></div></div></div>
       <p className="mon-item"><ItemIcon item={s.item}/>{s.item||'No item'}{obs&&revision.fields?.item==='inferred'&&<span className="guess">guess</span>}<span className="mon-meta">{s.ability} · {s.nature}</span></p>
       <SpBars species={form} points={s.statPoints??{}} nature={s.nature}/>
@@ -144,7 +147,7 @@ function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing,copie
         <span className="team-six mini">{sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</span>
         {now?<span className="tag ok">Current</span>:<span className="button-row"><button className="compact" onClick={()=>setViewing({version:e.v,config:e.c})}><Px icon={Eye} size={14}/>View</button><button className="compact" onClick={()=>void restore(e)}>Restore</button></span>}</li>;})}</ol></section>
     {viewing&&<Modal title={`Team on ${date(viewing.config.createdAt)}`} onClose={()=>setViewing(null)}><p className="muted">{viewing.config.summary||'Saved'}</p><div className="proposals">{getView(team,data.db,viewing.version.id,viewing.config.id).sets.map((s:any,i:number)=><SetTile key={i} set={s} art={data.art}/>)}</div></Modal>}
-    <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Deletes the team, its history, strategy, replays and their analysis. Its sets stay in your Pokémon library.</p></div>
+    <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Deletes the team, its history, strategy, bench, replays and their analysis. Its sets stay in your Pokémon library.</p></div>
       <button className="danger" onClick={()=>{if(confirm(`Delete “${team.name}” and its replays? This can't be undone.`))void mutate({type:'team-delete',teamId:team.id}).then(()=>{location.hash='#teams';}).catch(()=>{});}}>Delete team</button></section>
   </div>;
 }
@@ -169,7 +172,7 @@ function FormatTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:strin
 function DuplicateTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:string)=>void}){
   const [busy,setBusy]=useState(false);
   const duplicate=async()=>{setBusy(true);try{const active=team.versions.find((v:any)=>v.id===team.activeVersionId);const {paste}=await api(`/export?team=${team.id}&version=${active.id}&configuration=${active.currentConfigurationId}`);
-      const r=await mutate({type:'import',name:`${team.name} (copy)`,paste,format:team.format,notes:active.notes??''});notify(`Duplicated as ${team.name} (copy).`);location.hash=teamHref(r.result.id,'history');}
+      const r=await mutate({type:'import',name:`${team.name} (copy)`,paste,format:team.format,notes:active.notes??'',benchFrom:team.id});notify(`Duplicated as ${team.name} (copy).`);location.hash=teamHref(r.result.id,'history');}
     catch(e){notify((e as Error).message);}finally{setBusy(false);}};
   return <section className="manage-tile"><span className="eyebrow">Duplicate</span><div className="manage-actions"><button disabled={busy} onClick={()=>void duplicate()}><Px icon={Copy}/>{busy?'Duplicating…':'Duplicate team'}</button></div></section>;
 }
