@@ -130,16 +130,18 @@ test('MCP replays: with no AI key, games wait for the assistant, which saves a s
     const early:any=await client.callTool({name:'save_team_digest',arguments:{teamId,themes:[{title:'x',detail:'y',games:[ids[0]]}]}});assert.ok(early.isError);assert.match(early.content[0].text,/at least two/);
     await text('save_replay_summary',{replayId:ids[1],summary:'Lost to Fake Out.',keyMoments:[{turn:1,text:'Flinched.'}],workOn:[{title:'Respect Fake Out',detail:'Lead around it.',category:'play'}]});
     const dig=await text('save_team_digest',{teamId,themes:[{title:'Respect Fake Out',detail:'Lead around it.',games:[ids[0],ids[1],'bogus'],of:'games'}],strengths:['Trick Room sets reliably']});assert.equal(dig.games,2);assert.match(dig.themes[0],/2 of 2/);
-    // The player edits the summary and adds notes; a later re-summary (here by the assistant) keeps their notes and the wording it replaced.
+    // The player edits the AI's text in place; a later re-save (here by the assistant) keeps the wording it replaced, and the edited text is what a re-summary is shown.
     await withData(ctx,async()=>{
-      const e=await editReplaySummary(ids[0],{summary:'Won: Trick Room went up turn 1 and Mawile cleaned.',playerNotes:'I misclicked Protect on turn 3.'});assert.equal(e.edited,true);
+      const e=await editReplaySummary(ids[0],{summary:'Won: Trick Room went up turn 1 and Mawile cleaned.',workOn:[{title:'Keep the lead',detail:'I misclicked Protect on turn 3.',category:'play',turn:1}]});
+      assert.equal(e.edited,true);assert.equal(e.workOn[0].detail,'I misclicked Protect on turn 3.');
       assert.match(priorForPrompt(await readSummary(ids[0])),/Mawile cleaned[\s\S]*misclicked Protect/);
       await assert.rejects(()=>editReplaySummary(ids[0],{summary:'   '}),/cannot be empty/);
-      const d=await editTeamDigest(teamId,{playerNotes:'Watch Fake Out early.',themes:[{from:0,title:'Respect Fake Out more',detail:'My wording.'}]});assert.equal(d.edited,true);assert.equal(d.themes[0].count,2,'counts are not editable');
+      await assert.rejects(()=>editReplaySummary(ids[0],{keyMoments:[{turn:999,text:'?'}]}),/not in this game/);
+      const d=await editTeamDigest(teamId,{themes:[{from:0,title:'Respect Fake Out more',detail:'My wording.'}],strengths:['Trick Room sets reliably','']});assert.equal(d.edited,true);assert.equal(d.themes[0].count,2,'counts are not editable');assert.deepEqual(d.strengths,['Trick Room sets reliably']);
       await assert.rejects(()=>editTeamDigest(teamId,{themes:[{from:9,title:'x',detail:'y'}]}),/Unknown theme/);});
     await text('save_replay_summary',{replayId:ids[0],summary:'Won through Trick Room.',keyMoments:[{turn:1,text:'Set Trick Room.'}],workOn:[{title:'Keep the lead',detail:'Fine.',category:'play'}]});
-    await withData(ctx,async()=>{const s=await readSummary(ids[0]);assert.equal(s!.playerNotes,'I misclicked Protect on turn 3.');assert.match(s!.earlierSummary!,/Mawile cleaned/);assert.equal(s!.summary,'Won through Trick Room.');});
+    await withData(ctx,async()=>{const s=await readSummary(ids[0]);assert.match(s!.earlierSummary!,/Mawile cleaned/);assert.equal(s!.summary,'Won through Trick Room.');});
     await text('save_team_digest',{teamId,themes:[{title:'Respect Fake Out',detail:'Lead around it.',games:[ids[0],ids[1]],of:'games'}]});
-    await withData(ctx,async()=>{assert.equal((await readDigest(teamId))!.playerNotes,'Watch Fake Out early.');});
+    await withData(ctx,async()=>{assert.equal((await readDigest(teamId))!.edited,true);});
   }finally{await client.close();server.close();await rm(root,{recursive:true});}
 });

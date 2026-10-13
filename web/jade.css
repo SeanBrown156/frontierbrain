@@ -2205,9 +2205,8 @@ html.jade .waiting-ai{display:grid;gap:var(--s2);padding:var(--s4);border:1px so
 html.jade .waiting-ai h3{margin:0;display:flex;align-items:center;gap:var(--s2);font:700 15px/1.4 var(--fb)}
 html.jade .waiting-ai p{margin:0}
 html.jade .waiting-ask{font-family:var(--fm,monospace);font-size:13px;color:var(--ac)}
-/* Replays: the player's own words. */
-html.jade .my-notes{display:grid;gap:var(--s2);margin-top:var(--s4)}html.jade .my-notes h3{margin:0}html.jade .my-notes textarea{width:100%;resize:vertical}
+/* Replays: the summary line and debrief wording edit in place; nothing else about the layout changes. */
 html.jade .summary-edit{display:grid;gap:var(--s2)}html.jade .summary-edit textarea{width:100%;resize:vertical}
-html.jade .game-notes{margin:var(--s2) 0 0;font-size:13px;color:var(--mu)}html.jade .game-notes b{color:var(--tx)}
-html.jade .earlier{margin-top:var(--s2);font-size:13px}html.jade .themes.editing{display:grid;gap:var(--s4);list-style:none;padding:0}
-html.jade .themes.editing li{display:grid;gap:var(--s2)}html.jade .themes.editing input,html.jade .themes.editing textarea{width:100%}
+html.jade .game-summary .icon-text{display:inline-flex;vertical-align:middle;padding:2px 4px;margin-left:4px;height:auto;min-height:0;border:0;box-shadow:none;background:transparent;color:var(--mu)}
+html.jade .inline-edit input,html.jade .inline-edit textarea{width:100%}html.jade .inline-edit .theme-head input{flex:1;min-width:0}
+html.jade .earlier{margin-top:var(--s2);font-size:13px}

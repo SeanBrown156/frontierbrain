@@ -122,24 +122,21 @@ function ConnectAI({onClose}:{onClose:()=>void}){
 }
 function Digest({team,games,info,busy,refresh,saved,notify,art}:{team:any;games:any[];info:any;busy:boolean;refresh:()=>void;saved:()=>void;notify:(s:string,e?:boolean)=>void;art:any}){
   const r=record(games);const d=info.digest;
-  const [editing,setEditing]=useState(false),[themes,setThemes]=useState<{from:number;title:string;detail:string}[]>([]),[notes,setNotes]=useState(d?.playerNotes??''),[saving,setSaving]=useState(false);
-  useEffect(()=>{setNotes(d?.playerNotes??'');},[d?.playerNotes,d?.createdAt]);
-  const post=async(body:any)=>{setSaving(true);try{await api('/replay-digest-edit',{teamId:team.id,...body});saved();return true;}catch(e){notify((e as Error).message,true);return false;}finally{setSaving(false);}};
-  const startEdit=()=>{setThemes(d.themes.map((t:any,i:number)=>({from:i,title:t.title,detail:t.detail})));setEditing(true);};
+  // The debrief's own wording is editable in place; a refresh builds on what is written here.
+  const [editing,setEditing]=useState(false),[themes,setThemes]=useState<{from:number;title:string;detail:string}[]>([]),[strengths,setStrengths]=useState<string[]>([]),[saving,setSaving]=useState(false);
+  const startEdit=()=>{setThemes(d.themes.map((t:any,i:number)=>({from:i,title:t.title,detail:t.detail})));setStrengths([...(d.strengths??[])]);setEditing(true);};
+  const save=async()=>{setSaving(true);try{await api('/replay-digest-edit',{teamId:team.id,themes,strengths:strengths.filter(x=>x.trim())});saved();setEditing(false);}catch(e){notify((e as Error).message,true);}finally{setSaving(false);}};
   return <section className="digest panel"><header className="panel-heading"><div><span className="eyebrow">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}{d?` · ${d.games} summarised · ${date(d.createdAt)}${d.edited?' · edited':''}`:''}</span><h2>Debrief</h2></div>
-      <div className="button-row">{d&&!editing&&<button onClick={startEdit}><Px icon={Pencil}/>Edit</button>}
-      {r.n>=2&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Sparkles}/>Refresh</>}</button>}</div></header>
+      <div className="button-row">{d&&!editing&&<button onClick={startEdit}><Px icon={Pencil}/>Edit</button>}{r.n>=2&&!editing&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Sparkles}/>Refresh</>}</button>}</div></header>
     {!d?<p className="muted">{r.n<2?'Add a couple of replays to get a debrief.':busy?'Summarising your games…':'Summarise your games to get a debrief.'}</p>
       :<div className="debrief">
-        {d.strengths?.length>0&&<section><h3>What's working</h3><ul className="debrief-good">{d.strengths.map((t:string,i:number)=><li key={i}>{t}</li>)}</ul></section>}
-        {editing
-          ?<section><h3>What to work on</h3><ol className="themes editing">{themes.map((t,i)=><li key={t.from}><label>Title<input value={t.title} maxLength={90} onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,title:e.target.value}:x))}/></label>
-              <label>Detail<textarea rows={3} value={t.detail} maxLength={900} onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,detail:e.target.value}:x))}/></label>
-              <button className="text-button" onClick={()=>setThemes(themes.filter((_,j)=>j!==i))}>Remove this theme</button></li>)}</ol>
-            <div className="button-row"><button className="primary" disabled={saving||!themes.length} onClick={()=>void post({themes}).then(ok=>{if(ok)setEditing(false);})}>Save</button><button onClick={()=>setEditing(false)}>Cancel</button></div></section>
-          :<section><h3>What to work on</h3><ol className="themes">{d.themes.map((t:any,i:number)=><li key={i}><div className="theme-head"><b>{t.title}</b><span className="tag">{t.count} of {t.total} {t.of}</span></div><p>{t.detail}</p></li>)}</ol></section>}
-        <section className="my-notes"><h3>My notes</h3><textarea rows={3} value={notes} maxLength={3000} placeholder="Add your own notes. They stay when the debrief is refreshed, and the refresh builds on them." aria-label="Your notes on this debrief"
-            onChange={e=>setNotes(e.target.value)} onBlur={()=>{if(notes.trim()!==(d.playerNotes??'').trim())void post({playerNotes:notes});}}/></section>
+        {(d.strengths?.length>0||editing)&&<section><h3>What's working</h3>{editing
+          ?<ul className="debrief-good inline-edit">{strengths.map((t,i)=><li key={i}><textarea rows={2} value={t} maxLength={200} aria-label="What's working" onChange={e=>setStrengths(strengths.map((x,j)=>j===i?e.target.value:x))}/></li>)}</ul>
+          :<ul className="debrief-good">{d.strengths.map((t:string,i:number)=><li key={i}>{t}</li>)}</ul>}</section>}
+        <section><h3>What to work on</h3><ol className="themes">{d.themes.map((t:any,i:number)=>editing
+          ?<li key={i} className="inline-edit"><div className="theme-head"><input value={themes[i]?.title??''} maxLength={90} aria-label="Theme title" onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,title:e.target.value}:x))}/><span className="tag">{t.count} of {t.total} {t.of}</span></div><textarea rows={3} value={themes[i]?.detail??''} maxLength={900} aria-label="Theme detail" onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,detail:e.target.value}:x))}/></li>
+          :<li key={i}><div className="theme-head"><b>{t.title}</b><span className="tag">{t.count} of {t.total} {t.of}</span></div><p>{t.detail}</p></li>)}</ol></section>
+        {editing&&<div className="button-row"><button className="primary" disabled={saving||themes.some(t=>!t.title.trim())} onClick={()=>void save()}>Save</button><button onClick={()=>setEditing(false)}>Cancel</button></div>}
       </div>}
   </section>;
 }
@@ -170,16 +167,15 @@ function GameCard({g,s,pending,waiting,art,open}:{g:any;s:any;pending:boolean;wa
   return <article className={'game '+g.result} onClick={open} onKeyDown={e=>{if(e.key==='Enter')open();}} tabIndex={0} role="button" aria-label={`${g.result} vs ${g.players[o].name}`}>
     <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.players[o].name}</span>{s?.stale&&<span className="tag">link changed</span>}</div>
     <div className="game-teams"><div className="six">{g.preview[o].map((m:string)=><span key={m} className={g.leads[o].includes(m)?'lead':g.revealed[o].includes(m)?'brought':'benched'} title={m}><Art name={m} art={art} small/></span>)}</div></div>
-    {s?<><p className="game-summary">{s.summary}</p>{s.playerNotes&&<p className="game-notes"><b>Your notes:</b> {s.playerNotes.length>140?s.playerNotes.slice(0,140)+'…':s.playerNotes}</p>}{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
+    {s?<><p className="game-summary">{s.summary}</p>{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
       {s.opponentStyle.length>0&&<div className="chip-row style-tags">{s.opponentStyle.map((t:string)=><span key={t} className="chip small">{t}</span>)}</div>}</>
       :<p className="muted">{pending?'Summarising…':waiting?'Waiting for your assistant to summarise it.':'No summary yet.'}</p>}
   </article>;
 }
 
 function GameDrawer({g,s,team,data,load,notify,close,resummarise,saved}:{g:any;s:any;team:any;data:any;load:()=>Promise<void>;notify:(s:string)=>void;close:()=>void;resummarise:()=>void;saved:()=>void}){
-  const [editing,setEditing]=useState(false),[draft,setDraft]=useState(''),[notes,setNotes]=useState(s?.playerNotes??''),[saving,setSaving]=useState(false);
-  useEffect(()=>{setNotes(s?.playerNotes??'');},[s?.playerNotes,s?.createdAt]);
-  const post=async(body:any)=>{setSaving(true);try{await api('/replay-summary-edit',{gameId:g.id,...body});saved();return true;}catch(e){notify((e as Error).message);return false;}finally{setSaving(false);}};
+  const [editing,setEditing]=useState(false),[draft,setDraft]=useState(''),[saving,setSaving]=useState(false);
+  const saveSummary=async()=>{setSaving(true);try{await api('/replay-summary-edit',{gameId:g.id,summary:draft});saved();setEditing(false);}catch(e){notify((e as Error).message);}finally{setSaving(false);}};
   const [log,setLog]=useState(''),[linking,setLinking]=useState(false),[turn,setTurn]=useState<number|null>(null);const box=useRef<HTMLPreElement>(null);const o=other(g);
   useEffect(()=>{api('/replay-transcript?id='+encodeURIComponent(g.id)).then(r=>setLog(r.transcript)).catch(()=>{});},[g.id]);
   useEffect(()=>{if(turn===null||!box.current)return;const el=box.current.querySelector(`[data-turn="${turn}"]`);el?.scrollIntoView({block:'start',behavior:'smooth'});},[turn,log]);
@@ -188,12 +184,10 @@ function GameDrawer({g,s,team,data,load,notify,close,resummarise,saved}:{g:any;s
     <p className="muted">{g.date?date(g.date):''} · <LinkStatus g={g} team={team} data={data} load={load} notify={notify}/> · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <button className="text-button" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</button></p>
     <div className="selections">{[[g.ownSide,'You'],[o,'Opponent']].map(([side,label])=><div key={side}><span className="eyebrow">{label}</span><div className="six">{g.preview[side].map((m:string)=><span key={m} className={g.leads[side].includes(m)?'lead':g.revealed[side].includes(m)?'brought':'benched'} title={m}><Art name={m} art={data.art} small/></span>)}</div></div>)}<p className="footnote">Leads are outlined; faded Pokémon weren't seen in battle.</p></div>
     {s?<>{editing
-        ?<div className="summary-edit"><textarea autoFocus rows={4} maxLength={900} value={draft} aria-label="Summary" onChange={e=>setDraft(e.target.value)}/>
-          <div className="button-row"><button className="primary" disabled={saving||!draft.trim()} onClick={()=>void post({summary:draft}).then(ok=>{if(ok)setEditing(false);})}>Save</button><button onClick={()=>setEditing(false)}>Cancel</button></div></div>
-        :<p className="game-summary big">{s.summary} <button className="text-button" onClick={()=>{setDraft(s.summary);setEditing(true);}}><Px icon={Pencil} size={12}/>Edit</button>{s.edited&&<span className="tag">edited</span>}</p>}
+        ?<div className="summary-edit"><textarea autoFocus rows={3} maxLength={900} value={draft} aria-label="Summary" onChange={e=>setDraft(e.target.value)}/>
+          <div className="button-row"><button className="primary" disabled={saving||!draft.trim()} onClick={()=>void saveSummary()}>Save</button><button onClick={()=>setEditing(false)}>Cancel</button></div></div>
+        :<p className="game-summary big">{s.summary} <button className="icon-text" aria-label="Edit summary" title="Edit summary" onClick={()=>{setDraft(s.summary);setEditing(true);}}><Px icon={Pencil} size={12}/></button>{s.edited&&<span className="tag">edited</span>}</p>}
       {s.earlierSummary&&<details className="earlier"><summary>Earlier wording</summary><p className="muted">{s.earlierSummary}</p></details>}
-      <section className="my-notes"><h3>My notes</h3><textarea rows={3} maxLength={3000} value={notes} placeholder="Add your own notes on this game. They stay when it is re-summarised, and the new summary builds on them." aria-label="Your notes on this game"
-        onChange={e=>setNotes(e.target.value)} onBlur={()=>{if(notes.trim()!==(s.playerNotes??'').trim())void post({playerNotes:notes});}}/></section>
       {s.workOn.length>0&&<><h3>Work on</h3><ul className="work-on full">{s.workOn.map((w:any,i:number)=><li key={i}><div className="wo-head"><span className={'cat '+w.category}>{category[w.category]}</span><b>{w.title}</b>{w.turn&&<button className="text-button wo-turn" onClick={()=>setTurn(w.turn)}>Turn {w.turn} →</button>}</div><p>{w.detail}</p></li>)}</ul></>}
       {s.keyMoments.length>0&&<><h3>Key moments</h3><ol className="moments">{s.keyMoments.map((m:any,i:number)=><li key={i}><button className="text-button" onClick={()=>setTurn(m.turn)}>Turn {m.turn}</button> {m.text}</li>)}</ol></>}
       <p className="model-line">{s.model} · {date(s.createdAt)} · team sets: {s.setsBasis}{s.stale?' · the link changed since':''} · <button className="text-button" onClick={resummarise}><Px icon={Sparkles} size={12}/>Re-summarise</button></p></>
