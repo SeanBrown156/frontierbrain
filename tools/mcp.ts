@@ -23,6 +23,7 @@ import {intakeReplays,removeReplay} from './replay-intake.ts';
 import {showdownReplayId} from './replay-links.ts';
 import {createPokepaste} from './pokepaste.ts';
 import {activeAI,config as profile} from './io.ts';
+import {focusTools,focusCall,focusInstructions} from './focus.ts';
 
 const teamId={teamId:{type:'string',description:'Team id from list_teams'}};
 const str={type:'string'};
@@ -80,6 +81,7 @@ const own=[
   {name:'backup_info',description:'What a Frontier Brain backup would hold (counts) and where to make or restore one. A backup is one file with every replay\'s full log, which does not fit in a chat tool result, so backup and restore are only available in the app: Settings (avatar in the header) → Backup → Download backup / Restore. Restoring merges and never overwrites.',parameters:{type:'object',properties:{}}},
 ];
 const all=[...own,...shared];
+all.push(...focusTools as any[]); // get_focus (tools/focus.ts)
 // "What's changing": the same before → after the app's suggestion tiles show, as markdown for the chat.
 const changeLines=(before:any,after:any):string[]=>{const L:string[]=[];
   if(String(before.species)!==String(after.species))L.push(`**Pokémon:** ${before.species} → ${after.species}`);
@@ -263,6 +265,8 @@ async function call(name:string,input:any){
     // Same as the app: a deleted team takes its replays and their analysis with it.
     const gone=await deleteReplays(r.result?.replays??[]);await removeFile(`reports/replay-digests/${t.id}.json`).catch(()=>{});
     return {deleted:t.name,replaysDeleted:gone};}
+  const focused=await focusCall(name,db,input,()=>runTool(name,input,{},db)); // get_focus, and calcs handed to the app
+  if(focused!==undefined)return focused;
   return runTool(name,input,name==='get_team'?{teamId:input.teamId}:{},db);
 }
 
@@ -283,6 +287,7 @@ Work as a collaborator, in short turns, and hand choices back to the player:
 - Replays waiting for a summary: when the player has no AI key in Frontier Brain, new replays are kept and wait for you. list_replays marks them needsSummary. For each one call replay_transcript, judge every decision only with the information available at that turn, then save_replay_summary (if a game already has a summary, build on it: the player may have edited it (editedByPlayer), so keep their wording and points where they still hold; play mistakes, team-building weaknesses and variance kept apart; cite real turn numbers; never state an opponent\'s unrevealed item, spread or move as fact; a few games is a small sample). When two or more are summarised, finish with save_team_digest. The player can edit summaries and the debrief themselves, so re-saves should keep their wording where it still holds. Tell the player what you saved.
 - Replays the player gives you: add_replays takes the Showdown links or pasted HTML they sent (replay.pokemonshowdown.com only, never guess or search for replays), links each to the team whose six matches and says how certain the link is; an automatic "exact" link is consistent with the game, not confirmation of spreads. Games without an AI key wait for you (above). delete_replay removes ONE replay for good: only when they asked, with playerAgreed: true and the exact id. create_pokepaste PUBLISHES a team to pokepast.es: only when they asked for a public link, with playerAgreed: true; show them the URL. Backup and restore are in the app (Settings); backup_info says what a backup would hold.
 - When a calc is what a set is built around (what it must survive, KO or outspeed), save it with save_benchmark so it sits on that Pokémon's page; list_benchmarks shows what is already saved.
+${focusInstructions}
 - End a turn with a question whenever the next choice is theirs.`;
 const prompts=[
   {name:'build_around',description:'Build a team together around Pokémon you want to use',arguments:[{name:'pokemon',description:'The Pokémon to build around, e.g. "Mega Chimecho, Trevenant, Kommo-o"',required:true},{name:'style',description:'Optional: playstyle or anything you already know you want',required:false}],

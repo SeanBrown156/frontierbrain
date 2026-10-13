@@ -2224,3 +2224,11 @@ html.jade .replay-add .footnote,html.jade .replay-add .error{margin:var(--s3) 0 
 html.jade .reg-banner{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin:0 0 var(--s4);padding:var(--s3) var(--s4);border:1px solid var(--ln);border-left-width:3px;border-radius:4px;background:var(--glass)}
 html.jade .reg-banner p{margin:0;line-height:1.5}html.jade .reg-banner.ending{border-left-color:var(--hot,#e0a800)}html.jade .reg-banner.ended{border-left-color:var(--bad,#e5484d)}
 @media(max-width:620px){html.jade .reg-banner{flex-direction:column;align-items:stretch;text-align:center}}
+
+/* calcs an assistant ran over the connector, listed above the calc panel on the Pokémon page */
+html.jade .assistant-calcs{margin:0 0 16px}
+html.jade .assistant-calc-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+html.jade .assistant-calc-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px}
+html.jade .assistant-calc-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+html.jade .assistant-calcs-more{margin:0 0 12px}
+@media (max-width:640px){html.jade .assistant-calc-list li{grid-template-columns:auto minmax(0,1fr) auto}html.jade .assistant-calc-list li>.muted{display:none}html.jade .assistant-calc-list li>.button-row{grid-column:1/-1;justify-content:flex-end}}

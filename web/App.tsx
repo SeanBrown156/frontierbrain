@@ -16,6 +16,7 @@ import BrainBackdrop from './brain/BrainBackdrop.tsx';
 import Boot,{shouldBoot} from './Boot.tsx';
 import RegulationBanner from './RegulationBanner.tsx';
 import {decode,hoverDecode,glitch,reduced} from './fx.ts';
+import {setFocusBase} from './focus.ts';
 // Names and labels that resolve from noise when you point at them: team and Pokémon names, the header menus, the Ask
 // button and section headings. Titles do the same when you arrive on a new page.
 const DECODE_ON_HOVER=['.team-card-title h3','.team-card-title','.mon-card-head h3','.combatant-head h3','.guide-mon-head h3',
@@ -94,6 +95,9 @@ export default function App(){
   // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
+  // The same route state also tells the server what is open, so an assistant connected over MCP can answer "this one" (get_focus).
+  const focusTeam=team?.id,focusVersion=dock.versionId==='all'?undefined:dock.versionId,focusPage=team?dock.page:(['welcome','teams','news','data','references','account'].includes(parts[0])?parts[0]:'teams');
+  useEffect(()=>{if(data&&!booting)setFocusBase({page:focusPage,teamId:focusTeam,versionId:focusVersion,slot:dock.slot});},[!!data,booting,focusPage,focusTeam,focusVersion,dock.slot]);
   // "Open the app" on the landing page: mark it seen, run the boot (once per session), then open your teams.
   const openApp=()=>{try{localStorage.setItem(WELCOMED,'1');}catch{}if(shouldBoot()){setQuick(false);setBooting(true);}location.hash='#teams';};
   // Ask Frontier Brain floats over the page as an overlay, so opening it never reflows the layout.

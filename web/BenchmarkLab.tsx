@@ -5,6 +5,7 @@ import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,MegaOrb,type MegaForm} fr
 import SpeciesPicker,{type SavedOption} from './ai/SpeciesPicker.tsx';
 import {ItemPicker,MovePicker} from './ai/Pickers.tsx';
 import {offer,useOffers} from './save-state.ts';
+import {setFocusDetail} from './focus.ts';
 const stats=['hp','atk','def','spa','spd','spe'] as const;
 const statLabel:Record<string,string>={hp:'HP',atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
 // Until a standard set loads, the target is species-only; nothing is presented as a typical spread.
@@ -75,6 +76,8 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const key=JSON.stringify(tab==='Speed'?speedInput:damageInput);
   useEffect(()=>{if(!dex){setCalculating(false);return;}let alive=true;setCalculating(true);const timer=setTimeout(()=>{api('/calculate',{kind:tab==='Speed'?'speed':'damage',input:JSON.parse(key)}).then(r=>{if(alive){setResult({...r,kind:tab});setError('');}}).catch(e=>{if(alive){setResult(null);setError(e.message);}}).finally(()=>{if(alive)setCalculating(false);});},250);return()=>{alive=false;clearTimeout(timer);};},[key,tab,!!dex]);
   useEffect(()=>setSaved(''),[key,tab]);
+  // The calc on screen is part of what an assistant sees (inputs only); leaving the page clears it.
+  useEffect(()=>{setFocusDetail({calc:{kind:tab==='Speed'?'speed':'damage',input:JSON.parse(key)}});},[key,tab]);useEffect(()=>()=>setFocusDetail({calc:undefined}),[]);
   // The other side of the crit question: if the main result isn't a crit, also show the crit range (and vice versa).
   const [alt,setAlt]=useState<any>(null);useEffect(()=>{setAlt(null);if(tab!=='Damage'||!dex)return;let alive=true;const t=setTimeout(()=>{api('/calculate',{kind:'damage',input:{...damageInput,moveOptions:{...options,isCrit:!options.isCrit}}}).then(r=>{if(alive)setAlt(r);}).catch(()=>{});},400);return()=>{alive=false;clearTimeout(t);};},[key,tab,!!dex]);
   // A calc run by Ask Frontier Brain on this Pokémon lands here with its exact inputs.

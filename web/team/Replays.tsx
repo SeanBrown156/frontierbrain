@@ -9,6 +9,7 @@ import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
 import {record} from './Hub.tsx';
 import {versionName} from './editors.tsx';
+import {setFocusDetail} from '../focus.ts';
 
 const category:Record<string,string>={play:'Play',building:'Team',variance:'Luck'};
 const other=(g:any)=>g.ownSide==='p1'?'p2':'p1';
@@ -21,6 +22,7 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
   useEffect(()=>{void refresh();},[team.id,games.length]);
   useEffect(()=>{if(!info.running.length)return;const t=setInterval(()=>void refresh(),3000);return()=>clearInterval(t);},[info.running.length]);
   const ai=canUseAI(useAccount());const [needAI,setNeedAI]=useState(false);
+  useEffect(()=>{setFocusDetail({replayId:open??undefined});},[open]);useEffect(()=>()=>setFocusDetail({replayId:undefined}),[]); // the open game is part of what an assistant sees
   // Without an AI key in the app, new games are kept and wait for the player's assistant (MCP) to summarise them.
   const [keyed,setKeyed]=useState<boolean|null>(null);useEffect(()=>{if(!ai)return;let alive=true;void aiReady().then(k=>{if(alive)setKeyed(k);});return()=>{alive=false;};},[ai]);
   const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in for free to summarise replays with your preferred AI tool.');if(!(await aiReady())){setNeedAI(true);return;}try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};

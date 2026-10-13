@@ -29,6 +29,7 @@ import {searchPoolTeams,poolTeamDraft} from './pool-import.ts';
 import {createBackup,restoreBackup} from './backup.ts';
 import {handleMcp} from './mcp.ts';
 import {readPreferences,updatePreferences} from './player.ts';
+import {writeFocus,getFocus,listCalcs,removeCalc} from './focus.ts';
 
 function respond(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
 const WEB_PORT=Number(process.env.WEB_PORT??5173),API_PORT=Number(process.env.API_PORT??5174);
@@ -186,6 +187,10 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='GET'&&path==='/api/pool'){const status=await poolStatus();return respond(res,200,{status,overview:status?await poolOverview({top:60}):null,refreshing:poolRefreshing});}
     if(req.method==='POST'&&path==='/api/pool-refresh'){startPoolRefresh();return respond(res,202,{refreshing:true});}
     if(req.method==='POST'&&path==='/api/calculate'){const input=await body(req);const methods:Record<string,(i:any)=>unknown>={stats:finalStats,damage,speed,spread:spreadSearch};if(!methods[input.kind])throw new Error('Unknown calculation');return respond(res,200,methods[input.kind](input.input));}
+    // What the player has open and the calcs an assistant handed over: small per-user records outside the workspace revision.
+    if(path==='/api/focus'){if(req.method==='POST'){const f=await writeFocus(await body(req));return respond(res,200,{at:f.at});}if(req.method==='GET')return respond(res,200,await getFocus(await readStore()));}
+    if(req.method==='GET'&&path==='/api/assistant-calcs')return respond(res,200,await listCalcs());
+    if(req.method==='POST'&&path==='/api/assistant-calcs/remove'){await removeCalc(String((await body(req)).id??''));return respond(res,200,await listCalcs());}
     return respond(res,404,{error:'Not found'});
   }catch(e){return respond(res,e instanceof Conflict?409:400,{error:(e as Error).message});}
 };}
