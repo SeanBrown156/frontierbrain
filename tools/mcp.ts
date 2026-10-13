@@ -13,7 +13,7 @@ import {readStore,mutateLatest,applyAction,currentTeam} from './workbench-store.
 import {importText,exportText} from './teams.ts';
 import {validateProposals,validateTeamProposal} from './assist.ts';
 import {FORMATS} from '../shared/formats.ts';
-import {setStrategyText,checkPokemonStrategy,composePokemonStrategy} from '../shared/workbench.ts';
+import {setStrategyText,checkPokemonStrategy,composePokemonStrategy,TEAM_STYLES,matchTeamStyle} from '../shared/workbench.ts';
 import {deleteReplays} from './replays.ts';
 import {removeFile} from './io.ts';
 import {loadGames} from './replays.ts';
@@ -36,7 +36,7 @@ const plan={type:'object',properties:{
 const matchup={type:'object',properties:{
   id:{...str,description:'Only to EDIT an existing matchup plan: its id from get_strategy. Leave out for a new plan.'},
   opponent:{...str,description:'Short name of the matchup, e.g. "Tailwind offense", "Sun ± Trick Room"'},
-  archetype:{...str,description:'REQUIRED. The team style in one or two words: Tailwind, Trick Room, Rain, Sun, Sand, Psychic Terrain, Balance…'},
+  archetype:{...str,description:`REQUIRED. Exactly one team style: ${TEAM_STYLES.join(', ')}. Near-misses (TR, tailwind, Rain team) are mapped and reported; anything else is refused. Put specifics in the plan text.`},
   examples:{type:'array',items:str,minItems:3,maxItems:6,description:'REQUIRED. 3–6 Pokémon that mark this matchup (species names)'},
   threat:{...str,enum:['low','medium','high'],description:'REQUIRED. How dangerous it is for this team (from pool share and the calcs)'},
   bring:mons('The four you bring (species from this team). The two you leave home are part of the plan.',4),
@@ -133,7 +133,10 @@ async function call(name:string,input:any){
     const id=()=>randomUUID().slice(0,10);const need=(ok:any,msg:string)=>{if(!ok)throw new Error(msg);};
     const inTeam=(list:any,what:string)=>{for(const m of list)need(known.has(String(m).toLowerCase()),`${what}: "${m}" is not on this team (${six.join(', ')}).`);};
     const key=(a:string[])=>[...a].map(x=>x.toLowerCase()).sort().join('+');
-    const edited:string[]=[];
+    const edited:string[]=[],mapped:{opponent:string;from:string;to:string}[]=[];
+    // archetype is the shared team-style vocabulary (replay tags and filters read it): near-misses map, the rest is refused.
+    const style=(p:any)=>{const m=matchTeamStyle(p.archetype);need(m,`${p.opponent}: archetype "${String(p.archetype).slice(0,60)}" is not a team style. Use exactly one of: ${TEAM_STYLES.join(', ')}. Put anything more specific in the plan text.`);
+      if(m!.mapped&&m!.style!==p.archetype)mapped.push({opponent:p.opponent,from:String(p.archetype),to:m!.style});return m!.style;};
     const leads=(input.leads??[]).slice(0,8).map((p:any)=>{
       need(typeof p.title==='string'&&p.title.trim(),'Every lead plan needs a title.');need(Array.isArray(p.lead)&&p.lead.length===2,`${p.title}: lead is exactly two Pokémon.`);need(Array.isArray(p.back)&&p.back.length===2,`${p.title}: back is exactly two Pokémon (lead + back is the bring of four).`);
       need(['core','situational','niche','avoid'].includes(p.role),`${p.title}: role is required: core, situational, niche or avoid.`);need(typeof p.when==='string'&&p.when.trim(),`${p.title}: when is required (one sentence: when to pick this lead).`);need(typeof p.plan==='string'&&p.plan.trim(),`${p.title}: plan text is required.`);
@@ -147,12 +150,12 @@ async function call(name:string,input:any){
       need(Array.isArray(p.examples)&&p.examples.length>=3,`${p.opponent}: give 3–6 example Pokémon.`);need(['low','medium','high'].includes(p.threat),`${p.opponent}: threat is required: low, medium or high.`);
       need(Array.isArray(p.bring)&&p.bring.length===4,`${p.opponent}: bring is exactly four Pokémon from this team.`);need(typeof p.plan==='string'&&p.plan.trim(),`${p.opponent}: plan text is required.`);inTeam(p.bring,p.opponent);
       const old=p.id?cur.matchups.find((x:any)=>x.id===p.id):undefined;if(p.id)need(old,`No matchup plan with id ${p.id}; call get_strategy.`);
-      if(old){edited.push(old.opponent);return {...old,opponent:p.opponent,archetype:p.archetype,examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan};}
+      if(old){edited.push(old.opponent);return {...old,opponent:p.opponent,archetype:style(p),examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan};}
       const dup=cur.matchups.find((x:any)=>String(x.opponent).toLowerCase()===p.opponent.toLowerCase());need(!dup,`A matchup plan "${dup?.opponent}" already exists (id ${dup?.id}). Send it with that id to edit it.`);
-      return {id:id(),opponent:p.opponent,archetype:p.archetype,examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'};});
+      return {id:id(),opponent:p.opponent,archetype:style(p),examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'};});
     await mutateLatest(d=>applyAction(d,{type:'coaching-update',teamId:input.teamId,upsert:{leads,matchups}}));
     const created=(l:any[])=>l.filter(x=>!cur.leads.concat(cur.matchups).some((y:any)=>y.id===x.id));
-    return {proposed:{leads:created(leads).length,matchups:created(matchups).length},edited,ids:{leads:leads.map((l:any)=>({title:l.title,id:l.id})),matchups:matchups.map((m:any)=>({opponent:m.opponent,id:m.id}))},note:'New plans are proposals in the team\'s Strategy tab for the player to accept; edits keep the plan\'s status.'};}
+    return {proposed:{leads:created(leads).length,matchups:created(matchups).length},edited,...mapped.length?{archetypesMapped:mapped}:{},ids:{leads:leads.map((l:any)=>({title:l.title,id:l.id})),matchups:matchups.map((m:any)=>({opponent:m.opponent,id:m.id}))},note:'New plans are proposals in the team\'s Strategy tab for the player to accept; edits keep the plan\'s status.'};}
   if(name==='remove_plans'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const cur:any=db.coaching?.[t.id]??{leads:[],matchups:[]};
     const leadIds:string[]=input.leadIds??[],matchupIds:string[]=input.matchupIds??[];
     const hit=[...cur.leads.filter((x:any)=>leadIds.includes(x.id)),...cur.matchups.filter((x:any)=>matchupIds.includes(x.id))];
@@ -238,7 +241,7 @@ Work as a collaborator, in short turns, and hand choices back to the player:
 - Test the plan with numbers before settling it: key calcs (calc_damage) and speed tiers (calc_speed) against labelled standard_set opponents, and spread_search for the spreads.
 - Call import_team once the six is settled enough to try (it only creates a new team; nothing existing changes), with the plan you agreed (goal, what it is built around, game plan, what was ruled out) in the notes field: that becomes the team\'s Strategy write-up. Afterwards offer lead and matchup plans (propose_plans).
 - When the player tells you a lasting preference (playstyle, Bo1/Bo3, Pokémon they love or hate facing), save it with update_player_profile so no app asks again.
-- Lead and matchup plans follow one standard so every team reads the same: each lead has a title, a role (core / situational / niche / avoid; never blank), a one-sentence "when", the lead pair and back pair, and a short plan: "**T1:** …", "**T2:** …" with the calc numbers that justify it and one "**Watch:**" line. "Avoid" leads are one or two sentences naming what to lead instead. Each matchup has an archetype, 3–6 example Pokémon, a threat level, the four you bring (and who stays home, with the reason), and 2–4 sentences with exact numbers.
+- Lead and matchup plans follow one standard so every team reads the same: each lead has a title, a role (core / situational / niche / avoid; never blank), a one-sentence "when", the lead pair and back pair, and a short plan: "**T1:** …", "**T2:** …" with the calc numbers that justify it and one "**Watch:**" line. "Avoid" leads are one or two sentences naming what to lead instead. Each matchup has an archetype (exactly one team style from the list in propose_plans; near-misses like TR are mapped and reported, anything else is refused, and specifics go in the plan text), 3–6 example Pokémon, a threat level, the four you bring (and who stays home, with the reason), and 2–4 sentences with exact numbers.
 - Before proposing, call get_strategy and edit what exists (send its id) rather than adding a near-duplicate. Suggest changes the way the in-app chat does: update_set (including a Pokémon\'s Strategy write-up via changes.strategy), replace_pokemon, update_team and update_strategy send the player a suggestion with the before → after and your reason, which they accept in Frontier Brain; always show them the message the tool returns. Pass apply: true only when they have told you to just apply it (changes are then kept in History and can be restored). Edit or remove lead and matchup plans with propose_plans / remove_plans. Only delete_team is final: do it only when the player explicitly asks, and pass the exact team name.
 - Each Pokémon\'s Strategy (changes.strategy, replace_pokemon strategy, import_team setNotes) always has the same three sections, kept short: "## Role" (one line: the job it does for this team), "## How to play" (when it comes in, what it protects or enables, key moves and calc numbers), "## Watch out for" (what beats it or punishes its plan). Example: Role: Intimidate / Fake Out / pivot support. How to play: Protect the win conditions with Fake Out and Intimidate; Parting Shot gives safer entries. Watch out for: opposing Fake Out denial, strong Water or Ground damage, predictable pivots.
 - Replays waiting for a summary: when the player has no AI key in Frontier Brain, new replays are kept and wait for you. list_replays marks them needsSummary. For each one call replay_transcript, judge every decision only with the information available at that turn, then save_replay_summary (if a game already has a summary, build on it: the player may have edited it (editedByPlayer), so keep their wording and points where they still hold; play mistakes, team-building weaknesses and variance kept apart; cite real turn numbers; never state an opponent\'s unrevealed item, spread or move as fact; a few games is a small sample). When two or more are summarised, finish with save_team_digest. The player can edit summaries and the debrief themselves, so re-saves should keep their wording where it still holds. Tell the player what you saved.

@@ -1,7 +1,7 @@
 // "Ask AI" everywhere: one conversational assistant with guidance per area. Each turn returns a short reply plus
 // proposals (sets, teams, plans) that are validated here with the Champions rules before the player can accept them.
 // Nothing is saved by this module; accepted proposals are written by the normal store actions.
-import {TEAM_STYLES} from '../shared/workbench.ts';
+import {TEAM_STYLES,matchTeamStyle} from '../shared/workbench.ts';
 import {resolveTier} from './models.ts';
 import {chatJSON,type ChatTurn,type ChatContext,type ChatOptions} from './chat.ts';
 import {cleanSet,readStore,currentTeam} from './workbench-store.ts';
@@ -25,7 +25,7 @@ Proposals: exactly one {"kind":"team","name","strategy":markdown (game plan, win
   slot:`The player is working on ONE Pokémon: the focused slot in get_team. Answer their question; when they want a change propose 1–3 alternative sets for that slot (${setShape}, slot = the focused slot). A different species is allowed only when he asks for it. ${research} ${rules}`,
   coaching:`The player is planning how to play the open team (get_team first; use meta_overview for the opponents they will face). Plans are read as small cards, so keep them short and structured.
 Lead plans: {"kind":"lead","title":"2–4 word name, e.g. Rain blitz","role":"core|situational|niche|avoid","lead":[two team members],"back":[two others],"when":"one sentence: which teams this lead is for","plan":"2–4 short sentences or bullets: turn 1, turn 2, what to watch. Include only the one or two calcs that decide it."}
-Matchup plans: {"kind":"matchup","opponent":"short name","archetype":"one of: ${TEAM_STYLES.join(', ')} (or a short custom style)","examples":[3–6 example opposing species],"threat":"low|medium|high","bring":[four team members],"plan":"2–4 short sentences: the lead, the key move or switch, what wins it"}. Don't repeat the archetype's Pokémon list in the opponent name.
+Matchup plans: {"kind":"matchup","opponent":"short name","archetype":"one of: ${TEAM_STYLES.join(', ')} (exactly one of these; put anything more specific in the plan text)","examples":[3–6 example opposing species],"threat":"low|medium|high","bring":[four team members],"plan":"2–4 short sentences: the lead, the key move or switch, what wins it"}. Don't repeat the archetype's Pokémon list in the opponent name.
 Only use the team's own members in lead/back/bring.`,
   strategy:`The player wants the team's strategy write-up improved (get_team first). Propose {"kind":"strategy","text":markdown}: a short introduction to the team, not a manual. Start with "## Game plan" (2 short paragraphs or up to 5 bullets: what the team does, how it wins, its modes); then at most two short sections such as "## Bring rules" or "## Watch out for". Name Pokémon exactly ("Mega Swampert", "Farigiraf") so they render with sprites. Do NOT include lead tables, archetype tables or matchup lists: those belong in lead and matchup plan proposals. Keep it under about 250 words.`,
   assist:'',
@@ -46,13 +46,15 @@ export function assistGuidance(page:Page='overview'){const p=pageGuide[page]??pa
 export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'objective'|'strategy';[k:string]:any;}
 const text=(v:unknown,max:number)=>typeof v==='string'?v.slice(0,max):'';
 const names=(v:unknown,n:number)=>Array.isArray(v)?v.filter(x=>typeof x==='string').slice(0,n):[];
+// A matchup plan's archetype is the shared team-style vocabulary: near-misses map to it, anything else is refused with the list.
+export function archetypeStyle(value:unknown,who:string){const m=matchTeamStyle(value);if(!m)throw new Error(`${who}: archetype "${text(value,60)}" is not a team style. Use exactly one of: ${TEAM_STYLES.join(', ')}. Put anything more specific in the plan text.`);return m.style;}
 function checkSet(raw:any){const set=cleanSet({...raw,statPoints:raw?.statPoints??{}} as PokemonSet);const total=Object.values(set.statPoints??{}).reduce((a,b)=>a+(b??0),0);if(total>66)throw new Error(`${set.species}: stat points total ${total}, maximum 66`);return set;}
 export function validateTeamProposal(p:any){
   const paste=text(p.paste,20000);const sets=importText(paste).map(s=>checkSet(s));if(sets.length!==6)throw new Error(`Team paste has ${sets.length} Pokémon; it needs six`);validateTeam(sets);
   const items=sets.map(s=>s.item).filter(Boolean);if(new Set(items).size!==items.length)throw new Error('Duplicate held items');
   return {kind:'team' as const,name:text(p.name,120)||'New team',strategy:text(p.strategy,12000),paste,sets,roles:(Array.isArray(p.roles)?p.roles:[]).slice(0,6).map((r:any)=>({species:text(r.species,60),role:text(r.role,500),notes:text(r.notes,3000)})),
     leads:(Array.isArray(p.leads)?p.leads:[]).slice(0,4).map((l:any)=>({...l.title?{title:text(l.title,80)}:{},lead:names(l.lead,2),back:names(l.back,4),...(['core','situational','niche','avoid'].includes(l.role)?{role:l.role}:{}),when:text(l.when,1000),plan:text(l.plan,3000)})),
-    matchups:(Array.isArray(p.matchups)?p.matchups:[]).slice(0,6).map((m:any)=>({opponent:text(m.opponent||m.archetype,200),...m.archetype?{archetype:text(m.archetype,80)}:{},...Array.isArray(m.examples)?{examples:names(m.examples,8)}:{},threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring,4),plan:text(m.plan,3000)}))};
+    matchups:(Array.isArray(p.matchups)?p.matchups:[]).slice(0,6).map((m:any)=>({opponent:text(m.opponent||m.archetype,200),...m.archetype?{archetype:archetypeStyle(m.archetype,text(m.opponent||m.archetype,80))}:{},...Array.isArray(m.examples)?{examples:names(m.examples,8)}:{},threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring,4),plan:text(m.plan,3000)}))};
 }
 const strategyText=(v:string)=>{const t=text(v,6000);const e=checkPokemonStrategy(t);if(e)throw new Error(e);return t;};
 export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,focus?:number,page?:Page):{reply:string;proposals:Proposal[]}{
@@ -65,7 +67,7 @@ export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,foc
       return {kind:'set',slot,set,why:text(p.why,1500),...typeof p.strategy==='string'&&p.strategy.trim()?{strategy:strategyText(p.strategy)}:{},forSpecies:team?.[slot]?.species};}
     case 'team':return validateTeamProposal(p);
     case 'lead':return {kind:'lead',...p.title?{title:text(p.title,80)}:{},lead:names(p.lead,2).map(member),back:names(p.back,4).map(member),...(['core','situational','niche','avoid'].includes(p.role)?{role:p.role}:{}),when:text(p.when,1000),plan:text(p.plan,3000)};
-    case 'matchup':return {kind:'matchup',opponent:text(p.opponent||p.archetype,200),...p.archetype?{archetype:text(p.archetype,80)}:{},...Array.isArray(p.examples)?{examples:names(p.examples,8)}:{},threat:['low','medium','high'].includes(p.threat)?p.threat:'medium',bring:names(p.bring,4).map(member),plan:text(p.plan,3000)};
+    case 'matchup':return {kind:'matchup',opponent:text(p.opponent||p.archetype,200),...p.archetype?{archetype:archetypeStyle(p.archetype,text(p.opponent||p.archetype,80))}:{},...Array.isArray(p.examples)?{examples:names(p.examples,8)}:{},threat:['low','medium','high'].includes(p.threat)?p.threat:'medium',bring:names(p.bring,4).map(member),plan:text(p.plan,3000)};
     case 'objective':return {kind:'objective',type:p.type==='todo'?'todo':'test',text:text(p.text,1000)};
     case 'strategy':return {kind:'strategy',text:text(p.text,12000)};
     default:throw new Error(`Unknown proposal kind: ${p?.kind}`);}});

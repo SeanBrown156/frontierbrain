@@ -43,6 +43,13 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const foreign:any=await client.callTool({name:'propose_plans',arguments:{teamId:made.created,leads:[{title:'T',lead:[a,'Mew'],back:[c,d],role:'core',when:'w',plan:'x'}]}});assert.ok(foreign.isError);assert.match(foreign.content[0].text,/not on this team/);
     const made1=await text('propose_plans',{teamId:made.created,leads:[{title:'Test lead',lead:[a,b],back:[c,d],role:'core',when:'Into most teams',plan:'**T1:** go.'}],matchups:[{opponent:'Rain',archetype:'Rain',examples:['Pelipper','Archaludon','Basculegion'],threat:'high',bring:[a,b,c,d],plan:'Lead the pair; **Watch:** Tailwind.'}]});
     assert.equal(store.db.coaching![made.created].leads[0].status,'proposed','plans arrive as proposals');assert.equal(store.db.coaching![made.created].leads[0].role,'core');
+    // archetype is the team-style vocabulary: near-misses map (and say so), anything else is refused with the list
+    const mappedPlan=await text('propose_plans',{teamId:made.created,matchups:[{opponent:'TR mode',archetype:'tr',examples:['Farigiraf','Hatterene','Torkoal'],threat:'medium',bring:[a,b,c,d],plan:'Lead the pair. **Watch:** Fake Out.'},{opponent:'Sun core',archetype:'sun',examples:['Torkoal','Venusaur','Charizard'],threat:'low',bring:[a,b,c,d],plan:'Lead the pair.'}]});
+    assert.deepEqual(mappedPlan.archetypesMapped,[{opponent:'TR mode',from:'tr',to:'Trick Room'},{opponent:'Sun core',from:'sun',to:'Sun'}]);
+    assert.deepEqual(store.db.coaching![made.created].matchups.map((m:any)=>m.archetype),['Rain','Trick Room','Sun']);
+    const oddStyle:any=await client.callTool({name:'propose_plans',arguments:{teamId:made.created,matchups:[{opponent:'Weird',archetype:'Gimmick teams',examples:['Mew','Mew','Mew'],threat:'low',bring:[a,b,c,d],plan:'x'}]}});
+    assert.ok(oddStyle.isError);assert.match(oddStyle.content[0].text,/not a team style[\s\S]*Trick Room, Tailwind, Rain/);assert.equal(store.db.coaching![made.created].matchups.length,3,'nothing is saved when one plan is refused');
+    for(const m of store.db.coaching![made.created].matchups.slice(1))await text('remove_plans',{teamId:made.created,matchupIds:[m.id]});
     // the same pair or opponent is not added twice; it is edited by id
     const dupe:any=await client.callTool({name:'propose_plans',arguments:{teamId:made.created,leads:[{title:'Again',lead:[b,a],back:[c,d],role:'situational',when:'w',plan:'x'}]}});assert.ok(dupe.isError);assert.match(dupe.content[0].text,/already exists/);
     const strat=await text('get_strategy',{teamId:made.created});assert.equal(strat.leads.length,1);assert.equal(strat.matchups.length,1);const leadId=strat.leads[0].id;
