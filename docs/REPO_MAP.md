@@ -41,6 +41,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 - `workbench-server.ts`: the local API behind the UI (`/api/*`).
 - `hosted.ts`, `vercel-entry.ts`, `keep-alive.ts`: the hosted (Supabase + Vercel) API.
 - `mcp.ts`: the MCP connector for Claude, ChatGPT and CLI agents.
+- `focus.ts`: what the player has open (`get_focus`) and the calcs an assistant ran over MCP, kept in small per-user files outside the workspace revision. The app reports focus from `web/focus.ts` and lists the calcs in `web/team/AssistantCalcs.tsx`.
 - `scheduled-run.ts`: `npm run daily` and `npm run weekly` (no AI).
 
 **Workspace storage** (teams, sets, versions, replays)

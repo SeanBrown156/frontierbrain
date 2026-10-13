@@ -2220,3 +2220,11 @@ html.jade .ra-actions>*{height:44px!important;min-height:44px!important;margin:0
 html.jade .ra-file{position:relative}
 html.jade .replay-add .footnote,html.jade .replay-add .error{margin:var(--s3) 0 0}
 @media(max-width:720px){html.jade .ra-form{grid-template-columns:minmax(0,1fr)}html.jade .ra-actions{display:grid;grid-template-columns:1fr 1fr}}
+
+/* calcs an assistant ran over the connector, listed above the calc panel on the Pokémon page */
+html.jade .assistant-calcs{margin:0 0 16px}
+html.jade .assistant-calc-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+html.jade .assistant-calc-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px}
+html.jade .assistant-calc-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+html.jade .assistant-calcs-more{margin:0 0 12px}
+@media (max-width:640px){html.jade .assistant-calc-list li{grid-template-columns:auto minmax(0,1fr) auto}html.jade .assistant-calc-list li>.muted{display:none}html.jade .assistant-calc-list li>.button-row{grid-column:1/-1;justify-content:flex-end}}

@@ -5,6 +5,7 @@ import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown,SetArt,Meg
 import {Px as Icon,Pencil,Check} from '../icons.tsx';
 import {Px,ArrowLeft,WarningDiamond} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
+import AssistantCalcs from './AssistantCalcs.tsx';
 import Benchmarks from './Benchmarks.tsx';
 import SpeciesPicker,{type SavedOption} from '../ai/SpeciesPicker.tsx';
 import {ItemPicker,MovePicker} from '../ai/Pickers.tsx';
@@ -95,6 +96,7 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
     <section className="panel set-benchmarks"><Benchmarks entry={entry} set={set} data={data} mutate={mutate}/></section>
     <SetStrategy species={set.species} text={notesText} readOnly={readOnly} onChange={t=>d.setDraft(x=>({...x,notes:{role:t,benchmarks:''}}))}/>
     </div>
+    <AssistantCalcs teamId={team.id} slot={slot} species={set.species}/>
     <BenchmarkLab offerKey={`calc:${team.id}:${slot}`} entry={entry} revision={revision} own={set} data={data} mutate={mutate} onUseSpread={(nature,statPoints)=>update({nature,statPoints})}/>
   </div>
 </>;
