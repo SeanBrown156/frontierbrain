@@ -2170,3 +2170,21 @@ html.jade .queued-sum{margin:0 0 6px;font-size:13px}
 html.jade .dock-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:8px;border-radius:999px;background:var(--ac);color:var(--on);font:700 12px var(--fnum)}
 
 .tile-strategy{font-size:12px;border-top:1px solid var(--ln);padding-top:var(--s2)}.tile-strategy summary{cursor:pointer;color:var(--mu);margin-bottom:var(--s1)}.tile-strategy p,.tile-strategy ul{margin:0 0 var(--s1)}
+
+/* Data: top-4 teams get room to breathe; common pairs are shown as the two Pokémon, like lead pairs. */
+html.jade .pool-team{display:grid;gap:var(--s2);padding:var(--s5) 0}
+html.jade .pool-team:first-child{padding-top:var(--s2)}html.jade .pool-team:last-child{border-bottom:0;padding-bottom:0}
+html.jade .pool-team .team-six{display:flex;flex-wrap:wrap;gap:var(--s3);margin-bottom:var(--s2)}
+html.jade .pool-team p{margin:0;font-size:14px;line-height:1.5}
+html.jade .pool-team-who{display:flex;align-items:baseline;gap:var(--s2)}
+html.jade .pool-place{font:700 12px/1 var(--fb);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--ln);border-radius:3px;padding:4px 6px}
+html.jade .pool-place.place-1{border-color:var(--ac);color:var(--ac)}
+html.jade .pool-team-event a{overflow-wrap:anywhere}
+html.jade .pool-team-meta{font-size:12px!important}
+html.jade .pair-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--s4)}
+html.jade .pair-card{display:grid;justify-items:center;gap:var(--s2);padding:var(--s4);text-align:center;border:1px solid var(--ln);border-radius:4px;background:var(--glass)}
+html.jade .pair-art{display:flex;align-items:center;justify-content:center;gap:var(--s2)}
+html.jade .pair-card h3{margin:0;font:700 15px/1.3 var(--fb);overflow-wrap:anywhere}
+html.jade .pair-card p{margin:0;font-size:13px}
+html.jade .pair-card b{font-family:var(--fd);font-size:18px}
+@media(max-width:620px){html.jade .pair-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}html.jade .pair-card{padding:var(--s3)}}
