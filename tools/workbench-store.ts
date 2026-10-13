@@ -205,7 +205,8 @@ function applyBench(db:Workbench,action:any):unknown {
     let bankId:string,revisionId:string;
     if(action.bankId){lookup(action.bankId,action.revisionId);bankId=action.bankId;revisionId=action.revisionId;
       if(bench.some(b=>b.revisionId===revisionId))throw new Error('That set is already on the bench.');}
-    else{const set=cleanSet(action.set);
+    else{let given=action.set;if(action.paste!==undefined){const sets=importText(checkText(action.paste));if(sets.length!==1)throw new Error('Paste one Pokémon.');given=sets[0];}
+      const set=cleanSet(given);
       if(bench.some(b=>same(lookup(b.bankId,b.revisionId).r.set,set)))throw new Error(`${set.species} with this set is already on the bench.`);
       const revision:SetRevision={id:uid('set'),number:1,createdAt:now(),set,notes:action.notes?cleanNotes({...blankNotes(),...action.notes}):blankNotes(),provenance:'manual'};
       const entry={id:uid('bank'),name:`${set.species} · ${team.name}`,revisions:[revision]};db.bank.push(entry);bankId=entry.id;revisionId=revision.id;}

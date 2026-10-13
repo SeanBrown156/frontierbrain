@@ -2220,3 +2220,45 @@ html.jade .ra-actions>*{height:44px!important;min-height:44px!important;margin:0
 html.jade .ra-file{position:relative}
 html.jade .replay-add .footnote,html.jade .replay-add .error{margin:var(--s3) 0 0}
 @media(max-width:720px){html.jade .ra-form{grid-template-columns:minmax(0,1fr)}html.jade .ra-actions{display:grid;grid-template-columns:1fr 1fr}}
+
+/* Bench: candidates for a team. Cards reuse .mon-card and .six-grid; actions reuse .button-row (full width when stacked on phones). */
+html.jade .bench-intro{display:flex;gap:var(--s4);align-items:center;justify-content:space-between;margin:var(--s2) 0 var(--s4)}
+html.jade .bench-intro p{margin:0;max-width:64ch}
+html.jade .bench-layout{display:grid;grid-template-columns:minmax(190px,232px) minmax(0,1fr);gap:var(--s4);align-items:start}
+html.jade .bench-team{padding:var(--s3);position:sticky;top:var(--s4)}
+html.jade .bench-team ol{list-style:none;margin:var(--s2) 0 0;padding:0;display:grid;gap:2px}
+html.jade .bench-team a{display:grid;grid-template-columns:auto auto minmax(0,1fr);grid-template-areas:'no art name' '. . item';align-items:center;column-gap:var(--s2);padding:var(--s1) var(--s2);border-radius:8px;color:inherit;text-decoration:none}
+html.jade .bench-team a:hover{background:var(--hover)}
+html.jade .bench-team .slot-no{grid-area:no;font:600 11px var(--fnum);color:var(--mu)}
+html.jade .bench-team .set-art{grid-area:art}
+html.jade .bench-team-name{grid-area:name;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+html.jade .bench-team small{grid-area:item;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.jade .bench-grid.six-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))!important}
+html.jade .bench-item{display:flex;flex-direction:column;gap:var(--s3);min-width:0}
+html.jade .bench-item>.mon-card{flex:1}
+html.jade .bench-meta{display:grid;gap:var(--s2)}
+html.jade .bench-meta p,html.jade .bench-meta small{margin:0}
+html.jade .bench-replaces{display:grid;gap:4px;font-size:12px;color:var(--mu)}
+html.jade .bench-replaces select{width:100%;font-size:14px}
+html.jade .bench-fit{font-size:13px}html.jade .bench-fit.ok{color:var(--ac)}html.jade .bench-fit.warn{color:var(--hot)}
+html.jade .bench-add{margin-bottom:var(--s4);display:grid;gap:var(--s3)}
+html.jade .bench-add-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:var(--s4)}
+html.jade .bench-add textarea{width:100%;box-sizing:border-box;font:13px/1.4 var(--fnum)}
+html.jade .bench-add .footnote{margin:var(--s2) 0 0}
+html.jade .bench-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:var(--s3);margin:var(--s3) 0}
+html.jade .bench-compare>div{display:grid;gap:var(--s2);align-content:start}
+html.jade .bench-slot{display:grid;gap:4px;font-size:12px;color:var(--mu)}html.jade .bench-slot select{font-size:14px}
+html.jade .bench-problems{margin:0 0 var(--s2);padding-left:var(--s4);color:var(--hot);font-size:13px}
+html.jade .bench-bar{display:flex;gap:var(--s4);align-items:end;justify-content:space-between;flex-wrap:wrap}
+html.jade .bench-bar .bench-replaces{margin-top:var(--s1);min-width:200px}
+@media(max-width:860px){
+  html.jade .bench-layout{grid-template-columns:minmax(0,1fr)}
+  html.jade .bench-team{position:static}
+  html.jade .bench-team ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html.jade .bench-intro{flex-direction:column;align-items:stretch}
+  html.jade .bench-intro>button{width:100%;justify-content:center}
+}
+@media(max-width:620px){
+  html.jade .bench-grid.six-grid{grid-template-columns:minmax(0,1fr)!important}
+  html.jade .bench-bar{display:grid}
+}

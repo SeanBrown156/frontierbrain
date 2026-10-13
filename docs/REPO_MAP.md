@@ -48,6 +48,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 - `workbench-store.ts`: `readStore()` / `mutateLatest()`. All record writes go through here.
 - `workbench-data.ts`, `workbench-jobs.ts`, `workbench-worker.ts`, `workbench-seed.ts`: API data shaping, background jobs, test seeding.
 - `teams.ts`, `coaching.ts`: CLI team import and strategy records.
+- Bench (per-team candidates): `Formula.bench` in `shared/workbench.ts`, `bench-*` actions in `workbench-store.ts`, MCP tools in `mcp-bench.ts`, UI in `web/team/Bench.tsx`.
 - `backup.ts`: workspace backup and restore. `migrate-coach.ts`: one-off migration from the old record format.
 
 **Replays**

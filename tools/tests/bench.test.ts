@@ -27,6 +27,8 @@ test('Bench: add keeps a library set per team, refuses repeats, and the team sta
   assert.throws(()=>applyAction(db,{type:'bench-add',teamId:team.id,set:golisopod}),/already on the bench/);
   assert.throws(()=>applyAction(db,{type:'bench-add',teamId:team.id,set:{...golisopod,moves:['First Impression']}}),/four moves/);
   assert.throws(()=>applyAction(db,{type:'bench-add',teamId:team.id,set:{...golisopod,statPoints:{hp:32,atk:32,def:32}}}),/budget|66/i);
+  const pasted:any=applyAction(db,{type:'bench-add',teamId:team.id,paste:'Garchomp @ Yache Berry\nAbility: Rough Skin\nEVs: 32 Atk / 32 Spe / 2 HP\nJolly Nature\n- Earthquake\n- Dragon Claw\n- Rock Slide\n- Protect'});assert.equal(pasted.species,'Garchomp');
+  assert.throws(()=>applyAction(db,{type:'bench-add',teamId:team.id,paste:'Garchomp\n- Earthquake\n\nGengar\n- Shadow Ball'}),/one Pokémon/);
   // an existing library set can be benched too (My sets, a set a promote displaced)
   const slot=view().configuration.slots[0];const again:any=applyAction(db,{type:'bench-add',teamId:team.id,bankId:slot.bankId,revisionId:slot.revisionId,source:'assistant'});assert.equal(again.source,'assistant');
   assert.throws(()=>applyAction(db,{type:'bench-add',teamId:team.id,bankId:slot.bankId,revisionId:slot.revisionId}),/already on the bench/);
