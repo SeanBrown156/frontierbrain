@@ -12,7 +12,7 @@ export const FOCUS_STALE_MS=10*60_000,CALC_LIMIT=20,CALC_TTL_MS=24*3600_000;
 export const PAGES=['welcome','teams','overview','strategy','replays','versions','slot','news','data','references','account','inbox'] as const;
 export interface FocusCalc {kind:'damage'|'speed';input:any}
 export interface Focus {page:string;teamId?:string;versionId?:string;slot?:number;replayId?:string;calc?:FocusCalc;at:string;tab:string}
-export interface AssistantCalc {id:string;kind:'damage'|'speed';input:any;result:any;label:string;at:string}
+export interface AssistantCalc {id:string;kind:'damage'|'speed';input:any;result:any;label:string;at:string;from?:'chat'}
 
 const idLike=(v:unknown)=>typeof v==='string'&&/^[\w.:-]{1,80}$/.test(v)?v:undefined;
 // Pokémon nicknames are free text: calc inputs keep the species and set fields, never the nickname.
@@ -58,8 +58,8 @@ const serial=<T>(fn:()=>Promise<T>)=>{const next=chain.then(fn,fn);chain=next.ca
 const live=(list:AssistantCalc[],now=Date.now())=>list.filter(c=>now-Date.parse(c.at)<CALC_TTL_MS).slice(0,CALC_LIMIT);
 export const listCalcs=async()=>live(await optionalJSON<AssistantCalc[]>(CALCS_FILE,[]));
 const labelOf=(kind:string,i:any)=>kind==='speed'?`${i.a?.species} vs ${i.b?.species} (speed)`:`${i.attacker?.species} → ${i.defender?.species}${i.move?` · ${i.move}`:''}`;
-export function addCalc(kind:'damage'|'speed',input:any,result:any){
-  return serial(async()=>{const entry:AssistantCalc={id:randomUUID().slice(0,8),kind,input:clean(input),result,label:labelOf(kind,input??{}),at:new Date().toISOString()};
+export function addCalc(kind:'damage'|'speed',input:any,result:any,from?:'chat'){
+  return serial(async()=>{const entry:AssistantCalc={id:randomUUID().slice(0,8),kind,input:clean(input),result,label:labelOf(kind,input??{}),at:new Date().toISOString(),...from?{from}:{}};
     await save(CALCS_FILE,[entry,...await listCalcs()].slice(0,CALC_LIMIT));return entry;});
 }
 export const removeCalc=(id:string)=>serial(async()=>{const list=await listCalcs();await save(CALCS_FILE,list.filter(c=>c.id!==id));});

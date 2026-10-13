@@ -61,7 +61,7 @@ export function unlinkedItem(db:Workbench,g:Game):InboxItem{
   const teams=db.teams.map(t=>{const t6=six(db,t);const missing=mine.filter(m=>!t6.some(x=>key(x)===key(m)));const extra=t6.filter(x=>!mine.some(m=>key(m)===key(x)));return {teamId:t.id,name:t.name,missing,extra};})
     .filter(x=>x.missing.length||x.extra.length||ids.includes(x.teamId)).sort((a,b)=>(a.missing.length+a.extra.length)-(b.missing.length+b.extra.length)).slice(0,3);
   const opp=g.players[other(g)]?.name??'opponent';const result=g.result==='win'?'Win':g.result==='loss'?'Loss':'Game';
-  return {id:'unlinked:'+g.id,kind:'unlinked-replay',at:g.date,title:`${result} vs ${opp}`,replayId:g.id,date:g.date,result:g.result,opponent:opp,yours:mine,theirs,reason,
+  return {id:'unlinked:'+g.id,kind:'unlinked-replay',at:g.date,title:`${result} vs ${opp}`,replayId:g.id,date:g.date,result:g.result,opponent:opp,yours:mine,theirs,yoursLeads:g.leads?.[g.ownSide]??[],theirsLeads:g.leads?.[other(g)]??[],yoursBrought:g.revealed?.[g.ownSide]??[],theirsBrought:g.revealed?.[other(g)]??[],reason,
     why:WHY[reason](ids.map((i:string)=>names.get(i)).filter(Boolean).join(', ')),candidateTeamIds:ids,closest:teams,
     href:'#inbox'};
 }
@@ -89,13 +89,13 @@ export async function buildInbox(db:Workbench):Promise<Inbox>{
   const entry=new Map(index.games.map(e=>[e.id,e]));
   // Up to four of the waiting games, with who they were against and both sixes, so the card shows what it is about.
   const preview=async(ids:string[])=>{const out:any[]=[];for(const id of ids.slice(0,4)){const e=entry.get(id);if(!e)continue;try{const g=await json<Game>(e.parsed);
-    out.push({id,result:g.result,date:g.date,opponent:g.players[other(g)]?.name??'opponent',yours:g.preview[g.ownSide]??[],theirs:g.preview[other(g)]??[]});}catch{}}return out;};
+    out.push({id,result:g.result,date:g.date,opponent:g.players[other(g)]?.name??'opponent',yours:g.preview[g.ownSide]??[],theirs:g.preview[other(g)]??[],yoursLeads:g.leads?.[g.ownSide]??[],theirsLeads:g.leads?.[other(g)]??[],yoursBrought:g.revealed?.[g.ownSide]??[],theirsBrought:g.revealed?.[other(g)]??[]});}catch{}}return out;};
   for(const [teamId,ids] of await waiting(db,index))items.push({id:'summaries:'+teamId,kind:'summaries',at:null,title:`${ids.length} game${ids.length===1?'':'s'} waiting for a summary`,detail:names.get(teamId),teamId,teamName:names.get(teamId),count:ids.length,replayIds:ids,games:await preview(ids),
     request:`Summarise my new Frontier Brain replays for ${names.get(teamId)}.`,href:`#team/${teamId}/replays/all`});
   for(const c of await listCalcs().catch(()=>[])){
     const inv=[c.input?.attacker,c.input?.defender,c.input?.a,c.input?.b].map(x=>baseName(x?.species)).filter(Boolean);let at:{t:Workbench['teams'][number];slot:number}|null=null;
     for(const sp of inv){for(const t of db.teams){const slot=six(db,t).findIndex(s=>baseName(s)===sp);if(slot>=0){at={t,slot};break;}}if(at)break;}
-    items.push({id:'calc:'+c.id,kind:'calc',at:c.at,title:c.label,detail:c.kind==='speed'?'Speed check from your assistant':'Damage calc from your assistant',calcId:c.id,calcKind:c.kind,input:c.input,result:c.result,
+    items.push({id:'calc:'+c.id,kind:'calc',at:c.at,title:c.label,detail:c.kind==='speed'?'Speed check from your assistant':'Damage calc from your assistant',calcId:c.id,calcKind:c.kind,input:c.input,result:c.result,source:c.from==='chat'?'chat':'mcp',
       ...at?{teamId:at.t.id,teamName:at.t.name,slot:at.slot,href:`#team/${at.t.id}/mon/${at.t.activeVersionId}/${at.slot}`}:{}});}
   const {dismissed}=await readInboxState();
   for(const n of await readNotices())if(!dismissed.includes(n.id))items.push({id:'notice:'+n.id,kind:'notice',at:n.at,title:n.title,detail:n.body,noticeId:n.id,level:n.level,...n.url?{url:n.url}:{}});
@@ -115,5 +115,5 @@ export const inboxTools=[
 export const inboxNames=new Set(inboxTools.map(t=>t.name));
 export async function inboxCall(name:string,db:Workbench){
   if(name!=='get_inbox')return undefined;const {items,count,byKind}=await buildInbox(db);
-  return {count,byKind,items:items.map(({href,at,result,input,games,...i})=>({...i,at})),note:count?'These are waiting on the player in the Inbox page of Frontier Brain. Unlinked replays are linked or deleted there; delete_replay needs the player to ask.':'Nothing is waiting on the player.'};
+  return {count,byKind,items:items.map(({href,at,...i}:any)=>{if(i.kind==='calc'){delete i.result;delete i.input;}delete i.games;return {...i,at};}),note:count?'These are waiting on the player in the Inbox page of Frontier Brain. Unlinked replays are linked or deleted there; delete_replay needs the player to ask.':'Nothing is waiting on the player.'};
 }

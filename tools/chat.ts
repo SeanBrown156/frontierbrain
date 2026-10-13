@@ -8,6 +8,7 @@ import {readPreferences,updatePreferences,preferencesText} from './player.ts';
 import {whereToLook,LIBRARY_GUIDE} from './library.ts';
 import {playbook,playbookPrimer} from './playbook.ts';
 import {randomUUID} from 'node:crypto';
+import {addCalc} from './focus.ts';
 import {ROOT,CODE,save,config,requestAI,environmentAI,hosted,type AIProvider} from './io.ts';
 import {damage,speed,speedOrder,spreadSearch,finalStats,dex} from './mechanics.ts';
 import {metaSets,standardSet,type MetaSource} from './meta-sets.ts';
@@ -18,7 +19,7 @@ import type {Workbench} from '../shared/workbench.ts';
 
 export const DEFAULT_MODEL='gpt-6-astra';
 import {supportsReasoning,defaultModel} from './models.ts';
-export interface ChatContext {teamId?:string;versionId?:string;configurationId?:string;slot?:number;page?:string;}
+export interface ChatContext {teamId?:string;versionId?:string;configurationId?:string;slot?:number;page?:string;fromChat?:boolean;}
 export interface ChatTurn {role:'user'|'assistant';content:string;}
 export interface ToolEvent {name:string;input:any;output?:any;error?:string;}
 type Emit=(event:'tool'|'message'|'error',data:unknown)=>void;
@@ -88,8 +89,9 @@ export async function runTool(name:string,input:any,ctx:ChatContext,db:Workbench
     case 'get_team':return teamPayload(db,ctx);
     case 'standard_set':{const m=await defaultSetSource(input.species,input.source as MetaSource|undefined);const s=standardSet(m,input.spreadIndex??0);return {set:{species:s.species,nature:s.nature,ability:s.ability,item:s.item,statPoints:s.statPoints},label:s.label,source:m.url,spreadsAvailable:m.spreads.length};}
     case 'usage_data':return trim(await metaSets(input.species,(input.source??'pokebase') as MetaSource));
-    case 'calc_damage':return brief(damage(input));
-    case 'calc_speed':return speed(input);
+    // What the in-app assistant calculates also lands in the Inbox, where it can be saved as a benchmark or dismissed.
+    case 'calc_damage':{const r=damage(input);if(ctx.fromChat)void addCalc('damage',input,r,'chat').catch(()=>{});return brief(r);}
+    case 'calc_speed':{const r=speed(input);if(ctx.fromChat)void addCalc('speed',input,r,'chat').catch(()=>{});return r;}
     case 'calc_speed_order':return speedOrder(input);
     case 'spread_search':{const r=spreadSearch(input);return {...r,solutions:r.solutions.map((s:any)=>({nature:s.nature,statPoints:s.statPoints,stats:s.stats,spent:s.spent,unused:s.unused,benchmarks:s.benchmarks.map(brief)}))};}
     case 'team_pool_sets':{const m=await poolSets(input.species,{lanes:input.lanes,sinceDays:input.sinceDays});return {population:m.population,period:m.period,sample:m.sample,items:m.items.slice(0,8),abilities:m.abilities,natures:m.natures.slice(0,6),moves:m.moves.slice(0,12),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,10),examples:(m.examples??[]).slice(0,8),notes:m.notes};}
@@ -182,7 +184,7 @@ export async function chat(messages:ChatTurn[],ctx:ChatContext,emit:Emit,opts:Ch
       return {text,tools:toolLog,repair};}
     const results=[];
     for(const call of turn.calls){let args:any={};const event:ToolEvent={name:call.name,input:args};
-      try{args=JSON.parse(call.args);event.input=args;event.output=await runTool(call.name,args,ctx,db);}catch(e){event.error=(e as Error).message;}
+      try{args=JSON.parse(call.args);event.input=args;event.output=await runTool(call.name,args,{...ctx,fromChat:true},db);}catch(e){event.error=(e as Error).message;}
       toolLog.push(event);emit('tool',event);results.push({id:call.id,output:JSON.stringify(event.error?{error:event.error}:event.output)});}
     talk.results(results);
   }

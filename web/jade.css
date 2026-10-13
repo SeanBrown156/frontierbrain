@@ -2371,3 +2371,9 @@ html.jade .inbox-tile .proposal-card .pair{display:flex;align-items:center;gap:1
 html.jade .inbox-tile .proposal-card .button-row,html.jade .inbox-tile .set-tile .button-row{margin-top:2px}
 html.jade .inbox-tile .proposal-card .eyebrow{margin:0}
 @media(max-width:620px){html.jade .inbox-item{padding:16px}html.jade .inbox-tile .proposal-card,html.jade .inbox-tile .set-tile{padding:14px}}
+
+/* Replay tiles in the Inbox: same six rows as the Replays tab (led = outlined, brought = plain, left behind = faded). */
+html.jade .inbox-games li.game{display:grid;gap:10px;padding:14px 16px;border:1px solid var(--ln);border-radius:var(--r);background:color-mix(in srgb,var(--bg) 40%,transparent)}
+html.jade .inbox-games li.game .selections{display:flex;gap:20px;flex-wrap:wrap}
+html.jade .inbox-item .selections .six .lead{background:color-mix(in srgb,var(--ac) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 45%,transparent)}
+html.jade .inbox-item .selections .six .benched{opacity:.35}
