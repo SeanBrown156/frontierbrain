@@ -141,12 +141,12 @@ function Digest({team,games,info,busy,refresh,saved,notify,art}:{team:any;games:
   </section>;
 }
 // At a glance: your record against what you've faced, counted from the linked games (and the summaries' archetype tags).
-// Pokémon count when they were at team preview; types count once per game. Nothing here is a verdict below a few games.
+// Only Pokémon the opponent actually showed in the battle count (not their whole team preview); types count once per game. Nothing here is a verdict below a few games.
 function AtAGlance({games,info,art}:{games:any[];info:any;art:any}){
-  const done=games.filter(g=>g.result==='win'||g.result==='loss');const seen=[...new Set(done.flatMap(g=>g.preview[other(g)] as string[]))];
+  const done=games.filter(g=>g.result==='win'||g.result==='loss');const faced=(g:any)=>g.revealed[other(g)] as string[];const seen=[...new Set(done.flatMap(faced))];
   const dex=useDex(seen,[]);
   const tally=(keys:(g:any)=>string[])=>{const t:Record<string,{n:number;w:number}>={};for(const g of done)for(const k of new Set(keys(g))){const x=t[k]??={n:0,w:0};x.n++;if(g.result==='win')x.w++;}return Object.entries(t).map(([k,v])=>({k,...v,rate:v.w/v.n}));};
-  const mons=tally(g=>g.preview[other(g)]);const types=tally(g=>(g.preview[other(g)] as string[]).flatMap(m=>dex.types[m]??[]));const styles=tally(g=>info.summaries[g.id]?.opponentStyle??[]);
+  const mons=tally(faced);const types=tally(g=>faced(g).flatMap(m=>dex.types[m]??[]));const styles=tally(g=>info.summaries[g.id]?.opponentStyle??[]);
   const min=done.length>=6?2:1;const hard=(l:any[])=>l.filter(x=>x.n>=min&&x.w<x.n).sort((a,b)=>a.rate-b.rate||b.n-a.n).slice(0,4);const easy=(l:any[])=>l.filter(x=>x.n>=min&&x.w>0).sort((a,b)=>b.rate-a.rate||b.n-a.n).slice(0,4);
   if(done.length<2)return null;
   const rec=(x:any)=><span className="glance-rec">{x.w}–{x.n-x.w}</span>;
