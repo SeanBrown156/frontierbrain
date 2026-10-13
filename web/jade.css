@@ -2262,10 +2262,6 @@ html.jade .bench-compare{display:grid;grid-template-columns:repeat(auto-fit,minm
 html.jade .bench-compare>div{display:grid;gap:var(--s2);align-content:start}
 html.jade .bench-slot{display:grid;gap:4px;font-size:12px;color:var(--mu)}html.jade .bench-slot select{font-size:14px}
 html.jade .bench-problems{margin:0 0 var(--s2);padding-left:var(--s4);color:var(--hot);font-size:13px}
-html.jade .bench-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s2) var(--s4);align-items:end}
-html.jade .bench-bar>.eyebrow{grid-column:1/-1}
-html.jade .bench-bar .bench-replaces{max-width:320px}
-html.jade .bench-bar .button-row{margin:0;justify-content:flex-end}
 @media(max-width:860px){
   html.jade .bench-layout{grid-template-columns:minmax(0,1fr)}
   html.jade .bench-team{position:static}
@@ -2275,8 +2271,7 @@ html.jade .bench-bar .button-row{margin:0;justify-content:flex-end}
 }
 @media(max-width:620px){
   html.jade .bench-grid.six-grid{grid-template-columns:minmax(0,1fr)!important}
-  html.jade .bench-bar{display:grid}
-}
+  }
 
 /* Inbox: the header entry with its count, and the page that lists what is waiting on the player. */
 html.jade .account-menu{display:flex;align-items:center;gap:var(--s2)}

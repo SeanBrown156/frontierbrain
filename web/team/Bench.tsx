@@ -104,17 +104,12 @@ function CompareDialog({team,data,mutate,notify,item,promote,onClose}:{team:any;
 
 // One candidate: the same set editor, strategy note, benchmarks and calcs as a team Pokémon, saved to the bench.
 export function BenchWorkspace({team,data,mutate,notify,benchId}:{team:any;data:any;mutate:Mutate;notify:(s:string)=>void;benchId:string}){
-  const list=items(team,data);const it=list.find(x=>x.b.id===benchId);const view=getView(team,data.db,team.activeVersionId);const [dialog,setDialog]=useState<boolean|null>(null);
+  const list=items(team,data);const it=list.find(x=>x.b.id===benchId);const view=getView(team,data.db,team.activeVersionId);
   if(!it)return <Empty>That candidate is no longer on the {BENCH_LABEL}. <a href={benchHref(team.id)}>Back to the {BENCH_LABEL}.</a></Empty>;
   const slot=slotFor(view.sets,it.b.replaces);const others=slot>=0?view.sets.filter((_:PokemonSet,i:number)=>i!==slot):[];
-  const remove=async()=>{if(!confirm(`Take ${it.revision.set.species} off the ${BENCH_LABEL}? Its set stays in your Pokémon library.`))return;await mutate({type:'bench-remove',teamId:team.id,benchId:it.b.id}).then(()=>{location.hash=benchHref(team.id);}).catch(()=>{});};
   return <div className="workspace bench-workspace">
     <div className="hub-head"><a href={benchHref(team.id)} className="text-button back-link"><Px icon={ArrowLeft} size={14}/>{team.name} · {BENCH_LABEL}</a></div>
     <nav className="mon-switcher" aria-label={`${BENCH_LABEL} candidates`}>{list.map(x=><a key={x.b.id} href={benchHref(team.id,x.b.id)} className={x.b.id===benchId?'selected':''} aria-current={x.b.id===benchId?'page':undefined}><SetArt set={x.revision.set} art={data.art} small/><span className="slot-name">{x.revision.set.species}</span></a>)}</nav>
-    <section className="panel bench-bar"><span className="eyebrow">{BENCH_LABEL} candidate · not on the team</span>
-        <label className="bench-replaces"><span>Could replace</span><select value={it.b.replaces??''} onChange={e=>void mutate({type:'bench-update',teamId:team.id,benchId:it.b.id,replaces:e.target.value}).catch(()=>{})}><option value="">Not decided</option>{view.sets.map((s:PokemonSet,i:number)=><option key={i} value={s.species}>{s.species}</option>)}</select></label>
-      <div className="button-row"><button onClick={()=>setDialog(false)}><Px icon={Swap}/>Compare</button><button className="primary" onClick={()=>setDialog(true)}>Promote</button><button onClick={()=>void remove()}><Px icon={Trash}/>Remove</button></div></section>
     <SetWorkspace key={benchId} team={team} data={data} mutate={mutate} view={view} slot={-1} candidate={{id:benchId,entry:it.entry,revision:it.revision,others}}/>
-    {dialog!==null&&<CompareDialog team={team} data={data} mutate={mutate} notify={notify} item={it} promote={dialog} onClose={()=>setDialog(null)}/>}
   </div>;
 }
