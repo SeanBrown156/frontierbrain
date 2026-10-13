@@ -195,7 +195,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       const icons=await iconIndex().catch(e=>{console.error('Box icons unavailable:',e.message);return null;});
       return respond(res,200,names.map((n:string)=>({name:n,usage:teams.length?Math.round(1000*(counts.get(speciesKey(n))??0)/teams.length)/10:0,...icons?{icon:iconNumber(n,icons)}:{}})).sort((a:any,b:any)=>b.usage-a.usage||a.name.localeCompare(b.name)));}
     if(req.method==='GET'&&path==='/api/icon-sheet'){await iconIndex();res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(await iconSheet());return;}
-    if(req.method==='GET'&&path==='/api/pool'){const status=await poolStatus();return respond(res,200,{status,overview:status?await poolOverview({top:20}):null,refreshing:poolRefreshing});}
+    if(req.method==='GET'&&path==='/api/pool'){const status=await poolStatus();return respond(res,200,{status,overview:status?await poolOverview({top:60}):null,refreshing:poolRefreshing});}
     if(req.method==='POST'&&path==='/api/pool-refresh'){startPoolRefresh();return respond(res,202,{refreshing:true});}
     if(req.method==='POST'&&path==='/api/calculate'){const input=await body(req);const methods:Record<string,(i:any)=>unknown>={stats:finalStats,damage,speed,spread:spreadSearch};if(!methods[input.kind])throw new Error('Unknown calculation');return respond(res,200,methods[input.kind](input.input));}
     return respond(res,404,{error:'Not found'});

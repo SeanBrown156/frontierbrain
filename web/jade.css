@@ -2195,3 +2195,8 @@ html.jade .data-pool .pool-team:last-of-type{border-bottom:0;padding-bottom:var(
 html.jade .data-pool .pool-team .team-six{justify-content:center;margin:0 0 var(--s2)}
 html.jade .data-pool .pool-team-who{justify-content:center;align-items:center}
 html.jade .data-pool .pool-team-event,html.jade .data-pool .pool-team-meta{max-width:34em}
+/* Data: on wide screens Most used is held to the height of the top-4 column and shows as many rows as fit. */
+html.jade .pool-top{align-items:stretch!important}
+html.jade .pool-col{display:grid;min-width:0}
+html.jade .pool-fill>.pool-col-left{position:relative}
+html.jade .pool-fill>.pool-col-left>*{position:absolute;inset:0;overflow:hidden;margin:0}
