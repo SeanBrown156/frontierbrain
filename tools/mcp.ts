@@ -13,12 +13,16 @@ import {readStore,mutateLatest,applyAction,currentTeam} from './workbench-store.
 import {importText,exportText} from './teams.ts';
 import {validateProposals,validateTeamProposal} from './assist.ts';
 import {FORMATS} from '../shared/formats.ts';
-import {setStrategyText,checkPokemonStrategy,composePokemonStrategy} from '../shared/workbench.ts';
+import {setStrategyText,checkPokemonStrategy,composePokemonStrategy,TEAM_STYLES,matchTeamStyle} from '../shared/workbench.ts';
 import {deleteReplays} from './replays.ts';
-import {removeFile} from './io.ts';
+import {removeFile,config} from './io.ts';
 import {loadGames} from './replays.ts';
-import {transcript,readGame,readSummary,isStale,saveReplaySummary,saveTeamDigest,STYLES} from './replay-summary.ts';
+import {transcript,readGame,readSummary,isStale,saveReplaySummary,saveTeamDigest,queueSummaries,STYLES} from './replay-summary.ts';
 import {readPreferences,preferencesText} from './player.ts';
+import {intakeReplays,removeReplay} from './replay-intake.ts';
+import {showdownReplayId} from './replay-links.ts';
+import {createPokepaste} from './pokepaste.ts';
+import {activeAI,config as profile} from './io.ts';
 
 const teamId={teamId:{type:'string',description:'Team id from list_teams'}};
 const str={type:'string'};
@@ -36,7 +40,7 @@ const plan={type:'object',properties:{
 const matchup={type:'object',properties:{
   id:{...str,description:'Only to EDIT an existing matchup plan: its id from get_strategy. Leave out for a new plan.'},
   opponent:{...str,description:'Short name of the matchup, e.g. "Tailwind offense", "Sun ± Trick Room"'},
-  archetype:{...str,description:'REQUIRED. The team style in one or two words: Tailwind, Trick Room, Rain, Sun, Sand, Psychic Terrain, Balance…'},
+  archetype:{...str,description:`REQUIRED. Exactly one team style: ${TEAM_STYLES.join(', ')}. Near-misses (TR, tailwind, Rain team) are mapped and reported; anything else is refused. Put specifics in the plan text.`},
   examples:{type:'array',items:str,minItems:3,maxItems:6,description:'REQUIRED. 3–6 Pokémon that mark this matchup (species names)'},
   threat:{...str,enum:['low','medium','high'],description:'REQUIRED. How dangerous it is for this team (from pool share and the calcs)'},
   bring:mons('The four you bring (species from this team). The two you leave home are part of the plan.',4),
@@ -70,6 +74,10 @@ const own=[
   {name:'list_benchmarks',description:'The benchmarks saved on a team\'s Pokémon (id, title, kind, headline result), optionally for one Pokémon.',parameters:{type:'object',properties:{...teamId,pokemon:str},required:['teamId']}},
   {name:'delete_benchmark',description:'Delete a saved benchmark by id (list_benchmarks). Its input comes back in the result, so it can be saved again.',parameters:{type:'object',properties:{benchmarkId:str},required:['benchmarkId']}},
   {name:'delete_team',description:'Delete a team, its plans and its replays with their analysis. Only when the player explicitly asked to delete it: needs playerAgreed: true and confirmName equal to the team\'s exact name.',parameters:{type:'object',properties:{...teamId,confirmName:str,...agreed},required:['teamId','confirmName','playerAgreed']}},
+  {name:'add_replays',description:'Add replays to Frontier Brain on the player\'s request: public Showdown replay links (replay.pokemonshowdown.com only; fetched and stored as data) and/or pasted replay HTML. Each is parsed, stored once (duplicates are recognised) and linked to the team whose six it matches, at the edit current when it was played; pass teamId to limit the search to one team. An automatic "exact" link means the sets are consistent with the game, not that the player confirmed their spreads. A replay that matches no team is kept unlinked (inbox). Needs the player\'s Showdown name in Settings. New games are summarised in the app when an AI key is set; otherwise they wait for you (list_replays needsSummary, then replay_transcript and save_replay_summary). Only add replays the player gave you.',parameters:{type:'object',properties:{links:{type:'array',items:str,maxItems:40,description:'https://replay.pokemonshowdown.com/… links the player gave you'},html:{type:'array',items:str,maxItems:10,description:'Replay HTML the player pasted (Showdown\'s Download button), under 6 MB each'},teamId:{...str,description:'Optional: link to this team (list_teams) when the six matches'}}}},
+  {name:'delete_replay',description:'Permanently delete ONE replay: its link to the team, the stored original, the parsed copy and its summary; the team\'s debrief is kept for the games that remain, with a note that it now covers fewer games. Cannot be undone. Only when the player explicitly asked to delete this replay: needs playerAgreed: true and its exact id from list_replays.',parameters:{type:'object',properties:{replayId:{...str,description:'Replay id from list_replays'},playerAgreed:{type:'boolean',description:'True only when the player has just asked you to delete this replay.'}},required:['replayId','playerAgreed']}},
+  {name:'create_pokepaste',description:'PUBLISHES the team\'s six to pokepast.es, a public paste site: anyone with the link can read it and it cannot be taken back from here. Only when the player explicitly asked to publish this team: needs playerAgreed: true. Returns the paste URL. The author defaults to the player\'s Showdown name, as the app\'s PokePaste button does; pass author to use something else (an empty string posts none).',parameters:{type:'object',properties:{...teamId,author:{...str,description:'Optional name shown on the paste (max 60 characters)'},notes:{...str,description:'Optional note shown on the paste (max 1000 characters)'},playerAgreed:{type:'boolean',description:'True only when the player has just asked you to publish this team publicly to pokepast.es.'}},required:['teamId','playerAgreed']}},
+  {name:'backup_info',description:'What a Frontier Brain backup would hold (counts) and where to make or restore one. A backup is one file with every replay\'s full log, which does not fit in a chat tool result, so backup and restore are only available in the app: Settings (avatar in the header) → Backup → Download backup / Restore. Restoring merges and never overwrites.',parameters:{type:'object',properties:{}}},
 ];
 const all=[...own,...shared];
 // "What's changing": the same before → after the app's suggestion tiles show, as markdown for the chat.
@@ -133,7 +141,10 @@ async function call(name:string,input:any){
     const id=()=>randomUUID().slice(0,10);const need=(ok:any,msg:string)=>{if(!ok)throw new Error(msg);};
     const inTeam=(list:any,what:string)=>{for(const m of list)need(known.has(String(m).toLowerCase()),`${what}: "${m}" is not on this team (${six.join(', ')}).`);};
     const key=(a:string[])=>[...a].map(x=>x.toLowerCase()).sort().join('+');
-    const edited:string[]=[];
+    const edited:string[]=[],mapped:{opponent:string;from:string;to:string}[]=[];
+    // archetype is the shared team-style vocabulary (replay tags and filters read it): near-misses map, the rest is refused.
+    const style=(p:any)=>{const m=matchTeamStyle(p.archetype);need(m,`${p.opponent}: archetype "${String(p.archetype).slice(0,60)}" is not a team style. Use exactly one of: ${TEAM_STYLES.join(', ')}. Put anything more specific in the plan text.`);
+      if(m!.mapped&&m!.style!==p.archetype)mapped.push({opponent:p.opponent,from:String(p.archetype),to:m!.style});return m!.style;};
     const leads=(input.leads??[]).slice(0,8).map((p:any)=>{
       need(typeof p.title==='string'&&p.title.trim(),'Every lead plan needs a title.');need(Array.isArray(p.lead)&&p.lead.length===2,`${p.title}: lead is exactly two Pokémon.`);need(Array.isArray(p.back)&&p.back.length===2,`${p.title}: back is exactly two Pokémon (lead + back is the bring of four).`);
       need(['core','situational','niche','avoid'].includes(p.role),`${p.title}: role is required: core, situational, niche or avoid.`);need(typeof p.when==='string'&&p.when.trim(),`${p.title}: when is required (one sentence: when to pick this lead).`);need(typeof p.plan==='string'&&p.plan.trim(),`${p.title}: plan text is required.`);
@@ -147,12 +158,12 @@ async function call(name:string,input:any){
       need(Array.isArray(p.examples)&&p.examples.length>=3,`${p.opponent}: give 3–6 example Pokémon.`);need(['low','medium','high'].includes(p.threat),`${p.opponent}: threat is required: low, medium or high.`);
       need(Array.isArray(p.bring)&&p.bring.length===4,`${p.opponent}: bring is exactly four Pokémon from this team.`);need(typeof p.plan==='string'&&p.plan.trim(),`${p.opponent}: plan text is required.`);inTeam(p.bring,p.opponent);
       const old=p.id?cur.matchups.find((x:any)=>x.id===p.id):undefined;if(p.id)need(old,`No matchup plan with id ${p.id}; call get_strategy.`);
-      if(old){edited.push(old.opponent);return {...old,opponent:p.opponent,archetype:p.archetype,examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan};}
+      if(old){edited.push(old.opponent);return {...old,opponent:p.opponent,archetype:style(p),examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan};}
       const dup=cur.matchups.find((x:any)=>String(x.opponent).toLowerCase()===p.opponent.toLowerCase());need(!dup,`A matchup plan "${dup?.opponent}" already exists (id ${dup?.id}). Send it with that id to edit it.`);
-      return {id:id(),opponent:p.opponent,archetype:p.archetype,examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'};});
+      return {id:id(),opponent:p.opponent,archetype:style(p),examples:p.examples,threat:p.threat,bring:p.bring,plan:p.plan,calcIds:[],versionIds:[],status:'proposed'};});
     await mutateLatest(d=>applyAction(d,{type:'coaching-update',teamId:input.teamId,upsert:{leads,matchups}}));
     const created=(l:any[])=>l.filter(x=>!cur.leads.concat(cur.matchups).some((y:any)=>y.id===x.id));
-    return {proposed:{leads:created(leads).length,matchups:created(matchups).length},edited,ids:{leads:leads.map((l:any)=>({title:l.title,id:l.id})),matchups:matchups.map((m:any)=>({opponent:m.opponent,id:m.id}))},note:'New plans are proposals in the team\'s Strategy tab for the player to accept; edits keep the plan\'s status.'};}
+    return {proposed:{leads:created(leads).length,matchups:created(matchups).length},edited,...mapped.length?{archetypesMapped:mapped}:{},ids:{leads:leads.map((l:any)=>({title:l.title,id:l.id})),matchups:matchups.map((m:any)=>({opponent:m.opponent,id:m.id}))},note:'New plans are proposals in the team\'s Strategy tab for the player to accept; edits keep the plan\'s status.'};}
   if(name==='remove_plans'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const cur:any=db.coaching?.[t.id]??{leads:[],matchups:[]};
     const leadIds:string[]=input.leadIds??[],matchupIds:string[]=input.matchupIds??[];
     const hit=[...cur.leads.filter((x:any)=>leadIds.includes(x.id)),...cur.matchups.filter((x:any)=>matchupIds.includes(x.id))];
@@ -217,6 +228,34 @@ async function call(name:string,input:any){
     const b:any=r.result;return {saved:{id:b.id,title:b.title,kind:b.kind,side:b.side,...head(b)},note:'Shown on that Pokémon\'s page.'};}
   if(name==='delete_benchmark'){const b:any=(db.benchmarks??[]).find((x:any)=>x.id===input.benchmarkId);if(!b)throw new Error('Benchmark not found; call list_benchmarks.');
     await mutateLatest(d=>applyAction(d,{type:'benchmark-delete',benchmarkId:b.id} as any));return {deleted:b.id,restorable:{kind:b.kind,input:b.input,title:b.title,context:b.context}};}
+  if(name==='add_replays'){
+    const links:string[]=Array.isArray(input.links)?input.links.map(String):[],html:string[]=Array.isArray(input.html)?input.html:[];
+    if(!links.length&&!html.length)throw new Error('Send links (replay.pokemonshowdown.com) and/or html from the player.');
+    if(links.length+html.length>40)throw new Error('Send at most 40 replays per call.');
+    if(html.some(h=>typeof h!=='string'))throw new Error('html entries are the replay HTML as text.');
+    for(const l of links)showdownReplayId(l); // refuses anything but a replay.pokemonshowdown.com replay link before any fetch
+    if(!(await profile()).player)throw new Error('Not added: the player\'s Showdown name is not set, so replays cannot be read from their side. They set it in Frontier Brain Settings.');
+    if(typeof input.teamId==='string'&&input.teamId&&!db.teams.some(t=>t.id===input.teamId))throw new Error('Team not found');
+    const teamId=typeof input.teamId==='string'&&input.teamId?input.teamId:undefined;
+    const {results,fresh}=await intakeReplays([...links.map(url=>({url})),...html.map((h,i)=>({html:h,name:`pasted replay ${i+1}`}))],{...teamId?{teamId}:{},certainty:'auto'});
+    const after=await readStore();const names=(id:string)=>after.teams.find(t=>t.id===after.associations[id]?.teamId)?.name??null;
+    const out=results.map(r=>({label:r.label,ok:r.ok,...r.ok?{replayId:r.id,duplicate:r.duplicate,team:names(r.id!),linked:r.certainty==='inbox'?'not linked: its six match no saved team':r.certainty==='exact'?`sets consistent with the game${r.basis==='auto'?' (matched automatically, not confirmed by the player)':''}`:'same six, sets not matched',...r.note?{note:r.note}:{}}:{error:r.error}}));
+    // New games are summarised in the background when an AI key is set (grouped by the team they ended up on).
+    const keyed=!!activeAI();const byTeam=new Map<string|undefined,string[]>();for(const id of fresh){const t=after.associations[id]?.teamId;byTeam.set(t,[...byTeam.get(t)??[],id]);}
+    if(keyed)for(const [t,ids] of byTeam)void queueSummaries(t,ids);
+    const added=results.filter(r=>r.ok&&!r.duplicate).length;
+    return {added,duplicates:results.filter(r=>r.ok&&r.duplicate).length,failed:results.filter(r=>!r.ok).length,results:out,
+      summaries:fresh.length?keyed?{queued:fresh.length,note:'Frontier Brain is summarising these in the background with the player\'s AI key.'}:{waiting:fresh.length,note:'No AI key in Frontier Brain, so these wait for you: list_replays marks them needsSummary; read each with replay_transcript and save_replay_summary, then save_team_digest.'}:{note:'Nothing new to summarise.'}};}
+  if(name==='delete_replay'){const id=String(input.replayId??'');const a:any=db.associations[id];const games=await loadGames();const g=games.find(x=>x.id===id);
+    if(!g)throw new Error('Replay not found: use an id from list_replays.');
+    if(input.playerAgreed!==true)throw new Error('Not deleted: the player has to ask for this. Confirm with them, then call again with playerAgreed: true.');
+    const o=g.ownSide==='p1'?'p2':'p1';const r=await removeReplay(id);
+    return {deleted:id,game:`${g.result} vs ${g.players[o]?.name??'?'}${g.date?` (${g.date})`:''}`,team:a?db.teams.find(t=>t.id===a.teamId)?.name??null:null,removed:['link to the team','stored original','parsed copy','summary'],matchesRemoved:r.matchesRemoved,debrief:{none:'The team had no debrief.',unchanged:'The team\'s debrief did not mention it.',updated:'The team\'s debrief (and any edits the player made) was kept for the games that remain, with a note that it is built from fewer games. save_team_digest or a refresh rebuilds it.',removed:'No theme was left after removing it, so the team\'s debrief was removed; save_team_digest makes a new one.'}[r.digest]};}
+  if(name==='create_pokepaste'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');
+    if(input.playerAgreed!==true)throw new Error('Not published: this posts the team to pokepast.es, a public site. The player has to ask for this. Confirm with them, then call again with playerAgreed: true.');
+    const r=await createPokepaste(db,{teamId:t.id,author:typeof input.author==='string'?input.author:(await config()).player,notes:input.notes});return {published:true,url:r.url,team:r.name,note:'Public: anyone with this link can read it.'};}
+  if(name==='backup_info'){const games=await loadGames();let summaries=0;for(const g of games)if(await readSummary(g.id))summaries++;
+    return {contains:{teams:db.teams.length,pokemonInLibrary:db.bank.length,replays:games.length,replaySummaries:summaries},available:'In the app only: Settings (avatar in the header) → Backup → Download backup, and Restore from the same page.',why:'A backup carries every replay\'s full log, which is far larger than a chat tool result can hold, and a restore has to take the whole file back. Restoring merges: anything that already exists is kept, never overwritten.'};}
   if(name==='delete_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');
     if(input.playerAgreed!==true)throw new Error('Not deleted: the player has to ask for this. Confirm with them, then call again with playerAgreed: true.');
     if(String(input.confirmName??'').trim()!==t.name)throw new Error(`Not deleted: confirmName must equal the team name exactly ("${t.name}").`);
@@ -238,10 +277,11 @@ Work as a collaborator, in short turns, and hand choices back to the player:
 - Test the plan with numbers before settling it: key calcs (calc_damage) and speed tiers (calc_speed) against labelled standard_set opponents, and spread_search for the spreads.
 - Call import_team once the six is settled enough to try (it only creates a new team; nothing existing changes), with the plan you agreed (goal, what it is built around, game plan, what was ruled out) in the notes field: that becomes the team\'s Strategy write-up. Afterwards offer lead and matchup plans (propose_plans).
 - When the player tells you a lasting preference (playstyle, Bo1/Bo3, Pokémon they love or hate facing), save it with update_player_profile so no app asks again.
-- Lead and matchup plans follow one standard so every team reads the same: each lead has a title, a role (core / situational / niche / avoid; never blank), a one-sentence "when", the lead pair and back pair, and a short plan: "**T1:** …", "**T2:** …" with the calc numbers that justify it and one "**Watch:**" line. "Avoid" leads are one or two sentences naming what to lead instead. Each matchup has an archetype, 3–6 example Pokémon, a threat level, the four you bring (and who stays home, with the reason), and 2–4 sentences with exact numbers.
+- Lead and matchup plans follow one standard so every team reads the same: each lead has a title, a role (core / situational / niche / avoid; never blank), a one-sentence "when", the lead pair and back pair, and a short plan: "**T1:** …", "**T2:** …" with the calc numbers that justify it and one "**Watch:**" line. "Avoid" leads are one or two sentences naming what to lead instead. Each matchup has an archetype (exactly one team style from the list in propose_plans; near-misses like TR are mapped and reported, anything else is refused, and specifics go in the plan text), 3–6 example Pokémon, a threat level, the four you bring (and who stays home, with the reason), and 2–4 sentences with exact numbers.
 - Before proposing, call get_strategy and edit what exists (send its id) rather than adding a near-duplicate. Suggest changes the way the in-app chat does: update_set (including a Pokémon\'s Strategy write-up via changes.strategy), replace_pokemon, update_team and update_strategy send the player a suggestion with the before → after and your reason, which they accept in Frontier Brain; always show them the message the tool returns. Pass apply: true only when they have told you to just apply it (changes are then kept in History and can be restored). Edit or remove lead and matchup plans with propose_plans / remove_plans. Only delete_team is final: do it only when the player explicitly asks, and pass the exact team name.
 - Each Pokémon\'s Strategy (changes.strategy, replace_pokemon strategy, import_team setNotes) always has the same three sections, kept short: "## Role" (one line: the job it does for this team), "## How to play" (when it comes in, what it protects or enables, key moves and calc numbers), "## Watch out for" (what beats it or punishes its plan). Example: Role: Intimidate / Fake Out / pivot support. How to play: Protect the win conditions with Fake Out and Intimidate; Parting Shot gives safer entries. Watch out for: opposing Fake Out denial, strong Water or Ground damage, predictable pivots.
 - Replays waiting for a summary: when the player has no AI key in Frontier Brain, new replays are kept and wait for you. list_replays marks them needsSummary. For each one call replay_transcript, judge every decision only with the information available at that turn, then save_replay_summary (if a game already has a summary, build on it: the player may have edited it (editedByPlayer), so keep their wording and points where they still hold; play mistakes, team-building weaknesses and variance kept apart; cite real turn numbers; never state an opponent\'s unrevealed item, spread or move as fact; a few games is a small sample). When two or more are summarised, finish with save_team_digest. The player can edit summaries and the debrief themselves, so re-saves should keep their wording where it still holds. Tell the player what you saved.
+- Replays the player gives you: add_replays takes the Showdown links or pasted HTML they sent (replay.pokemonshowdown.com only, never guess or search for replays), links each to the team whose six matches and says how certain the link is; an automatic "exact" link is consistent with the game, not confirmation of spreads. Games without an AI key wait for you (above). delete_replay removes ONE replay for good: only when they asked, with playerAgreed: true and the exact id. create_pokepaste PUBLISHES a team to pokepast.es: only when they asked for a public link, with playerAgreed: true; show them the URL. Backup and restore are in the app (Settings); backup_info says what a backup would hold.
 - When a calc is what a set is built around (what it must survive, KO or outspeed), save it with save_benchmark so it sits on that Pokémon's page; list_benchmarks shows what is already saved.
 - End a turn with a question whenever the next choice is theirs.`;
 const prompts=[

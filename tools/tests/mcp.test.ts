@@ -7,7 +7,7 @@ import {resolve} from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {withData,fileBackend,CODE,save} from '../io.ts';
-import {addReplays,parseReplay} from '../replays.ts';
+import {addReplays,parseReplay,extractLog,loadGames} from '../replays.ts';
 import {editReplaySummary,editTeamDigest,readSummary,readDigest,priorForPrompt} from '../replay-summary.ts';
 import {mutateStore,associateReplay,currentTeam,makeTeam} from '../workbench-store.ts';
 import {readdir} from 'node:fs/promises';
@@ -43,6 +43,13 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const foreign:any=await client.callTool({name:'propose_plans',arguments:{teamId:made.created,leads:[{title:'T',lead:[a,'Mew'],back:[c,d],role:'core',when:'w',plan:'x'}]}});assert.ok(foreign.isError);assert.match(foreign.content[0].text,/not on this team/);
     const made1=await text('propose_plans',{teamId:made.created,leads:[{title:'Test lead',lead:[a,b],back:[c,d],role:'core',when:'Into most teams',plan:'**T1:** go.'}],matchups:[{opponent:'Rain',archetype:'Rain',examples:['Pelipper','Archaludon','Basculegion'],threat:'high',bring:[a,b,c,d],plan:'Lead the pair; **Watch:** Tailwind.'}]});
     assert.equal(store.db.coaching![made.created].leads[0].status,'proposed','plans arrive as proposals');assert.equal(store.db.coaching![made.created].leads[0].role,'core');
+    // archetype is the team-style vocabulary: near-misses map (and say so), anything else is refused with the list
+    const mappedPlan=await text('propose_plans',{teamId:made.created,matchups:[{opponent:'TR mode',archetype:'tr',examples:['Farigiraf','Hatterene','Torkoal'],threat:'medium',bring:[a,b,c,d],plan:'Lead the pair. **Watch:** Fake Out.'},{opponent:'Sun core',archetype:'sun',examples:['Torkoal','Venusaur','Charizard'],threat:'low',bring:[a,b,c,d],plan:'Lead the pair.'}]});
+    assert.deepEqual(mappedPlan.archetypesMapped,[{opponent:'TR mode',from:'tr',to:'Trick Room'},{opponent:'Sun core',from:'sun',to:'Sun'}]);
+    assert.deepEqual(store.db.coaching![made.created].matchups.map((m:any)=>m.archetype),['Rain','Trick Room','Sun']);
+    const oddStyle:any=await client.callTool({name:'propose_plans',arguments:{teamId:made.created,matchups:[{opponent:'Weird',archetype:'Gimmick teams',examples:['Mew','Mew','Mew'],threat:'low',bring:[a,b,c,d],plan:'x'}]}});
+    assert.ok(oddStyle.isError);assert.match(oddStyle.content[0].text,/not a team style[\s\S]*Trick Room, Tailwind, Rain/);assert.equal(store.db.coaching![made.created].matchups.length,3,'nothing is saved when one plan is refused');
+    for(const m of store.db.coaching![made.created].matchups.slice(1))await text('remove_plans',{teamId:made.created,matchupIds:[m.id]});
     // the same pair or opponent is not added twice; it is edited by id
     const dupe:any=await client.callTool({name:'propose_plans',arguments:{teamId:made.created,leads:[{title:'Again',lead:[b,a],back:[c,d],role:'situational',when:'w',plan:'x'}]}});assert.ok(dupe.isError);assert.match(dupe.content[0].text,/already exists/);
     const strat=await text('get_strategy',{teamId:made.created});assert.equal(strat.leads.length,1);assert.equal(strat.matchups.length,1);const leadId=strat.leads[0].id;
@@ -144,4 +151,58 @@ test('MCP replays: with no AI key, games wait for the assistant, which saves a s
     await text('save_team_digest',{teamId,themes:[{title:'Respect Fake Out',detail:'Lead around it.',games:[ids[0],ids[1]],of:'games'}]});
     await withData(ctx,async()=>{assert.equal((await readDigest(teamId))!.edited,true);});
   }finally{await client.close();server.close();await rm(root,{recursive:true});}
+});
+
+test('MCP replays and publishing: add by link or HTML, link to a team, delete one replay, gated PokePaste, backup pointer',async()=>{
+  const root=await mkdtemp(resolve(tmpdir(),'fb-mcp-intake-'));const store=memoryStore();
+  const ctx={user:fileBackend(root),shared:fileBackend(root,CODE),store,hosted:true};
+  const server=createServer((req,res)=>withData(ctx,async()=>{let raw='';for await(const c of req)raw+=c;await handleMcp(req,res,raw?JSON.parse(raw):undefined);}));
+  await new Promise<void>(ok=>server.listen(0,'127.0.0.1',ok));const port=(server.address() as any).port;
+  const client=new Client({name:'test',version:'1'});
+  // Nothing here touches the network: Showdown and PokePaste are stubbed, everything else (the MCP client itself) passes through.
+  const realFetch=globalThis.fetch;const dir=resolve(CODE,'tools/tests/fixtures/corpus');const files=(await readdir(dir)).filter(f=>/game0[4-6]\.html$/.test(f)).sort();
+  const pages=files.map(f=>readFileSync(resolve(dir,f),'utf8'));const calls:string[]=[];let paste:URLSearchParams|null=null;
+  globalThis.fetch=(async(input:any,init?:any)=>{const u=String(input?.url??input);
+    if(u.startsWith('https://replay.pokemonshowdown.com/')){calls.push(u);return new Response(JSON.stringify({log:extractLog(pages[2]).log}),{status:200,headers:{'content-type':'application/json'}});}
+    if(u==='https://pokepast.es/create'){calls.push(u);paste=new URLSearchParams(String(init.body));return new Response(null,{status:302,headers:{location:'https://pokepast.es/0123abcd'}});}
+    return realFetch(input,init);}) as any;
+  try{
+    await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/api/mcp`)));
+    const call=async(name:string,args:any)=>client.callTool({name,arguments:args}) as any;
+    const text=async(name:string,args:any)=>{const r:any=await call(name,args);assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
+    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['add_replays','delete_replay','create_pokepaste','backup_info'])assert.ok(names.includes(n),n);
+    assert.match((await client.listTools()).tools.find(t=>t.name==='create_pokepaste')!.description!,/PUBLISHES[\s\S]*public/);
+    const rain=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[2].paste;
+    const made=await text('import_team',{name:'Rain',paste:rain});
+    // refusals first: no Showdown name yet, not a Showdown link, nothing sent
+    assert.match((await call('add_replays',{html:[pages[0]]})).content[0].text,/Showdown name/);
+    await withData(ctx,()=>save('config.json',{player:'Player'}));
+    const foreign=await call('add_replays',{links:['https://example.com/gen9-123']});assert.ok(foreign.isError);assert.match(foreign.content[0].text,/replay\.pokemonshowdown\.com/);assert.equal(calls.length,0,'no request was made');
+    assert.ok((await call('add_replays',{})).isError);assert.ok((await call('add_replays',{html:[pages[0]],teamId:'nope'})).isError);
+    // HTML and a link in one call, linked to the team; no AI key here, so the summaries wait for the assistant
+    const add=await text('add_replays',{html:[pages[0],pages[1]],links:['https://replay.pokemonshowdown.com/gen9championsvgc2026regmc-2400000001'],teamId:made.created});
+    assert.equal(add.added,3);assert.equal(add.failed,0);assert.equal(add.results.length,3);assert.ok(add.results.every((r:any)=>r.ok&&r.team==='Rain'&&!/^not linked/.test(r.linked)));
+    assert.equal(calls.length,1);assert.equal(add.summaries.waiting,3);assert.match(add.summaries.note,/needsSummary/);
+    const listed=await text('list_replays',{teamId:made.created});assert.equal(listed.length,3);assert.ok(listed.every((r:any)=>r.needsSummary));
+    // pasting the same HTML again is recognised, not stored twice
+    const again=await text('add_replays',{html:[pages[0]],teamId:made.created});assert.equal(again.added,0);assert.equal(again.duplicates,1);assert.equal((await text('list_replays',{teamId:made.created})).length,3);
+    // summaries and a debrief exist, then one replay is deleted: gated, exact id, everything of it goes
+    const ids=listed.map((r:any)=>r.id as string);
+    for(const id of ids.slice(0,2))await text('save_replay_summary',{replayId:id,summary:'A game.',keyMoments:[{turn:1,text:'Turn one.'}],workOn:[{title:'Keep going',detail:'Fine.',category:'play'}]});
+    await text('save_team_digest',{teamId:made.created,themes:[{title:'Keep going',detail:'Fine.',games:ids.slice(0,2),of:'games'}]});
+    const noAsk=await call('delete_replay',{replayId:ids[0]});assert.ok(noAsk.isError);assert.match(noAsk.content[0].text,/player has to ask/);
+    const noSuch=await call('delete_replay',{replayId:'nope',playerAgreed:true});assert.ok(noSuch.isError);assert.match(noSuch.content[0].text,/not found/);
+    assert.equal((await text('list_replays',{teamId:made.created})).length,3,'refusals delete nothing');
+    const del=await text('delete_replay',{replayId:ids[0],playerAgreed:true});assert.equal(del.deleted,ids[0]);assert.equal(del.team,'Rain');assert.match(del.debrief,/kept/);
+    await withData(ctx,async()=>{assert.equal((await loadGames()).length,2);assert.equal(await readSummary(ids[0]),null);const kept=await readDigest(made.created);assert.ok(kept,'the debrief is kept for the games that remain');assert.match(kept!.note!,/remain after a replay was deleted/);assert.ok(kept!.themes.every((th:any)=>!th.games.includes(ids[0])));assert.ok(await readSummary(ids[1]));});
+    assert.equal(store.db.associations[ids[0]],undefined);assert.ok(store.db.associations[ids[1]]);
+    assert.equal((await text('list_replays',{teamId:made.created})).length,2);
+    // PokePaste is public: refused without the player's agreement, nothing is sent
+    const noPub=await call('create_pokepaste',{teamId:made.created});assert.ok(noPub.isError);assert.match(noPub.content[0].text,/public/);assert.equal(paste,null);
+    const pub=await text('create_pokepaste',{teamId:made.created,playerAgreed:true});assert.equal(pub.url,'https://pokepast.es/0123abcd');assert.equal(paste!.get('title'),'Rain');assert.equal(paste!.get('author'),'Player','author defaults to the player\'s Showdown name, like the app button');assert.match(paste!.get('paste')!,/@/);
+    assert.ok((await call('create_pokepaste',{teamId:'nope',playerAgreed:true})).isError);
+    // backup and restore stay in the app: the tool says where, with counts
+    const info=await text('backup_info',{});assert.equal(info.contains.replays,2);assert.equal(info.contains.teams,1);assert.match(info.available,/Settings/);
+    assert.match(client.getInstructions()??'',/add_replays/);
+  }finally{globalThis.fetch=realFetch;await client.close();server.close();await rm(root,{recursive:true});}
 });

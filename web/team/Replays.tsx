@@ -130,6 +130,7 @@ function Digest({team,games,info,busy,refresh,saved,notify,art}:{team:any;games:
       <div className="button-row">{d&&!editing&&<button onClick={startEdit}><Px icon={Pencil}/>Edit</button>}{r.n>=2&&!editing&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Sparkles}/>Refresh</>}</button>}</div></header>
     {!d?<p className="muted">{r.n<2?'Add a couple of replays to get a debrief.':busy?'Summarising your games…':'Summarise your games to get a debrief.'}</p>
       :<div className="debrief">
+        {d.note&&<p className="footnote">{d.note}</p>}
         {(d.strengths?.length>0||editing)&&<section><h3>What's working</h3>{editing
           ?<ul className="debrief-good inline-edit">{strengths.map((t,i)=><li key={i}><textarea rows={2} value={t} maxLength={200} aria-label="What's working" onChange={e=>setStrengths(strengths.map((x,j)=>j===i?e.target.value:x))}/></li>)}</ul>
           :<ul className="debrief-good">{d.strengths.map((t:string,i:number)=><li key={i}>{t}</li>)}</ul>}</section>}
@@ -179,9 +180,10 @@ function GameDrawer({g,s,team,data,load,notify,close,resummarise,saved}:{g:any;s
   const [log,setLog]=useState(''),[linking,setLinking]=useState(false),[turn,setTurn]=useState<number|null>(null);const box=useRef<HTMLPreElement>(null);const o=other(g);
   useEffect(()=>{api('/replay-transcript?id='+encodeURIComponent(g.id)).then(r=>setLog(r.transcript)).catch(()=>{});},[g.id]);
   useEffect(()=>{if(turn===null||!box.current)return;const el=box.current.querySelector(`[data-turn="${turn}"]`);el?.scrollIntoView({block:'start',behavior:'smooth'});},[turn,log]);
+  const remove=async()=>{if(!confirm('Delete this replay, its summary and its link to the team? This cannot be undone.'))return;try{await api('/replay-delete',{replayId:g.id});close();await load();saved();notify('Replay deleted.');}catch(e){notify((e as Error).message);}};
   const lines=log.split('\n');
   return <Modal title={`${g.result==='win'?'Win':g.result==='loss'?'Loss':g.result} vs ${g.players[o].name}`} onClose={close}><div className="game-drawer">
-    <p className="muted">{g.date?date(g.date):''} · <LinkStatus g={g} team={team} data={data} load={load} notify={notify}/> · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <button className="text-button" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</button></p>
+    <p className="muted">{g.date?date(g.date):''} · <LinkStatus g={g} team={team} data={data} load={load} notify={notify}/> · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <button className="text-button" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</button> · <button className="text-button danger" onClick={()=>void remove()}>Delete replay</button></p>
     <div className="selections">{[[g.ownSide,'You'],[o,'Opponent']].map(([side,label])=><div key={side}><span className="eyebrow">{label}</span><div className="six">{g.preview[side].map((m:string)=><span key={m} className={g.leads[side].includes(m)?'lead':g.revealed[side].includes(m)?'brought':'benched'} title={m}><Art name={m} art={data.art} small/></span>)}</div></div>)}<p className="footnote">Leads are outlined; faded Pokémon weren't seen in battle.</p></div>
     {s?<>{editing
         ?<div className="summary-edit"><textarea autoFocus rows={3} maxLength={900} value={draft} aria-label="Summary" onChange={e=>setDraft(e.target.value)}/>

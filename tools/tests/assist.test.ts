@@ -28,3 +28,12 @@ test('The docked assistant leads with the page guidance, accepts any proposal ki
   const named=validateProposals('assist',{proposals:[{kind:'set',slot:4,set:set('Feraligatr',other)}]},six,2,'slot');assert.equal(named.proposals[0].slot,4,'an explicit other slot is kept');
   assert.doesNotThrow(()=>validateProposals('assist',{proposals:[]},six,undefined,'overview'));
 });
+test('Matchup proposals use the team-style vocabulary: valid kept, near-misses mapped, unknown styles refused with the list',async()=>{
+  const six=await team();const bring=six.slice(0,4).map(s=>s.species);
+  const plan=(archetype:string)=>({reply:'',proposals:[{kind:'matchup',opponent:'Some team',archetype,examples:['Farigiraf','Hatterene','Torkoal'],threat:'high',bring,plan:'x'}]});
+  assert.equal(validateProposals('coaching',plan('Trick Room'),six).proposals[0].archetype,'Trick Room');
+  assert.equal(validateProposals('coaching',plan('TR'),six).proposals[0].archetype,'Trick Room');
+  assert.equal(validateProposals('coaching',plan('hyper offence'),six).proposals[0].archetype,'Hyper offense');
+  assert.throws(()=>validateProposals('coaching',plan('Gimmick teams'),six),/not a team style[\s\S]*Trick Room, Tailwind/);
+  assert.equal('archetype' in validateProposals('coaching',{proposals:[{kind:'matchup',opponent:'x',bring,plan:'y'}]},six).proposals[0],false,'no archetype stays blank');
+});

@@ -35,6 +35,17 @@ export const LEAD_ROLES=['core','situational','niche','avoid'] as const;export t
 export interface LeadPlan {id:string;title?:string;lead:string[];back:string[];role?:LeadRole;when:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
 // Team styles shared by matchup plans and replay summaries, so a plan and the games it covers use the same words.
 export const TEAM_STYLES=['Trick Room','Tailwind','Rain','Sun','Sand','Snow','Psychic Terrain','Grassy Terrain','Electric Terrain','Perish Song','Hyper offense','Balance','Redirection','Setup'] as const;
+// Near-misses a plan's archetype may arrive as (case, abbreviations, "Rain team") and the style each stands for.
+const STYLE_ALIASES:Record<string,typeof TEAM_STYLES[number]>={tr:'Trick Room',trickroom:'Trick Room',tw:'Tailwind',tailwindteam:'Tailwind',rainteam:'Rain',drizzle:'Rain',sunteam:'Sun',drought:'Sun',harshsunlight:'Sun',sandteam:'Sand',sandstorm:'Sand',sandstream:'Sand',hail:'Snow',snowteam:'Snow',snowwarning:'Snow',
+  psychicterrain:'Psychic Terrain',psyterrain:'Psychic Terrain',psychic:'Psychic Terrain',grassyterrain:'Grassy Terrain',grassy:'Grassy Terrain',electricterrain:'Electric Terrain',electerrain:'Electric Terrain',electric:'Electric Terrain',perish:'Perish Song',perishtrap:'Perish Song',
+  ho:'Hyper offense',hyperoffence:'Hyper offense',hyperoffense:'Hyper offense',balanced:'Balance',redirect:'Redirection',followme:'Redirection',setupteam:'Setup'};
+const styleKey=(v:string)=>v.toLowerCase().replace(/[^a-z0-9]+/g,'');
+// The team-style vocabulary: a value is one of TEAM_STYLES, or maps to one (mapped: true says it was not written that way); anything else is null.
+export function matchTeamStyle(value:unknown):{style:typeof TEAM_STYLES[number];mapped:boolean}|null{
+  if(typeof value!=='string')return null;const raw=value.trim();const k=styleKey(raw);if(!k)return null;
+  const exact=TEAM_STYLES.find(s=>s===raw);if(exact)return {style:exact,mapped:false};
+  const hit=TEAM_STYLES.find(s=>styleKey(s)===k)??STYLE_ALIASES[k];return hit?{style:hit,mapped:true}:null;
+}
 export interface MatchupPlan {id:string;opponent:string;archetype?:string;examples?:string[];threat:'low'|'medium'|'high';bring:string[];leadId?:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
 export interface Objective {id:string;kind:'test'|'todo';text:string;done:boolean;}
 // Why the team exists, agreed with the player while building it (with an assistant or by hand).

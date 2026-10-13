@@ -41,6 +41,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 - `workbench-server.ts`: the local API behind the UI (`/api/*`).
 - `hosted.ts`, `vercel-entry.ts`, `keep-alive.ts`: the hosted (Supabase + Vercel) API.
 - `mcp.ts`: the MCP connector for Claude, ChatGPT and CLI agents.
+- `replay-intake.ts`: replay add (links or HTML, auto-link) and single-replay delete, shared by the HTTP API and MCP. `pokepaste.ts`: publish a team to pokepast.es.
 - `scheduled-run.ts`: `npm run daily` and `npm run weekly` (no AI).
 
 **Workspace storage** (teams, sets, versions, replays)
