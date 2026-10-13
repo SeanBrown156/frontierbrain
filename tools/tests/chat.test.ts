@@ -66,3 +66,12 @@ test('calc_speed_order returns the engine order for four Pokémon, ties and flag
   assert.deepEqual(r.order.map((o:any)=>o.speed),[80,160,160,137]);assert.deepEqual(r.order.map((o:any)=>o.rank),[1,2,2,3]);assert.deepEqual(r.ties,[['Incineroar','Incineroar']]);
   assert.ok(tools.some(t=>t.name==='calc_speed_order'));
 });
+
+test('calc_damage returns both targets of a spread move and the one-target case',async()=>{
+  const db=emptyStore();const attacker={species:'Rillaboom',nature:'Adamant',statPoints:{atk:32},ability:'Grassy Surge'};
+  const r:any=await runTool('calc_damage',{attacker,defender:{species:'Farigiraf',nature:'Serious',ability:'Armor Tail'},move:'Rock Slide',secondDefender:{species:'Incineroar',nature:'Serious',ability:'Intimidate'}},{},db);
+  // See mechanics.test.ts for the derivation: 46-55 on Farigiraf, 76-90 on Incineroar (Rock is 2x), both with the 0.75 spread factor.
+  assert.deepEqual(r.range,[46,55]);assert.deepEqual(r.secondTarget.range,[76,90]);assert.equal(r.spread.reduction,0.75);
+  const one:any=await runTool('calc_damage',{attacker,defender:{species:'Farigiraf',nature:'Serious',ability:'Armor Tail'},move:'Rock Slide',moveOptions:{spread:false}},{},db);
+  assert.deepEqual(one.range,[62,73]);
+});
