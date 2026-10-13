@@ -93,10 +93,12 @@ export async function buildInbox(db:Workbench):Promise<Inbox>{
   for(const [teamId,ids] of await waiting(db,index))items.push({id:'summaries:'+teamId,kind:'summaries',at:null,title:`${ids.length} game${ids.length===1?'':'s'} waiting for a summary`,detail:names.get(teamId),teamId,teamName:names.get(teamId),count:ids.length,replayIds:ids,games:await preview(ids),
     request:`Summarise my new Frontier Brain replays for ${names.get(teamId)}.`,href:`#team/${teamId}/replays/all`});
   for(const c of await listCalcs().catch(()=>[])){
-    const inv=[c.input?.attacker,c.input?.defender,c.input?.a,c.input?.b].map(x=>baseName(x?.species)).filter(Boolean);let at:{t:Workbench['teams'][number];slot:number}|null=null;
+    const inv=[c.input?.attacker,c.input?.defender,c.input?.a,c.input?.b].map(x=>baseName(x?.species)).filter(Boolean);let at:{t:Workbench['teams'][number];slot:number;benchId?:string}|null=null;
     for(const sp of inv){for(const t of db.teams){const slot=six(db,t).findIndex(s=>baseName(s)===sp);if(slot>=0){at={t,slot};break;}}if(at)break;}
+    // A candidate on a team's Bench counts too: it has its own set, so a calc about it can be saved as its benchmark.
+    if(!at)for(const sp of inv){for(const t of db.teams)for(const b of t.bench??[]){const r=db.bank.find(e=>e.id===b.bankId)?.revisions.find(x=>x.id===b.revisionId);if(r&&baseName(r.set.species)===sp){at={t,slot:-1,benchId:b.id};break;}}if(at)break;}
     items.push({id:'calc:'+c.id,kind:'calc',at:c.at,title:c.label,detail:c.kind==='speed'?'Speed check from your assistant':'Damage calc from your assistant',calcId:c.id,calcKind:c.kind,input:c.input,result:c.result,source:c.from==='chat'?'chat':'mcp',
-      ...at?{teamId:at.t.id,teamName:at.t.name,slot:at.slot,href:`#team/${at.t.id}/mon/${at.t.activeVersionId}/${at.slot}`}:{}});}
+      ...at?{teamId:at.t.id,teamName:at.t.name,slot:at.slot,...at.benchId?{benchId:at.benchId}:{},href:at.benchId?`#team/${at.t.id}/bench/${at.benchId}`:`#team/${at.t.id}/mon/${at.t.activeVersionId}/${at.slot}`}:{}});}
   const {dismissed}=await readInboxState();
   for(const n of await readNotices())if(!dismissed.includes(n.id))items.push({id:'notice:'+n.id,kind:'notice',at:n.at,title:n.title,detail:n.body,noticeId:n.id,level:n.level,...n.url?{url:n.url}:{}});
   // Newest first within each kind; items with no date (waiting summaries) follow the dated ones.

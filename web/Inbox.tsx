@@ -98,18 +98,23 @@ function CalcItem({i,art,data,mutate,notify,dismiss}:{i:any;art:any;data:any;mut
     :null;
   // Saving as a benchmark attaches it to the team's Pokémon in the calc: the attacker (or first speed side) if it is on the team, else the defender.
   const team=data.teams.find((t:any)=>t.id===i.teamId);const view=team?getView(team,data.db,team.activeVersionId):null;
-  const onTeam=(x:any)=>view?view.sets.findIndex((s:any)=>fb(s.species)===fb(x?.species)):-1;
-  const pick=i.calcKind==='damage'?(onTeam(inp.attacker)>=0?{side:'attacker',slot:onTeam(inp.attacker),input:inp}:onTeam(inp.defender)>=0?{side:'defender',slot:onTeam(inp.defender),input:inp}:null)
-    :i.calcKind==='speed'&&!Array.isArray(inp.pokemon)?(onTeam(inp.a)>=0?{side:'a',slot:onTeam(inp.a),input:inp}:onTeam(inp.b)>=0?{side:'a',slot:onTeam(inp.b),input:{...inp,a:inp.b,b:inp.a}}:null):null;
+  // The six first, then the team's Bench candidates (they have their own sets too).
+  const benchSets:{id:string;bankId:string;revisionId:string;species:string}[]=team?(team.bench??[]).flatMap((b:any)=>{const r=data.db.bank.find((e:any)=>e.id===b.bankId)?.revisions.find((x:any)=>x.id===b.revisionId);return r?[{id:b.id,bankId:b.bankId,revisionId:b.revisionId,species:r.set.species}]:[];}):[];
+  const find=(x:any)=>{if(!view||!x?.species)return null;const k=fb(x.species);const n=view.sets.findIndex((s:any)=>fb(s.species)===k);
+    if(n>=0)return {name:view.sets[n].species,bankId:view.slots[n].bankId,revisionId:view.slots[n].revisionId};
+    const b=benchSets.find(s=>fb(s.species)===k);return b?{name:b.species,bankId:b.bankId,revisionId:b.revisionId}:null;};
+  const mk=(side:string,x:any,input:any)=>{const f=find(x);return f?{side,target:f,input}:null;};
+  const pick=i.calcKind==='damage'?(mk('attacker',inp.attacker,inp)??mk('defender',inp.defender,inp))
+    :i.calcKind==='speed'&&!Array.isArray(inp.pokemon)?(mk('a',inp.a,inp)??mk('a',inp.b,{...inp,a:inp.b,b:inp.a})):null;
   const saveBenchmark=async()=>{if(!pick||!view)return;setSaving(true);
-    try{const slot=view.slots[pick.slot];await mutate({type:'benchmark-save',bankId:slot.bankId,revisionId:slot.revisionId,kind:i.calcKind,input:pick.input,side:pick.side,context:'Calc from your assistant',origin:'Your assistant'});
-      await api('/assistant-calcs/remove',{id:i.calcId});notify(`Saved as a benchmark for ${view.sets[pick.slot].species}.`);}
+    try{await mutate({type:'benchmark-save',bankId:pick.target.bankId,revisionId:pick.target.revisionId,kind:i.calcKind,input:pick.input,side:pick.side,context:'Calc from your assistant',origin:'Your assistant'});
+      await api('/assistant-calcs/remove',{id:i.calcId});notify(`Saved as a benchmark for ${pick.target.name}.`);}
     catch(e){notify((e as Error).message,true);}finally{setSaving(false);}};
   return <><div className="inbox-head"><span className="tag">{i.calcKind==='speed'?'Speed':'Damage'}</span><b className="inbox-title">{i.title}</b></div>
     <p className="muted">{i.teamName?`${i.teamName} · `:''}{i.source==='chat'?'From Ask Frontier Brain':'From your assistant'}{i.at?` · ${date(i.at)}`:''}</p>
     {visual&&<div className="inbox-tile">{visual}</div>}
-    {!i.href&&<p className="muted">None of these Pokémon are on your teams, so it can't be saved as a benchmark.</p>}
-    <div className="button-row">{pick&&<button className="primary" disabled={saving} onClick={()=>void saveBenchmark()}>{saving?'Saving…':`Add as benchmark for ${view!.sets[pick.slot].species}`}</button>}{i.href&&<a className="button" href={i.href} onClick={()=>leaveOffer(`calc:${i.teamId}:${i.slot}`,{kind:i.calcKind,input:i.input,from:'Your assistant'})}>Open in calc</a>}<button className="text-button" onClick={dismiss}>Dismiss</button></div></>;
+    {!pick&&<p className="muted">Neither Pokémon is on one of your teams or Benches, so there is nothing to attach a benchmark to.</p>}
+    <div className="button-row">{pick&&<button className="primary" disabled={saving} onClick={()=>void saveBenchmark()}>{saving?'Saving…':`Add as benchmark for ${pick.target.name}`}</button>}{i.href&&<a className="button" href={i.href} onClick={()=>leaveOffer(`calc:${i.teamId}:${i.benchId?`bench-${i.benchId}`:i.slot}`,{kind:i.calcKind,input:i.input,from:'Your assistant'})}>Open in calc</a>}<button className="text-button" onClick={dismiss}>Dismiss</button></div></>;
 }
 
 // Games linked to a team with no summary yet: who each was against and both sixes, with the way to get them summarised.
