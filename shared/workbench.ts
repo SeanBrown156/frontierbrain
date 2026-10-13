@@ -23,7 +23,11 @@ export interface BankEntry {id:string;name:string;revisions:SetRevision[];}
 export interface Slot {bankId:string;revisionId:string;}
 export interface Configuration {id:string;createdAt:string;slots:Slot[];summary?:string;}
 export interface FormulaVersion {id:string;number:number;createdAt:string;notes:string;configurations:Configuration[];currentConfigurationId:string;label?:string;source?:'paste'|'observed';}
-export interface Formula {id:string;name:string;format:string;activeVersionId:string;versions:FormulaVersion[];}
+// The bench: Pokémon a team is considering. A candidate is an ordinary library (bank) revision; promoting it into a slot
+// puts that same revision in the team, so its benchmarks and notes travel with it. `replaces` is a hint, never a lock.
+export interface BenchEntry {id:string;bankId:string;revisionId:string;replaces?:string;addedAt:string;source:'player'|'assistant';}
+export const BENCH_LABEL='Bench';export const BENCH_LIMIT=12;
+export interface Formula {id:string;name:string;format:string;activeVersionId:string;versions:FormulaVersion[];bench?:BenchEntry[];}
 // basis 'auto': linked by tools/replay-link.ts (consistent with the game, never proof of spreads); 'player': confirmed by the player.
 export interface ReplayAssociation {teamId:string;versionId?:string;configurationId?:string;certainty:'family'|'exact';basis?:'auto'|'player';note?:string;}
 export interface MatchRecord {id:string;replayIds:string[];notes:string;}
@@ -42,7 +46,7 @@ export interface TeamCoaching {teamId:string;version:number;updatedAt:string;lea
 export interface Workbench {schemaVersion:1;revision:number;bank:BankEntry[];teams:Formula[];associations:Record<string,ReplayAssociation>;matches:MatchRecord[];benchmarks?:Benchmark[];coaching?:Record<string,TeamCoaching>;pending?:PendingProposal[];}
 // A change an assistant connected over MCP suggests for the player to accept or reject in the app (the same tiles as the
 // in-app chat). `proposal` has the in-app proposal shape: {kind:'set'|'team'|'strategy', ...}.
-export interface PendingProposal {id:string;teamId:string;createdAt:string;source:'mcp';summary:string;proposal:{kind:'set'|'team'|'strategy';[k:string]:any};}
+export interface PendingProposal {id:string;teamId:string;createdAt:string;source:'mcp';summary:string;proposal:{kind:'set'|'team'|'strategy'|'promote';[k:string]:any};}
 export interface Article {id:string;title:string;url:string;source:string;publishedAt:string;category:'tournament'|'report'|'official'|'community';format:string;summary:string;}
 // News describes the week's metagame only. It never refers to the player's teams, replays or workspace data.
 export interface NewsSignal {kind:'measured'|'report'|'community';title:string;summary:string;whyItMatters?:string;articleIds:string[];}
