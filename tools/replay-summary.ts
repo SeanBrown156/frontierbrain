@@ -15,7 +15,7 @@ import {TEAM_STYLES} from '../shared/workbench.ts';
 export const STYLES=TEAM_STYLES;
 export interface ReplaySummary {gameId:string;summary:string;keyMoments:{turn:number;text:string}[];workOn:{title:string;detail:string;category:'play'|'building'|'variance';turn?:number}[];opponentStyle:string[];confidence:'high'|'medium'|'low';model:string;createdAt:string;association:string;setsBasis:string;
   /** True when the player edited the AI's text; `earlierSummary` keeps the wording a later re-summary replaced. */edited?:boolean;earlierSummary?:string;}
-export interface TeamDigest {teamId:string;themes:{title:string;detail:string;games:string[];count:number;of:'losses'|'games';total:number}[];strengths:string[];games:number;model:string;createdAt:string;edited?:boolean;}
+export interface TeamDigest {teamId:string;themes:{title:string;detail:string;games:string[];count:number;of:'losses'|'games';total:number}[];strengths:string[];games:number;model:string;createdAt:string;edited?:boolean;/** Set when games were deleted since it was made; cleared by a refresh. */note?:string;}
 const DIR='reports/replay-summaries',DIGESTS='reports/replay-digests';
 const shown=(raw:string)=>raw.replace(/^p[12][ab]?: ?/,'');
 
@@ -121,16 +121,19 @@ Reply as JSON only: {"themes":[{"title":"short imperative","detail":"two sentenc
 export async function readDigest(teamId:string){return optionalJSON<TeamDigest|null>(`${DIGESTS}/${teamId}.json`,null);}
 
 // After a replay is deleted: drop it from the team's debrief themes and recompute their counts from the games that remain.
-// A debrief needs at least two summarised games, so below that it is removed (it is derived, and can be made again).
+// Deleting a replay keeps the debrief (including the player's edits) for the games that remain, with a note that it is built
+// from fewer games than before; it goes only when no theme is left. A refresh rebuilds it and clears the note.
 export async function pruneDigest(teamId:string,goneId:string):Promise<'none'|'unchanged'|'updated'|'removed'>{
   const d=await readDigest(teamId);if(!d)return 'none';
   const db=await readStore();const rows:{gameId:string;result:string}[]=[];
   for(const [id,a] of Object.entries(db.associations))if(a.teamId===teamId&&id!==goneId&&await readSummary(id)){const g=await readGame(id).catch(()=>null);if(g)rows.push({gameId:id,result:g.result});}
-  if(rows.length<2){await removeFile(`${DIGESTS}/${teamId}.json`).catch(()=>{});return 'removed';}
+  if(!rows.length){await removeFile(`${DIGESTS}/${teamId}.json`).catch(()=>{});return 'removed';}
   if(!d.themes.some(t=>t.games.includes(goneId))&&d.games===rows.length)return 'unchanged';
   const losses=rows.filter(r=>r.result==='loss').length;
   const themes=d.themes.map(t=>{const games=t.games.filter(g=>g!==goneId);const count=t.of==='losses'?games.filter(g=>rows.find(r=>r.gameId===g)?.result==='loss').length:games.length;return {...t,games,count,total:t.of==='losses'?losses:rows.length};}).filter(t=>t.games.length&&t.count>0);
-  await save(`${DIGESTS}/${teamId}.json`,{...d,themes,games:rows.length});return 'updated';
+  if(!themes.length){await removeFile(`${DIGESTS}/${teamId}.json`).catch(()=>{});return 'removed';}
+  const note=`Built from ${d.games} games; ${rows.length} summarised game${rows.length===1?'':'s'} remain after a replay was deleted. Refresh to rebuild it${rows.length<2?' once there are two':''}.`;
+  await save(`${DIGESTS}/${teamId}.json`,{...d,themes,games:rows.length,note});return 'updated';
 }
 // The player's own edits: the AI's text is theirs to change. A re-summary or refresh is shown what they wrote and builds on it.
 export async function editReplaySummary(gameId:string,patch:{summary?:unknown;keyMoments?:unknown;workOn?:unknown}):Promise<ReplaySummary>{

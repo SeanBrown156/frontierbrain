@@ -193,13 +193,13 @@ test('MCP replays and publishing: add by link or HTML, link to a team, delete on
     const noAsk=await call('delete_replay',{replayId:ids[0]});assert.ok(noAsk.isError);assert.match(noAsk.content[0].text,/player has to ask/);
     const noSuch=await call('delete_replay',{replayId:'nope',playerAgreed:true});assert.ok(noSuch.isError);assert.match(noSuch.content[0].text,/not found/);
     assert.equal((await text('list_replays',{teamId:made.created})).length,3,'refusals delete nothing');
-    const del=await text('delete_replay',{replayId:ids[0],playerAgreed:true});assert.equal(del.deleted,ids[0]);assert.equal(del.team,'Rain');assert.match(del.debrief,/removed/);
-    await withData(ctx,async()=>{assert.equal((await loadGames()).length,2);assert.equal(await readSummary(ids[0]),null);assert.equal(await readDigest(made.created),null,'under two summaries the debrief is dropped');assert.ok(await readSummary(ids[1]));});
+    const del=await text('delete_replay',{replayId:ids[0],playerAgreed:true});assert.equal(del.deleted,ids[0]);assert.equal(del.team,'Rain');assert.match(del.debrief,/kept/);
+    await withData(ctx,async()=>{assert.equal((await loadGames()).length,2);assert.equal(await readSummary(ids[0]),null);const kept=await readDigest(made.created);assert.ok(kept,'the debrief is kept for the games that remain');assert.match(kept!.note!,/remain after a replay was deleted/);assert.ok(kept!.themes.every((th:any)=>!th.games.includes(ids[0])));assert.ok(await readSummary(ids[1]));});
     assert.equal(store.db.associations[ids[0]],undefined);assert.ok(store.db.associations[ids[1]]);
     assert.equal((await text('list_replays',{teamId:made.created})).length,2);
     // PokePaste is public: refused without the player's agreement, nothing is sent
     const noPub=await call('create_pokepaste',{teamId:made.created});assert.ok(noPub.isError);assert.match(noPub.content[0].text,/public/);assert.equal(paste,null);
-    const pub=await text('create_pokepaste',{teamId:made.created,playerAgreed:true});assert.equal(pub.url,'https://pokepast.es/0123abcd');assert.equal(paste!.get('title'),'Rain');assert.equal(paste!.get('author'),'','the player\'s name is not posted by default');assert.match(paste!.get('paste')!,/@/);
+    const pub=await text('create_pokepaste',{teamId:made.created,playerAgreed:true});assert.equal(pub.url,'https://pokepast.es/0123abcd');assert.equal(paste!.get('title'),'Rain');assert.equal(paste!.get('author'),'Player','author defaults to the player\'s Showdown name, like the app button');assert.match(paste!.get('paste')!,/@/);
     assert.ok((await call('create_pokepaste',{teamId:'nope',playerAgreed:true})).isError);
     // backup and restore stay in the app: the tool says where, with counts
     const info=await text('backup_info',{});assert.equal(info.contains.replays,2);assert.equal(info.contains.teams,1);assert.match(info.available,/Settings/);

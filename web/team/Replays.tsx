@@ -130,6 +130,7 @@ function Digest({team,games,info,busy,refresh,saved,notify,art}:{team:any;games:
       <div className="button-row">{d&&!editing&&<button onClick={startEdit}><Px icon={Pencil}/>Edit</button>}{r.n>=2&&!editing&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Sparkles}/>Refresh</>}</button>}</div></header>
     {!d?<p className="muted">{r.n<2?'Add a couple of replays to get a debrief.':busy?'Summarising your games…':'Summarise your games to get a debrief.'}</p>
       :<div className="debrief">
+        {d.note&&<p className="footnote">{d.note}</p>}
         {(d.strengths?.length>0||editing)&&<section><h3>What's working</h3>{editing
           ?<ul className="debrief-good inline-edit">{strengths.map((t,i)=><li key={i}><textarea rows={2} value={t} maxLength={200} aria-label="What's working" onChange={e=>setStrengths(strengths.map((x,j)=>j===i?e.target.value:x))}/></li>)}</ul>
           :<ul className="debrief-good">{d.strengths.map((t:string,i:number)=><li key={i}>{t}</li>)}</ul>}</section>}
