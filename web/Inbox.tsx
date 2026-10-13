@@ -4,6 +4,11 @@ import {api,Art,Panel,Empty,date} from './ui.tsx';
 import {Px,Sparkles,Check,Copy,ArrowLeft,WarningDiamond} from './icons.tsx';
 import {hostedSite} from './auth.tsx';
 import {AssociationDialog} from './Coach.tsx';
+import {ProposalCard,acceptProposal,type Proposal} from './ai/proposals.tsx';
+import {aiReady} from './ai/AssistDock.tsx';
+import {DamageViz,SpeedRace} from './BenchmarkLab.tsx';
+import {getView} from './team/editors.tsx';
+import {BENCH_LABEL} from '../shared/workbench.ts';
 
 // The Inbox: what is waiting on the player (tools/inbox.ts computes it from the same records the team views read).
 // The count is polled like the other queues, only while the tab is visible, and refetched when the workspace changes.
@@ -22,13 +27,13 @@ export function InboxLink({count}:{count:number}){
 
 const SECTIONS:[string,string,string][]=[
   ['unlinked-replay','Replays with no team','Saved, but no team can see them. Link each to a team, or delete it.'],
-  ['suggestion','Suggestions from your assistant','Not applied until you accept them on the team page.'],
+  ['suggestion','Changes waiting for your decision','From your assistant over MCP, or from Ask Frontier Brain when a chat was closed before you decided. Nothing changes until you accept.'],
   ['summaries','Replays waiting for a summary','Linked to a team, with no summary yet.'],
-  ['calc','Calcs from your assistant','Run for you over the connector. They open in the calc panel on the Pokémon page.'],
+  ['calc','Calcs from your assistant','Run for you over the connector. Open one in the calc panel on the Pokémon page, or dismiss it.'],
   ['notice','Notices','Changes to the rules or data that may affect your teams.']];
 const KIND_LABEL:Record<string,string>={set:'Set',team:'Team',strategy:'Strategy',promote:'Promote',bench:'Bench',lead:'Lead plan',matchup:'Matchup plan',objective:'To-do'};
 
-export default function InboxPage({inbox,data,load,reload,notify,openDock}:{inbox:any;data:any;load:()=>Promise<void>;reload:()=>Promise<void>;notify:(s:string,e?:boolean)=>void;openDock:()=>void}){
+export default function InboxPage({inbox,data,load,reload,notify,mutate,dataRef}:{inbox:any;data:any;load:()=>Promise<void>;reload:()=>Promise<void>;notify:(s:string,e?:boolean)=>void;mutate:(a:any,o?:any)=>Promise<any>;dataRef:{current:any}}){
   const [linking,setLinking]=useState<any>(null);
   if(!inbox)return <><Back/><Empty>Checking what is waiting…</Empty></>;
   const refresh=async()=>{await load();await reload();};
@@ -48,13 +53,9 @@ export default function InboxPage({inbox,data,load,reload,notify,openDock}:{inbo
       return <section key={kind} className="inbox-section" aria-label={title}><h3 className="inbox-h">{title}<span className="inbox-n">{items.length}</span></h3><p className="muted tiny">{hint}</p>
         <ul className="inbox-list">{items.map((i:any)=><li key={i.id} className={'inbox-item '+kind}>{
           kind==='unlinked-replay'?<Unlinked i={i} art={data.art} teams={data.teams} link={act.link} choose={()=>setLinking(game(i))} remove={()=>void act.remove(i)}/>
-          :kind==='suggestion'?<><div className="inbox-head"><span className="tag">{KIND_LABEL[i.proposalKind]??'Suggestion'}</span><b className="inbox-title">{i.title}</b></div>
-              <p className="muted">For <a href={i.href}>{i.teamName}</a>{i.at?` · ${date(i.at)}`:''}{i.detail?`: ${i.detail}`:''}</p>
-              <div className="button-row"><a className="button primary" href={i.href} onClick={openDock}><Px icon={Sparkles}/>Review and accept</a></div></>
-          :kind==='summaries'?<Summaries i={i}/>
-          :kind==='calc'?<><div className="inbox-head"><span className="tag">{i.calcKind==='speed'?'Speed':'Damage'}</span><b className="inbox-title">{i.title}</b></div>
-              {i.href?<p className="muted">Opens on {i.teamName}'s Pokémon page, in "From your assistant".</p>:<p className="muted">None of its Pokémon are on your teams, so it has no page to open on.</p>}
-              <div className="button-row">{i.href&&<a className="button primary" href={i.href}>Open in calc</a>}<button className="text-button" onClick={()=>void act.dismissCalc(i)}>Dismiss</button></div></>
+          :kind==='suggestion'?<Suggestion i={i} data={data} mutate={mutate} dataRef={dataRef} notify={notify}/>
+          :kind==='summaries'?<Summaries i={i} art={data.art} notify={notify} refresh={refresh}/>
+          :kind==='calc'?<CalcItem i={i} art={data.art} dismiss={()=>void act.dismissCalc(i)}/>
           :<><div className="inbox-head"><span className={'tag'+(i.level==='warning'?' warn':'')}>{i.level==='warning'?<><Px icon={WarningDiamond} size={12}/>Warning</>:'Info'}</span><b className="inbox-title">{i.title}</b></div>
               <p>{i.detail}</p><p className="muted tiny">{date(i.at)}</p>
               <div className="button-row"><button className="primary" onClick={()=>void act.dismissNotice(i)}><Px icon={Check}/>Dismiss</button>{i.url&&<a className="button" href={i.url} target="_blank" rel="noreferrer">Read more ↗</a>}</div></>}</li>)}</ul></section>;})}
@@ -63,13 +64,52 @@ export default function InboxPage({inbox,data,load,reload,notify,openDock}:{inbo
 }
 const Back=()=><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a>;
 
-function Summaries({i}:{i:any}){
-  const [copied,setCopied]=useState(false);
+// One suggestion, as the same tile the chat shows (what changes, highlighted), accepted or dismissed right here.
+function Suggestion({i,data,mutate,dataRef,notify}:{i:any;data:any;mutate:(a:any,o?:any)=>Promise<any>;dataRef:{current:any};notify:(s:string,e?:boolean)=>void}){
+  const item=(data.db.pending??[]).find((x:any)=>x.id===i.pendingId);const team=data.teams.find((t:any)=>t.id===i.teamId);
+  const [state,setState]=useState<{status?:'saving'|'accepted';error?:string}>({});
+  if(!item||!team)return null;
+  const view=getView(team,data.db,team.activeVersionId);const p:Proposal={...item.proposal,status:state.status,error:state.error};
+  const decide=async(yes:boolean)=>{
+    if(!yes){await mutate({type:'pending-resolve',id:item.id}).catch((e:Error)=>notify(e.message,true));return;}
+    setState({status:'saving'});
+    try{const note=await acceptProposal(item.proposal,{team,dataRef,mutate,versionId:team.activeVersionId,navigate:false});await mutate({type:'pending-resolve',id:item.id});if(note)notify(note);}
+    catch(e){setState({error:(e as Error).message});}};
+  // Where this lands, said plainly: the Bench is a scratchboard and never changes the six.
+  const kind=item.proposal.kind;
+  const where=kind==='bench'?`Goes on the ${BENCH_LABEL}. Your six does not change.`:kind==='promote'?`Moves ${item.proposal.species} from the ${BENCH_LABEL} into slot ${item.proposal.slot+1}.`:kind==='set'?`Changes slot ${item.proposal.slot+1} of the six.`:kind==='team'?'Saved as a new version; the active one stays.':'';
+  return <>
+    <div className="inbox-head"><span className="tag">{KIND_LABEL[kind]??'Suggestion'}</span><b className="inbox-title">{i.title}</b></div>
+    <p className="muted">For <a href={i.href}>{i.teamName}</a>{i.at?` · ${date(i.at)}`:''} · {i.source==='chat'?'From Ask Frontier Brain':'From your assistant'}{i.detail?` · ${i.detail}`:''}</p>
+    {where&&<p className="inbox-where">{where}</p>}
+    <div className="inbox-tile"><ProposalCard p={p} art={data.art} current={slot=>view.sets[slot]} decide={yes=>void decide(yes)} rejectLabel="Dismiss" compact/></div></>;
+}
+
+// A calc the assistant ran, drawn the way the calc panel draws it: the HP bar for damage, the race for speed.
+function CalcItem({i,art,dismiss}:{i:any;art:any;dismiss:()=>void}){
+  const r=i.result,inp=i.input??{};const fb=(s?:string)=>String(s??'').replace(/-Mega(-[A-Z])?$/,'');
+  const visual=i.calcKind==='damage'&&Array.isArray(r?.range)&&Array.isArray(r?.percentOfMaxHP)
+      ?<DamageViz result={r} name={inp.defender?.species??'Target'} attackerName={inp.attacker?.species??'Attacker'} defender={inp.defender?.species??''} fallback={fb(inp.defender?.species)} move={inp.move??r.move??''} art={art}/>
+    :i.calcKind==='speed'&&r?.a!==undefined&&r?.b!==undefined&&inp.a&&inp.b
+      ?<SpeedRace a={{name:inp.a.species,fallback:fb(inp.a.species),speed:Number(r.a?.speed??r.a)}} b={{name:inp.b.species,fallback:fb(inp.b.species),speed:Number(r.b?.speed??r.b)}} first={r.first} trickRoom={!!r.trickRoom} art={art} decidedBy={r.decidedBy}/>
+    :null;
+  return <><div className="inbox-head"><span className="tag">{i.calcKind==='speed'?'Speed':'Damage'}</span><b className="inbox-title">{i.title}</b></div>
+    {visual&&<div className="inbox-tile">{visual}</div>}
+    {i.href?<p className="muted">Opens on {i.teamName}'s Pokémon page, in "From your assistant".</p>:<p className="muted">None of its Pokémon are on your teams, so it has no page to open on.</p>}
+    <div className="button-row">{i.href&&<a className="button primary" href={i.href}>Open in calc</a>}<button className="text-button" onClick={dismiss}>Dismiss</button></div></>;
+}
+
+// Games linked to a team with no summary yet: who each was against and both sixes, with the way to get them summarised.
+function Summaries({i,art,notify,refresh}:{i:any;art:any;notify:(s:string,e?:boolean)=>void;refresh:()=>Promise<void>}){
+  const [copied,setCopied]=useState(false),[busy,setBusy]=useState(false);
+  const six=(list:string[])=><div className="six">{list.map((m:string)=><span key={m} title={m}><Art name={m} art={art} small/></span>)}</div>;
+  const go=async()=>{setBusy(true);try{if(!(await aiReady())){notify('No AI key is connected here. Add one in Settings, or ask your assistant over MCP (copy the request below).',true);return;}
+    await api('/replay-summarise',{teamId:i.teamId,gameIds:i.replayIds});await refresh();notify('Summarised.');}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
   return <><div className="inbox-head"><span className="tag">{i.count}</span><b className="inbox-title">{i.teamName}</b></div>
-    <p className="muted">{i.title}. Ask the assistant you connected over MCP, or summarise them from the Replays tab.</p>
-    <p className="waiting-ask"><q>{i.request}</q></p>
-    <div className="button-row"><a className="button primary" href={i.href}>Open Replays</a>
-      <button onClick={()=>{void navigator.clipboard.writeText(i.request).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request'}</button></div></>;
+    <p className="muted">{i.title}. Saved and linked, not summarised yet.</p>
+    {(i.games??[]).length>0&&<ul className="inbox-games">{i.games.map((g:any)=><li key={g.id}><span className={'result '+g.result}>{g.result}</span><b>vs {g.opponent}</b>{six(g.yours)}<span className="muted">vs</span>{six(g.theirs)}</li>)}{i.count>i.games.length&&<li className="muted">and {i.count-i.games.length} more</li>}</ul>}
+    <div className="button-row"><button className="primary" disabled={busy} onClick={()=>void go()}><Px icon={Sparkles}/>{busy?'Summarising…':`Summarise ${i.count}`}</button><a className="button" href={i.href}>Open Replays</a>
+      <button onClick={()=>{void navigator.clipboard.writeText(i.request).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request for your assistant'}</button></div></>;
 }
 
 // One unlinked game: who it was against, both sixes, why it did not link (from the link logic) and what to do.

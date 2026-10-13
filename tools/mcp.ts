@@ -125,7 +125,7 @@ async function call(name:string,input:any){
     const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name||`${t.name} (copy)`).slice(0,120),paste:exportText(view.sets as any,t.format,{validate:false}),format:t.format,notes:view.version.notes??'',benchFrom:t.id} as any));
     const n:any=r.result;return {created:n.id,name:n.name,note:'A copy of the six, the game-plan text and the bench. Plans and replays stay with the original.'};}
   if(name==='replace_pokemon'||name==='star_set'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const view=currentTeam(db,t);
-    const slot=view.sets.findIndex((s:any)=>String(s.species).toLowerCase()===String(input.pokemon).toLowerCase());if(slot<0)throw new Error(`"${input.pokemon}" is not on this team (${view.sets.map((s:any)=>s.species).join(', ')}).`);
+    const slot=view.sets.findIndex((s:any)=>String(s.species).toLowerCase()===String(input.pokemon).toLowerCase());if(slot<0)throw offTeam(db,t,input.pokemon,view.sets);
     if(name==='star_set'){const r:any=await mutateLatest(d=>applyAction(d,{type:input.unstar?'set-unstar':'set-star',teamId:t.id,slot,label:input.label} as any));return {pokemon:view.sets[slot].species,starred:!input.unstar,label:r.result?.starred?.label??null};}
     const one:any[]=importText(String(input.paste??''));if(one.length!==1)throw new Error('Send exactly one Pokémon in the paste.');
     const lines=changeLines(view.sets[slot],one[0]);
@@ -197,7 +197,7 @@ async function call(name:string,input:any){
     if(!Object.keys(ch).length)throw new Error('changes is empty: send moves, item, ability, nature, statPoints and/or strategy.');
     if(ch.strategy!==undefined&&typeof ch.strategy!=='string')throw new Error('strategy is the full write-up as markdown text.');
     const view=currentTeam(db,t);const want=String(input.pokemon).toLowerCase();
-    const slot=view.sets.findIndex((x:any)=>String(x.species).toLowerCase()===want);if(slot<0)throw new Error(`"${input.pokemon}" is not on this team (${view.sets.map((x:any)=>x.species).join(', ')}).`);
+    const slot=view.sets.findIndex((x:any)=>String(x.species).toLowerCase()===want);if(slot<0)throw offTeam(db,t,input.pokemon,view.sets);
     const before:any=structuredClone(view.sets[slot]);const set:any=structuredClone(before);
     if(ch.moves!==undefined){if(!Array.isArray(ch.moves)||ch.moves.length!==4)throw new Error('moves is the full list of four move names (keep the ones that stay).');set.moves=ch.moves.map(String);}
     for(const k of ['item','ability','nature'])if(ch[k]!==undefined)set[k]=String(ch[k]);
@@ -229,7 +229,7 @@ async function call(name:string,input:any){
     const head=(b:any)=>b.kind==='damage'?{range:b.result?.range,percentOfMaxHP:b.result?.percentOfMaxHP,koChanceOnHit:b.result?.koChanceOnHit}:b.kind==='speed'?{first:b.result?.first??b.result?.result,a:b.result?.a?.speed??undefined,b:b.result?.b?.speed??undefined}:{summary:'spread search'};
     if(name==='list_benchmarks'){const slots=view.configuration.slots;const mine=(db.benchmarks??[]).filter((b:any)=>slots.some((s:any)=>s.bankId===b.bankId)&&(!input.pokemon||b.bankId===slots[idx(input.pokemon)]?.bankId));
       return mine.map((b:any)=>({id:b.id,pokemon:view.sets[slots.findIndex((s:any)=>s.bankId===b.bankId)]?.species,kind:b.kind,side:b.side,...benchmarkLabel(b,view.sets[slots.findIndex((s:any)=>s.bankId===b.bankId)]?.species),context:b.context,...head(b)}));}
-    const i=idx(input.pokemon);if(i<0)throw new Error(`"${input.pokemon}" is not on this team (${view.sets.map((s:any)=>s.species).join(', ')}).`);
+    const i=idx(input.pokemon);if(i<0)throw offTeam(db,t,input.pokemon,view.sets);
     if(!['damage','speed','spread'].includes(input.kind))throw new Error('kind is damage, speed or spread.');if(!input.input||typeof input.input!=='object')throw new Error('input is required: the same calc input you would give calc_damage / calc_speed / spread_search.');
     const slot=view.configuration.slots[i];
     const r=await mutateLatest(d=>applyAction(d,{type:'benchmark-save',bankId:slot.bankId,revisionId:slot.revisionId,kind:input.kind,input:input.input,context:input.context,sources:input.sources??[]} as any));
@@ -320,6 +320,11 @@ function server(prefs:string){
   });
   return s;
 }
+// "Not on this team" for a name that is a Bench candidate says so: the Bench is where candidates are edited.
+const offTeam=(db:any,t:any,name:unknown,sets:any[],tool?:string)=>{const want=String(name).trim().toLowerCase();
+  const hit=(t.bench??[]).find((b:any)=>String(db.bank.find((e:any)=>e.id===b.bankId)?.revisions.find((r:any)=>r.id===b.revisionId)?.set.species??'').toLowerCase()===want);
+  const six=sets.map((s:any)=>s.species).join(', ');
+  return new Error(hit?`"${name}" is a candidate on this team's Bench, not one of the six (${six}). Change it with update_bench (benchId ${hit.id}), or move it into the team with promote_from_bench.`:`"${name}" is not on this team (${six}).${(t.bench??[]).length?' Candidates on the Bench are edited with update_bench; see get_bench.':''}`);};
 export async function handleMcp(req:IncomingMessage,res:ServerResponse,body?:unknown){
   if(req.method!=='POST'){res.writeHead(405,{Allow:'POST','Content-Type':'application/json'});res.end(JSON.stringify({jsonrpc:'2.0',error:{code:-32000,message:'Method not allowed'},id:null}));return;}
   const transport=new StreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true});const s=server(preferencesText(await readPreferences()));

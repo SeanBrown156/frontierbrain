@@ -85,13 +85,17 @@ export async function buildInbox(db:Workbench):Promise<Inbox>{
   for(const e of index.games){if(db.associations[e.id])continue;try{items.push(unlinkedItem(db,await json<Game>(e.parsed)));}catch{}}
   const names=new Map(db.teams.map(t=>[t.id,t.name]));
   for(const p of db.pending??[]){const team=names.get(p.teamId);if(!team)continue;
-    items.push({id:'suggestion:'+p.id,kind:'suggestion',at:p.createdAt,title:describe(p.proposal),detail:p.summary||undefined,pendingId:p.id,teamId:p.teamId,teamName:team,proposalKind:p.proposal.kind,href:`#team/${p.teamId}/overview/all`});}
-  for(const [teamId,ids] of await waiting(db,index))items.push({id:'summaries:'+teamId,kind:'summaries',at:null,title:`${ids.length} game${ids.length===1?'':'s'} waiting for a summary`,detail:names.get(teamId),teamId,teamName:names.get(teamId),count:ids.length,replayIds:ids,
+    items.push({id:'suggestion:'+p.id,kind:'suggestion',at:p.createdAt,title:describe(p.proposal),detail:p.summary||undefined,pendingId:p.id,source:p.source,teamId:p.teamId,teamName:team,proposalKind:p.proposal.kind,href:`#team/${p.teamId}/overview/all`});}
+  const entry=new Map(index.games.map(e=>[e.id,e]));
+  // Up to four of the waiting games, with who they were against and both sixes, so the card shows what it is about.
+  const preview=async(ids:string[])=>{const out:any[]=[];for(const id of ids.slice(0,4)){const e=entry.get(id);if(!e)continue;try{const g=await json<Game>(e.parsed);
+    out.push({id,result:g.result,date:g.date,opponent:g.players[other(g)]?.name??'opponent',yours:g.preview[g.ownSide]??[],theirs:g.preview[other(g)]??[]});}catch{}}return out;};
+  for(const [teamId,ids] of await waiting(db,index))items.push({id:'summaries:'+teamId,kind:'summaries',at:null,title:`${ids.length} game${ids.length===1?'':'s'} waiting for a summary`,detail:names.get(teamId),teamId,teamName:names.get(teamId),count:ids.length,replayIds:ids,games:await preview(ids),
     request:`Summarise my new Frontier Brain replays for ${names.get(teamId)}.`,href:`#team/${teamId}/replays/all`});
   for(const c of await listCalcs().catch(()=>[])){
     const inv=[c.input?.attacker,c.input?.defender,c.input?.a,c.input?.b].map(x=>baseName(x?.species)).filter(Boolean);let at:{t:Workbench['teams'][number];slot:number}|null=null;
     for(const sp of inv){for(const t of db.teams){const slot=six(db,t).findIndex(s=>baseName(s)===sp);if(slot>=0){at={t,slot};break;}}if(at)break;}
-    items.push({id:'calc:'+c.id,kind:'calc',at:c.at,title:c.label,detail:c.kind==='speed'?'Speed check from your assistant':'Damage calc from your assistant',calcId:c.id,calcKind:c.kind,
+    items.push({id:'calc:'+c.id,kind:'calc',at:c.at,title:c.label,detail:c.kind==='speed'?'Speed check from your assistant':'Damage calc from your assistant',calcId:c.id,calcKind:c.kind,input:c.input,result:c.result,
       ...at?{teamId:at.t.id,teamName:at.t.name,slot:at.slot,href:`#team/${at.t.id}/mon/${at.t.activeVersionId}/${at.slot}`}:{}});}
   const {dismissed}=await readInboxState();
   for(const n of await readNotices())if(!dismissed.includes(n.id))items.push({id:'notice:'+n.id,kind:'notice',at:n.at,title:n.title,detail:n.body,noticeId:n.id,level:n.level,...n.url?{url:n.url}:{}});
@@ -111,5 +115,5 @@ export const inboxTools=[
 export const inboxNames=new Set(inboxTools.map(t=>t.name));
 export async function inboxCall(name:string,db:Workbench){
   if(name!=='get_inbox')return undefined;const {items,count,byKind}=await buildInbox(db);
-  return {count,byKind,items:items.map(({href,at,...i})=>({...i,at})),note:count?'These are waiting on the player in the Inbox page of Frontier Brain. Unlinked replays are linked or deleted there; delete_replay needs the player to ask.':'Nothing is waiting on the player.'};
+  return {count,byKind,items:items.map(({href,at,result,input,games,...i})=>({...i,at})),note:count?'These are waiting on the player in the Inbox page of Frontier Brain. Unlinked replays are linked or deleted there; delete_replay needs the player to ask.':'Nothing is waiting on the player.'};
 }

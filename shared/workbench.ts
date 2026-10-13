@@ -58,7 +58,7 @@ export interface TeamCoaching {teamId:string;version:number;updatedAt:string;lea
 export interface Workbench {schemaVersion:1;revision:number;bank:BankEntry[];teams:Formula[];associations:Record<string,ReplayAssociation>;matches:MatchRecord[];benchmarks?:Benchmark[];coaching?:Record<string,TeamCoaching>;pending?:PendingProposal[];}
 // A change an assistant connected over MCP suggests for the player to accept or reject in the app (the same tiles as the
 // in-app chat). `proposal` has the in-app proposal shape: {kind:'set'|'team'|'strategy', ...}.
-export interface PendingProposal {id:string;teamId:string;createdAt:string;source:'mcp';summary:string;proposal:{kind:'set'|'team'|'strategy'|'promote';[k:string]:any};}
+export interface PendingProposal {id:string;teamId:string;createdAt:string;source:'mcp'|'chat';summary:string;proposal:{kind:'set'|'team'|'strategy'|'promote';[k:string]:any};}
 export interface Article {id:string;title:string;url:string;source:string;publishedAt:string;category:'tournament'|'report'|'official'|'community';format:string;summary:string;}
 // News describes the week's metagame only. It never refers to the player's teams, replays or workspace data.
 export interface NewsSignal {kind:'measured'|'report'|'community';title:string;summary:string;whyItMatters?:string;articleIds:string[];}

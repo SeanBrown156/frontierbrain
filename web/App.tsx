@@ -124,7 +124,7 @@ export default function App(){
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
       {team&&parts[2]==='bench'&&candidate&&<BenchWorkspace key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} benchId={candidate.id}/>}
       {team&&parts[2]!=='mon'&&!candidate&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
-      {route==='inbox'&&<InboxPage inbox={inbox} data={pageData} load={load} reload={reloadInbox} notify={notify} openDock={()=>setDockOpen(true)}/>}
+      {route==='inbox'&&<InboxPage inbox={inbox} data={pageData} load={load} reload={reloadInbox} notify={notify} mutate={mutate} dataRef={dataRef}/>}
       {route==='account'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Settings profile={data.profile} reload={load} notify={notify}/></>}
       {route==='news'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
       {route==='data'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><DataPool art={data.art}/></>}

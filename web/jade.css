@@ -2315,3 +2315,47 @@ html.jade .bench-add-modal textarea{width:100%;box-sizing:border-box;min-height:
 html.jade .bench-chosen{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);border:1px solid var(--ln-2);border-radius:12px;background:var(--sunk)}
 html.jade .bench-chosen .set-art{flex:none}
 html.jade .bench-chosen small{color:var(--mu);display:block}
+
+/* Ask Frontier Brain: the corner buttons, the expanded (centred) view, past chats. */
+html.jade .dock-head{grid-template-columns:minmax(0,1fr) auto!important}
+html.jade .dock-corner{grid-area:close;display:flex;gap:8px}
+html.jade .dock-corner button.icon{width:40px;height:40px;padding:0!important;border-radius:12px}
+html.jade .dock-scrim,html.jade .shell>.dock-scrim{position:fixed!important;inset:0;z-index:90!important;display:grid;place-items:center;padding:24px;background:rgba(4,10,8,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:jFade .18s ease-out}
+@keyframes jFade{from{opacity:0}to{opacity:1}}
+html.jade .dock-scrim>.dock.expanded{position:relative!important;inset:auto!important;top:auto!important;right:auto!important;bottom:auto!important;width:min(960px,100%)!important;height:min(88dvh,900px)!important;max-height:88dvh;animation:none;z-index:1!important;background:var(--bg)!important}
+html.jade .dock.expanded .dock-log{padding:20px 28px!important}
+html.jade .dock.expanded .dock-log .chat-turn{max-width:760px}
+html.jade .dock.expanded .dock-log .chat-turn.user{margin-left:auto}
+html.jade .dock.expanded .proposals{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))!important}
+html.jade .dock.expanded .dock-input{padding:0 28px 20px}
+html.jade .history-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+html.jade .history-list button{display:grid;gap:4px;width:100%;height:auto!important;padding:14px 16px;text-align:left;justify-items:start;border-radius:var(--r)}
+html.jade .history-list b{font-weight:700;white-space:normal}
+html.jade .past-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:620px){html.jade .dock-scrim{padding:0}html.jade .dock-scrim>.dock.expanded{height:100dvh!important;max-height:100dvh;border-radius:0!important}}
+
+/* Inbox: suggestions, calcs and waiting games shown as what they are, not a line of text. */
+html.jade .inbox-tile{margin:var(--s2) 0}
+html.jade .inbox-tile .set-tile,html.jade .inbox-tile .proposal-card{max-width:560px}
+html.jade .inbox-where{margin:0;font-weight:600;color:var(--ac)}
+html.jade .inbox-games{list-style:none;margin:var(--s2) 0;padding:0;display:grid;gap:10px}
+html.jade .inbox-games li{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html.jade .inbox-games .six{display:flex;gap:2px}
+html.jade .inbox-item .button-row{flex-wrap:wrap}
+@media(max-width:620px){html.jade .inbox-item .button-row>:is(button,.button){width:100%;justify-content:center}}
+
+html.jade .dock-controls{grid-template-columns:minmax(0,1fr)!important}
+html.jade .dock-corner{gap:6px}
+html.jade .dock-corner button.icon.selected{border-color:var(--ac)!important;color:var(--ac)}
+@media(max-width:380px){html.jade .dock-head h2{font-size:20px!important}html.jade .dock-corner button.icon{width:36px;height:36px}}
+
+/* Ask Frontier Brain header: title and two corner buttons only; views and "New chat" are a quiet tab row; the model sits by the input. */
+html.jade .dock-head{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"title close"!important;padding-bottom:12px!important}
+html.jade .dock-tabs{display:flex;align-items:center;gap:6px;padding:0 20px 12px;border-bottom:1px solid var(--ln)}
+html.jade .dock-tabs button:not(.text-button){height:34px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;font-size:13px}
+html.jade .dock-tabs button.on{border-color:var(--ac)!important;color:var(--ac)}
+html.jade .dock-tabs .dock-new{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:13px}
+html.jade .dock-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:var(--s2)}
+html.jade .dock-meta .context-chip{margin:0}
+html.jade .dock-meta .model-picker select{height:32px;font-size:12px}
+html.jade .dock-head+.dock-tabs{margin-top:-4px}

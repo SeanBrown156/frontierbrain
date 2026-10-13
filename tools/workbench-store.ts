@@ -95,7 +95,7 @@ export function applyAction(db:Workbench,action:any):unknown {
   }
   // Suggestions from a connected assistant wait here until the player accepts or rejects them in the app.
   if(action.type==='pending-add'){if(!db.teams.some(t=>t.id===action.teamId))throw new Error('Team not found');
-    const item={id:uid('pending'),teamId:action.teamId,createdAt:now(),source:'mcp' as const,summary:checkText(action.summary??'',300),proposal:structuredClone(action.proposal)};
+    const item={id:uid('pending'),teamId:action.teamId,createdAt:now(),source:(action.source==='chat'?'chat':'mcp') as 'mcp'|'chat',summary:checkText(action.summary??'',300),proposal:structuredClone(action.proposal)};
     db.pending=[...(db.pending??[]).filter(x=>!(x.teamId===item.teamId&&x.proposal.kind==='set'&&item.proposal.kind==='set'&&x.proposal.slot===item.proposal.slot)),item].slice(-30);return item;}
   if(action.type==='pending-resolve'){const before=(db.pending??[]).length;db.pending=(db.pending??[]).filter(x=>x.id!==action.id);return {resolved:before-db.pending.length};}
   if(action.type==='benchmark-delete'){const before=(db.benchmarks??[]).length;db.benchmarks=(db.benchmarks??[]).filter(b=>b.id!==action.benchmarkId);if(db.benchmarks.length===before)throw new Error('Benchmark not found');return {deleted:action.benchmarkId};
