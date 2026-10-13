@@ -3,6 +3,8 @@
   "officialURL": "https://champions-news.pokemon-home.com/en/page/816.html",
   "startsAt": "2026-09-09T02:00:00Z", "endsAt": "2026-12-02T01:59:00Z",
   "verifiedAt": "2026-10-08", "megaEvolutionPerBattle": 1,
+  "status": "active", "confidence": "official",
+  "engine": {"verified": true, "format": "gen9championsvgc2026regmc", "note": "Pinned Showdown c046106c and @smogon/calc 0.12.0 implement M-C."},
   "duplicateHeldItems": false,
   "timers": {"totalMinutes": 20, "playerMinutes": 7, "turnSeconds": 45, "previewSeconds": 90},
   "showdownFormats": ["gen9championsvgc2026regmc", "gen9championsvgc2026regmcbo3"],

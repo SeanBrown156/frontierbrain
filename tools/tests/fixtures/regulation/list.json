@@ -1,0 +1,65 @@
+{
+ "_fixture": "Trimmed copy of https://champions-news.pokemon-home.com/en/json/list.json retrieved 2026-10-13 (entries 845, 816, 776, 751).",
+ "data": [
+  {
+   "id": "845",
+   "reg": 2,
+   "title": "Ranked Battles Season M-7 Underway!",
+   "infoTab": 5,
+   "infoKind": 11,
+   "kindTxt": "Ranked Battles",
+   "banner": "page/banner/2_1788783438_64831789560238.jpg",
+   "isImportant": 0,
+   "stAt": 1791352800,
+   "endAt": "1793757599",
+   "link": "page/845.html",
+   "pubAt": 1791352815,
+   "linkRom": []
+  },
+  {
+   "id": "816",
+   "reg": 2,
+   "title": "Regulation Set M-C (Updated on September 9)",
+   "infoTab": 5,
+   "infoKind": 12,
+   "kindTxt": "Regulations",
+   "banner": "page/banner/2_1785331347_85271788933958.jpg",
+   "isImportant": 0,
+   "stAt": 1788127200,
+   "endAt": "1796176799",
+   "link": "page/816.html",
+   "pubAt": 1788934215,
+   "linkRom": []
+  },
+  {
+   "id": "776",
+   "reg": 2,
+   "title": "Regulation Set M-B (Updated on August 5)",
+   "infoTab": 5,
+   "infoKind": 12,
+   "kindTxt": "Regulations",
+   "banner": "page/banner/2_1779123873_30081785900677.jpg",
+   "isImportant": 0,
+   "stAt": 1781676000,
+   "endAt": "1788919199",
+   "link": "page/776.html",
+   "pubAt": 1785909915,
+   "linkRom": []
+  },
+  {
+   "id": "751",
+   "reg": 2,
+   "title": "Regulation Set M-A",
+   "infoTab": 5,
+   "infoKind": 12,
+   "kindTxt": "Regulations",
+   "banner": "page/banner/2_1773200273_82971775497035.jpg",
+   "isImportant": 0,
+   "stAt": 1775613600,
+   "endAt": "1781661599",
+   "link": "page/751.html",
+   "pubAt": 1775613615,
+   "linkRom": []
+  }
+ ]
+}

@@ -3,6 +3,7 @@
 // computes damage itself. Transcripts stay local in reports/chats/.
 import {pokemonProfile} from './profile.ts';
 import {formatPrimer,formatRules} from './format.ts';
+import {refreshRegulations} from './regulation.ts';
 import {readPreferences,updatePreferences,preferencesText} from './player.ts';
 import {whereToLook,LIBRARY_GUIDE} from './library.ts';
 import {playbook,playbookPrimer} from './playbook.ts';
@@ -48,6 +49,8 @@ export const tools=[
   {type:'function',name:'pokemon_profile',description:'What makes a Pokémon distinctive in Champions doubles: its forms (incl. Mega stats/abilities), support, speed-control, disruption and spread moves it can learn, strongest STAB moves, coverage, how often the pool uses it, and a type + base-Speed sheet against the most-used Pokémon (who it threatens, who threatens it, what it outspeeds, what it beats under Trick Room). Use it before suggesting a Pokémon; when the player names Pokémon to build around, profile each and discuss what makes them distinctive before proposing a team.',parameters:{type:'object',properties:{species:{type:'string'},top:{type:'integer',minimum:5,maximum:40,description:'How many top pool Pokémon to compare against (default 20)'}},required:['species']}},
   {type:'function',name:'dex_lookup',description:'Champions dex entry: types, base stats, legal abilities.',parameters:{type:'object',properties:{species:{type:'string'}},required:['species']}},
 ];
+// The primer is computed when the module loads; chat() swaps in a fresh one so a regulation switch shows up without a restart.
+const primerAtLoad=formatPrimer();
 export const instructions=`You are Frontier Brain's calc assistant for a player of Pokémon Champions VGC Regulation M-C doubles. Coach at the player's level (default advanced): concise, with the reasoning and tradeoffs that matter.
 Rules:
 - Every damage number, speed comparison, stat, spread or usage percentage MUST come from a tool result in this conversation. Never estimate or recall numbers.
@@ -61,7 +64,7 @@ Rules:
 - A team's own format (get_team / list_teams) wins over this default; call format_rules for it when it differs.
 - Where to look: ${LIBRARY_GUIDE} If you can't browse, give the player the links instead.
 
-${formatPrimer()}
+${primerAtLoad}
 
 Doubles fundamentals (paraphrased community guidance; look up detail with vgc_playbook):
 ${playbookPrimer()}`;
@@ -167,7 +170,8 @@ export async function chat(messages:ChatTurn[],ctx:ChatContext,emit:Emit,opts:Ch
   for(const m of messages)if(!['user','assistant'].includes(m.role)||typeof m.content!=='string'||m.content.length>8000)throw new Error('Invalid chat turn');
   const context=teamPayload(db,ctx);const toolLog:ToolEvent[]=[];
   const profile=await config();const prefs=preferencesText(await readPreferences());
-  const system=`${instructions}${profile.player?`\nPlayer: ${profile.player}.`:''}${profile.coachingLevel?` Coaching level: ${profile.coachingLevel}.`:''}\n${prefs}${opts.extraInstructions?`\n\n${opts.extraInstructions}`:''}\nOpen context: ${'error'in context?'none':`${context.team} ${context.version}${context.focus?`, focused on ${context.focus}`:''}`}.`;
+  await refreshRegulations();
+  const system=`${instructions.replace(primerAtLoad,formatPrimer())}${profile.player?`\nPlayer: ${profile.player}.`:''}${profile.coachingLevel?` Coaching level: ${profile.coachingLevel}.`:''}\n${prefs}${opts.extraInstructions?`\n\n${opts.extraInstructions}`:''}\nOpen context: ${'error'in context?'none':`${context.team} ${context.version}${context.focus?`, focused on ${context.focus}`:''}`}.`;
   const talk=(creds.provider==='anthropic'?anthropicConversation:openAIConversation)(system,model,messages,opts,creds.key);
   for(let step=0;step<(opts.maxSteps??12);step++){
     const turn=await talk.step(true);

@@ -15,6 +15,8 @@ if(!dry&&(!url||!secret))throw new Error('Set SUPABASE_URL and SUPABASE_SECRET_K
 const files:string[]=['knowledge/pool/status.json','knowledge/pool/teams.json','knowledge/news/weeks.json','knowledge/sources/checks.json',
   'knowledge/metagame/latest.json','knowledge/metagame/events.json','knowledge/metagame/events-check.json','knowledge/metagame/history-check.json',
   'knowledge/artwork/manifest.json','knowledge/artwork/icon-index.json','knowledge/artwork/pokemonicons-sheet.png'];
+// Regulation records, index and player-facing notices (written by the regulation routine).
+for(const f of await readdir(resolve(ROOT,'knowledge/regulations')).catch(()=>[]))if(f.endsWith('.json'))files.push(`knowledge/regulations/${f}`);
 // Monthly usage snapshots (the dashboard's history; the large per-set files are only a labelled fallback) and the
 // newest day of cached PokéBase pages.
 for(const month of await readdir(resolve(ROOT,'knowledge/metagame/snapshots')).catch(()=>[]))for(const f of await readdir(resolve(ROOT,'knowledge/metagame/snapshots',month)))if(f.endsWith('.json')&&!f.includes('-sets-'))files.push(`knowledge/metagame/snapshots/${month}/${f}`);

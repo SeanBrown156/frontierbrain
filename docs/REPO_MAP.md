@@ -17,7 +17,7 @@ Where things live in Frontier Brain. Code is in this repository. The player's ow
 | `api/index.mjs` | Vercel function stub. The real hosted API is bundled into `build/api/` by `tools/build-api.mjs`. |
 | `supabase/migrations/` | Hosted database schema (workspaces, files, pool tables). |
 | `docs/` | `DESIGN.md` (the Jade Glass design system), this map, `hosting.md` (who owns the hosted Supabase and Vercel projects) and `history/` (retired designs). |
-| `.github/workflows/` | `hosted-pool.yml`: weekly pool refresh into Supabase. `hosted-news.yml`: seeds `knowledge/news/weeks.json` when it changes on main. |
+| `.github/workflows/` | `hosted-pool.yml`: weekly pool refresh into Supabase. `hosted-news.yml`: seeds `knowledge/news/weeks.json` when it changes on main. `regulation-routine.yml`: daily regulation switch routine (see `docs/REGULATION_ROUTINE.md`). |
 | `index.html`, `vite.config.ts`, `tsconfig*.json`, `vercel.json` | Build and deploy config. |
 | `.env.example`, `config.example.json` | Templates for `.env` (keys, `APP_DATA`) and the data directory's `config.json`. |
 
@@ -28,7 +28,9 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 | Path | Read by |
 |---|---|
 | `mechanics/champions.md` | Agent skills: verified Champions mechanics. |
-| `regulations/m-c.json` | `tools/format.ts`: Regulation M-C rules. |
+| `regulations/index.json` | `tools/regulation.ts`: which regulation the app calls current (`active`), the `next` one, `nextCheckAt`, switch `history`. Written only by the regulation routine. |
+| `regulations/<id>.json` | `tools/regulation.ts`, `tools/format.ts`: one record per regulation (dates, `status`, `confidence`, `engine.verified`, rules). `m-c.json` is the only verified record; a switch changes the label, never teams or data. |
+| `regulations/notices.json` | Player-facing regulation notices (`{notices:[{id,at,kind:'regulation',level,title,body,url?}]}`, newest 50), appended by the routine; read by the Inbox. |
 | `playbook/` | `tools/playbook.ts`: doubles primer (sent with every prompt) and full fundamentals. |
 | `samples/` | `tools/samples.ts`: starter teams for new hosted workspaces (built by `tools/build-samples.ts`). |
 | `sources/` | `tools/research.ts`, `tools/library.ts`: source catalogue, `INDEX.md`, research routes. |
@@ -61,7 +63,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 
 **Battle engine and calcs**
 - `mechanics.ts`: stats, damage, speed and spread search on the pinned Showdown engine.
-- `format.ts`: format rules for validation and AI prompts. `../shared/benchmarks.ts`: saved calcs.
+- `format.ts`: format rules for validation and AI prompts; `regulationStatus()` reads the active record from the regulation index. `regulation.ts`: regulation index and records, validators. `regulation-routine.ts`: the self-correcting switch routine (`npm run vgc -- regulation-check`). `../shared/benchmarks.ts`: saved calcs.
 
 **Metagame data** (never blended; see AGENTS.md)
 - `pool.ts`: the deduplicated team pool. `pool-db.ts`: the same pool as Supabase `pool_*` rows. `pool-names.ts`: reviewed corrections for misspelled names in team lists. `pool-import.ts`: pool team to editable team.
