@@ -72,7 +72,10 @@ const prompts=[
     text:(a:any)=>`Help me tune the spread on my ${a.pokemon}. Read the set with get_team, ask me which hits it must survive and which KOs or speed tiers it needs, then use spread_search, calc_damage and calc_speed against labelled standard sets.`},
 ];
 function server(prefs:string){
-  const s=new Server({name:'frontier-brain',version:'1.0.0'},{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}\n${prefs}`});
+  // Clients that show connector icons read them from the server info (MCP 2025-11-25); some fall back to /favicon.ico.
+  const SITE='https://frontierbrain.vercel.app';
+  const info={name:'frontier-brain',title:'Frontier Brain',version:'1.0.0',websiteUrl:SITE,icons:[{src:`${SITE}/brand/emerald-brain-192.png`,mimeType:'image/png',sizes:['192x192']},{src:`${SITE}/favicon.svg`,mimeType:'image/svg+xml',sizes:['any']}]};
+  const s=new Server(info,{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}\n${prefs}`});
   s.setRequestHandler(ListPromptsRequestSchema,async()=>({prompts:prompts.map(({text,...p})=>p)}));
   s.setRequestHandler(GetPromptRequestSchema,async req=>{const p=prompts.find(x=>x.name===req.params.name);if(!p)throw new Error(`Unknown prompt ${req.params.name}`);
     return {description:p.description,messages:[{role:'user',content:{type:'text',text:p.text(req.params.arguments??{})}}]};});
