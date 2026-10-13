@@ -13,6 +13,7 @@ import {exportText} from './teams.ts';
 import {speciesKey,finalStats,damage,speed,spreadSearch,dex,contextMoves} from './mechanics.ts';
 import {jobKinds} from './workbench-worker.ts';
 import {metaSets,type MetaSource} from './meta-sets.ts';
+import {createPokepaste} from './pokepaste.ts';
 import {saveReplay as saveReplayFor,intakeReplays,removeReplay} from './replay-intake.ts';
 import {fetchText} from './research.ts';
 import {refreshPool,poolStatus,poolOverview,poolTeams} from './pool.ts';
@@ -153,10 +154,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='GET'&&path==='/api/meta-sets'){const source=(url.searchParams.get('source')??'pokebase') as MetaSource;if(!['pool','pokebase','pokebase-ladder','vgcpastes','limitless','pikalytics','smogon'].includes(source))throw new Error('Unknown usage source');return respond(res,200,await metaSets(url.searchParams.get('species')??'',source,{refresh:url.searchParams.get('refresh')==='1'}));}
     // PokePaste is a paste host: read the raw export so teams can be imported from a link.
     // Publish the team's export to pokepast.es (only when the player clicks "Create PokePaste"); returns the paste's link.
-    if(req.method==='POST'&&path==='/api/pokepaste-create'){const input=await body(req);const db=await readStore();const team=db.teams.find(t=>t.id===input.teamId);if(!team)throw new Error('Team not found');
-      const paste=teamPaste(db,team,input.versionId,input.configurationId);const form=new URLSearchParams({paste,title:checkLen(team.name,100),author:checkLen(String(input.author??''),60),notes:checkLen(String(input.notes??''),1000)});
-      const r=await fetch('https://pokepast.es/create',{method:'POST',body:form,redirect:'manual',signal:AbortSignal.timeout(15000)});const link=r.headers.get('location');
-      if(!link||!/^https:\/\/pokepast\.es\/[a-f0-9]+$/.test(link))throw new Error(`PokePaste didn't return a link (HTTP ${r.status})`);return respond(res,200,{url:link});}
+    if(req.method==='POST'&&path==='/api/pokepaste-create'){const input=await body(req);const {url}=await createPokepaste(await readStore(),input);return respond(res,200,{url});}
     if(req.method==='GET'&&path==='/api/pokepaste'){
       const link=new URL(url.searchParams.get('url')??'');if(link.hostname!=='pokepast.es')throw new Error('Use a pokepast.es link');const pasteId=link.pathname.split('/').filter(Boolean)[0];if(!/^[a-f0-9]{8,32}$/.test(pasteId??''))throw new Error('That does not look like a PokePaste link');
       const raw=await fetchText(`https://pokepast.es/${pasteId}/raw`,200_000);let meta:any={};try{meta=JSON.parse((await fetchText(`https://pokepast.es/${pasteId}/json`,200_000)).text);}catch{}
@@ -199,7 +197,6 @@ async function warmFavicons(){const c=await json('knowledge/sources/catalogue.js
   for(const h of hosts)await favicon(h).catch(()=>null);}
 // Moves a species can learn (its own learnset plus its pre-evolutions'), so the picker can list those first.
 function learnable(species:any){const out=new Set<string>();let s=species;for(let i=0;s?.exists&&i<4;i++){const l=(dex as any).species.getLearnsetData?.(s.id)?.learnset??(dex as any).data?.Learnsets?.[s.id]?.learnset;for(const id of Object.keys(l??{}))out.add(dex.moves.get(id).name);if(!s.prevo&&s.baseSpecies!==s.name)s=dex.species.get(s.baseSpecies);else s=s.prevo?dex.species.get(s.prevo):null;}return [...out].filter(Boolean).sort();}
-const checkLen=(v:string,n:number)=>v.slice(0,n);
 export const handler=createWorkbenchHandler();
 // Hosted mode (SUPABASE_URL and a publishable key in the environment): every request is a signed-in or guest user.
 export function startServer(){
