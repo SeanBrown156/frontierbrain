@@ -74,3 +74,11 @@ test('Retired partners/matchups note fields are folded into the Pokémon strateg
   applyAction(db,{type:'team-rename',teamId:team.id,name:'Rain 2'});
   assert.deepEqual(Object.keys(r.notes).sort(),['benchmarks','role']);assert.match(r.notes.role,/Sets rain\.[\s\S]*Pairs with Pelipper[\s\S]*Weak to Grass/);
 });
+
+test('A retired team brief joins the active version\'s Strategy write-up and is dropped',()=>{
+  const db=emptyStore();const team=makeTeam(db,'Rain',pastes[2].paste);
+  (db.coaching??={})[team.id]={teamId:team.id,version:1,updatedAt:'',leads:[],matchups:[],objectives:[],brief:{goal:'Rain that beats Trick Room',core:['Pelipper'],gamePlan:'Rain mode.',ruledOut:'Kingdra',updatedAt:''}} as any;
+  applyAction(db,{type:'team-rename',teamId:team.id,name:'Rain 2'});
+  assert.equal('brief' in db.coaching![team.id],false);const notes=team.versions.find(v=>v.id===team.activeVersionId)!.notes;
+  assert.match(notes,/Rain that beats Trick Room[\s\S]*Built around:\*\* Pelipper[\s\S]*Rain mode\.[\s\S]*Ruled out:\*\* Kingdra/);
+});

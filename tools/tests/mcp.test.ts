@@ -27,8 +27,9 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','update_strategy','save_benchmark','list_benchmarks','delete_benchmark','rename_team','set_team_format','duplicate_team','export_team','replace_pokemon','star_set','update_todos','delete_team'])assert.ok(names.includes(n),n);
     const text=async(name:string,args:any)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
     const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;
-    const made=await text('import_team',{name:'From Claude',paste,brief:{goal:'Rain that beats Trick Room',core:['Pelipper','Archaludon'],gamePlan:'Rain mode with Tailwind backup',ruledOut:'Kingdra: too frail'}});assert.ok(made.created);
-    assert.equal(store.db.coaching![made.created].brief?.goal,'Rain that beats Trick Room');
+    const made=await text('import_team',{name:'From Claude',paste,notes:'Rain that beats Trick Room. Built around Pelipper and Archaludon.'});assert.ok(made.created);
+    assert.equal((await text('get_strategy',{teamId:made.created})).strategy,'Rain that beats Trick Room. Built around Pelipper and Archaludon.');assert.equal('brief' in (store.db.coaching?.[made.created]??{}),false,'no separate brief is kept');
+    assert.equal((await client.listTools()).tools.some(x=>x.name==='save_team_brief'),false,'the brief tool is retired');
     await text('update_player_profile',{playstyle:'Bulky balance',hateFacing:['Trick Room']});const prefs=await text('get_player_profile',{});assert.deepEqual(prefs.hateFacing,['Trick Room']);
     const teams=await text('list_teams',{});assert.equal(teams.length,1);assert.equal(teams[0].name,'From Claude');assert.equal(teams[0].pokemon.length,6);
     const team=await text('get_team',{teamId:made.created});assert.ok(team.sets?.length===6||team.team?.length===6||JSON.stringify(team).includes(teams[0].pokemon[0]));

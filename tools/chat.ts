@@ -67,8 +67,7 @@ ${playbookPrimer()}`;
 function teamPayload(db:Workbench,ctx:ChatContext){
   const team=db.teams.find(t=>t.id===ctx.teamId);if(!team)return {error:'No team is open in this chat context.'};
   const view=currentTeam(db,team,ctx.versionId,ctx.configurationId);
-  const brief=db.coaching?.[team.id]?.brief;
-  return {team:team.name,format:team.format,...brief?{brief}:{},version:`V${view.version.number}${view.version.label?` · ${view.version.label}`:''}`,focus:ctx.slot!==undefined?view.sets[ctx.slot]?.species:undefined,
+    return {team:team.name,format:team.format,strategy:view.version.notes,version:`V${view.version.number}${view.version.label?` · ${view.version.label}`:''}`,focus:ctx.slot!==undefined?view.sets[ctx.slot]?.species:undefined,
     sets:view.configuration.slots.map((slot,i)=>{const r=db.bank.find(b=>b.id===slot.bankId)!.revisions.find(r=>r.id===slot.revisionId)!;return {slot:i,...r.set,strategy:setStrategyText(r.notes),finalStats:finalStats(r.set),provenance:r.provenance??'paste',fields:r.fields,knownMoves:r.knownMoves};})};
 }
 const trim=(m:any)=>({source:m.source,species:m.species,period:m.period,population:m.population,sample:m.sample,url:m.url,notes:m.notes,moves:m.moves.slice(0,10),items:m.items.slice(0,8),abilities:m.abilities.slice(0,4),natures:m.natures.slice(0,6),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,8)});

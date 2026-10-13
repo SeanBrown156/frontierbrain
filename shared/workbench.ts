@@ -28,8 +28,7 @@ export const TEAM_STYLES=['Trick Room','Tailwind','Rain','Sun','Sand','Snow','Ps
 export interface MatchupPlan {id:string;opponent:string;archetype?:string;examples?:string[];threat:'low'|'medium'|'high';bring:string[];leadId?:string;plan:string;calcIds:string[];versionIds:string[];status:'active'|'proposed';}
 export interface Objective {id:string;kind:'test'|'todo';text:string;done:boolean;}
 // Why the team exists, agreed with the player while building it (with an assistant or by hand).
-export interface TeamBrief {goal:string;core:string[];gamePlan:string;ruledOut:string;updatedAt:string;}
-export interface TeamCoaching {teamId:string;version:number;updatedAt:string;leads:LeadPlan[];matchups:MatchupPlan[];objectives:Objective[];brief?:TeamBrief;}
+export interface TeamCoaching {teamId:string;version:number;updatedAt:string;leads:LeadPlan[];matchups:MatchupPlan[];objectives:Objective[];}
 export interface Workbench {schemaVersion:1;revision:number;bank:BankEntry[];teams:Formula[];associations:Record<string,ReplayAssociation>;matches:MatchRecord[];benchmarks?:Benchmark[];coaching?:Record<string,TeamCoaching>;pending?:PendingProposal[];}
 // A change an assistant connected over MCP suggests for the player to accept or reject in the app (the same tiles as the
 // in-app chat). `proposal` has the in-app proposal shape: {kind:'set'|'team'|'strategy', ...}.

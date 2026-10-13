@@ -75,6 +75,10 @@ function amendable(db:Workbench,team:Formula,old:ReturnType<typeof currentTeam>,
 }
 export function applyAction(db:Workbench,action:any):unknown {
   // Records saved before partners/matchups were folded into the write-up are tidied the first time anything is saved.
+  // The team brief is retired: what it said joins the active version's Strategy write-up, then the brief is dropped.
+  for(const [id,c] of Object.entries<any>(db.coaching??{})){const br=c?.brief;if(!br)continue;delete c.brief;const t=db.teams.find(x=>x.id===id);const v=t?.versions.find(x=>x.id===t.activeVersionId);if(!v)continue;
+    const parts=[br.goal,br.core?.length?`**Built around:** ${br.core.join(', ')}`:'',br.gamePlan,br.ruledOut?`**Ruled out:** ${br.ruledOut}`:''].filter((x:string)=>x?.trim()&&!v.notes.includes(x.trim()));
+    if(parts.length)v.notes=checkText([parts.join('\n\n'),v.notes==='Imported paste.'?'':v.notes].filter(Boolean).join('\n\n'),12000);}
   for(const b of db.bank)for(const r of b.revisions)if('partners' in (r.notes??{})||'matchups' in (r.notes??{}))r.notes=cleanNotes(r.notes);
   if(!action||typeof action.type!=='string')throw new Error('Action required');
   if(action.type==='benchmark-save'){
@@ -125,7 +129,7 @@ export function applyAction(db:Workbench,action:any):unknown {
   if(action.type==='coaching-update'){
     const team=db.teams.find(t=>t.id===action.teamId);if(!team)throw new Error('Team not found');const current=(db.coaching??={})[team.id]??{teamId:team.id,version:0,updatedAt:'',leads:[],matchups:[],objectives:[]};
     const merge=(list:any[],upsert:any[]=[],remove:string[]=[])=>{const out=list.filter(x=>!remove.includes(x.id));for(const item of upsert){const i=out.findIndex(x=>x.id===item.id);if(i<0)out.push(item);else out[i]=item;}return out;};
-    const next={leads:merge(current.leads,action.upsert?.leads,action.remove?.leads),matchups:merge(current.matchups,action.upsert?.matchups,action.remove?.matchups),objectives:merge(current.objectives,action.upsert?.objectives,action.remove?.objectives),brief:action.brief?{...action.brief,updatedAt:now()}:current.brief};
+    const next={leads:merge(current.leads,action.upsert?.leads,action.remove?.leads),matchups:merge(current.matchups,action.upsert?.matchups,action.remove?.matchups),objectives:merge(current.objectives,action.upsert?.objectives,action.remove?.objectives)};
     const coaching=cleanCoaching(team.id,next,current.version+1);db.coaching[team.id]=coaching;return coaching;
   }
   // Replace one or more slots with new sets (slot swap, AI set, AI team). Same species → a new revision of that
@@ -187,14 +191,12 @@ export function applyAction(db:Workbench,action:any):unknown {
 }
 const shortId=(value:unknown)=>{const v=checkText(value??uid('c'),80);if(!/^[a-zA-Z0-9_-]+$/.test(v))throw new Error('Invalid coaching identifier');return v;};
 const names=(value:unknown,max=6)=>{if(!Array.isArray(value)||value.length>max)throw new Error('Expected a short list of Pokémon');return value.map(v=>checkText(v,100));};
-export function cleanBrief(b:any){return {goal:checkText(b?.goal??'',1000),core:names(b?.core??[],6),gamePlan:checkText(b?.gamePlan??'',4000),ruledOut:checkText(b?.ruledOut??'',1000),updatedAt:typeof b?.updatedAt==='string'?b.updatedAt:now()};}
 export function cleanCoaching(teamId:string,input:any,version:number):TeamCoaching{
   const status=(v:unknown)=>v==='proposed'?'proposed' as const:'active' as const;const ids=(v:unknown)=>names(v??[],40).map(shortId);
   return {teamId,version,updatedAt:now(),
     leads:(input?.leads??[]).slice(0,40).map((l:any)=>({id:shortId(l.id),...l.title?{title:checkText(l.title,80)}:{},lead:names(l.lead,2),back:names(l.back??[],4),...(['core','situational','niche','avoid'].includes(l.role)?{role:l.role}:{}),when:checkText(l.when??'',4000),plan:checkText(l.plan??'',8000),calcIds:ids(l.calcIds),versionIds:ids(l.versionIds),status:status(l.status)})),
     matchups:(input?.matchups??[]).slice(0,80).map((m:any)=>({id:shortId(m.id),opponent:checkText(m.opponent,300),...m.archetype?{archetype:checkText(m.archetype,80)}:{},...Array.isArray(m.examples)&&m.examples.length?{examples:names(m.examples,8)}:{},threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring??[],4),...m.leadId?{leadId:shortId(m.leadId)}:{},plan:checkText(m.plan??'',8000),calcIds:ids(m.calcIds),versionIds:ids(m.versionIds),status:status(m.status)})),
-    objectives:(input?.objectives??[]).slice(0,100).map((o:any)=>({id:shortId(o.id),kind:o.kind==='todo'?'todo' as const:'test' as const,text:checkText(o.text,2000),done:o.done===true})),
-    ...input?.brief?{brief:cleanBrief(input.brief)}:{}};
+    objectives:(input?.objectives??[]).slice(0,100).map((o:any)=>({id:shortId(o.id),kind:o.kind==='todo'?'todo' as const:'test' as const,text:checkText(o.text,2000),done:o.done===true})),};
 }
 const recordId=(value:string)=>{if(!/^[a-zA-Z0-9_-]+$/.test(value))throw new Error('Invalid storage identifier');return value;};
 async function optionalFile<T>(path:string):Promise<T|null>{try{return JSON.parse(await readFile(path,'utf8'));}catch(e){if((e as NodeJS.ErrnoException).code==='ENOENT')return null;throw e;}}
