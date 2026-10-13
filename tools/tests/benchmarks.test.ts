@@ -29,3 +29,15 @@ test('Benchmarks are saved with an automatic title and side, and can be deleted'
   assert.equal(b.side,'defender');assert.equal(b.title,"Takes Careful Incineroar's Flare Blitz");assert.equal(b.input.defender.species,mine.species);
   applyAction(db,{type:'benchmark-delete',benchmarkId:b.id} as any);assert.equal(db.benchmarks!.length,0);
 });
+
+test('Benchmarks with two attackers are judged on the combined damage and say so in the title',()=>{
+  const attacker={species:'Rillaboom',nature:'Adamant',statPoints:{atk:32},ability:'Grassy Surge'},defender={species:'Farigiraf',nature:'Serious',ability:'Armor Tail'};
+  const input={attacker,defender,move:'Rock Slide',moveOptions:{spread:false},secondMove:'Wood Hammer',secondAttacker:attacker};
+  const r=damage(input);const o=outcome('damage',r);
+  // Rock Slide (one target) 62-73 plus Wood Hammer: both together are far past Farigiraf's 195 HP, a guaranteed OHKO, while the first hit alone is not.
+  assert.equal(o.low,r.combined!.percentOfMaxHP[0]);assert.equal(o.guaranteed,1);assert.ok(outcome('damage',{percentOfMaxHP:r.percentOfMaxHP}).guaranteed!>1);
+  assert.match(autoTitle('damage','attacker',input),/Rock Slide vs Serious Farigiraf \+ Rillaboom's Wood Hammer/);
+  const two=damage({attacker,defender,move:'Rock Slide',secondDefender:{species:'Incineroar',nature:'Serious',ability:'Intimidate'}});
+  // Incineroar takes 76-90 of 170 HP (derivation in mechanics.test.ts): 44.7-52.9%.
+  assert.match(outcome('damage',two).text,/other target 44\.7–52\.9%/);
+});

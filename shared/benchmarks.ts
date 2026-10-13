@@ -20,8 +20,9 @@ const hitsTo=(pct:number)=>pct>0?Math.ceil(100/pct-1e-9):Infinity;
 const ko=(n:number)=>!isFinite(n)?'no KO':n===1?'OHKO':`${n}HKO`;
 export function outcome(kind:string,result:any):Outcome{
   if(kind==='speed')return {first:result?.first,text:result?.first==='tie'?'speed tie':result?.first==='a'?'moves first':'moves second'};
-  const [low,high]=result?.percentOfMaxHP??[0,0];const guaranteed=hitsTo(low),possible=hitsTo(high);
-  return {low,high,guaranteed,possible,text:`${low.toFixed(1)}–${high.toFixed(1)}% · ${guaranteed===possible?`guaranteed ${ko(guaranteed)}`:`possible ${ko(possible)}`}`};
+  // Two attackers into one target: judged on the combined damage. A second target is shown beside it (the first target decides).
+  const [low,high]=(result?.combined?.percentOfMaxHP??result?.percentOfMaxHP)??[0,0];const second=result?.secondTarget?.percentOfMaxHP;const guaranteed=hitsTo(low),possible=hitsTo(high);
+  return {low,high,guaranteed,possible,text:`${low.toFixed(1)}–${high.toFixed(1)}% · ${guaranteed===possible?`guaranteed ${ko(guaranteed)}`:`possible ${ko(possible)}`}${second?` · other target ${second.map((v:number)=>v.toFixed(1)).join('–')}%`:''}`};
 }
 // Does the benchmark still hold? Attacking: it must KO at least as fast. Defending: it must take at least as many
 // hits. Speed: the same Pokémon must move first.
@@ -35,5 +36,6 @@ const short=(s:any)=>[s?.nature,s?.species].filter(Boolean).join(' ');
 export function autoTitle(kind:string,side:Side,input:any){
   if(kind==='speed')return `Speed vs ${short(input.b)}${input.trickRoom?' (Trick Room)':''}`;
   const field=[input.field?.weather,input.field?.terrain&&`${input.field.terrain} Terrain`].filter(Boolean).join(', ');
-  return (side==='attacker'?`${input.move} vs ${short(input.defender)}`:`Takes ${short(input.attacker)}'s ${input.move}`)+(field?` (${field})`:'');
+  const extra=input.secondMove?` + ${input.secondAttacker?.species??short(input.attacker)}'s ${input.secondMove}`:input.secondDefender?` and ${short(input.secondDefender)}`:input.moveOptions?.spread===false?' (one target)':'';
+  return (side==='attacker'?`${input.move} vs ${short(input.defender)}`:`Takes ${short(input.attacker)}'s ${input.move}`)+extra+(field?` (${field})`:'');
 }
