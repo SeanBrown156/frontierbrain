@@ -16,6 +16,7 @@ npm run vgc -- team-attach team-name-v1 replay-id
 npm run daily
 npm run weekly
 npm run vgc -- review-mark replay-id reports/replay-reviews/report.md
+npm run vgc -- regulation-check --dry-run   # what the regulation routine would do (docs/REGULATION_ROUTINE.md)
 npm test
 npm run check
 ```

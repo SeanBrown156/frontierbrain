@@ -1,0 +1,91 @@
+# The regulation switch routine: confirms a regulation changeover from the official Champions news pages, changes what
+# the app calls the current regulation, finds the next regulation's dates and reschedules itself (tools/regulation-routine.ts).
+# Daily cron; the routine exits early unless knowledge/regulations/index.json says a check is due, so most runs do nothing.
+# No AI. It changes only knowledge/regulations/*; teams, replays and players' data are never touched. When the evidence
+# is not official it opens an issue instead of switching. Runbook: docs/REGULATION_ROUTINE.md.
+name: Regulation routine
+
+on:
+  schedule:
+    - cron: '30 6 * * *' # 06:30 UTC daily
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Run the check even if it is not due yet'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # commit knowledge/regulations changes to main
+  issues: write   # open an issue when a changeover cannot be confirmed from an official source
+
+concurrency:
+  group: regulation-routine
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # The committed records and notices must be valid before anything is read from them.
+      - run: node --test tools/tests/regulation-routine.test.ts
+
+      # APP_DATA unset: the repository is the data root, so the routine reads and writes knowledge/regulations/ directly.
+      - name: Check the regulation
+        run: |
+          flags=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then flags="--force"; fi
+          node tools/cli.ts regulation-check $flags --out "$RUNNER_TEMP/regulation.json"
+          jq '{due,active,next,nextCheckAt,lastError,actions:[.actions[]|"\(.kind): \(.detail)"],issues:[.issues[].key]}' "$RUNNER_TEMP/regulation.json"
+          if [ "$(jq -r '.lastError // empty' "$RUNNER_TEMP/regulation.json")" != "" ]; then
+            echo "::warning::Regulation sources could not be fetched; the routine retries tomorrow. See the run log."
+          fi
+
+      - name: Commit regulation changes to main
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add knowledge/regulations
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Regulation routine: $(jq -r '"active \(.active), next \(.next // "none"), next check \(.nextCheckAt)"' "$RUNNER_TEMP/regulation.json")"
+            git pull --rebase origin main
+            git push origin HEAD:main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The hosted site reads shared rows before the repository, so a switch needs no deploy.
+      - name: Seed the hosted site
+        run: node tools/hosted-seed.ts --only knowledge/regulations/
+
+      - name: Open issues the routine asked for
+        run: |
+          n=$(jq '.issues | length' "$RUNNER_TEMP/regulation.json")
+          for i in $(seq 0 $((n - 1))); do
+            key=$(jq -r ".issues[$i].key" "$RUNNER_TEMP/regulation.json")
+            title=$(jq -r ".issues[$i].title" "$RUNNER_TEMP/regulation.json")
+            marker="regulation-routine:$key"
+            if [ -n "$(gh issue list --state all --search "$marker in:body" --json number --jq '.[0].number')" ]; then
+              echo "issue for $key already exists"; continue
+            fi
+            { jq -r ".issues[$i].body" "$RUNNER_TEMP/regulation.json"; printf '\n\n<!-- %s -->\n' "$marker"; } > "$RUNNER_TEMP/issue.md"
+            gh issue create --title "$title" --body-file "$RUNNER_TEMP/issue.md" || echo "::warning::Could not create issue for $key"
+          done
