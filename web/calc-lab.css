@@ -23,3 +23,13 @@ html.jade .partner-art .art{width:72px!important;height:72px!important}
 .save-list li.off{opacity:.65}
 .save-list li small{display:block;margin:2px 0 0 26px;color:var(--mu);font-size:12px}
 .save-list .primary{justify-self:start}
+/* Benchmark rows: generated headline (role pill + opponent), facts, then the outcome. A supplied title is muted context. */
+.benchmarks .bm-head{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;min-width:0}
+.benchmarks .bm-role{font:800 10.5px var(--fm);letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--ln-2);color:var(--mu);white-space:nowrap}
+.benchmarks .bm-role.damage-to,.benchmarks .bm-role.outspeeds{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 55%,transparent)}
+.benchmarks .bm-role.damage-from,.benchmarks .bm-role.outsped-by{color:var(--tx)}
+.benchmarks .bm-opp{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.benchmarks .bm-opp .art{width:32px!important;height:32px!important;flex:none}
+.benchmarks .bm-opp b{font-size:14px;overflow-wrap:anywhere}
+.benchmarks .bm-detail{color:var(--tx);overflow-wrap:anywhere}
+.benchmarks .bm-note{font-style:italic;opacity:.8;overflow-wrap:anywhere}

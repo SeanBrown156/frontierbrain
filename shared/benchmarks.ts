@@ -31,19 +31,57 @@ export function holds(kind:string,side:Side,saved:Outcome,now:Outcome){
   if(side==='attacker')return now.guaranteed!<=saved.guaranteed!&&now.possible!<=saved.possible!;
   return now.guaranteed!>=saved.guaranteed!&&now.possible!>=saved.possible!;
 }
-const short=(s:any)=>[s?.nature,s?.species].filter(Boolean).join(' ');
-// "Shadow Ball vs Careful Incineroar", "Takes Careful Incineroar's Flare Blitz", "Speed vs Timid Gholdengo".
-export function autoTitle(kind:string,side:Side,input:any){
-  if(kind==='speed')return `Speed vs ${short(input.b)}${input.trickRoom?' (Trick Room)':''}`;
-  const field=[input.field?.weather,input.field?.terrain&&`${input.field.terrain} Terrain`].filter(Boolean).join(', ');
-  const extra=input.secondMove?` + ${input.secondAttacker?.species??short(input.attacker)}'s ${input.secondMove}`:input.secondDefender?` and ${short(input.secondDefender)}`:input.moveOptions?.spread===false?' (one target)':'';
-  return (side==='attacker'?`${input.move} vs ${short(input.defender)}`:`Takes ${short(input.attacker)}'s ${input.move}`)+extra+(field?` (${field})`:'');
+// ---- Labels: a consistent headline derived from the benchmark's own data (never from its free-text title) ----
+const STAT_LABEL:Record<string,string>={hp:'HP',atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe'};
+const REGION:Record<string,string>={Hisui:'Hisuian',Alola:'Alolan',Galar:'Galarian',Paldea:'Paldean'};
+// Battle-form names as the app shows them: "Salamence-Mega" is "Mega Salamence", "Arcanine-Hisui" is "Hisuian Arcanine".
+export const displayName=(name:string)=>String(name??'').replace(/^(.*)-Mega(?:-([A-Z]))?$/,(_,b:string,x?:string)=>`Mega ${b}${x?' '+x:''}`).replace(/^(.*)-(Hisui|Alola|Galar|Paldea)$/,(_,b:string,r:string)=>`${REGION[r]} ${b}`);
+const points=(set:any,only?:string[])=>Object.entries(STAT_LABEL).filter(([k])=>(!only||only.includes(k))&&set?.statPoints?.[k]).map(([k,l])=>`${set.statPoints[k]} ${l}`).join(' / ');
+const SIDE_FLAGS:Record<string,string>={isTailwind:'Tailwind',isReflect:'Reflect',isLightScreen:'Light Screen',isAuroraVeil:'Aurora Veil',isHelpingHand:'Helping Hand',isFriendGuard:'Friend Guard',isProtected:'Protect',isBattery:'Battery',isPowerSpot:'Power Spot',isSteelySpirit:'Steely Spirit'};
+const FIELD_FLAGS:Record<string,string>={isGravity:'Gravity',isMagicRoom:'Magic Room',isWonderRoom:'Wonder Room',isBeadsOfRuin:'Beads of Ruin',isSwordOfRuin:'Sword of Ruin',isTabletsOfRuin:'Tablets of Ruin',isVesselOfRuin:'Vessel of Ruin'};
+const STATUS:Record<string,string>={brn:'burned',par:'paralysed',psn:'poisoned',tox:'badly poisoned',slp:'asleep',frz:'frozen'};
+const BOOST:Record<string,string>={atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Speed'};
+const bits=(set:any,who:string)=>[
+  ...Object.entries(set?.boosts??{}).filter(([k,v])=>v&&BOOST[k]).map(([k,v]:any)=>`${who} ${v>0?'+':''}${v} ${BOOST[k]}`),
+  ...set?.status?[`${who} ${STATUS[set.status]??set.status}`]:[],...set?.curHP?[`${who} at ${set.curHP} HP`]:[]];
+export interface BenchmarkLabel {role:'Damage to'|'Damage from'|'Outspeeds'|'Outsped by'|'Speed tie'|'Speed';opponent:string;opponentSpecies:string;detail:string[]}
+// The origin of a benchmark made by splitting a multi-Pokémon calc is only in its stored title (the store schema has no field).
+const ORIGINS=/(from a four-way order|second target of [^·]+|first target of a spread move)/;
+// {role, opponent, detail[]} from kind, side, input and result. Only facts present in the input/result appear.
+export function benchmarkLabel(b:{kind:string;side?:Side;input:any;result?:any;title?:string},ownSpecies?:string):BenchmarkLabel{
+  const i=b.input??{};const origin=ORIGINS.exec(b.title??'')?.[1]?.trim();
+  if(b.kind==='speed'){
+    const f=b.result?.first;const role=f==='a'?'Outspeeds':f==='b'?'Outsped by':f==='tie'?'Speed tie':'Speed';const o=i.b??{};
+    const flags=[...i.a?.tailwind?['your Tailwind']:[],...o.tailwind?['their Tailwind']:[],...i.trickRoom?['Trick Room']:[],
+      ...i.a?.paralyzed?['your paralysed']:[],...o.paralyzed?['their paralysed']:[],...i.a?.stage?[`your ${i.a.stage>0?'+':''}${i.a.stage} Speed`]:[],...o.stage?[`their ${o.stage>0?'+':''}${o.stage} Speed`]:[],
+      ...i.a?.multiplier&&i.a.multiplier!==1?[`your ×${i.a.multiplier} Speed`]:[],...o.multiplier&&o.multiplier!==1?[`their ×${o.multiplier} Speed`]:[],
+      ...i.a?.quickClaw?['your Quick Claw']:[],...o.quickClaw?['their Quick Claw']:[],...i.a?.move?[`your ${i.a.move}`]:[],...o.move?[`their ${o.move}`]:[],
+      ...i.field?.weather?[i.field.weather]:[],...i.field?.terrain?[`${i.field.terrain} Terrain`]:[],...origin&&/four-way/.test(origin)?[origin]:[]];
+    const spe=o.statPoints?.spe!==undefined?`${o.statPoints.spe} Spe`:'';
+    return {role,opponent:displayName(o.species),opponentSpecies:o.species??'',detail:[[o.nature,spe].filter(Boolean).join(' · '),o.item,o.ability,...flags].filter(Boolean)};
+  }
+  const side=ownSide({kind:b.kind as 'damage',input:i,side:b.side},ownSpecies??i.attacker?.species);const attacks=side==='attacker';const other=attacks?i.defender:i.attacker;
+  const sideFlags=(s:any,mine:boolean)=>Object.entries(s??{}).filter(([k,v])=>v&&SIDE_FLAGS[k]).map(([k]:any)=>`${mine?'your':'their'} ${SIDE_FLAGS[k]}`);
+  const f=i.field??{};
+  const detail=[i.move,[other?.nature,points(other)].filter(Boolean).join(' · '),other?.item,other?.ability,
+    ...f.weather?[f.weather]:[],...f.terrain?[`${f.terrain} Terrain`]:[],...Object.entries(FIELD_FLAGS).filter(([k])=>f[k]).map(([,l])=>l),
+    ...sideFlags(f.attackerSide,attacks),...sideFlags(f.defenderSide,!attacks),
+    ...i.secondDefender?['both targets']:i.moveOptions?.spread===false?['one target']:[],...i.moveOptions?.isCrit?['critical hit']:[],...i.moveOptions?.hits?[`${i.moveOptions.hits} hits`]:[],
+    ...bits(i.attacker,attacks?'your':'their'),...bits(i.defender,attacks?'their':'your'),
+    ...i.secondMove?[`with ${displayName(i.secondAttacker?.species??i.attacker?.species)}'s ${i.secondMove}`]:[],...origin?[origin]:[]].filter(Boolean) as string[];
+  return {role:attacks?'Damage to':'Damage from',opponent:displayName(other?.species),opponentSpecies:other?.species??'',detail};
+}
+export const labelText=(l:BenchmarkLabel)=>`${l.role} ${l.opponent}${l.detail.length?` · ${l.detail.join(' · ')}`:''}`;
+// The stored title when none is given: the label's own wording, so lists, exports and assistants read the same.
+export function autoTitle(kind:string,side:Side,input:any,result?:any,origin?:string){
+  if(kind==='spread')return `Spread search for ${displayName(input?.species)}`;
+  return labelText(benchmarkLabel({kind,side,input,result,title:origin?` · ${origin}`:''}));
 }
 
 // ---- Multi-Pokémon calcs are saved as their independent single claims, never as a composite benchmark ----
 // Side flags that belong to one Pokémon rather than the side; they do not carry over to a second target.
 export const PER_POKEMON_SIDE=['isProtected','isFriendGuard','isSeeded','isNightmared','isSaltCured','isForesight','isSwitching'];
-export interface SaveRow {key:string;title:string;kind:'speed'|'damage';input:any;side:Side;defaultOn:boolean;savable:boolean;why?:string;cross?:boolean}
+export interface SaveRow {key:string;title:string;origin:string;kind:'speed'|'damage';input:any;side:Side;defaultOn:boolean;savable:boolean;why?:string;cross?:boolean}
 const nm=(m:any)=>m.species;
 // Four-way order -> one speed benchmark per pair of Pokémon. `order` is the speed-order result; `own` is the index of the
 // Pokémon whose page is open (a speed benchmark re-checks that Pokémon against the other one, so only its pairs can be saved
@@ -67,7 +105,7 @@ export function speedPairs(roster:any[],order:any,opts:{trickRoom?:boolean;field
     const verdict=ra.rank===rb.rank?'ties with':ra.rank<rb.rank?(prio||brk||opts.trickRoom?'moves before':'outspeeds'):(prio||brk||opts.trickRoom?'moves after':'is outsped by');
     const first=`${A.side==='foe'?'Their':'Your'} ${nm(A)}`,second=`${B.side==='foe'?'their':'your'} ${nm(B)}`;
     const title=`${first} ${verdict} ${second}${conds.length?` (${conds.join(', ')})`:''} · from a four-way order`.slice(0,200);
-    rows.push({key:`${ai}-${bi}`,title,kind:'speed',input,side:'a',cross,defaultOn:cross&&involvesOwn,savable:involvesOwn,why:involvesOwn?undefined:"Doesn't involve this Pokémon: save it from the page of the Pokémon it is about."});
+    rows.push({key:`${ai}-${bi}`,title,origin:'from a four-way order',kind:'speed',input,side:'a',cross,defaultOn:cross&&involvesOwn,savable:involvesOwn,why:involvesOwn?undefined:"Doesn't involve this Pokémon: save it from the page of the Pokémon it is about."});
   }
   return rows;
 }
@@ -77,10 +115,10 @@ export function speedPairs(roster:any[],order:any,opts:{trickRoom?:boolean;field
 export function targetRows(input:any,opts:{outgoing:boolean}):SaveRow[]{
   if(!input?.secondDefender)return [];
   const {secondDefender,secondDefenderSide,...single}=input;
-  const first:SaveRow={key:'target-1',kind:'damage',side:opts.outgoing?'attacker':'defender',input:single,defaultOn:true,savable:true,title:`${input.move} vs ${[input.defender?.nature,input.defender?.species].filter(Boolean).join(' ')} · first target of a spread move`};
+  const first:SaveRow={key:'target-1',origin:'first target of a spread move',kind:'damage',side:opts.outgoing?'attacker':'defender',input:single,defaultOn:true,savable:true,title:`${input.move} vs ${[input.defender?.nature,input.defender?.species].filter(Boolean).join(' ')} · first target of a spread move`};
   const side=single.field?.defenderSide??{};
   const secondInput={...single,defender:secondDefender,field:{...single.field,defenderSide:secondDefenderSide??Object.fromEntries(Object.entries(side).filter(([k])=>!PER_POKEMON_SIDE.includes(k)))}};
-  const second:SaveRow={key:'target-2',kind:'damage',side:opts.outgoing?'attacker':'defender',input:secondInput,defaultOn:true,savable:opts.outgoing,why:opts.outgoing?undefined:"The second target is another of your Pokémon: save it from that Pokémon's page.",
+  const second:SaveRow={key:'target-2',origin:`second target of ${input.move}`,kind:'damage',side:opts.outgoing?'attacker':'defender',input:secondInput,defaultOn:true,savable:opts.outgoing,why:opts.outgoing?undefined:"The second target is another of your Pokémon: save it from that Pokémon's page.",
     title:`${input.move} vs ${[secondDefender?.nature,secondDefender?.species].filter(Boolean).join(' ')} · second target of ${input.move}`};
   return [first,second];
 }
