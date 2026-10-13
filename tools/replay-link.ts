@@ -3,13 +3,13 @@
 // A replay links to the team whose six it matches, at the edit that was current when the game was played, as long
 // as nothing the battle revealed contradicts those sets. Spreads and natures never appear in a replay, so an
 // automatic link means "consistent with the game", never "confirmed"; the player can confirm it in one tap.
-import {dex} from './mechanics.ts';
+import {speciesKey,dex} from './mechanics.ts';
 import {currentTeam,sameRoster} from './workbench-store.ts';
 import type {Game} from './replays.ts';
 import type {Workbench,ReplayAssociation,PokemonSet} from '../shared/workbench.ts';
 
 export interface Observed {moves:Set<string>;item?:string;ability?:string}
-const base=(s:string)=>dex.species.get(s).baseSpecies||s;
+const base=speciesKey;
 const norm=(s?:string)=>(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
 
 // What the battle showed about the player's own Pokémon, keyed by base species.

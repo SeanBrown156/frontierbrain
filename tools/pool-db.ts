@@ -9,7 +9,7 @@
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
-import {dex,resolveSpecies} from './mechanics.ts';
+import {speciesKey,dex,resolveSpecies} from './mechanics.ts';
 export {resolveSpecies};
 import {ROOT} from './io.ts';
 import {playerKey,type PoolTeam,type PoolSet,type Lane} from './pool.ts';
@@ -64,7 +64,7 @@ export function poolRows(teams:PoolTeam[],{refreshedAt,format='M-C'}:{refreshedA
       // "-" marks an empty move slot in some team sheets; it is not a move.
       const moves=s.moves.filter(m=>plain(m)&&plain(m)!=='-').map(m=>{const r=lookup(dex.moves,m,'move');if(r.corrected)corrected++;if(!r.ok)miss('moves',r.value!);return r;});if(moves.some(m=>!m.ok))flags.push('moves');
       const sp=s.statPoints;const name=species??s.species.trim();
-      const row:Omit<SetRow,'id'>={species:name,base_species:species?dex.species.get(species).baseSpecies:name,item:item.value,ability:ability.value,nature:nature.value,moves:moves.map(m=>m.value!),
+      const row:Omit<SetRow,'id'>={species:name,base_species:species?speciesKey(species):name,item:item.value,ability:ability.value,nature:nature.value,moves:moves.map(m=>m.value!),
         hp_sp:sp?sp.hp:null,atk_sp:sp?sp.atk:null,def_sp:sp?sp.def:null,spa_sp:sp?sp.spa:null,spd_sp:sp?sp.spd:null,spe_sp:sp?sp.spe:null,unresolved:flags,refreshed_at:refreshedAt};
       const id=hash([row.species,row.item,row.ability,row.nature,row.moves,STATS.map(k=>sp?.[k]??null)]);
       if(!sets.has(id))sets.set(id,{id,...row});members.push({team_id:t.id,slot:i+1,set_id:id});});

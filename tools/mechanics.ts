@@ -9,6 +9,10 @@ export type Points = Record<Stat,number>;
 export interface SetInput {species: string; nickname?:string; nature?: string; statPoints?: Partial<Points>; ability?:string; item?:string; moves?:string[]; boosts?:Partial<Points>; status?:string; curHP?:number; abilityOn?:boolean; alliesFainted?:number; gender?:string;}
 export const FORMAT = 'gen9championsvgc2026regmc';
 export const dex = ps.Dex.mod('champions');
+// A species' identity for usage and roster matching: Megas and other battle forms count as their base species, but a
+// regional form is its own Pokémon (Arcanine-Hisui is not Arcanine; Tauros-Paldea-Aqua is Tauros-Paldea).
+export function speciesKey(name:string):string{const s=dex.species.get(name);const base=s.baseSpecies||name;
+  const region=/(^|-)(Alola|Galar|Hisui|Paldea)(-|$)/.exec(s.forme?String(s.forme).replace(/^/,'-'):'');return region?`${base}-${region[2]}`:base;}
 export const generation = calc.Generations.get(0);
 export const VERSIONS = {calculator:'@smogon/calc@0.12.0',showdown:'c046106cbe075931b1ff8d8b800ff5be47a85f96',mechanics:'native-champions-0',format:FORMAT};
 

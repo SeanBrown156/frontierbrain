@@ -6,7 +6,7 @@ import {resolve} from 'node:path';
 import {optionalJSON,save,readText,modifiedAt} from './io.ts';
 import {fetchText} from './research.ts';
 import {importText} from './teams.ts';
-import {dex} from './mechanics.ts';
+import {speciesKey,dex} from './mechanics.ts';
 import type {MetaSets,Share,MetaSpread} from './meta-sets.ts';
 
 export const SHEET='1axlwmzPA49rYkqXh7zHvAtSP-TKbM0ijGYBPRflLSWw',GID='2001945654';
@@ -43,7 +43,7 @@ export function setsFromPaste(text:string){
   return sets.filter(s=>Object.values(s.statPoints??{}).every(v=>typeof v==='number'&&v<=32)&&Object.values(s.statPoints??{}).reduce((a:number,b)=>a+(b as number),0)<=66);
 }
 async function paste(id:string){const path=`knowledge/metagame/vgcpastes/pastes/${id}.txt`;try{return await readText(path);}catch{const {text}=await fetchText(`https://pokepast.es/${id}/raw`,200_000);await save(path,text);return text;}}
-const base=(s:string)=>dex.species.get(s).baseSpecies;
+const base=speciesKey;
 export async function vgcPastesSets(species:string,limit=30,refresh=false):Promise<MetaSets>{
   const name=dex.species.get(species).name;const index=await pasteIndex({refresh});
   const rows=index.rows.filter(r=>r.hasSpreads&&pasteId(r.paste)&&r.pokemon.some(p=>base(p)===base(name)));

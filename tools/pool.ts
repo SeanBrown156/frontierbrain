@@ -10,7 +10,7 @@
 import {resolve} from 'node:path';
 import {optionalJSON,save,readText,modifiedAt} from './io.ts';
 import {fetchText} from './research.ts';
-import {dex,resolveSpecies} from './mechanics.ts';
+import {speciesKey,dex,resolveSpecies} from './mechanics.ts';
 import {recentEvents,standings,teamList} from './limitless.ts';
 import {pasteIndex,setsFromPaste} from './vgcpastes.ts';
 import {correctName,type NameKind} from './pool-names.ts';
@@ -21,7 +21,7 @@ export interface PoolSet {species:string;item:string;ability:string;nature:strin
 export interface PoolTeam {id:string;lane:Lane;event:string;eventId:string;date:string|null;players:number|null;player:string;placing:number|null;record:string|null;pokemon:string[];sets:PoolSet[];
   sources:{name:string;url:string}[];spreadsFrom?:{name:string;url:string};}
 const STATUS='knowledge/pool/status.json',TEAMS='knowledge/pool/teams.json';
-const base=(s:string)=>dex.species.get(s).baseSpecies||s;
+const base=speciesKey;
 // Limitless display names ("Eternal Flower Floette", "Wash Rotom") resolve to Showdown forms, so usage isn't split.
 const species=(s:string)=>resolveSpecies(s)??s;
 export const playerKey=(s:string)=>s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'');

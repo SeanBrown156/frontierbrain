@@ -73,3 +73,10 @@ test('Name corrections: every target is a Champions name, no entry shadows a rea
     sets:[{species:'Golisopod',item:'Golisopodite',ability:'Emergancy Exit',nature:'Adament',moves:['Kowtow Kleave','Shadow']}],sources:[{name:'VGCPastes',url:'u'}]} as PoolTeam],{refreshedAt:'2026-10-12T00:00:00Z'}).sets;
   assert.deepEqual([row.item,row.ability,row.nature,row.moves,row.unresolved],['Golisopite','Emergency Exit','Adamant',['Kowtow Cleave','Shadow'],['moves']]);
 });
+
+test('Regional forms are their own species in usage; megas and battle forms count as the base',async()=>{
+  const {speciesKey}=await import('../mechanics.ts');
+  assert.equal(speciesKey('Arcanine-Hisui'),'Arcanine-Hisui');assert.notEqual(speciesKey('Arcanine-Hisui'),speciesKey('Arcanine'));
+  assert.equal(speciesKey('Tauros-Paldea-Aqua'),'Tauros-Paldea');assert.equal(speciesKey('Ninetales-Alola'),'Ninetales-Alola');
+  assert.equal(speciesKey('Charizard-Mega-Y'),'Charizard');assert.equal(speciesKey('Rotom-Wash'),'Rotom');
+});

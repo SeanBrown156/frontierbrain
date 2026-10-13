@@ -5,7 +5,7 @@
 import {resolve} from 'node:path';
 import {optionalJSON,save,readText,modifiedAt} from './io.ts';
 import {fetchText} from './research.ts';
-import {dex} from './mechanics.ts';
+import {speciesKey,dex} from './mechanics.ts';
 import type {MetaSets,Share} from './meta-sets.ts';
 
 const SITE='https://limitlessvgc.com';
@@ -14,7 +14,7 @@ export interface EventInfo {id:string;name:string;date:string|null;regulation:st
 export interface TeamListSet {species:string;item:string;ability:string;nature:string;moves:string[];}
 export interface TournamentExample extends TeamListSet {player:string;place:number;event:string;date:string|null;teamUrl:string;}
 const clean=(s:string)=>s.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&#0?39;|&apos;/g,"'").replace(/\s+/g,' ').trim();
-const base=(s:string)=>dex.species.get(s).baseSpecies||s;
+const base=speciesKey;
 // Limitless shows display names ("Eternal Flower Floette"); its URL slug maps to the dex name (floette-eternal → Floette-Eternal).
 export function speciesName(slug:string,label:string){const d=dex.species.get(slug);return d.exists?d.name:label;}
 

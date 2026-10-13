@@ -1,4 +1,4 @@
-import {dex} from './mechanics.ts';
+import {speciesKey,dex} from './mechanics.ts';
 import type {Game} from './replays.ts';
 import type {PokemonSet,FieldCertainty} from '../shared/workbench.ts';
 import type {MetaSets} from './meta-sets.ts';
@@ -6,7 +6,7 @@ import type {MetaSets} from './meta-sets.ts';
 // What one game proves about the player's own sets. Only directly revealed facts are recorded:
 // moves the Pokémon chose (not called/copied), items shown or consumed, abilities announced while unmega'd.
 export interface Observation {moves:string[];item?:string;ability?:string;}
-const base=(name:string)=>dex.species.get(name).baseSpecies;
+const base=speciesKey;
 export function observeGame(game:Game):Record<string,Observation>{
   const own=game.ownSide,identity:Record<string,string>={},out:Record<string,{moves:Set<string>;item?:string;ability?:string}>={};
   const at=(position:string)=>{const species=identity[position];if(!species||!position.startsWith(own))return null;return {species,record:out[base(species)]??={moves:new Set()}};};

@@ -5,7 +5,7 @@ import {readFile,mkdir,writeFile,rename,rm,readdir,copyFile} from 'node:fs/promi
 import {resolve} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {ROOT,dataContext} from './io.ts';
-import {dex,points,finalStats,validateTeam,FORMAT,damage,speed,spreadSearch} from './mechanics.ts';
+import {speciesKey,dex,points,finalStats,validateTeam,FORMAT,damage,speed,spreadSearch} from './mechanics.ts';
 import {importText,exportText} from './teams.ts';
 import {setStrategyText} from '../shared/workbench.ts';
 import type {Workbench,Slot,SetNotes,SetRevision,PokemonSet,Formula,Configuration,TeamCoaching} from '../shared/workbench.ts';
@@ -263,7 +263,7 @@ export async function legacyTeams(storageRoot=ROOT){
   for(const name of names){try{const record=JSON.parse(await readFile(resolve(storageRoot,'teams',name,'team.json'),'utf8'));if(record.sets&&record.id)output.push(record);}catch(e){if(!['ENOENT','ENOTDIR'].includes((e as NodeJS.ErrnoException).code??''))throw e;}}return output;
 }
 export function teamPaste(db:Workbench,team:Formula,versionId?:string,configId?:string){const view=currentTeam(db,team,versionId,configId);if(view.errors.length)throw new Error(view.errors.join('\n'));return exportText(view.sets,team.format);}
-export function sameRoster(a:string[],b:string[]){const norm=(names:string[])=>names.map(n=>dex.species.get(n).baseSpecies).sort().join('|');return a.length===b.length&&norm(a)===norm(b);}
+export function sameRoster(a:string[],b:string[]){const norm=(names:string[])=>names.map(n=>speciesKey(n)).sort().join('|');return a.length===b.length&&norm(a)===norm(b);}
 export function associateReplay(db:Workbench,game:Game,input:any){
   if(input.certainty==='clear'){delete db.associations[game.id];return {cleared:true};}
   if(input.certainty==='auto'){const r=autoLink(db,game,input.teamId);if(r.association)db.associations[game.id]=r.association;return r;}
