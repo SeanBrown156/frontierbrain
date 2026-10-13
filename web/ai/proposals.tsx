@@ -7,7 +7,7 @@ import {benchHref} from '../team/Bench.tsx';
 import {BENCH_LABEL} from '../../shared/workbench.ts';
 import {coachingUpdate} from '../team/Coaching.tsx';
 
-export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'objective'|'strategy'|'bench'|'promote';status?:'accepted'|'rejected'|'saving'|'queued';error?:string;[k:string]:any;}
+export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'strategy'|'bench'|'promote';status?:'accepted'|'rejected'|'saving'|'queued'|'replaced'|'handled';pendingId?:string;error?:string;[k:string]:any;}
 export const describeProposal=(p:Proposal)=>p.kind==='set'?`${p.set.species} for slot ${p.slot+1}`:p.kind==='bench'?`${p.set.species} for the ${BENCH_LABEL}`:p.kind==='promote'?`promote ${p.species} for ${p.replacing}`:p.kind==='team'?p.name:p.kind==='strategy'?'a strategy rewrite':p.lead?.join(' + ')??p.opponent??p.text?.slice(0,60);
 
 // Accepting a proposal, wherever it is shown (the chat, or the Inbox): every kind goes through the normal store actions,
@@ -37,12 +37,12 @@ export async function acceptProposal(p:Proposal,env:AcceptEnv):Promise<string|vo
 export async function saveCoaching(ps:Proposal[],env:AcceptEnv){
   const {team,dataRef,mutate,page}=env;const latest=dataRef.current;const c=latest.db.coaching?.[team.id]??{teamId:team.id,version:0,leads:[],matchups:[],objectives:[]};const id=()=>Math.random().toString(36).slice(2,12);const scope=!page||page.versionId==='all'?[]:[page.versionId];
   const leads=[...c.leads],matchups=[...c.matchups],objectives=[...c.objectives];
-  for(const p of ps){if(p.kind==='lead')leads.push({id:id(),lead:p.lead,back:p.back,when:p.when,plan:p.plan,calcIds:[],versionIds:scope,status:'active'});else if(p.kind==='matchup')matchups.push({id:id(),opponent:p.opponent,threat:p.threat,bring:p.bring,plan:p.plan,calcIds:[],versionIds:scope,status:'active'});else if(p.kind==='objective')objectives.push({id:id(),kind:p.type,text:p.text,done:false});}
+  for(const p of ps){if(p.kind==='lead')leads.push({id:id(),lead:p.lead,back:p.back,when:p.when,plan:p.plan,calcIds:[],versionIds:scope,status:'active'});else if(p.kind==='matchup')matchups.push({id:id(),opponent:p.opponent,threat:p.threat,bring:p.bring,plan:p.plan,calcIds:[],versionIds:scope,status:'active'});}
   await mutate(coachingUpdate(team.id,c,{leads,matchups,objectives}));
 }
 
 export function ProposalCard({p,art,current,decide,readOnly,rejectLabel='Reject',compact}:{p:Proposal;art:any;current:(slot:number)=>PokemonSet|undefined;decide:(accept:boolean)=>void;readOnly?:boolean;rejectLabel?:string;compact?:boolean}){
-  const actions=p.status==='accepted'?<span className="tag ok">Accepted</span>:p.status==='rejected'?<span className="tag">Rejected</span>:p.status==='queued'?<span className="tag">Moved to your Inbox</span>:readOnly?<span className="tag">No decision</span>:<><button className="primary" disabled={p.status==='saving'} onClick={()=>decide(true)}>{p.status==='saving'?'Saving…':'Accept'}</button><button disabled={p.status==='saving'} onClick={()=>decide(false)}>{rejectLabel}</button></>;
+  const actions=p.status==='accepted'?<span className="tag ok">Accepted</span>:p.status==='rejected'?<span className="tag">Dismissed</span>:p.status==='queued'?<span className="tag">In your Inbox</span>:p.status==='replaced'?<span className="tag">Replaced by a newer suggestion</span>:p.status==='handled'?<span className="tag">Handled in your Inbox</span>:readOnly?<span className="tag">No decision</span>:<><button className="primary" disabled={p.status==='saving'} onClick={()=>decide(true)}>{p.status==='saving'?'Saving…':'Accept'}</button><button disabled={p.status==='saving'} onClick={()=>decide(false)}>{rejectLabel}</button></>;
   const note=p.error&&<p className={p.status==='accepted'?'muted':'error'}>{p.error}</p>;
   const foot=<>{note}<div className="button-row">{actions}</div></>;
   if(p.kind==='set')return <SetTile set={p.set} current={current(p.slot)} art={art} note={p.why} strategy={p.strategy} strategyOpen={!compact} actions={<>{note}{actions}</>}/>;
@@ -51,7 +51,6 @@ export function ProposalCard({p,art,current,decide,readOnly,rejectLabel='Reject'
   if(p.kind==='team')return <article className="proposal-card"><h3>{p.name}</h3><div className="team-six">{p.sets.map((s:PokemonSet)=><SetArt key={s.species} set={s} art={art} small/>)}</div><details><summary>Sets, strategy and plans</summary><pre className="paste">{p.paste}</pre><Markdown text={p.strategy}/><p className="muted">{p.leads.length} lead plan(s) and {p.matchups.length} matchup plan(s) come with it as drafts.</p></details><p className="muted">Accepting saves it as a new version; your current version stays active.</p>{foot}</article>;
   if(p.kind==='lead')return <article className="proposal-card"><div className="pair">{p.lead.map((m:string)=><Art key={m} name={m} art={art} small/>)}<h3>{p.lead.join(' + ')}</h3></div>{p.back?.length>0&&<p className="muted">Back: {p.back.join(', ')}</p>}{p.when&&<p><b>When:</b> {p.when}</p>}<Markdown text={p.plan}/>{foot}</article>;
   if(p.kind==='matchup')return <article className="proposal-card"><h3><span className={'threat '+p.threat}>{p.threat}</span> {p.opponent}</h3><div className="pair">{p.bring.map((m:string)=><Art key={m} name={m} art={art} small/>)}</div><Markdown text={p.plan}/>{foot}</article>;
-  if(p.kind==='objective')return <article className="proposal-card"><p>{p.type==='test'?'Test:':'To-do:'} {p.text}</p>{foot}</article>;
   return <article className="proposal-card"><span className="eyebrow">Strategy rewrite</span><Markdown text={p.text}/>{foot}</article>;
 }
 

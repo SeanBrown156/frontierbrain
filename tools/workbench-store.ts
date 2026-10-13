@@ -39,6 +39,8 @@ export function resolveSlots(db:Workbench,slots:Slot[]):PokemonSet[] {
   if(!Array.isArray(slots)||slots.length!==6)throw new Error('A formula needs six slots');
   return slots.map(s=>{const entry=db.bank.find(b=>b.id===s.bankId);const revision=entry?.revisions.find(r=>r.id===s.revisionId);if(!revision)throw new Error('Unknown bank revision');return revision.set;});
 }
+// What became of each suggestion, so a chat can show it was accepted or dismissed from the Inbox. Short, newest last.
+const logResolved=(db:Workbench,ids:string[],outcome:'accepted'|'dismissed'|'replaced')=>{if(!ids.length)return;db.resolved=[...(db.resolved??[]),...ids.map(id=>({id,outcome,at:now()}))].slice(-60);};
 export function validation(sets:PokemonSet[],format=FORMAT):string[] {try{validateTeam(sets,format);return [];}catch(e){return [(e as Error).message];}}
 export function currentTeam(db:Workbench,team:Formula,versionId=team.activeVersionId,configurationId?:string) {
   const version=team.versions.find(v=>v.id===versionId);if(!version)throw new Error('Unknown formula version');
@@ -96,8 +98,10 @@ export function applyAction(db:Workbench,action:any):unknown {
   // Suggestions from a connected assistant wait here until the player accepts or rejects them in the app.
   if(action.type==='pending-add'){if(!db.teams.some(t=>t.id===action.teamId))throw new Error('Team not found');
     const item={id:uid('pending'),teamId:action.teamId,createdAt:now(),source:(action.source==='chat'?'chat':'mcp') as 'mcp'|'chat',summary:checkText(action.summary??'',300),proposal:structuredClone(action.proposal)};
-    db.pending=[...(db.pending??[]).filter(x=>!(x.teamId===item.teamId&&x.proposal.kind==='set'&&item.proposal.kind==='set'&&x.proposal.slot===item.proposal.slot)),item].slice(-30);return item;}
-  if(action.type==='pending-resolve'){const before=(db.pending??[]).length;db.pending=(db.pending??[]).filter(x=>x.id!==action.id);return {resolved:before-db.pending.length};}
+    const gone=(db.pending??[]).filter(x=>x.teamId===item.teamId&&x.proposal.kind==='set'&&item.proposal.kind==='set'&&x.proposal.slot===item.proposal.slot);
+    db.pending=[...(db.pending??[]).filter(x=>!gone.includes(x)),item].slice(-30);logResolved(db,gone.map(x=>x.id),'replaced');return item;}
+  if(action.type==='pending-resolve'){const before=(db.pending??[]).length;db.pending=(db.pending??[]).filter(x=>x.id!==action.id);
+    logResolved(db,[action.id],['accepted','dismissed','replaced'].includes(action.outcome)?action.outcome:'dismissed');return {resolved:before-db.pending.length};}
   if(action.type==='benchmark-delete'){const before=(db.benchmarks??[]).length;db.benchmarks=(db.benchmarks??[]).filter(b=>b.id!==action.benchmarkId);if(db.benchmarks.length===before)throw new Error('Benchmark not found');return {deleted:action.benchmarkId};
   }
   // Deleting a team removes it with its versions, strategy and replay links. Its sets stay in the Pokémon library

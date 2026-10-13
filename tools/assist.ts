@@ -46,7 +46,7 @@ const pageGuide:Record<Page,{full:string;line:string}>={
 // The page's guidance in full, the others as one-liners: any proposal kind is allowed wherever the player asks.
 export function assistGuidance(page:Page='overview'){const p=pageGuide[page]??pageGuide.overview;if(page==='general')return `${p.full}\n${style}`;
   return `${p.full}\nHe may also ask for other kinds of changes from this page:\n${(Object.keys(pageGuide) as Page[]).filter(k=>k!==page&&k!=='coaching'&&k!=='general'&&!(page==='strategy'&&k==='versions')).map(k=>`- ${pageGuide[k].line}`).join('\n')}\n${style}`;}
-export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'objective'|'strategy'|'bench'|'promote';[k:string]:any;}
+export interface Proposal {kind:'set'|'team'|'lead'|'matchup'|'strategy'|'bench'|'promote';[k:string]:any;}
 const text=(v:unknown,max:number)=>typeof v==='string'?v.slice(0,max):'';
 const names=(v:unknown,n:number)=>Array.isArray(v)?v.filter(x=>typeof x==='string').slice(0,n):[];
 // A matchup plan's archetype is the shared team-style vocabulary: near-misses map to it, anything else is refused with the list.
@@ -79,7 +79,7 @@ export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,foc
     case 'bench':{const set=checkSet(p.set);species(set.species);return {kind:'bench',set,why:text(p.why,1500),strategy:strategyText(p.strategy??''),...p.replaces?{replaces:member(String(p.replaces))}:{}};}
     case 'lead':return {kind:'lead',...p.title?{title:text(p.title,80)}:{},lead:names(p.lead,2).map(member),back:names(p.back,4).map(member),...(['core','situational','niche','avoid'].includes(p.role)?{role:p.role}:{}),when:text(p.when,1000),plan:text(p.plan,3000)};
     case 'matchup':return {kind:'matchup',opponent:text(p.opponent||p.archetype,200),...p.archetype?{archetype:archetypeStyle(p.archetype,text(p.opponent||p.archetype,80))}:{},...Array.isArray(p.examples)?{examples:names(p.examples,8)}:{},threat:['low','medium','high'].includes(p.threat)?p.threat:'medium',bring:names(p.bring,4).map(member),plan:text(p.plan,3000)};
-    case 'objective':return {kind:'objective',type:p.type==='todo'?'todo':'test',text:text(p.text,1000)};
+    case 'objective':throw new Error('To-dos are not part of Frontier Brain. Put it in a lead plan, a matchup plan or the strategy write-up instead.');
     case 'strategy':return {kind:'strategy',text:text(p.text,12000)};
     default:throw new Error(`Unknown proposal kind: ${p?.kind}`);}});
   if(area==='build'&&!proposals.some((p:Proposal)=>p.kind==='team'))throw new Error('A team build must include one team proposal');

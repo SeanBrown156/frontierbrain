@@ -8,6 +8,7 @@ import {ProposalCard,acceptProposal,type Proposal} from './ai/proposals.tsx';
 import {aiReady} from './ai/AssistDock.tsx';
 import {DamageViz,SpeedRace} from './BenchmarkLab.tsx';
 import {getView} from './team/editors.tsx';
+import {leaveOffer} from './save-state.ts';
 import {BENCH_LABEL} from '../shared/workbench.ts';
 
 // The Inbox: what is waiting on the player (tools/inbox.ts computes it from the same records the team views read).
@@ -25,13 +26,11 @@ export function InboxLink({count}:{count:number}){
   return <a className="inbox-button" href="#inbox" aria-label={count>0?`${count} waiting on you`:'Nothing waiting on you'} title={count>0?`${count} waiting on you`:'Nothing waiting'}><Px icon={InboxIcon}/>{count>0&&<span className="inbox-count" aria-hidden="true">{count>9?'9+':count}</span>}</a>;
 }
 
-const SECTIONS:[string,string,string][]=[
-  ['unlinked-replay','Replays with no team','Saved, but no team can see them. Link each to a team, or delete it.'],
-  ['suggestion','Changes waiting for your decision','From your assistant over MCP, or from Ask Frontier Brain when a chat was closed before you decided. Nothing changes until you accept.'],
-  ['summaries','Replays waiting for a summary','Linked to a team, with no summary yet.'],
-  ['calc','Calcs from your assistant','Run for you over the connector. Open one in the calc panel on the Pokémon page, or dismiss it.'],
-  ['notice','Notices','Changes to the rules or data that may affect your teams.']];
-const KIND_LABEL:Record<string,string>={set:'Set',team:'Team',strategy:'Strategy',promote:'Promote',bench:'Bench',lead:'Lead plan',matchup:'Matchup plan',objective:'To-do'};
+// Pending decisions grouped by what they are about.
+const PROPOSAL_GROUP:Record<string,string>={set:'team',team:'team',bench:'bench',promote:'bench',strategy:'strategy',lead:'strategy',matchup:'strategy'};
+const groupOf=(i:any)=>i.kind==='suggestion'?PROPOSAL_GROUP[i.proposalKind]??'team':i.kind==='calc'?'calc':i.kind==='unlinked-replay'||i.kind==='summaries'?'replays':'notice';
+const GROUPS:[string,string][]=[['team','Team'],['bench','Bench'],['strategy','Strategy'],['calc','Calcs'],['replays','Replays'],['notice','Notices']];
+const KIND_LABEL:Record<string,string>={set:'Set',team:'Team',strategy:'Strategy',promote:'Promote',bench:'Bench',lead:'Lead plan',matchup:'Matchup plan'};
 
 export default function InboxPage({inbox,data,load,reload,notify,mutate,dataRef}:{inbox:any;data:any;load:()=>Promise<void>;reload:()=>Promise<void>;notify:(s:string,e?:boolean)=>void;mutate:(a:any,o?:any)=>Promise<any>;dataRef:{current:any}}){
   const [linking,setLinking]=useState<any>(null);
@@ -46,16 +45,15 @@ export default function InboxPage({inbox,data,load,reload,notify,mutate,dataRef}
     dismissNotice:(i:any)=>guard(async()=>{await api('/inbox/dismiss',{id:i.noticeId});await reload();}),
     dismissCalc:(i:any)=>guard(async()=>{await api('/assistant-calcs/remove',{id:i.calcId});await reload();}),
   };
-  return <><Back/><Panel title="Inbox" kicker="WAITING ON YOU" className="inbox-page">
-    {!inbox.count?<p className="muted">Nothing needs an action from you.</p>
-      :<p className="muted">{inbox.count} action{inbox.count===1?'':'s'} waiting. Newest first within each group.</p>}
-    {SECTIONS.map(([kind,title,hint])=>{const items=inbox.items.filter((i:any)=>i.kind===kind);if(!items.length)return null;
-      return <section key={kind} className="inbox-section" aria-label={title}><h3 className="inbox-h">{title}<span className="inbox-n">{items.length}</span></h3><p className="muted tiny">{hint}</p>
-        <ul className="inbox-list">{items.map((i:any)=><li key={i.id} className={'inbox-item '+kind}>{
-          kind==='unlinked-replay'?<Unlinked i={i} art={data.art} teams={data.teams} link={act.link} choose={()=>setLinking(game(i))} remove={()=>void act.remove(i)}/>
-          :kind==='suggestion'?<Suggestion i={i} data={data} mutate={mutate} dataRef={dataRef} notify={notify}/>
-          :kind==='summaries'?<Summaries i={i} art={data.art} notify={notify} refresh={refresh}/>
-          :kind==='calc'?<CalcItem i={i} art={data.art} dismiss={()=>void act.dismissCalc(i)}/>
+  return <><Back/><Panel title="Inbox" kicker={inbox.count?`${inbox.count} waiting on you`:"Waiting on you"} className="inbox-page">
+    {!inbox.count&&!inbox.items.length?<p className="muted">Nothing needs an action from you.</p>:null}
+    {GROUPS.map(([group,title])=>{const items=inbox.items.filter((i:any)=>groupOf(i)===group);if(!items.length)return null;
+      return <section key={group} className="inbox-section" aria-label={title}><h3 className="inbox-h">{title}<span className="inbox-n">{items.length}</span></h3>
+        <ul className="inbox-list">{items.map((i:any)=><li key={i.id} className={'inbox-item '+i.kind}>{
+          i.kind==='unlinked-replay'?<Unlinked i={i} art={data.art} teams={data.teams} link={act.link} choose={()=>setLinking(game(i))} remove={()=>void act.remove(i)}/>
+          :i.kind==='suggestion'?<Suggestion i={i} data={data} mutate={mutate} dataRef={dataRef} notify={notify}/>
+          :i.kind==='summaries'?<Summaries i={i} art={data.art} notify={notify} refresh={refresh}/>
+          :i.kind==='calc'?<CalcItem i={i} art={data.art} dismiss={()=>void act.dismissCalc(i)}/>
           :<><div className="inbox-head"><span className={'tag'+(i.level==='warning'?' warn':'')}>{i.level==='warning'?<><Px icon={WarningDiamond} size={12}/>Warning</>:'Info'}</span><b className="inbox-title">{i.title}</b></div>
               <p>{i.detail}</p><p className="muted tiny">{date(i.at)}</p>
               <div className="button-row"><button className="primary" onClick={()=>void act.dismissNotice(i)}><Px icon={Check}/>Dismiss</button>{i.url&&<a className="button" href={i.url} target="_blank" rel="noreferrer">Read more ↗</a>}</div></>}</li>)}</ul></section>;})}
@@ -71,9 +69,9 @@ function Suggestion({i,data,mutate,dataRef,notify}:{i:any;data:any;mutate:(a:any
   if(!item||!team)return null;
   const view=getView(team,data.db,team.activeVersionId);const p:Proposal={...item.proposal,status:state.status,error:state.error};
   const decide=async(yes:boolean)=>{
-    if(!yes){await mutate({type:'pending-resolve',id:item.id}).catch((e:Error)=>notify(e.message,true));return;}
+    if(!yes){await mutate({type:'pending-resolve',id:item.id,outcome:'dismissed'}).catch((e:Error)=>notify(e.message,true));return;}
     setState({status:'saving'});
-    try{const note=await acceptProposal(item.proposal,{team,dataRef,mutate,versionId:team.activeVersionId,navigate:false});await mutate({type:'pending-resolve',id:item.id});if(note)notify(note);}
+    try{const note=await acceptProposal(item.proposal,{team,dataRef,mutate,versionId:team.activeVersionId,navigate:false});await mutate({type:'pending-resolve',id:item.id,outcome:'accepted'});if(note)notify(note);}
     catch(e){setState({error:(e as Error).message});}};
   // Where this lands, said plainly: the Bench is a scratchboard and never changes the six.
   const kind=item.proposal.kind;
@@ -95,8 +93,8 @@ function CalcItem({i,art,dismiss}:{i:any;art:any;dismiss:()=>void}){
     :null;
   return <><div className="inbox-head"><span className="tag">{i.calcKind==='speed'?'Speed':'Damage'}</span><b className="inbox-title">{i.title}</b></div>
     {visual&&<div className="inbox-tile">{visual}</div>}
-    {i.href?<p className="muted">Opens on {i.teamName}'s Pokémon page, in "From your assistant".</p>:<p className="muted">None of its Pokémon are on your teams, so it has no page to open on.</p>}
-    <div className="button-row">{i.href&&<a className="button primary" href={i.href}>Open in calc</a>}<button className="text-button" onClick={dismiss}>Dismiss</button></div></>;
+    {!i.href&&<p className="muted">None of these Pokémon are on your teams.</p>}
+    <div className="button-row">{i.href&&<a className="button primary" href={i.href} onClick={()=>leaveOffer(`calc:${i.teamId}:${i.slot}`,{kind:i.calcKind,input:i.input,from:'Your assistant'})}>Open in calc</a>}<button className="text-button" onClick={dismiss}>Dismiss</button></div></>;
 }
 
 // Games linked to a team with no summary yet: who each was against and both sixes, with the way to get them summarised.
@@ -106,7 +104,7 @@ function Summaries({i,art,notify,refresh}:{i:any;art:any;notify:(s:string,e?:boo
   const go=async()=>{setBusy(true);try{if(!(await aiReady())){notify('No AI key is connected here. Add one in Settings, or ask your assistant over MCP (copy the request below).',true);return;}
     await api('/replay-summarise',{teamId:i.teamId,gameIds:i.replayIds});await refresh();notify('Summarised.');}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
   return <><div className="inbox-head"><span className="tag">{i.count}</span><b className="inbox-title">{i.teamName}</b></div>
-    <p className="muted">{i.title}. Saved and linked, not summarised yet.</p>
+    <p className="muted">{i.title}.</p>
     {(i.games??[]).length>0&&<ul className="inbox-games">{i.games.map((g:any)=><li key={g.id}><span className={'result '+g.result}>{g.result}</span><b>vs {g.opponent}</b>{six(g.yours)}<span className="muted">vs</span>{six(g.theirs)}</li>)}{i.count>i.games.length&&<li className="muted">and {i.count-i.games.length} more</li>}</ul>}
     <div className="button-row"><button className="primary" disabled={busy} onClick={()=>void go()}><Px icon={Sparkles}/>{busy?'Summarising…':`Summarise ${i.count}`}</button><a className="button" href={i.href}>Open Replays</a>
       <button onClick={()=>{void navigator.clipboard.writeText(i.request).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request for your assistant'}</button></div></>;

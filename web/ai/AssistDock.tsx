@@ -2,7 +2,7 @@ import {useState,useEffect,useRef} from 'react';
 import type {PokemonSet} from '../../shared/workbench.ts';
 import {api,Markdown,date} from '../ui.tsx';
 import {Px,Sparkles,Message,Trash,Close} from '../icons.tsx';
-import {Maximize2,Minimize2,History,Plus,ArrowLeft as Back} from 'lucide-react';
+import {Maximize2,Minimize2,History,Plus} from 'lucide-react';
 import {aiKey} from './keys.tsx';
 import {useAccount,canUseAI,requireAccount,SignInForAI} from '../auth.tsx';
 import {ProposalCard,acceptProposal,saveCoaching,describeProposal,type Proposal,type AcceptEnv} from './proposals.tsx';
@@ -39,13 +39,13 @@ const suggestionsFor=(page:string,species?:string)=>page==='slot'?[`What do top 
 // One "Ask Frontier Brain" conversation per team, docked on every team page. It knows which page the player is on, runs each
 // request as a background job (polling survives navigation because the dock lives in App) and returns proposals
 // as tiles. Accepting routes each kind to its normal store action; a set for the open Pokémon loads into its draft.
-export default function AssistDock({team,data,context,mutate,notify,open,setOpen,dataRef}:{team:any|null;data:any;context:DockContext;mutate:(a:any,o?:any)=>Promise<any>;notify:(s:string)=>void;open:boolean;setOpen:(b:boolean)=>void;dataRef:{current:any}}){
+export default function AssistDock({team,data,context,mutate,notify,open,setOpen,dataRef}:{team:any|null;data:any;context:DockContext;mutate:(a:any,o?:any)=>Promise<any>;notify:(s:string,e?:boolean)=>void;open:boolean;setOpen:(b:boolean)=>void;dataRef:{current:any}}){
   const key=team?`pokecoach.assist.team-${team.id}`:'pokecoach.assist.general';
   // A chat from an earlier session is archived (its undecided suggestions go to the Inbox) and this one starts clean.
   const stale=useRef<Proposal[]>([]);
-  const [turns,setTurns]=useState<Turn[]>(()=>{const c=readChat(key);if(c.session===session)return c.turns;stale.current=c.turns.flatMap(t=>t.proposals??[]).filter(p=>!p.status);if(c.turns.length){archive({id:`${key}:${c.at??''}:${c.turns.length}`,teamId:team?.id??null,teamName:team?.name??'General',at:c.at??new Date().toISOString(),turns:c.turns});try{localStorage.setItem(key,JSON.stringify({session,at:new Date().toISOString(),turns:[]}));}catch{}}return [];});
-  const [draft,setDraft]=useState(''),[steps,setSteps]=useState<any[]>([]),[showSteps,setShowSteps]=useState(false),[expanded,setExpanded]=useState(false),[view_,setViewMode]=useState<'chat'|'history'>('chat'),[past,setPast]=useState<Archived|null>(null);
-  const turnsRef=useRef(turns);turnsRef.current=turns;
+  const [turns,setTurns]=useState<Turn[]>(()=>{const c=readChat(key);if(c.session===session)return c.turns;stale.current=c.turns.flatMap(t=>t.proposals??[]).filter(p=>!p.status&&!p.pendingId);if(c.turns.length){archive({id:`${key}:${c.at??''}:${c.turns.length}`,teamId:team?.id??null,teamName:team?.name??'General',at:c.at??new Date().toISOString(),turns:c.turns});try{localStorage.setItem(key,JSON.stringify({session,at:new Date().toISOString(),turns:[]}));}catch{}}return [];});
+  const [draft,setDraft]=useState(''),[steps,setSteps]=useState<any[]>([]),[showSteps,setShowSteps]=useState(false),[expanded,setExpanded]=useState(false),[view_,setViewMode]=useState<'chat'|'history'>('chat');
+  const turnsRef=useRef(turns);turnsRef.current=turns;const settling=useRef('');
   const end=useRef<HTMLDivElement>(null);const input=useRef<HTMLTextAreaElement>(null);const ai=canUseAI(useAccount());
   const versionId=!team?'':context.versionId==='all'?team.activeVersionId:context.versionId;const view=team?getView(team,data.db,versionId):null;
   const species=context.slot!==undefined?view?.sets[context.slot]?.species:undefined;
@@ -55,8 +55,11 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   useEffect(()=>{end.current?.scrollIntoView({block:'nearest'});},[turns.length,steps.length,open]);
   useEffect(()=>{if(open)setTimeout(()=>input.current?.focus(),50);},[open]);
   useEffect(()=>{if(!pending)return;let alive=true;const tick=async()=>{try{const job=await api('/ai-job?id='+pending);if(!alive)return;setSteps(job.steps);showCalcs(job.steps);
-      if(job.status!=='running'){const seconds=job.finishedAt?Math.round((Date.parse(job.finishedAt)-Date.parse(job.startedAt))/1000):undefined;
-        save(prev=>prev.map(t=>t.jobId!==pending?t:job.status==='done'?{role:'assistant',content:job.result.reply||'Here is what I found.',proposals:job.result.proposals,model:job.model,seconds,note:job.modelNote}:{role:'assistant',content:job.error??'The request failed.',failed:true,model:job.model,seconds}));setSteps([]);}}catch{}};
+      if(job.status!=='running'){if(settling.current===pending)return;settling.current=pending;const seconds=job.finishedAt?Math.round((Date.parse(job.finishedAt)-Date.parse(job.startedAt))/1000):undefined;
+        // Each suggestion lands in the Inbox the moment it is made; the chat shows the same item, so a decision in either place is both.
+        let proposals:Proposal[]|undefined=job.status==='done'?job.result.proposals:undefined;
+        if(team&&proposals?.length){const out:Proposal[]=[];for(const p of proposals){try{const r=await mutate({type:'pending-add',teamId:team.id,summary:'From Ask Frontier Brain',proposal:p,source:'chat'},{quiet:true});out.push({...p,pendingId:r.result.id});}catch{out.push(p);}}proposals=out;}
+        save(prev=>prev.map(t=>t.jobId!==pending?t:job.status==='done'?{role:'assistant',content:job.result.reply||'Here is what I found.',proposals,model:job.model,seconds,note:job.modelNote}:{role:'assistant',content:job.error??'The request failed.',failed:true,model:job.model,seconds}));setSteps([]);}}catch{}};
     void tick();const t=setInterval(()=>void tick(),1500);return()=>{alive=false;clearInterval(t);};},[pending]);
   // On a Pokémon page, each damage or speed calc the assistant runs is replayed in the calc panel beside the chat.
   const shownCalcs=useRef(0);useEffect(()=>{shownCalcs.current=0;},[pending]);
@@ -73,39 +76,43 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   const env=():AcceptEnv=>({team,dataRef,mutate,versionId,page:{page:context.page,slot:context.slot,versionId:context.versionId,offer,leave:leaveOffer}});
   const accept=(p:Proposal)=>acceptProposal(p,env());
   const update=(ti:number,pi:number,patch:Partial<Proposal>)=>save(prev=>{const next=structuredClone(prev);Object.assign(next[ti].proposals![pi],patch);return next;});
-  const decide=async(ti:number,pi:number,yes:boolean)=>{if(!yes){update(ti,pi,{status:'rejected'});return;}update(ti,pi,{status:'saving',error:undefined});
-    try{const note=await accept(turns[ti].proposals![pi]);update(ti,pi,{status:'accepted',error:note||undefined});}catch(e){update(ti,pi,{status:undefined,error:(e as Error).message});}};
-  const acceptAll=async(ti:number)=>{const open=turns[ti].proposals!.map((p,pi)=>({p,pi})).filter(({p})=>!p.status&&['lead','matchup','objective'].includes(p.kind));for(const {pi} of open)update(ti,pi,{status:'saving'});
-    try{await saveCoaching(open.map(x=>x.p),env());for(const {pi} of open)update(ti,pi,{status:'accepted'});notify(`${open.length} plans added to Coaching.`);}catch(e){for(const {pi} of open)update(ti,pi,{status:undefined,error:(e as Error).message});}};
-  // Anything proposed in the chat that was neither accepted nor rejected moves to the Inbox when the chat is closed,
-  // replaced by a new one, or left for another team, so nothing is lost and nothing is applied behind the player's back.
-  const flush=async()=>{if(!team)return;const list=turnsRef.current;const open:{ti:number;pi:number;p:Proposal}[]=[];
-    list.forEach((t,ti)=>t.proposals?.forEach((p,pi)=>{if(!p.status)open.push({ti,pi,p});}));if(!open.length)return;
-    save(prev=>{const next=structuredClone(prev);for(const {ti,pi} of open)if(next[ti]?.proposals?.[pi]&&!next[ti].proposals![pi].status)next[ti].proposals![pi].status='queued';return next;});
-    for(const {p} of open){const {status,error,...clean}=p;await mutate({type:'pending-add',teamId:team.id,summary:'From Ask Frontier Brain',proposal:clean,source:'chat'},{quiet:true}).catch(()=>{});}
-    notify(`${open.length} suggestion${open.length===1?'':'s'} moved to your Inbox.`);};
+  // A suggestion made here is also in the Inbox (same item). Deciding in either place resolves it for both.
+  const queuedIds=new Set((data.db.pending??[]).map((x:any)=>x.id));
+  const outcome=(id:string)=>(data.db.resolved??[]).find((r:any)=>r.id===id)?.outcome as string|undefined;
+  const live=(p:Proposal):Proposal=>{if(!p.pendingId||queuedIds.has(p.pendingId))return p;const o=outcome(p.pendingId);
+    return {...p,error:undefined,status:o==='accepted'?'accepted':o==='dismissed'?'rejected':o==='replaced'?'replaced':p.status??'handled'};};
+  const decide=async(ti:number,pi:number,yes:boolean)=>{const p=turns[ti].proposals![pi];
+    if(p.pendingId){if(!yes){await mutate({type:'pending-resolve',id:p.pendingId,outcome:'dismissed'}).catch((e:Error)=>notify(e.message,true));return;}
+      update(ti,pi,{status:'saving',error:undefined});
+      try{const note=await accept(p);await mutate({type:'pending-resolve',id:p.pendingId,outcome:'accepted'});update(ti,pi,{status:undefined,error:note||undefined});}catch(e){update(ti,pi,{status:undefined,error:(e as Error).message});}return;}
+    if(!yes){update(ti,pi,{status:'rejected'});return;}update(ti,pi,{status:'saving',error:undefined});
+    try{const note=await accept(p);update(ti,pi,{status:'accepted',error:note||undefined});}catch(e){update(ti,pi,{status:undefined,error:(e as Error).message});}};
+  const acceptAll=async(ti:number)=>{const open=turns[ti].proposals!.map((p,pi)=>({p:live(p),pi})).filter(({p})=>!p.status&&['lead','matchup'].includes(p.kind));for(const {pi} of open)update(ti,pi,{status:'saving'});
+    try{await saveCoaching(open.map(x=>x.p),env());for(const {p,pi} of open){if(p.pendingId)await mutate({type:'pending-resolve',id:p.pendingId,outcome:'accepted'},{quiet:true});else update(ti,pi,{status:'accepted'});}for(const {pi} of open)update(ti,pi,{status:undefined});notify(`${open.length} plans added to Coaching.`);}catch(e){for(const {pi} of open)update(ti,pi,{status:undefined,error:(e as Error).message});}};
   // Suggestions left undecided in last session's chat go to the Inbox now, once.
   useEffect(()=>{const list=stale.current;stale.current=[];if(!team||!list.length)return;void (async()=>{for(const p of list){const {status,error,...clean}=p;await mutate({type:'pending-add',teamId:team.id,summary:'From Ask Frontier Brain',proposal:clean,source:'chat'},{quiet:true}).catch(()=>{});}notify(`${list.length} suggestion${list.length===1?'':'s'} from your last chat moved to your Inbox.`);})();},[]);
-  const wasOpen=useRef(open);useEffect(()=>{if(wasOpen.current&&!open)void flush();wasOpen.current=open;},[open]);
-  const flushRef=useRef(flush);flushRef.current=flush;useEffect(()=>()=>{void flushRef.current();},[]);
-  const newChat=async()=>{await flush();archive({id:`${key}:${Date.now()}`,teamId:team?.id??null,teamName:team?.name??'General',at:new Date().toISOString(),turns:turnsRef.current});save([]);setViewMode('chat');setPast(null);};
+  const here=(a:Archived)=>a.teamId===(team?.id??null);
+  const newChat=()=>{archive({id:`${key}:${Date.now()}`,teamId:team?.id??null,teamName:team?.name??'General',at:new Date().toISOString(),turns:turnsRef.current});save([]);setViewMode('chat');};
+  // Opening an earlier chat makes it the live one; the one you were in is kept in Past chats.
+  const openChat=(a:Archived)=>{if(!pending&&turnsRef.current.some(t=>t.role==='user'))archive({id:`${key}:${Date.now()}`,teamId:team?.id??null,teamName:team?.name??'General',at:new Date().toISOString(),turns:turnsRef.current});
+    try{localStorage.setItem(HISTORY,JSON.stringify(readHistory().filter(x=>x.id!==a.id)));}catch{}save(a.turns);setViewMode('chat');};
   useEffect(()=>{const onKey=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;const typing=el.closest('input,textarea,select,[contenteditable]');
     if(e.key==='/'&&!typing&&!e.metaKey&&!e.ctrlKey){e.preventDefault();setOpen(true);}else if(e.key==='Escape'&&open&&!document.querySelector('dialog[open]'))setOpen(false);};addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey);},[open]);
   if(!open)return <button className={'dock-toggle'+(pending?' busy':'')} onClick={()=>setOpen(true)} title="Ask Frontier Brain (press /)"><img className="dock-mark" src="/brand/icon-64.png" alt="" width={22} height={22}/>Ask Frontier Brain{pending&&<span className="dot" aria-label="working"/>}</button>;
-  const shown=view_==='history'&&past?past.turns:turns;const readOnly=view_==='history';
+  const shown=turns;const readOnly=false;
   const dockEl=<aside className={'dock'+(expanded?' expanded':'')} aria-label="Ask Frontier Brain" {...(expanded?{role:'dialog','aria-modal':true} as any:{})}>
     <header className="dock-head"><h2><img className="dock-mark" src="/brand/icon-64.png" alt="" width={28} height={28}/>Ask Frontier Brain</h2>
       <div className="dock-corner"><button className="icon" aria-label={expanded?'Back to the side panel':'Expand to the centre of the screen'} title={expanded?'Side panel':'Expand'} onClick={()=>setExpanded(!expanded)}><Px icon={expanded?Minimize2:Maximize2}/></button><button className="icon dock-close" aria-label="Close" title="Close (Esc)" onClick={()=>setOpen(false)}><Px icon={Close}/></button></div></header>
-    <nav className="dock-tabs" aria-label="Chat views"><button className={view_==='chat'?'on':''} aria-pressed={view_==='chat'} onClick={()=>{setPast(null);setViewMode('chat');}}>Chat</button><button className={view_==='history'?'on':''} aria-pressed={view_==='history'} onClick={()=>{setPast(null);setViewMode('history');}}><Px icon={History} size={14}/>Past chats</button>
-      {turns.length>0&&!pending&&view_==='chat'&&<button className="text-button dock-new" onClick={()=>void newChat()}><Px icon={Plus} size={14}/>New chat</button>}</nav>
-    {view_==='history'&&!past?<div className="dock-body"><div className="dock-log"><HistoryList onPick={setPast} onNew={()=>setViewMode('chat')}/></div></div>:null}
-    {(view_==='chat'||past)&&<div className={"dock-body"+(ai?"":" locked")}><div className="dock-log" {...(ai?{}:{inert:true} as any)}>{past&&<div className="past-bar"><button className="text-button" onClick={()=>setPast(null)}><Px icon={Back} size={12}/>Past chats</button><span className="muted">{date(past.at)} · read only</span></div>}{!shown.length&&<div className="chat-empty"><p>{team?<>Ask anything about {team.name}.{' Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.'}</>:'Ask about the metagame, sets, spreads and calcs. Open a team to ask about it or change it.'}</p></div>}
+    <div className="dock-bar"><button className={'dock-past'+(view_==='history'?' on':'')} aria-pressed={view_==='history'} onClick={()=>setViewMode(view_==='history'?'chat':'history')}><Px icon={History} size={15}/>Past chats</button>
+      {turns.length>0&&!pending&&<button className="dock-new" onClick={()=>newChat()}><Px icon={Plus} size={15}/>New chat</button>}</div>
+    {view_==='history'&&<div className="dock-body"><div className="dock-log"><HistoryList current={turns} pending={!!pending} chats={readHistory().filter(here)} onCurrent={()=>setViewMode('chat')} onPick={openChat}/></div></div>}
+    {view_==='chat'&&<div className={"dock-body"+(ai?"":" locked")}><div className="dock-log" {...(ai?{}:{inert:true} as any)}>{!shown.length&&<div className="chat-empty"><p>{team?<>Ask anything about {team.name}.{' Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.'}</>:'Ask about the metagame, sets, spreads and calcs. Open a team to ask about it or change it.'}</p></div>}
       {shown.map((t,ti)=>t.jobId&&!t.proposals&&!t.failed&&!readOnly?<div key={ti} className="chat-turn assistant working"><p><Px icon={Sparkles}/>{steps.length?`${stepNames[steps.at(-1).name]??steps.at(-1).name}${steps.at(-1).input?`: ${steps.at(-1).input}`:''}`:'Starting…'} <span className="muted">· {steps.length} step{steps.length===1?'':'s'}</span></p>
           <div className="button-row"><button className="text-button" onClick={()=>setShowSteps(!showSteps)}>{showSteps?'Hide':'Show'} steps</button><button className="text-button" onClick={()=>void cancel()}>Cancel</button></div>{showSteps&&<ol className="steps">{steps.map((s,i)=><li key={i} className={s.error?'error':''}>{stepNames[s.name]??s.name}{s.input?`: ${s.input}`:''}</li>)}</ol>}</div>
         :<div key={ti} className={'chat-turn '+t.role+(t.failed?' error':'')}>{t.role==='user'&&t.page&&<span className="asked-from">{t.page}</span>}{t.role==='assistant'&&!t.failed?<Markdown text={t.content}/>:<p>{t.content}</p>}
           {t.failed&&!readOnly&&<button onClick={()=>retry(ti)} disabled={!!pending}>Retry</button>}
-          {t.proposals?.length?<div className="proposals">{t.proposals.map((p,pi)=><ProposalCard key={pi} p={p} art={data.art} current={slot=>view?.sets[slot]} decide={yes=>void decide(ti,pi,yes)} readOnly={readOnly}/>)}</div>:null}
-          {!readOnly&&(t.proposals?.filter(p=>!p.status&&['lead','matchup'].includes(p.kind)).length??0)>1&&<button className="primary" onClick={()=>void acceptAll(ti)}>Accept all plans</button>}
+          {t.proposals?.length?<div className="proposals">{t.proposals.map((p,pi)=><ProposalCard key={pi} p={live(p)} art={data.art} current={slot=>view?.sets[slot]} decide={yes=>void decide(ti,pi,yes)} readOnly={readOnly}/>)}</div>:null}
+          {!readOnly&&(t.proposals?.filter(p=>!live(p).status&&['lead','matchup'].includes(p.kind)).length??0)>1&&<button className="primary" onClick={()=>void acceptAll(ti)}>Accept all plans</button>}
           {t.role==='assistant'&&(t.model||t.note)&&<p className="model-line">{t.model}{t.seconds!==undefined?` · ${t.seconds} s`:''}{t.note?` · ${t.note}`:''}</p>}</div>)}<div ref={end}/></div>
     {!readOnly&&<div className="dock-rest" {...(ai?{}:{inert:true} as any)}>{!turns.length&&<div className="chat-suggestions">{suggestionsFor(context.page,species).map(s=><button key={s} onClick={()=>void send(s)}>{s}</button>)}</div>}
     <form className="dock-input" onSubmit={e=>{e.preventDefault();void send(draft);}}><div className="dock-meta"><span className="context-chip" title="What Frontier Brain is looking at">Looking at: {pageLabel}</span>{ai&&<KeyOrModel/>}</div>
@@ -114,13 +121,13 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   return expanded?<div className="dock-scrim" onMouseDown={e=>{if(e.target===e.currentTarget)setExpanded(false);}}>{dockEl}</div>:dockEl;
 }
 
-// Earlier chats, newest first. Opening one shows it read only; the Inbox has anything that was left undecided.
-function HistoryList({onPick,onNew}:{onPick:(a:Archived)=>void;onNew:()=>void}){
-  const list=readHistory();
-  if(!list.length)return <div className="chat-empty"><p>No past chats yet. A chat is kept here once you start a new one, or when you open Frontier Brain in a new session.</p><button onClick={onNew}>Back to the chat</button></div>;
-  return <ul className="history-list">{list.map(a=><li key={a.id}><button onClick={()=>onPick(a)}><b>{asked(a.turns).slice(0,90)}</b><span className="muted">{a.teamName} · {date(a.at)} · {a.turns.filter(t=>t.role==='user').length} question{a.turns.filter(t=>t.role==='user').length===1?'':'s'}</span></button></li>)}</ul>;
+// Every chat for this team, the current one first. Click one to continue it.
+function HistoryList({current,pending,chats,onCurrent,onPick}:{current:Turn[];pending:boolean;chats:Archived[];onCurrent:()=>void;onPick:(a:Archived)=>void}){
+  const n=(t:Turn[])=>t.filter(x=>x.role==='user').length;const row=(title:string,sub:string,tag:string|null,go:()=>void,key:string)=><li key={key}><button onClick={go} disabled={!tag&&pending}><b>{title.slice(0,90)}</b><span className="muted">{sub}</span>{tag&&<span className="tag">{tag}</span>}</button></li>;
+  if(!current.length&&!chats.length)return <div className="chat-empty"><p>No chats yet.</p></div>;
+  return <ul className="history-list">{current.length>0&&row(asked(current),`${n(current)} question${n(current)===1?'':'s'}`,'This session',onCurrent,'current')}
+    {chats.map(a=>row(asked(a.turns),`${date(a.at)} · ${n(a.turns)} question${n(a.turns)===1?'':'s'}`,null,()=>onPick(a),a.id))}</ul>;
 }
-
 
 // Which model answers. Saved locally (settings.json); chats default to gpt-6-luna, team builds to gpt-6-astra.
 let modelList:Promise<string[]>|null=null;

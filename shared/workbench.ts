@@ -55,7 +55,7 @@ export interface MatchupPlan {id:string;opponent:string;archetype?:string;exampl
 export interface Objective {id:string;kind:'test'|'todo';text:string;done:boolean;}
 // Why the team exists, agreed with the player while building it (with an assistant or by hand).
 export interface TeamCoaching {teamId:string;version:number;updatedAt:string;leads:LeadPlan[];matchups:MatchupPlan[];objectives:Objective[];}
-export interface Workbench {schemaVersion:1;revision:number;bank:BankEntry[];teams:Formula[];associations:Record<string,ReplayAssociation>;matches:MatchRecord[];benchmarks?:Benchmark[];coaching?:Record<string,TeamCoaching>;pending?:PendingProposal[];}
+export interface Workbench {schemaVersion:1;revision:number;bank:BankEntry[];teams:Formula[];associations:Record<string,ReplayAssociation>;matches:MatchRecord[];benchmarks?:Benchmark[];coaching?:Record<string,TeamCoaching>;pending?:PendingProposal[];resolved?:{id:string;outcome:'accepted'|'dismissed'|'replaced';at:string}[];}
 // A change an assistant connected over MCP suggests for the player to accept or reject in the app (the same tiles as the
 // in-app chat). `proposal` has the in-app proposal shape: {kind:'set'|'team'|'strategy', ...}.
 export interface PendingProposal {id:string;teamId:string;createdAt:string;source:'mcp'|'chat';summary:string;proposal:{kind:'set'|'team'|'strategy'|'promote';[k:string]:any};}

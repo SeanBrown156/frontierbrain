@@ -2226,14 +2226,6 @@ html.jade .reg-banner{display:flex;align-items:center;justify-content:space-betw
 html.jade .reg-banner p{margin:0;line-height:1.5}html.jade .reg-banner.ending{border-left-color:var(--hot,#e0a800)}html.jade .reg-banner.ended{border-left-color:var(--bad,#e5484d)}
 @media(max-width:620px){html.jade .reg-banner{flex-direction:column;align-items:stretch;text-align:center}}
 
-/* calcs an assistant ran over the connector, listed above the calc panel on the Pokémon page */
-html.jade .assistant-calcs{margin:0 0 16px}
-html.jade .assistant-calc-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-html.jade .assistant-calc-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px}
-html.jade .assistant-calc-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
-html.jade .assistant-calcs-more{margin:0 0 12px}
-@media (max-width:640px){html.jade .assistant-calc-list li{grid-template-columns:auto minmax(0,1fr) auto}html.jade .assistant-calc-list li>.muted{display:none}html.jade .assistant-calc-list li>.button-row{grid-column:1/-1;justify-content:flex-end}}
-
 /* Bench: candidates for a team. Cards reuse .mon-card and .six-grid; actions reuse .button-row (full width when stacked on phones). */
 html.jade .bench-intro{display:flex;gap:var(--s4);align-items:center;justify-content:space-between;margin:var(--s2) 0 var(--s4)}
 html.jade .bench-intro p{margin:0;max-width:64ch}
@@ -2351,11 +2343,31 @@ html.jade .dock-corner button.icon.selected{border-color:var(--ac)!important;col
 
 /* Ask Frontier Brain header: title and two corner buttons only; views and "New chat" are a quiet tab row; the model sits by the input. */
 html.jade .dock-head{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"title close"!important;padding-bottom:12px!important}
-html.jade .dock-tabs{display:flex;align-items:center;gap:6px;padding:0 20px 12px;border-bottom:1px solid var(--ln)}
-html.jade .dock-tabs button:not(.text-button){height:34px;padding:0 14px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;font-size:13px}
-html.jade .dock-tabs button.on{border-color:var(--ac)!important;color:var(--ac)}
-html.jade .dock-tabs .dock-new{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:13px}
 html.jade .dock-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:var(--s2)}
 html.jade .dock-meta .context-chip{margin:0}
 html.jade .dock-meta .model-picker select{height:32px;font-size:12px}
-html.jade .dock-head+.dock-tabs{margin-top:-4px}
+
+html.jade .dock-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px 12px;border-bottom:1px solid var(--ln)}
+html.jade .dock-bar button{height:36px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--fb);background:transparent;border:1px solid var(--ln);color:var(--tx)}
+html.jade .dock-bar button:hover{border-color:var(--ac)}
+html.jade .dock-bar .dock-past.on{border-color:var(--ac);color:var(--ac)}
+html.jade .dock-bar .dock-new{border-color:transparent;color:var(--ac)}
+html.jade .history-list li button .tag{justify-self:start}
+html.jade .history-list button:disabled{opacity:.5}
+html.jade .dock .history-list button{max-height:none!important;width:100%!important;height:auto!important;min-height:60px;display:grid;gap:4px;justify-items:start;align-content:center;padding:12px 14px;text-align:left;white-space:normal;line-height:1.35}
+html.jade .dock .history-list li{margin:0}
+
+html.jade .dock-head{padding-bottom:18px!important}
+html.jade .dock-bar{padding-top:6px;padding-bottom:14px;margin-top:2px}
+
+/* Inbox tiles: one calm box inside each card, with even padding and spacing between its parts. */
+html.jade .inbox-item{display:grid;gap:12px;padding:18px 20px}
+html.jade .inbox-item>*{margin:0}
+html.jade .inbox-tile{margin:0}
+html.jade .inbox-tile .proposal-card,html.jade .inbox-tile .set-tile{display:grid;gap:14px;padding:18px 20px;margin:0;background:color-mix(in srgb,var(--bg) 40%,transparent)}
+html.jade .inbox-tile .proposal-card>*{margin:0}
+html.jade .inbox-tile .proposal-card h3{font-size:18px;line-height:1.25}
+html.jade .inbox-tile .proposal-card .pair{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html.jade .inbox-tile .proposal-card .button-row,html.jade .inbox-tile .set-tile .button-row{margin-top:2px}
+html.jade .inbox-tile .proposal-card .eyebrow{margin:0}
+@media(max-width:620px){html.jade .inbox-item{padding:16px}html.jade .inbox-tile .proposal-card,html.jade .inbox-tile .set-tile{padding:14px}}

@@ -28,7 +28,7 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
   const client=new Client({name:'test',version:'1'});
   try{
     await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/api/mcp`)));
-    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','update_strategy','save_benchmark','list_benchmarks','delete_benchmark','rename_team','set_team_format','duplicate_team','export_team','replace_pokemon','star_set','update_todos','delete_team'])assert.ok(names.includes(n),n);
+    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','update_strategy','save_benchmark','list_benchmarks','delete_benchmark','rename_team','set_team_format','duplicate_team','export_team','replace_pokemon','star_set','delete_team'])assert.ok(names.includes(n),n);
     const text=async(name:string,args:any)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
     const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;
     const made=await text('import_team',{name:'From Claude',paste,notes:'Rain that beats Trick Room. Built around Pelipper and Archaludon.'});assert.ok(made.created);
@@ -92,8 +92,7 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const dupe2=await text('duplicate_team',{teamId:made.created});assert.ok(dupe2.created);assert.equal(store.db.teams.length,2);
     const nowTeam=(await text('list_teams',{})).find((x:any)=>x.id===made.created);const p0=nowTeam.pokemon[0];
     const star=await text('star_set',{teamId:made.created,pokemon:p0,label:'My '+p0});assert.equal(star.starred,true);
-    const todo=await text('update_todos',{teamId:made.created,add:[{kind:'test',text:'Try Tailwind lead'}]});assert.equal(todo.added,1);
-    const st2=await text('get_strategy',{teamId:made.created});assert.equal(st2.todos.length,1);await text('update_todos',{teamId:made.created,doneIds:[st2.todos[0].id]});
+    const st2=await text('get_strategy',{teamId:made.created});assert.equal(st2.todos,undefined,'to-dos are not part of the app');
     const rp:any=await client.callTool({name:'replace_pokemon',arguments:{teamId:made.created,pokemon:'Mew',paste:'Pikachu',summary:'x'}});assert.ok(rp.isError);
     const badDel:any=await client.callTool({name:'delete_team',arguments:{teamId:made.created,confirmName:'wrong',playerAgreed:true}});assert.ok(badDel.isError);assert.match(badDel.content[0].text,/exactly/);
     const calc=await text('calc_damage',{attacker:{species:'Gholdengo',nature:'Modest',statPoints:{spa:32}},defender:{species:'Incineroar',nature:'Careful',statPoints:{hp:32,spd:20}},move:'Shadow Ball'});assert.ok(calc.range?.length===2);

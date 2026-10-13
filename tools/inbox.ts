@@ -68,7 +68,7 @@ export function unlinkedItem(db:Workbench,g:Game):InboxItem{
 const describe=(p:any)=>{try{
   switch(p.kind){case 'set':return `${p.set.species} for slot ${p.slot+1}`;case 'bench':return `${p.set.species} for the ${BENCH_LABEL}`;case 'promote':return `Promote ${p.species} from the ${BENCH_LABEL}`;
     case 'team':return String(p.name??'A rebuilt team');case 'strategy':return 'A strategy rewrite';case 'lead':return `Lead plan: ${(p.lead??[]).join(' + ')}`;
-    case 'matchup':return `Matchup plan: ${p.opponent}`;case 'objective':return String(p.text??'A to-do').slice(0,80);}}catch{}
+    case 'matchup':return `Matchup plan: ${p.opponent}`;}}catch{}
   return 'A suggestion';};
 
 // Replays linked to a team that have no saved summary: the Replays tab's "no summary yet" count, per team.
@@ -84,7 +84,7 @@ export async function buildInbox(db:Workbench):Promise<Inbox>{
   // Only unlinked games are read in full; everything else comes from ids.
   for(const e of index.games){if(db.associations[e.id])continue;try{items.push(unlinkedItem(db,await json<Game>(e.parsed)));}catch{}}
   const names=new Map(db.teams.map(t=>[t.id,t.name]));
-  for(const p of db.pending??[]){const team=names.get(p.teamId);if(!team)continue;
+  for(const p of db.pending??[]){const team=names.get(p.teamId);if(!team||(p.proposal as any).kind==='objective')continue;
     items.push({id:'suggestion:'+p.id,kind:'suggestion',at:p.createdAt,title:describe(p.proposal),detail:p.summary||undefined,pendingId:p.id,source:p.source,teamId:p.teamId,teamName:team,proposalKind:p.proposal.kind,href:`#team/${p.teamId}/overview/all`});}
   const entry=new Map(index.games.map(e=>[e.id,e]));
   // Up to four of the waiting games, with who they were against and both sixes, so the card shows what it is about.
