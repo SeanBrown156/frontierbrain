@@ -13,8 +13,10 @@ import {startTask,listJobs} from './ai-jobs.ts';
 import {TEAM_STYLES} from '../shared/workbench.ts';
 // The same team styles matchup plans use, so a plan and the games it covers share one vocabulary.
 export const STYLES=TEAM_STYLES;
-export interface ReplaySummary {gameId:string;summary:string;keyMoments:{turn:number;text:string}[];workOn:{title:string;detail:string;category:'play'|'building'|'variance';turn?:number}[];opponentStyle:string[];confidence:'high'|'medium'|'low';model:string;createdAt:string;association:string;setsBasis:string;}
-export interface TeamDigest {teamId:string;themes:{title:string;detail:string;games:string[];count:number;of:'losses'|'games';total:number}[];strengths:string[];games:number;model:string;createdAt:string;}
+export interface ReplaySummary {gameId:string;summary:string;keyMoments:{turn:number;text:string}[];workOn:{title:string;detail:string;category:'play'|'building'|'variance';turn?:number}[];opponentStyle:string[];confidence:'high'|'medium'|'low';model:string;createdAt:string;association:string;setsBasis:string;
+  /** The player's own notes on this game; never written by an AI and carried through every re-summary. */playerNotes?:string;
+  /** True when the player changed the summary text; `earlierSummary` keeps the wording a re-summary replaced. */edited?:boolean;earlierSummary?:string;}
+export interface TeamDigest {teamId:string;themes:{title:string;detail:string;games:string[];count:number;of:'losses'|'games';total:number}[];strengths:string[];games:number;model:string;createdAt:string;playerNotes?:string;edited?:boolean;}
 const DIR='reports/replay-summaries',DIGESTS='reports/replay-digests';
 const shown=(raw:string)=>raw.replace(/^p[12][ab]?: ?/,'');
 
@@ -60,15 +62,21 @@ async function replayContext(gameId:string){
 // A summary written by the player's own assistant over MCP: checked by the same rules as the in-app AI's, then stored the same way.
 export async function saveReplaySummary(gameId:string,value:any,model='Your assistant (MCP)'):Promise<ReplaySummary>{
   const {game,association,setsBasis}=await replayContext(gameId);if(!association)throw new Error('Replay not found');
-  const out:ReplaySummary={gameId,...validateSummary(value,game),model,createdAt:new Date().toISOString(),association:fingerprint(association),setsBasis};
+  const out:ReplaySummary={gameId,...validateSummary(value,game),model,createdAt:new Date().toISOString(),association:fingerprint(association),setsBasis,...await carried(gameId)};
   await save(`${DIR}/${gameId}.json`,out);return out;
 }
+// The player's own notes (and the wording of a summary they edited) survive every re-summary.
+async function carried(gameId:string):Promise<{playerNotes?:string;earlierSummary?:string}>{const p=await readSummary(gameId);if(!p)return {};
+  return {...p.playerNotes?{playerNotes:p.playerNotes}:{},...p.edited?{earlierSummary:p.summary}:p.earlierSummary?{earlierSummary:p.earlierSummary}:{}};}
+// What the player already has for this game, put in front of whoever is re-summarising so their points are folded in.
+export function priorForPrompt(p:ReplaySummary|null):string{if(!p)return '';
+  return `\n\nThe player already has a summary of this game${p.edited?' (they edited it, so treat their wording as their view)':''}:\n${p.summary}${p.workOn.length?'\nWork on: '+p.workOn.map(w=>`${w.title}: ${w.detail}`).join(' | '):''}${p.playerNotes?`\nTheir own notes on the game: ${p.playerNotes}`:''}\nKeep what is still true and fold the player's points into the new summary; do not drop them.`;}
 // The team's "what to work on" digest written by an assistant. Counts and totals are recomputed here from the saved summaries.
 export async function saveTeamDigest(teamId:string,value:any,model='Your assistant (MCP)'):Promise<TeamDigest>{
   const db=await readStore();const ids=Object.entries(db.associations).filter(([,a])=>a.teamId===teamId).map(([id])=>id);
   const rows:{gameId:string;result:string}[]=[];for(const id of ids){if(!(await readSummary(id)))continue;const g=await readGame(id).catch(()=>null);if(g)rows.push({gameId:id,result:g.result});}
   if(rows.length<2)throw new Error('Save summaries for at least two of this team\'s replays first.');
-  const out:TeamDigest={teamId,...validateDigest(value,rows),games:rows.length,model,createdAt:new Date().toISOString()};
+  const prev=await readDigest(teamId);const out:TeamDigest={teamId,...validateDigest(value,rows),games:rows.length,model,createdAt:new Date().toISOString(),...prev?.playerNotes?{playerNotes:prev.playerNotes}:{}};
   await save(`${DIGESTS}/${teamId}.json`,out);return out;
 }
 export async function summariseReplay(gameId:string,emit:(e:any,d:any)=>void=()=>{},opts:ChatOptions={}):Promise<ReplaySummary>{
@@ -79,10 +87,10 @@ The player's team (${setsBasis}):\n${sets}
 The player brought: ${game.revealed[game.ownSide].join(', ')}${game.unknownBackSlots[game.ownSide]?` + ${game.unknownBackSlots[game.ownSide]} unseen`:''}. Lead: ${game.leads[game.ownSide].join(' + ')}.
 Opponent preview: ${game.preview[other].join(', ')}. Opponent brought (seen): ${game.revealed[other].join(', ')}${game.unknownBackSlots[other]?` + ${game.unknownBackSlots[other]} unseen`:''}. Lead: ${game.leads[other].join(' + ')}.
 
-Transcript ("You" is the player):\n${transcript(game)}`;
+Transcript ("You" is the player):\n${transcript(game)}${priorForPrompt(await readSummary(gameId))}`;
   const tier=opts.model||opts.fetchImpl?{model:opts.model??'test',effort:opts.effort}:await resolveTier('chat');
   const r=await chatJSON(prompt,{teamId:team?.id,versionId:association?.versionId},emit,v=>validateSummary(v,game),{maxSteps:6,keepTranscript:false,extraInstructions:guidance,...opts,model:tier.model,effort:tier.effort});
-  const out:ReplaySummary={gameId,...r.value,model:tier.model,createdAt:new Date().toISOString(),association:fingerprint(association),setsBasis};
+  const out:ReplaySummary={gameId,...r.value,model:tier.model,createdAt:new Date().toISOString(),association:fingerprint(association),setsBasis,...await carried(gameId)};
   await save(`${DIR}/${gameId}.json`,out);return out;
 }
 export async function readSummary(gameId:string){return optionalJSON<ReplaySummary|null>(`${DIR}/${gameId}.json`,null);}
@@ -95,20 +103,42 @@ export function validateDigest(value:any,summaries:{gameId:string;result:string}
     return {title:text(t.title,90),detail:text(t.detail,900),games,count,of,total:of==='losses'?losses:summaries.length};}).filter((t:any)=>t.title&&t.count>0);
   return {themes,strengths:(Array.isArray(value?.strengths)?value.strengths:[]).slice(0,3).map((s:any)=>text(s,200)).filter(Boolean)};
 }
+// The debrief the player already has (and their notes on it), so a refresh builds on it instead of discarding it.
+async function priorDigest(teamId:string):Promise<string>{const d=await readDigest(teamId);if(!d)return '';
+  return `\n\nThe player already has this debrief${d.edited?' (they edited it, so keep their wording where it still fits)':''}:\n${d.themes.map(t=>`- ${t.title}: ${t.detail}`).join('\n')}${d.playerNotes?`\nTheir own notes: ${d.playerNotes}`:''}\nKeep what still holds, fold their points in, and drop only what the newer games contradict.`;}
 export async function teamDigest(teamId:string,emit:(e:any,d:any)=>void=()=>{},opts:ChatOptions={}):Promise<TeamDigest>{
   const db=await readStore();const ids=Object.entries(db.associations).filter(([,a])=>a.teamId===teamId).map(([id])=>id);
   const rows:{gameId:string;result:string;s:ReplaySummary}[]=[];for(const id of ids){const s=await readSummary(id);if(!s)continue;const g=await readGame(id).catch(()=>null);if(g)rows.push({gameId:id,result:g.result,s});}
   if(rows.length<2)throw new Error('Summarise at least two games first');
-  const prompt=`Summaries of ${rows.length} games (${rows.filter(r=>r.result==='win').length} wins, ${rows.filter(r=>r.result==='loss').length} losses) with one team. Find what to work on across games.\n\n${rows.map(r=>`Game ${r.gameId} (${r.result}): ${r.s.summary}\nWork on: ${r.s.workOn.map(w=>`[${w.category}] ${w.title}: ${w.detail}`).join(' | ')}\nOpponent style: ${r.s.opponentStyle.join(', ')||'—'}`).join('\n\n')}`;
+  const prompt=`Summaries of ${rows.length} games (${rows.filter(r=>r.result==='win').length} wins, ${rows.filter(r=>r.result==='loss').length} losses) with one team. Find what to work on across games.\n\n${rows.map(r=>`Game ${r.gameId} (${r.result}): ${r.s.summary}\nWork on: ${r.s.workOn.map(w=>`[${w.category}] ${w.title}: ${w.detail}`).join(' | ')}\nOpponent style: ${r.s.opponentStyle.join(', ')||'—'}${r.s.playerNotes?`\nThe player's own notes: ${r.s.playerNotes}`:''}`).join('\n\n')}${await priorDigest(teamId)}`;
   const guide=`Group recurring problems into 2–5 themes, most important first. Each theme lists the exact game ids it comes from; say "losses" when it explains losses. Prefer play and building themes over variance. Don't invent anything not in the summaries; ${rows.length} games is a small sample, so word it as patterns to test, not verdicts.
 Reply as JSON only: {"themes":[{"title":"short imperative","detail":"two sentences: what keeps happening, and what to try","games":["id",...],"of":"losses|games"}],"strengths":["..."] (0–2)}.`;
   const tier=opts.model||opts.fetchImpl?{model:opts.model??'test',effort:opts.effort}:await resolveTier('chat');
   const r=await chatJSON(prompt,{teamId},emit,v=>validateDigest(v,rows),{maxSteps:2,keepTranscript:false,extraInstructions:guide,...opts,model:tier.model,effort:tier.effort});
-  const out:TeamDigest={teamId,...r.value,games:rows.length,model:tier.model,createdAt:new Date().toISOString()};
+  const prev=await readDigest(teamId);
+  const out:TeamDigest={teamId,...r.value,games:rows.length,model:tier.model,createdAt:new Date().toISOString(),...prev?.playerNotes?{playerNotes:prev.playerNotes}:{}};
   await save(`${DIGESTS}/${teamId}.json`,out);return out;
 }
 export async function readDigest(teamId:string){return optionalJSON<TeamDigest|null>(`${DIGESTS}/${teamId}.json`,null);}
 
+// The player's own edits: the summary wording and their notes on a game; their notes and theme wording on a debrief.
+export async function editReplaySummary(gameId:string,patch:{summary?:unknown;playerNotes?:unknown}):Promise<ReplaySummary>{
+  const s=await readSummary(gameId);if(!s)throw new Error('Nothing to edit yet: summarise this game first.');
+  const next={...s};
+  if(typeof patch.summary==='string'){const t=text(patch.summary,900);if(!t)throw new Error('The summary cannot be empty.');if(t!==s.summary){next.summary=t;next.edited=true;}}
+  if(typeof patch.playerNotes==='string'){const n=text(patch.playerNotes,3000);if(n)next.playerNotes=n;else delete next.playerNotes;}
+  await save(`${DIR}/${gameId}.json`,next);return next;
+}
+export async function editTeamDigest(teamId:string,patch:{playerNotes?:unknown;themes?:unknown}):Promise<TeamDigest>{
+  const d=await readDigest(teamId);if(!d)throw new Error('There is no debrief to edit yet.');const next={...d};
+  if(typeof patch.playerNotes==='string'){const n=text(patch.playerNotes,3000);if(n)next.playerNotes=n;else delete next.playerNotes;}
+  // Themes are edited by position: each keeps its games and counts, only the wording changes; leaving one out removes it.
+  if(Array.isArray(patch.themes)){const used=new Set<number>();
+    next.themes=patch.themes.slice(0,5).map((t:any)=>{const i=Number(t?.from);if(!Number.isInteger(i)||!d.themes[i]||used.has(i))throw new Error('Unknown theme.');used.add(i);
+      const title=text(t.title,90),detail=text(t.detail,900);if(!title)throw new Error('A theme needs a title.');return {...d.themes[i],title,detail};});
+    next.edited=true;}
+  await save(`${DIGESTS}/${teamId}.json`,next);return next;
+}
 // New replays are summarised one at a time in the background, then the team digest is refreshed (from 2 games up).
 // One queue per owner, so users never wait on each other's summaries.
 const queues=new Map<string,Promise<unknown>>();

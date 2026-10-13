@@ -19,7 +19,7 @@ import {refreshPool,poolStatus,poolOverview,poolTeams} from './pool.ts';
 import {iconIndex,iconNumber,iconSheet,homeSprite,homeSpriteId,homeSpriteURL,dexInfo,itemSheet,ITEM_SHEET_URL,favicon,faviconURL,validHost} from './icons.ts';
 import {startJob,listJobs,getJob,dismissJob,cancelJob} from './ai-jobs.ts';
 import {modelSettings,saveModelSettings,availableModels} from './models.ts';
-import {queueSummaries,readSummary,readDigest,isStale,runningFor,transcript,readGame} from './replay-summary.ts';
+import {queueSummaries,readSummary,readDigest,isStale,runningFor,transcript,readGame,editReplaySummary,editTeamDigest} from './replay-summary.ts';
 import {typicalSet} from './typical-set.ts';
 import {hostedConfig,hostedHandler} from './hosted.ts';
 import {addSamples,seedNewWorkspace} from './samples.ts';
@@ -125,6 +125,11 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       for(const [id,a] of Object.entries(db.associations))if(a.teamId===teamId){const s=await readSummary(id);if(s)summaries[id]={...s,stale:isStale(s,a)};}
       return respond(res,200,{summaries,digest:await readDigest(teamId),running:await runningFor(teamId)});}
     if(req.method==='GET'&&path==='/api/replay-transcript'){const game=await readGame(url.searchParams.get('id')??'');return respond(res,200,{transcript:transcript(game),turns:game.turns.length});}
+    // The player's own edits to a game's summary / notes and to the team debrief.
+    if(req.method==='POST'&&path==='/api/replay-summary-edit'){const input=await body(req);if(typeof input.gameId!=='string')throw new Error('gameId is required');
+      const db=await readStore();if(!db.associations[input.gameId])throw new Error('Replay not found');return respond(res,200,await editReplaySummary(input.gameId,input));}
+    if(req.method==='POST'&&path==='/api/replay-digest-edit'){const input=await body(req);if(typeof input.teamId!=='string')throw new Error('teamId is required');
+      const db=await readStore();if(!db.teams.some(t=>t.id===input.teamId))throw new Error('Team not found');return respond(res,200,await editTeamDigest(input.teamId,input));}
     if(req.method==='POST'&&path==='/api/replay-summarise'){const input=await body(req);if(typeof input.teamId!=='string')throw new Error('teamId is required');
       const ids=Array.isArray(input.gameIds)?input.gameIds.filter((x:any)=>typeof x==='string').slice(0,40):[];void queueSummaries(input.teamId,ids);return respond(res,202,{queued:ids.length});}
     if(req.method==='GET'&&path==='/api/replay'){
