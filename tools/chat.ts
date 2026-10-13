@@ -8,7 +8,7 @@ import {whereToLook,LIBRARY_GUIDE} from './library.ts';
 import {playbook,playbookPrimer} from './playbook.ts';
 import {randomUUID} from 'node:crypto';
 import {ROOT,CODE,save,config,requestAI,environmentAI,hosted,type AIProvider} from './io.ts';
-import {damage,speed,spreadSearch,finalStats,dex} from './mechanics.ts';
+import {damage,speed,speedOrder,spreadSearch,finalStats,dex} from './mechanics.ts';
 import {metaSets,standardSet,type MetaSource} from './meta-sets.ts';
 import {poolSets,poolOverview} from './pool.ts';
 import {readStore,currentTeam} from './workbench-store.ts';
@@ -34,6 +34,8 @@ export const tools=[
     parameters:{type:'object',properties:{attacker:setSchema,defender:setSchema,move:{type:'string'},field:{type:'object'},moveOptions:{type:'object'},secondMove:{type:'string'},secondAttacker:setSchema},required:['attacker','defender','move']}},
   {type:'function',name:'calc_speed',description:'Effective speed comparison. Each side may add stage (−6..6), tailwind, paralyzed, priority, multiplier (e.g. 1.5 Choice Scarf). trickRoom flips order.',
     parameters:{type:'object',properties:{a:setSchema,b:setSchema,trickRoom:{type:'boolean'}},required:['a','b']}},
+  {type:'function',name:'calc_speed_order',description:'Turn order for all four Pokémon on the field (your two leads vs their two, 2–4 Pokémon): sorted by move priority, then Quick Claw/Lagging Tail bracket, then effective Speed (Trick Room reverses). Each Pokémon: species/set, side ("mine"|"foe"), move (its chosen move, for priority), stage, paralyzed, tailwind, multiplier, quickClaw. tailwind: {mine?, foe?} sets Tailwind for a whole side. Speed ties are returned as ties. Tailwind/Trick Room set this turn, Quash, After You and Mega Evolution are returned in watch, not simulated.',
+    parameters:{type:'object',properties:{pokemon:{type:'array',minItems:2,maxItems:4,items:{...setSchema,properties:{...setSchema.properties,side:{type:'string',enum:['mine','foe']},label:{type:'string'},move:{type:'string'},stage:{type:'integer'},tailwind:{type:'boolean'},paralyzed:{type:'boolean'},multiplier:{type:'number'},priority:{type:'integer'},quickClaw:{type:'boolean'}}}},trickRoom:{type:'boolean'},tailwind:{type:'object',properties:{mine:{type:'boolean'},foe:{type:'boolean'}}},field:{type:'object',description:'{weather, terrain}'}},required:['pokemon']}},
   {type:'function',name:'spread_search',description:'Minimum stat points meeting final-stat minimums and damage benchmarks. benchmarks: [{direction:"outgoing"|"incoming", other:<set>, move, survive?:true, minimumDamage?, maximumDamage?, field?}]. Up to three free stats; lock others with fixedPoints.',
     parameters:{type:'object',properties:{species:{type:'string'},ability:{type:'string'},item:{type:'string'},natures:{type:'array',items:{type:'string'}},minStats:{type:'object'},fixedPoints:{type:'object'},budget:{type:'integer'},benchmarks:{type:'array',items:{type:'object'}}},required:['species','natures']}},
   {type:'function',name:'team_pool_sets',description:'PRIMARY data for real usage: Frontier Brain\'s deduplicated team pool (Limitless official Day 2 lists + Limitless online tournaments + VGCPastes spreads merged into the matching team). For one species: usage share, items, abilities, natures, moves, teammates, exact spreads, and the best-placed example sets with player, event and placing. lanes filters to official/online/shared.',parameters:{type:'object',properties:{species:{type:'string'},lanes:{type:'array',items:{type:'string',enum:['official','online','shared']}},sinceDays:{type:'integer',minimum:7,maximum:365}},required:['species']}},
@@ -82,6 +84,7 @@ export async function runTool(name:string,input:any,ctx:ChatContext,db:Workbench
     case 'usage_data':return trim(await metaSets(input.species,(input.source??'pokebase') as MetaSource));
     case 'calc_damage':return brief(damage(input));
     case 'calc_speed':return speed(input);
+    case 'calc_speed_order':return speedOrder(input);
     case 'spread_search':{const r=spreadSearch(input);return {...r,solutions:r.solutions.map((s:any)=>({nature:s.nature,statPoints:s.statPoints,stats:s.stats,spent:s.spent,unused:s.unused,benchmarks:s.benchmarks.map(brief)}))};}
     case 'team_pool_sets':{const m=await poolSets(input.species,{lanes:input.lanes,sinceDays:input.sinceDays});return {population:m.population,period:m.period,sample:m.sample,items:m.items.slice(0,8),abilities:m.abilities,natures:m.natures.slice(0,6),moves:m.moves.slice(0,12),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,10),examples:(m.examples??[]).slice(0,8),notes:m.notes};}
     case 'meta_overview':return poolOverview({lanes:input.lanes,sinceDays:input.sinceDays,top:input.top});

@@ -162,6 +162,42 @@ export function speed(input:SpeedInput) {
   return {a,b,priorityA:pa,priorityB:pb,first:order,decidedBy:why,trickRoom:!!input.trickRoom,versions:VERSIONS,assumptions:`Speed from the calculator's rules: stages, Tailwind, ${w?w+' ':''}${t?t+' Terrain ':''}weather/terrain abilities, Unburden, Choice Scarf, Iron Ball and paralysis. Priority from the move and Prankster/Gale Wings/Triage; Quick Claw/Custap when set; Lagging Tail, Full Incense and Stall move last in their bracket.`};
 }
 
+// Four-way order: your two leads and their two, each with its chosen move. Same per-Pokémon pieces as speed() (effective
+// Speed, move priority, the Quick Claw / Lagging Tail bracket), sorted: priority, then bracket, then Speed (Trick Room
+// reversed). Pokémon with identical keys are tied and shown as one rank. Mid-turn changes are flagged, never simulated.
+export type SpeedOrderMon=SpeedInput['a']&{side?:'mine'|'foe';label?:string};
+export interface SpeedOrderInput {pokemon:SpeedOrderMon[];trickRoom?:boolean;field?:SpeedInput['field'];tailwind?:{mine?:boolean;foe?:boolean};}
+export function speedOrder(input:SpeedOrderInput) {
+  const list=input?.pokemon;if(!Array.isArray(list)||list.length<2||list.length>4)throw new Error('Speed order takes 2–4 Pokémon (your two leads and their two)');
+  const rows=list.map((m,index)=>{
+    const tw=m.side?input.tailwind?.[m.side]:undefined;const set={...m,tailwind:m.tailwind||!!tw};
+    const speed=effectiveSpeed(set,input.field),priority=movePriority(set),br=bracket(set);
+    if(!Number.isInteger(priority)||priority< -7||priority>7)throw new Error('Move priority must be an integer -7..7');
+    return {index,side:m.side??null,label:m.label??m.nickname??m.species,species:m.species,move:m.move??null,speed,priority,bracket:br,tailwind:set.tailwind,paralyzed:!!m.paralyzed,stage:m.stage??0,set};
+  });
+  const cmp=(x:typeof rows[0],y:typeof rows[0])=>y.priority-x.priority||y.bracket-x.bracket||(input.trickRoom?x.speed-y.speed:y.speed-x.speed);
+  const sorted=[...rows].sort((x,y)=>cmp(x,y)||x.index-y.index);
+  const order:any[]=[];let rank=0;
+  for(const [i,r] of sorted.entries()){
+    const prev=sorted[i-1];if(prev&&cmp(prev,r)!==0)rank++;
+    const tiedWith=sorted.filter(o=>o!==r&&cmp(o,r)===0).map(o=>o.index);
+    const decidedBy=!prev?'first':cmp(prev,r)===0?'tie':prev.priority!==r.priority?'priority':prev.bracket!==r.bracket?'item or ability order':'speed';
+    order.push({position:i+1,rank:rank+1,index:r.index,side:r.side,label:r.label,species:r.species,move:r.move,speed:r.speed,priority:r.priority,bracket:r.bracket===1?'first in bracket (Quick Claw / Custap)':r.bracket===-1?'last in bracket (Lagging Tail / Full Incense / Stall)':'normal',tied:tiedWith.length>0,tiedWith,decidedBy,tailwind:r.tailwind,paralyzed:r.paralyzed,stage:r.stage});
+  }
+  const watch:string[]=[];
+  const named=(m:string)=>rows.filter(r=>r.move&&id(r.move)===id(m));
+  for(const r of named('Tailwind'))watch.push(`${r.label} uses Tailwind this turn: Speed doubles for its side only after it resolves, so slower moves that come after it act at the new Speed. The order above is the state at the start of the turn.`);
+  for(const r of named('Trick Room'))watch.push(`${r.label} uses Trick Room this turn (priority -7, so it resolves last): ${input.trickRoom?'Trick Room is already up, so this ends it.':'it reverses the order from the next turn.'} The order above is the state at the start of the turn.`);
+  for(const r of named('Quash'))watch.push(`${r.label} uses Quash: its target moves last among the remaining Pokémon this turn, ignoring the order above.`);
+  for(const r of named('After You'))watch.push(`${r.label} uses After You: its target moves immediately after it, ignoring the order above.`);
+  for(const r of rows){const stone=r.set.item?dex.items.get(r.set.item):null;const megaForm=(stone as any)?.megaStone as Record<string,string>|string|undefined;
+    const formName=typeof megaForm==='string'?megaForm:megaForm?.[dex.species.get(r.species).name];
+    if(formName){const f=dex.species.get(formName);if(f.exists&&f.name!==dex.species.get(r.species).name){let ifMega:number|undefined;try{ifMega=effectiveSpeed({...r.set,species:f.name,ability:f.abilities[0],priority:undefined,move:r.move??undefined},input.field);}catch{}
+      watch.push(`${r.label} holds its Mega Stone: the order above uses ${r.species}; as ${f.name} its Speed is ${ifMega??'not calculable'}, and the order follows the Mega form once it evolves.`);}}}
+  const ties=order.filter((o,i)=>o.tied&&order.findIndex(p=>p.rank===o.rank)===i).map(o=>order.filter(p=>p.rank===o.rank).map(p=>p.label));
+  return {order,ties,trickRoom:!!input.trickRoom,watch,versions:VERSIONS,assumptions:`Order by priority bracket, then Quick Claw/Custap and Lagging Tail/Full Incense/Stall, then effective Speed (reversed under Trick Room). Speed from the calculator's rules: stages, Tailwind, paralysis, Choice Scarf, Iron Ball, Unburden and weather/terrain abilities${input.field?.weather?` (${input.field.weather})`:''}. Ties are shown as ties (the game flips a coin). State is the start of the turn: Tailwind or Trick Room set, Quash, After You and Mega Evolution this turn are flagged, not simulated.`};
+}
+
 export function validateTeam(sets:SetInput[], format=FORMAT) {
   if(![FORMAT,`${FORMAT}bo3`].includes(format))throw new Error('Only configured Champions M-C formats are supported');
   if(sets.length!==6)throw new Error('A VGC team must contain six Pokémon');

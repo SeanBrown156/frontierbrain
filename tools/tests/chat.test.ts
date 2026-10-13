@@ -58,3 +58,11 @@ test('Anthropic keys run the same tool loop through the Messages API',async()=>{
   // The repair turn keeps the tools defined but forbids calling them.
   const fixed=await result.repair('Reply as JSON.');assert.equal(log[2].body.tool_choice.type,'none');assert.equal(typeof fixed,'string');
 });
+
+test('calc_speed_order returns the engine order for four Pokémon, ties and flags included',async()=>{
+  const db=emptyStore();
+  const r:any=await runTool('calc_speed_order',{pokemon:[{species:'Incineroar',side:'mine',move:'Fake Out'},{species:'Rillaboom',side:'mine',statPoints:{spe:32}},{species:'Incineroar',side:'foe'},{species:'Incineroar',side:'foe'}],tailwind:{foe:true}},{},db);
+  // Incineroar 80 (Tailwind doubles the foes to 160); Fake Out (+3) first, then the two tied 160s, then Rillaboom 137.
+  assert.deepEqual(r.order.map((o:any)=>o.speed),[80,160,160,137]);assert.deepEqual(r.order.map((o:any)=>o.rank),[1,2,2,3]);assert.deepEqual(r.ties,[['Incineroar','Incineroar']]);
+  assert.ok(tools.some(t=>t.name==='calc_speed_order'));
+});
