@@ -1509,7 +1509,8 @@ html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
 
 /* ---------- top of page: news and nav run edge to edge as one bar, and the nav stays full width when you scroll ---------- */
 html.jade body{overflow-x:clip}
-html.jade{--edge:max(16px,calc((100vw - 1320px) / 2 + 16px))}
+html.jade{--gutter:32px;--edge:max(var(--gutter),calc((100vw - 1320px) / 2 + var(--gutter)))}
+@media(max-width:760px){html.jade{--gutter:16px}}
 html.jade .shell>.ticker{width:100vw;margin:0 0 0 calc(50% - 50vw)!important;padding:0 var(--edge)!important;height:34px;border-radius:0!important;
  background:color-mix(in srgb,var(--bg) 88%,transparent)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--ln)!important}
 html.jade .shell>.masthead{width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw)!important;top:0!important;border-radius:0!important;border-width:0 0 1px!important;padding:10px var(--edge)!important;
