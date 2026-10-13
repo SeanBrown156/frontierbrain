@@ -80,11 +80,16 @@ export function applyAction(db:Workbench,action:any):unknown {
     const species=entry.revisions.find(r=>r.id===action.revisionId)!.set.species;const side=action.side??ownSide({kind:action.kind,input:action.input},species);if(!['attacker','defender','a'].includes(side))throw new Error('Unknown benchmark side');
     const benchmark={id:uid('benchmark'),bankId:entry.id,revisionId:action.revisionId,createdAt:now(),title:checkText(action.title||autoTitle(action.kind,side,action.input),200),kind:action.kind,input:structuredClone(action.input),result,context:checkText(action.context??''),sources,side};(db.benchmarks??=[]).push(benchmark);return benchmark;
   }
+  // Suggestions from a connected assistant wait here until the player accepts or rejects them in the app.
+  if(action.type==='pending-add'){if(!db.teams.some(t=>t.id===action.teamId))throw new Error('Team not found');
+    const item={id:uid('pending'),teamId:action.teamId,createdAt:now(),source:'mcp' as const,summary:checkText(action.summary??'',300),proposal:structuredClone(action.proposal)};
+    db.pending=[...(db.pending??[]).filter(x=>!(x.teamId===item.teamId&&x.proposal.kind==='set'&&item.proposal.kind==='set'&&x.proposal.slot===item.proposal.slot)),item].slice(-30);return item;}
+  if(action.type==='pending-resolve'){const before=(db.pending??[]).length;db.pending=(db.pending??[]).filter(x=>x.id!==action.id);return {resolved:before-db.pending.length};}
   if(action.type==='benchmark-delete'){const before=(db.benchmarks??[]).length;db.benchmarks=(db.benchmarks??[]).filter(b=>b.id!==action.benchmarkId);if(db.benchmarks.length===before)throw new Error('Benchmark not found');return {deleted:action.benchmarkId};
   }
   // Deleting a team removes it with its versions, strategy and replay links. Its sets stay in the Pokémon library
   // and the replays stay saved (unlinked), so nothing played is lost.
-  if(action.type==='team-delete'){const i=db.teams.findIndex(t=>t.id===action.teamId);if(i<0)throw new Error('Team not found');db.teams.splice(i,1);if(db.coaching)delete db.coaching[action.teamId];
+  if(action.type==='team-delete'){const i=db.teams.findIndex(t=>t.id===action.teamId);if(i<0)throw new Error('Team not found');db.teams.splice(i,1);if(db.coaching)delete db.coaching[action.teamId];db.pending=(db.pending??[]).filter(x=>x.teamId!==action.teamId);
     const replays:string[]=[];for(const [id,a] of Object.entries(db.associations))if(a.teamId===action.teamId){delete db.associations[id];replays.push(id);}db.matches=db.matches.filter(m=>!m.replayIds.some(r=>replays.includes(r)));return {deleted:action.teamId,unlinked:replays.length,replays};}
   if(action.type==='import')return makeTeam(db,action.name,action.paste,action.format??FORMAT,{notes:action.notes,setNotes:action.setNotes&&typeof action.setNotes==='object'&&!Array.isArray(action.setNotes)?action.setNotes:undefined});
   if(action.type==='bank-import'){const sets=importText(checkText(action.paste));if(sets.length!==1)throw new Error('Paste one Pokémon for a bank entry');return applyAction(db,{type:'bank-create',name:action.name,set:sets[0],notes:blankNotes()});}

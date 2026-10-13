@@ -2164,3 +2164,9 @@ html.jade .news-page .coverage p,html.jade .news-page .coverage span{display:blo
   html.jade .news-page .articles>article{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 16px}
   html.jade .news-page .article-mark{width:28px;height:28px}
 }
+
+/* suggestions a connected assistant left for the team, shown at the top of the dock like the chat's own proposals */
+html.jade .queued{display:grid;gap:10px;padding:12px;margin-bottom:14px;border-radius:var(--r);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 8%,transparent)}
+html.jade .queued-h{display:flex;align-items:center;gap:8px;margin:0;font:700 12px/1.3 var(--fb);letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
+html.jade .queued-sum{margin:0 0 6px;font-size:13px}
+html.jade .dock-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:8px;border-radius:999px;background:var(--ac);color:var(--on);font:700 12px var(--fnum)}
