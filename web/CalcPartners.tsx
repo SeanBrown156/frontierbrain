@@ -50,3 +50,11 @@ export default function PartnerCard({side,set,setSet,saved,art,mega,megaOn,setMe
       </>}
     </div></section>;
 }
+
+// Multi-Pokémon calcs save as their independent claims: one ordinary benchmark per row, each kept or dropped by the player.
+export function SaveChecklist({rows,picked,setPicked,disabled,reason,onSave,done}:{rows:{key:string;title:string;defaultOn:boolean;savable:boolean;why?:string}[];picked:Record<string,boolean>;setPicked:(p:Record<string,boolean>)=>void;disabled:boolean;reason?:string;onSave:()=>void;done:string}){
+  const on=(r:{key:string;defaultOn:boolean;savable:boolean})=>r.savable&&(picked[r.key]??r.defaultOn);const n=rows.filter(on).length;
+  return <fieldset className="save-list"><legend>Save as benchmarks</legend>
+    <ul>{rows.map(r=><li key={r.key} className={r.savable?'':'off'}><label><input type="checkbox" checked={!!on(r)} disabled={!r.savable||!!done} onChange={e=>setPicked({...picked,[r.key]:e.target.checked})}/><span>{r.title}</span></label>{r.why&&<small>{r.why}</small>}</li>)}</ul>
+    <button type="button" className="primary" disabled={disabled||n===0||!!done} title={reason} onClick={onSave}>{done?`${done} ✓`:`Save ${n} benchmark${n===1?'':'s'}`}</button></fieldset>;
+}

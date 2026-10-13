@@ -84,6 +84,9 @@ export function applyAction(db:Workbench,action:any):unknown {
   if(action.type==='benchmark-save'){
     const entry=db.bank.find(b=>b.id===action.bankId);if(!entry?.revisions.some(r=>r.id===action.revisionId))throw new Error('Unknown benchmark revision');
     const methods={damage,speed,spread:spreadSearch};if(!Object.hasOwn(methods,action.kind))throw new Error('Unknown benchmark kind');
+    // Multi-Pokémon calcs are saved as their independent claims: one speed benchmark per pair, one damage benchmark per target.
+    if(action.kind==='speed'&&Array.isArray(action.input?.pokemon))throw new Error('Save one speed benchmark per pair of Pokémon ({a, b, trickRoom}), not a four-way order');
+    if(action.kind==='damage'&&action.input?.secondDefender)throw new Error('Save one damage benchmark per target (drop secondDefender and save the second target as its own calc), not both targets together');
     const result=methods[action.kind as keyof typeof methods](action.input);
     const sources=(action.sources??[]).map((s:unknown)=>{const url=checkText(s,2000);if(!/^https?:\/\//.test(url))throw new Error('Source must be an HTTP URL');return url;});
     const species=entry.revisions.find(r=>r.id===action.revisionId)!.set.species;const side=action.side??ownSide({kind:action.kind,input:action.input},species);if(!['attacker','defender','a'].includes(side))throw new Error('Unknown benchmark side');

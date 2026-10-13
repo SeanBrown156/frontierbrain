@@ -2,6 +2,7 @@ import calc from '@smogon/calc';
 import {getFinalSpeed} from '@smogon/calc/dist/mechanics/util.js';
 import ps from 'pokemon-showdown';
 import {id} from './io.ts';
+import {PER_POKEMON_SIDE} from '../shared/benchmarks.ts';
 
 export const STATS = ['hp','atk','def','spa','spd','spe'] as const;
 export type Stat = typeof STATS[number];
@@ -57,8 +58,6 @@ export function pokemon(set: SetInput) {
 
 export interface CalcInput {attacker:SetInput;defender:SetInput;move:string;field?:Record<string,any>;moveOptions?:Record<string,any>;secondMove?:string;secondAttacker?:SetInput;secondMoveOptions?:Record<string,any>;secondAttackerSide?:Record<string,boolean>;secondDefender?:SetInput;secondDefenderSide?:Record<string,boolean>;}
 const SPREAD_TARGETS=['allAdjacent','allAdjacentFoes'];
-// Side flags that belong to one Pokémon rather than the whole side: they are not carried over to the second target.
-const PER_POKEMON_SIDE=['isProtected','isFriendGuard','isSeeded','isNightmared','isSaltCured','isForesight','isSwitching'];
 // Held items that act between two hits in a turn (berries, Focus Sash, Weakness Policy, Air Balloon, Red Card…): a combined
 // two-attack calc would need battle sequencing, so those are reported as unsupported instead of approximated.
 const midTurnItem=(name?:string)=>{if(!name)return false;const i:any=dex.items.get(name);return !!i.exists&&(i.isBerry||['onDamage','onDamagingHit','onUpdate','onAfterMoveSecondary','onAfterSubDamage'].some(k=>k in i));};
