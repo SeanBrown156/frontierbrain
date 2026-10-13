@@ -2393,3 +2393,5 @@ html.jade .dock .dock-meta .context-chip{margin:0!important;line-height:32px}
 html.jade .dock .dock-meta .model-picker{margin:0;display:flex;align-items:center}
 html.jade .dock .dock-meta .model-picker select{height:32px;margin:0}
 @media(max-width:620px){html.jade .dock-corner button.icon:not(.dock-close){display:none}}
+
+html.jade .dock-wrap,html.jade .shell>.dock-wrap{display:contents}

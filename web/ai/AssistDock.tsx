@@ -118,7 +118,8 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
     <form className="dock-input" onSubmit={e=>{e.preventDefault();void send(draft);}}><div className="dock-meta"><span className="context-chip" title="What Frontier Brain is looking at">Looking at: {pageLabel}</span>{ai&&<KeyOrModel/>}</div>
       <div className="chat-input"><textarea ref={input} rows={1} value={draft} placeholder={context.page==='slot'?`e.g. Make ${species} survive a typical Mega Gengar Shadow Ball`:team?'Ask about this team…':'Ask about the metagame, sets or calcs…'} onChange={e=>{setDraft(e.target.value);const t=e.target;t.style.height='auto';t.style.height=Math.min(t.scrollHeight,140)+'px';}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void send(draft);}}}/><button className="primary" disabled={!!pending||!draft.trim()} aria-label="Send"><Px icon={Message}/></button></div></form></div>}{!ai&&<div className="dock-lock"><SignInForAI verb="ask questions"/></div>}</div>}
   </aside>;
-  return expanded?<div className="dock-scrim" onMouseDown={e=>{if(e.target===e.currentTarget)setExpanded(false);}}>{dockEl}</div>:dockEl;
+  // One wrapper in both modes, so expanding and shrinking never remounts the chat (that lost the model picker and any draft).
+  return <div className={expanded?'dock-scrim':'dock-wrap'} onMouseDown={e=>{if(expanded&&e.target===e.currentTarget)setExpanded(false);}}>{dockEl}</div>;
 }
 
 // Every chat for this team, the current one first. Click one to continue it.
@@ -137,10 +138,11 @@ export async function aiReady():Promise<boolean>{const l=await (modelList??=api(
 // Settings, or the local .env key), show the model picker instead.
 function KeyOrModel(){const [list,setList]=useState<string[]|null>(null);useEffect(()=>{(modelList??=api('/models').catch(()=>[])).then(l=>{if(!l.length)modelList=null;setList(l);});},[]);
   if(list===null)return null;return list.length?<ModelPicker tier="chat"/>:<a className="button compact" href="#account" title="Your AI key lives in Account">Add AI key</a>;}
+let settingsCache:any=null;
 export function ModelPicker({tier}:{tier:'chat'|'build'}){
-  const [models,setModels]=useState<any>(null),[list,setList]=useState<string[]>([]);
-  useEffect(()=>{api('/settings').then(r=>setModels(r.models)).catch(()=>{});(modelList??=api('/models').catch(()=>[])).then(setList);},[]);
+  const [models,setModels]=useState<any>(settingsCache),[list,setList]=useState<string[]>([]);
+  useEffect(()=>{api('/settings').then(r=>{settingsCache=r.models;setModels(r.models);}).catch(()=>{});(modelList??=api('/models').catch(()=>[])).then(l=>{if(!l.length)modelList=null;setList(l);});},[]);
   if(!models||!list.length)return null;const current=models[tier].model;const claude=models.provider==='anthropic';const options=[...new Set([current,...(claude?['claude-haiku-4-5','claude-sonnet-5-5','claude-opus-5-5',...list.filter(m=>m.startsWith('claude'))]:['gpt-6-luna','gpt-6-sol','gpt-6-astra',...list.filter(m=>m.startsWith('gpt-6'))])])];
-  const choose=async(model:string)=>{try{setModels((await api('/settings',{models:{[tier]:{...models[tier],model}}})).models);}catch{}};
+  const choose=async(model:string)=>{try{const m=(await api('/settings',{models:{[tier]:{...models[tier],model}}})).models;settingsCache=m;setModels(m);}catch{}};
   return <label className="model-picker" title="Which model answers"><span className="sr-only">Model</span><select value={current} onChange={e=>void choose(e.target.value)}>{options.map(m=><option key={m} value={m}>{m.replace('gpt-','').replace('claude-','')}</option>)}</select></label>;
 }
