@@ -24,7 +24,7 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
   const client=new Client({name:'test',version:'1'});
   try{
     await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/api/mcp`)));
-    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','delete_team'])assert.ok(names.includes(n),n);
+    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','save_benchmark','list_benchmarks','delete_benchmark','delete_team'])assert.ok(names.includes(n),n);
     const text=async(name:string,args:any)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
     const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;
     const refused:any=await client.callTool({name:'import_team',arguments:{name:'Rushed',paste,brief:{goal:'x',core:['Pelipper'],gamePlan:'y',playerAgreed:false}}});assert.ok(refused.isError,'no team without the player agreeing');
@@ -54,6 +54,10 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const up=await text('update_set',{teamId:made.created,pokemon:a,changes:{moves:reordered},summary:'Test move reorder'});assert.deepEqual(up.updated.moves,reordered);
     assert.equal(store.db.teams.find((x:any)=>x.id===made.created)!.versions[0].configurations.length,before+1,'the change is a new step in History');
     const noMon:any=await client.callTool({name:'update_set',arguments:{teamId:made.created,pokemon:'Mew',changes:{item:'Leftovers'},summary:'x'}});assert.ok(noMon.isError);assert.match(noMon.content[0].text,/not on this team/);
+    // benchmarks: a calc is saved on the Pokémon with one call, listed and removable
+    const bm=await text('save_benchmark',{teamId:made.created,pokemon:a,kind:'damage',input:{attacker:{species:'Gholdengo',nature:'Modest',statPoints:{spa:32}},defender:{species:a,nature:'Careful',statPoints:{hp:32}},move:'Shadow Ball'},context:'Test benchmark'});assert.ok(bm.saved.id);assert.equal(bm.saved.kind,'damage');
+    const lb=await text('list_benchmarks',{teamId:made.created});assert.equal(lb.length,1);assert.equal(lb[0].pokemon,a);
+    const del=await text('delete_benchmark',{benchmarkId:bm.saved.id});assert.equal(del.restorable.kind,'damage');assert.equal((await text('list_benchmarks',{teamId:made.created})).length,0);
     // the six: replaced in one call, no extra gate
     if(paste2){const upd=await text('update_team',{teamId:made.created,paste:paste2,summary:'Try another six'});assert.equal(upd.updated,true);}
     const badDel:any=await client.callTool({name:'delete_team',arguments:{teamId:made.created,confirmName:'wrong',playerAgreed:true}});assert.ok(badDel.isError);assert.match(badDel.content[0].text,/exactly/);
