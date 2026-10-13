@@ -12,6 +12,7 @@ import {damage,speed,spreadSearch,finalStats,dex} from './mechanics.ts';
 import {metaSets,standardSet,type MetaSource} from './meta-sets.ts';
 import {poolSets,poolOverview} from './pool.ts';
 import {readStore,currentTeam} from './workbench-store.ts';
+import {setStrategyText} from '../shared/workbench.ts';
 import type {Workbench} from '../shared/workbench.ts';
 
 export const DEFAULT_MODEL='gpt-6-astra';
@@ -68,7 +69,7 @@ function teamPayload(db:Workbench,ctx:ChatContext){
   const view=currentTeam(db,team,ctx.versionId,ctx.configurationId);
   const brief=db.coaching?.[team.id]?.brief;
   return {team:team.name,format:team.format,...brief?{brief}:{},version:`V${view.version.number}${view.version.label?` · ${view.version.label}`:''}`,focus:ctx.slot!==undefined?view.sets[ctx.slot]?.species:undefined,
-    sets:view.configuration.slots.map((slot,i)=>{const r=db.bank.find(b=>b.id===slot.bankId)!.revisions.find(r=>r.id===slot.revisionId)!;return {slot:i,...r.set,finalStats:finalStats(r.set),provenance:r.provenance??'paste',fields:r.fields,knownMoves:r.knownMoves};})};
+    sets:view.configuration.slots.map((slot,i)=>{const r=db.bank.find(b=>b.id===slot.bankId)!.revisions.find(r=>r.id===slot.revisionId)!;return {slot:i,...r.set,strategy:setStrategyText(r.notes),finalStats:finalStats(r.set),provenance:r.provenance??'paste',fields:r.fields,knownMoves:r.knownMoves};})};
 }
 const trim=(m:any)=>({source:m.source,species:m.species,period:m.period,population:m.population,sample:m.sample,url:m.url,notes:m.notes,moves:m.moves.slice(0,10),items:m.items.slice(0,8),abilities:m.abilities.slice(0,4),natures:m.natures.slice(0,6),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,8)});
 const brief=(r:any)=>({description:r.description,range:r.range,percentOfMaxHP:r.percentOfMaxHP.map((x:number)=>Math.round(x*10)/10),koChanceOnHit:r.koChanceOnHit,...r.hits>1?{hits:r.hits,perHitRange:r.perHit.map((h:number[])=>[h[0],h.at(-1)])}:{},notes:r.assumptions.slice(0,-1),attackerStats:r.attackerStats,defenderStats:r.defenderStats,...r.combined?{combined:r.combined}:{}});

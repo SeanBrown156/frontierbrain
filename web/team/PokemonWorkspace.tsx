@@ -1,4 +1,5 @@
 import {useState,useEffect,useRef,type ReactNode} from 'react';
+import {setStrategyText} from '../../shared/workbench.ts';
 import type {SetRevision,SetNotes,PokemonSet,BankEntry} from '../../shared/workbench.ts';
 import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown,SetArt,MegaBadge} from '../ui.tsx';
 import {Px as Icon,Pencil,Check} from '../icons.tsx';
@@ -7,11 +8,11 @@ import BenchmarkLab from '../BenchmarkLab.tsx';
 import Benchmarks from './Benchmarks.tsx';
 import SpeciesPicker,{type SavedOption} from '../ai/SpeciesPicker.tsx';
 import {ItemPicker,MovePicker} from '../ai/Pickers.tsx';
-import {getView,versionName,stats,statLabel,noteTitles} from './editors.tsx';
+import {getView,versionName,stats,statLabel} from './editors.tsx';
 import {teamHref,monHref} from './Hub.tsx';
 import {useDraft,useDirty,useOffers,takeOffer} from '../save-state.ts';
 
-const blank=():SetNotes=>({role:'',benchmarks:'',partners:'',matchups:''});
+const blank=():SetNotes=>({role:'',benchmarks:''});
 type Draft={set:PokemonSet;notes:SetNotes};
 type Meta={reuse?:boolean;basis?:string[];why?:string;noted?:boolean};
 export type Mutate=(action:any,options?:{quiet?:boolean;before?:(result:any)=>void;optimistic?:(data:any)=>any})=>Promise<any>;
@@ -38,14 +39,14 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
   useDirty(`set-${team.id}-${slot}`,d.dirty&&problems.length>0&&!readOnly,`${set.species} (not saved: ${problems[0]??''})`);
   const [error,setError]=useState(''),[loading,setLoading]=useState('');
   const update=(patch:Partial<PokemonSet>)=>{d.setDraft(x=>({...x,set:{...x.set,...patch}}));setMeta(m=>({...m,reuse:false}));};
-  const replace=(next:PokemonSet,m:Meta)=>{d.setDraft(x=>({...x,set:structuredClone(next)}));setMeta(m);};
+  const replace=(next:PokemonSet,m:Meta,strategy?:string)=>{d.setDraft(x=>({...x,set:structuredClone(next),...strategy?{notes:{role:strategy,benchmarks:''}}:{}}));setMeta(strategy?{...m,noted:true}:m);};
   // Picking a species fills its most expected set from the data pool (items already on the team are skipped).
   const pickSpecies=async(species:string)=>{setLoading(species);setError('');try{const avoid=others.map((s:any)=>s.item).filter(Boolean).join('|');const r=await api(`/typical-set?species=${encodeURIComponent(species)}&avoid=${encodeURIComponent(avoid)}`);d.setDraft(()=>({set:r.set,notes:blank()}));setMeta({basis:r.basis});}
     catch(e){d.setDraft(()=>({set:{species,ability:'',item:'',nature:'Serious',moves:[],statPoints:{}},notes:blank()}));setMeta({basis:[`No usage data for ${species}: fill the set in by hand. (${(e as Error).message})`]});}finally{setLoading('');}};
   const savedSets:SavedOption[]=data.db.bank.flatMap((b:BankEntry)=>b.revisions.filter(r=>r.starred).map(r=>({id:r.id,label:r.starred!.label,species:r.set.species,value:r})));
   const [starring,setStarring]=useState(false),[starLabel,setStarLabel]=useState('');
-  useOffers(`set:${team.id}:${slot}`,p=>{replace(p.set,{why:p.why});scrollTo({top:0,behavior:'smooth'});return true;});
-  useEffect(()=>{const p=takeOffer(`set:${team.id}:${slot}`);if(p)replace(p.set,{why:p.why});},[]);
+  useOffers(`set:${team.id}:${slot}`,p=>{replace(p.set,{why:p.why},p.strategy);scrollTo({top:0,behavior:'smooth'});return true;});
+  useEffect(()=>{const p=takeOffer(`set:${team.id}:${slot}`);if(p)replace(p.set,{why:p.why},p.strategy);},[]);
 
   // Autosave: a moment after the last edit (or straight away when you leave), the set is saved if it's complete.
   // One save at a time; edits made meanwhile go in the next one. A burst of edits amends one history entry.
@@ -92,7 +93,7 @@ function SetWorkspace({team,data,mutate,view,slot,swap}:{team:any;data:any;mutat
       </fieldset>
     </section>
     <section className="panel set-benchmarks"><Benchmarks entry={entry} set={set} data={data} mutate={mutate}/></section>
-    <SetStrategy species={set.species} text={notesText} readOnly={readOnly} onChange={t=>d.setDraft(x=>({...x,notes:{role:t,benchmarks:'',partners:'',matchups:''}}))}/>
+    <SetStrategy species={set.species} text={notesText} readOnly={readOnly} onChange={t=>d.setDraft(x=>({...x,notes:{role:t,benchmarks:''}}))}/>
     </div>
     <BenchmarkLab offerKey={`calc:${team.id}:${slot}`} entry={entry} revision={revision} own={set} data={data} mutate={mutate} onUseSpread={(nature,statPoints)=>update({nature,statPoints})}/>
   </div>
@@ -155,10 +156,10 @@ function History({entry,revision,load}:{entry:BankEntry;revision:SetRevision;loa
 function SetStrategy({species,text,readOnly,onChange}:{species:string;text:string;readOnly:boolean;onChange:(t:string)=>void}){
   const [editing,setEditing]=useState(false);
   return <section className="panel set-notes"><header className="panel-heading"><h2>Strategy</h2>{!readOnly&&(editing?<button onClick={()=>setEditing(false)}><Icon icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Icon icon={Pencil}/>Edit</button>)}</header>
-    {editing?<label className="set-notes-edit"><span className="sr-only">Strategy for {species} (Markdown)</span><textarea autoFocus rows={Math.max(8,text.split('\n').length+2)} placeholder={`## Role\nWhat ${species} does for the team.\n\n## Benchmarks\n- …\n\n## Partners and matchups\n- …`} value={text} onChange={e=>onChange(e.target.value)}/></label>
-      :text.trim()?<div className="set-guide"><Markdown text={text}/></div>:<p className="muted">No strategy yet. {readOnly?'':'Use Edit to write how this Pokémon plays: its role, benchmarks, partners and matchups.'}</p>}</section>;
+    {editing?<label className="set-notes-edit"><span className="sr-only">Strategy for {species} (Markdown)</span><textarea autoFocus rows={Math.max(8,text.split('\n').length+2)} placeholder={`## Role\nWhat ${species} does for the team.\n\n## Benchmarks\n- …\n\n## Partners\n- …`} value={text} onChange={e=>onChange(e.target.value)}/></label>
+      :text.trim()?<div className="set-guide"><Markdown text={text}/></div>:<p className="muted">No strategy yet. {readOnly?'':'Use Edit to write how this Pokémon plays: its role, benchmarks and partners.'}</p>}</section>;
 }
-const mergeNotes=(n:SetNotes)=>[n.role,...(['benchmarks','partners','matchups'] as const).filter(k=>n[k]?.trim()).map(k=>`## ${noteTitles[k]}\n${n[k].trim()}`)].filter(t=>t?.trim()).join('\n\n');
+const mergeNotes=setStrategyText;
 export function checkSet(set:PokemonSet,others:PokemonSet[]){
   const out:string[]=[];const moves=(set.moves??[]).filter(m=>m.trim());
   if(!set.species)out.push('Choose a Pokémon.');if(moves.length!==4)out.push('Give it four moves.');else if(new Set(moves).size!==4)out.push('Moves must be different.');

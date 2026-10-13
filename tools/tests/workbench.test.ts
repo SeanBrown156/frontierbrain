@@ -67,3 +67,10 @@ test('Replacing sets: AI versions stay inactive, edits keep unedited guesses inf
   const active=team.activeVersionId;const v:any=applyAction(db,{type:'team-replace-sets',teamId:team.id,versionId:active,parentConfigurationId:currentTeam(db,team).configuration.id,sets:[{slot:0,set:original.set}],newVersion:true});
   assert.notEqual(v.versionId,active);assert.equal(team.activeVersionId,active);assert.ok(r.configurationId);
 });
+
+test('Retired partners/matchups note fields are folded into the Pokémon strategy write-up the next time anything is saved',()=>{
+  const db=emptyStore();const team=makeTeam(db,'Rain',pastes[2].paste);const r:any=db.bank[0].revisions[0];
+  r.notes={role:'Sets rain.',benchmarks:'',partners:'Pairs with Pelipper.',matchups:'Weak to Grass.'};
+  applyAction(db,{type:'team-rename',teamId:team.id,name:'Rain 2'});
+  assert.deepEqual(Object.keys(r.notes).sort(),['benchmarks','role']);assert.match(r.notes.role,/Sets rain\.[\s\S]*Pairs with Pelipper[\s\S]*Weak to Grass/);
+});

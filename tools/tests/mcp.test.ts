@@ -56,6 +56,15 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     // apply:true saves it now, as a new step in History
     const up=await text('update_set',{teamId:made.created,pokemon:a,changes:{moves:reordered},summary:'Test move reorder',apply:true});assert.deepEqual(up.updated.moves,reordered);
     assert.equal(store.db.teams.find((x:any)=>x.id===made.created)!.versions[0].configurations.length,before+1,'the change is a new step in History');
+    // a Pokémon's Strategy write-up is editable the same way: suggestion first, apply:true saves it in place (no new set revision)
+    const stratSug=await text('update_set',{teamId:made.created,pokemon:a,changes:{strategy:'## Role\nLead and set Trick Room.'},summary:'Write its role'});
+    assert.equal(stratSug.proposed,true);assert.match(stratSug.message,/Strategy/);assert.equal(store.db.pending!.some((x:any)=>x.proposal.kind==='set'&&x.proposal.strategy?.includes('Trick Room')),true);
+    const stepsBefore=store.db.teams.find((x:any)=>x.id===made.created)!.versions[0].configurations.length;
+    await text('update_set',{teamId:made.created,pokemon:a,changes:{strategy:'## Role\nLead and set Trick Room.'},summary:'Write its role',apply:true});
+    assert.equal((await text('get_team',{teamId:made.created})).sets.find((x:any)=>x.species===a).strategy,'## Role\nLead and set Trick Room.');
+    assert.equal(store.db.bank.some((b:any)=>b.revisions.some((r:any)=>'partners' in r.notes||'matchups' in r.notes)),false,'retired note fields do not linger');
+    assert.ok(store.db.teams.find((x:any)=>x.id===made.created)!.versions[0].configurations.length<=stepsBefore+1);
+    const same:any=await client.callTool({name:'update_set',arguments:{teamId:made.created,pokemon:a,changes:{strategy:'## Role\nLead and set Trick Room.'},summary:'again'}});assert.ok(same.isError);assert.match(same.content[0].text,/nothing to change/);
     const sg=await text('update_strategy',{teamId:made.created,text:'## Game plan\nRain first.'});assert.equal(sg.proposed,true);assert.equal(store.db.pending!.some((x:any)=>x.proposal.kind==='strategy'),true);
     const noMon:any=await client.callTool({name:'update_set',arguments:{teamId:made.created,pokemon:'Mew',changes:{item:'Leftovers'},summary:'x'}});assert.ok(noMon.isError);assert.match(noMon.content[0].text,/not on this team/);
     // benchmarks: a calc is saved on the Pokémon with one call, listed and removable

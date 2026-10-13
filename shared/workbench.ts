@@ -1,5 +1,12 @@
 export interface PokemonSet {species:string;nickname?:string;nature?:string;statPoints?:Partial<Record<'hp'|'atk'|'def'|'spa'|'spd'|'spe',number>>;ability?:string;item?:string;moves?:string[];gender?:string;}
-export interface SetNotes {role:string;benchmarks:string;partners:string;matchups:string;}
+// A Pokémon's strategy is one Markdown write-up (`role`); `benchmarks` holds the reasons recorded when a set is changed.
+// Older records also had `partners` and `matchups`; those are folded into the write-up when a record is saved.
+export interface SetNotes {role:string;benchmarks:string;}
+export const NOTE_TITLES={benchmarks:'Damage & speed benchmarks',partners:'Partners & positioning',matchups:'Matchups & testing goals'} as const;
+// The text shown as a Pokémon's Strategy: the write-up, then any recorded benchmark reasons (and, for older records, the
+// retired partner and matchup notes) under their headings.
+export const setStrategyText=(n?:Partial<Record<'role'|'benchmarks'|'partners'|'matchups',string>>|null):string=>
+  [n?.role,...(['benchmarks','partners','matchups'] as const).filter(k=>n?.[k]?.trim()).map(k=>`## ${NOTE_TITLES[k]}\n${n![k]!.trim()}`)].filter(t=>t?.trim()).join('\n\n');
 export type FieldCertainty='known'|'inferred'|'unknown';
 export interface SetRevision {id:string;number:number;createdAt:string;set:PokemonSet;notes:SetNotes;provenance?:'paste'|'observed'|'manual';knownMoves?:string[];fields?:Partial<Record<'moves'|'item'|'ability'|'nature'|'statPoints',FieldCertainty>>;basis?:string;starred?:{label:string;at:string};}
 export interface BankEntry {id:string;name:string;revisions:SetRevision[];}

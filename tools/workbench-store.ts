@@ -7,6 +7,7 @@ import {randomUUID} from 'node:crypto';
 import {ROOT,dataContext} from './io.ts';
 import {dex,points,finalStats,validateTeam,FORMAT,damage,speed,spreadSearch} from './mechanics.ts';
 import {importText,exportText} from './teams.ts';
+import {setStrategyText} from '../shared/workbench.ts';
 import type {Workbench,Slot,SetNotes,SetRevision,PokemonSet,Formula,Configuration,TeamCoaching} from '../shared/workbench.ts';
 import type {Game} from './replays.ts';
 
@@ -17,7 +18,7 @@ export class Conflict extends Error {}
 // The whole workspace moved on (another tab, an AI job, a connector). Saves retry on the latest copy; per-record
 // checks (a set's base revision, coaching version) still catch real edit clashes.
 export class StaleWorkspace extends Conflict {}
-export const blankNotes=():SetNotes=>({role:'',benchmarks:'',partners:'',matchups:''});
+export const blankNotes=():SetNotes=>({role:'',benchmarks:''});
 export function checkText(value:unknown,max=30000):string {if(typeof value!=='string'||value.length>max)throw new Error('Expected bounded text');return value;}
 export const cleanSet=(input:PokemonSet)=>checkSet(input,false);
 // Observed (replay-derived) sets may hold fewer than four moves; nothing unseen is filled in as fact.
@@ -31,7 +32,9 @@ function checkSet(input:PokemonSet,partialMoves:boolean):PokemonSet {
   if(set.ability&&!dex.abilities.get(set.ability).exists)throw new Error(`Unknown ability: ${set.ability}`);
   finalStats(set);return set;
 }
-function cleanNotes(notes:SetNotes):SetNotes {return Object.fromEntries(Object.keys(blankNotes()).map(k=>[k,checkText(notes?.[k as keyof SetNotes]??'')])) as unknown as SetNotes;}
+// Older notes had partners and matchups fields; they are folded into the write-up so nothing is lost.
+function cleanNotes(notes:SetNotes):SetNotes {const legacy=notes as any;const folded=legacy?.partners?.trim()||legacy?.matchups?.trim()?{role:setStrategyText({role:legacy.role,partners:legacy.partners,matchups:legacy.matchups}),benchmarks:legacy.benchmarks}:notes;
+  return {role:checkText(folded?.role??''),benchmarks:checkText(folded?.benchmarks??'')};}
 export function resolveSlots(db:Workbench,slots:Slot[]):PokemonSet[] {
   if(!Array.isArray(slots)||slots.length!==6)throw new Error('A formula needs six slots');
   return slots.map(s=>{const entry=db.bank.find(b=>b.id===s.bankId);const revision=entry?.revisions.find(r=>r.id===s.revisionId);if(!revision)throw new Error('Unknown bank revision');return revision.set;});
@@ -71,6 +74,8 @@ function amendable(db:Workbench,team:Formula,old:ReturnType<typeof currentTeam>,
   return uses===1&&old.version.configurations.at(-1)?.id===old.configuration.id&&team.versions.some(v=>v.id===old.version.id);
 }
 export function applyAction(db:Workbench,action:any):unknown {
+  // Records saved before partners/matchups were folded into the write-up are tidied the first time anything is saved.
+  for(const b of db.bank)for(const r of b.revisions)if('partners' in (r.notes??{})||'matchups' in (r.notes??{}))r.notes=cleanNotes(r.notes);
   if(!action||typeof action.type!=='string')throw new Error('Action required');
   if(action.type==='benchmark-save'){
     const entry=db.bank.find(b=>b.id===action.bankId);if(!entry?.revisions.some(r=>r.id===action.revisionId))throw new Error('Unknown benchmark revision');

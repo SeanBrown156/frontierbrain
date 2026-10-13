@@ -452,13 +452,11 @@ main{padding-top:var(--s6)}
   .panel-heading{justify-content:space-between!important;text-align:left!important}
   .ai-mode{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.ai-mode button{white-space:normal;line-height:1.2;padding:0 var(--s2)!important}
 }
-.settings-form.about-you,.settings-form.brief-form{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
-.about-you textarea,.brief-form textarea,.brief-form label:nth-child(3),.about-you label:last-child{grid-column:1/-1}
+.settings-form.about-you{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.about-you textarea,.about-you label:last-child{grid-column:1/-1}
 .about-you .field{display:grid;gap:var(--s1)}.about-you .field>span{font-size:13px}
 .about-you .segmented{margin:0;display:flex}.about-you .segmented button{flex:1}
-.brief{margin-bottom:var(--s4)}.brief-goal{font-size:1.05em;font-weight:600;margin:0 0 var(--s3)}
-.brief-core{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3);margin-bottom:var(--s3)}.brief-core .pair{display:inline-flex;align-items:center;gap:var(--s1)}
-@media(max-width:720px){.settings-form.about-you,.settings-form.brief-form{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:720px){.settings-form.about-you{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- page ---------- */
 html.jade body{background:var(--bg);background-image:none;color:var(--tx);font:15px/1.55 var(--fb);min-height:100vh}
@@ -2170,3 +2168,5 @@ html.jade .queued{display:grid;gap:10px;padding:12px;margin-bottom:14px;border-r
 html.jade .queued-h{display:flex;align-items:center;gap:8px;margin:0;font:700 12px/1.3 var(--fb);letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
 html.jade .queued-sum{margin:0 0 6px;font-size:13px}
 html.jade .dock-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:8px;border-radius:999px;background:var(--ac);color:var(--on);font:700 12px var(--fnum)}
+
+.tile-strategy{font-size:12px;border-top:1px solid var(--ln);padding-top:var(--s2)}.tile-strategy summary{cursor:pointer;color:var(--mu);margin-bottom:var(--s1)}.tile-strategy p,.tile-strategy ul{margin:0 0 var(--s1)}

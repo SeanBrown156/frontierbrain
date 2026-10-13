@@ -4,7 +4,8 @@ import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon
 import {Px,Share,Home,Target,Play,ArrowLeft,Pencil,Plus,Eye,Check,WarningDiamond,SettingsCog,Copy,Link,Swap} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
-import {getView,versionName,stats,natureEffect,noteTitles} from './editors.tsx';
+import {getView,versionName,stats,natureEffect} from './editors.tsx';
+import {setStrategyText} from '../../shared/workbench.ts';
 import {useDraft,useOffers,takeOffer} from '../save-state.ts';
 import SetTile from '../ai/SetTile.tsx';
 import type {Mutate} from './PokemonWorkspace.tsx';
@@ -89,7 +90,7 @@ function Strategy({team,data,version,all,mutate}:{team:any;data:any;version:any;
 }
 // Strategy, then the team. The write-up is the team's intent in a paragraph or two; clicking one of the six opens that
 // Pokémon's own strategy (its notes from the Pokémon page) underneath, with a link through to its page.
-function mergedNotes(n:any){return [n?.role,...['benchmarks','partners','matchups'].map(k=>n?.[k]?.trim()?`## ${noteTitles[k as keyof typeof noteTitles]}\n${n[k].trim()}`:'')].filter((t:string)=>t?.trim()).join('\n\n');}
+const mergedNotes=(n:any)=>setStrategyText(n);
 function TeamGuide({team,data,version,text}:{team:any;data:any;version:any;text:string}){
   const view=getView(team,data.db,version.id);const mons:MonRef[]=view.sets.map((s:any,i:number)=>({name:s.species,set:s,href:monHref(team.id,version.id,i)}));
   const [open,setOpen]=useState<number|null>(null);const r=open===null?null:view.revisions[open];
