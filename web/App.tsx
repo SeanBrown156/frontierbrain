@@ -11,6 +11,7 @@ import DataPool from './DataPool.tsx';
 import {hostedSite} from './auth.tsx';
 import AccountMenu from './AccountMenu.tsx';
 import Settings from './Settings.tsx';
+import InboxPage,{useInbox} from './Inbox.tsx';
 import Welcome,{WELCOMED,REPO} from './Welcome.tsx';
 import {GitHubMark} from './landing-marks.tsx';
 import BrainBackdrop from './brain/BrainBackdrop.tsx';
@@ -34,6 +35,8 @@ const normalise=(hash:string)=>{const p=hash.split('/');return p[0]==='team'&&p[
 export default function App(){
   const [data,setData]=useState<any>(null),[error,setError]=useState(''),[message,setMessage]=useState<{text:string;error?:boolean}|null>(null),[route,setRoute]=useState(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams')),[importing,setImporting]=useState<false|{review?:{jobId:string;proposal:any}}>(false),[jobs,setJobs]=useState<any>(null),[report,setReport]=useState<string|null>(null),[newsOpen,setNewsOpen]=useState(false),[dockOpen,setDockOpenState]=useState(()=>{try{return localStorage.getItem('pokecoach.dock')==='open';}catch{return false;}});
   const [menuOpen,setMenuOpen]=useState(false);
+  // What is waiting on the player (unlinked replays, suggestions, summaries, calcs, notices): badge in the header, list on #inbox.
+  const {inbox,reload:reloadInbox}=useInbox(data?`${data.db.revision}:${data.games.length}`:null);
   // Jade × Phosphor: the once-per-session boot, the screen switching on after it, and text that resolves from noise.
   // The landing page goes straight in; the boot belongs to the app and starts when you open it (see openApp).
   // Opening the app always shows the loading animation until the data is in: the full sequence once per session, a quick
@@ -95,10 +98,10 @@ export default function App(){
   const parts=route.split('/');const team=parts[0]==='team'?data?.teams.find((t:any)=>t.id===parts[1]):null;const pageData=data?{...data,jobs}:null;
   const candidate=team&&parts[2]==='bench'&&parts[3]?(team.bench??[]).find((b:any)=>b.id===parts[3]):undefined;
   // Ask Frontier Brain is on every page: team pages give it the team (and Pokémon) in view; elsewhere it answers general questions.
-  const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions',bench:'bench'} as any)[parts[2]]??'overview'),versionId:candidate?'all':parts[3]??'all',...candidate?{benchId:candidate.id}:{}}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
+  const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions',bench:'bench'} as any)[parts[2]]??'overview'),versionId:candidate?'all':parts[3]??'all',...candidate?{benchId:candidate.id}:{}}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings',inbox:'Inbox'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
   // The same route state also tells the server what is open, so an assistant connected over MCP can answer "this one" (get_focus).
-  const focusTeam=team?.id,focusVersion=dock.versionId==='all'?undefined:dock.versionId,focusPage=team?dock.page:(['welcome','teams','news','data','references','account'].includes(parts[0])?parts[0]:'teams');
+  const focusTeam=team?.id,focusVersion=dock.versionId==='all'?undefined:dock.versionId,focusPage=team?dock.page:(['welcome','teams','news','data','references','account','inbox'].includes(parts[0])?parts[0]:'teams');
   useEffect(()=>{if(data&&!booting)setFocusBase({page:focusPage,teamId:focusTeam,versionId:focusVersion,slot:dock.slot});},[!!data,booting,focusPage,focusTeam,focusVersion,dock.slot]);
   // "Open the app" on the landing page: mark it seen, run the boot (once per session), then open your teams.
   const openApp=()=>{try{localStorage.setItem(WELCOMED,'1');}catch{}if(shouldBoot()){setQuick(false);setBooting(true);}location.hash='#teams';};
@@ -106,7 +109,7 @@ export default function App(){
   return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot quick={quick} data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&route!=='welcome'&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}{route==='welcome'?<header className="masthead landing-nav"><Brand/><ThemeToggle/>
       <a className="button lp-nav-src" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</a><button className="primary lp-nav-go" onClick={openApp}>Open the app<span aria-hidden="true">→</span></button></header>
     :<header className={'masthead'+(menuOpen?' menu-open':'')}><Brand/><SavePill/>
-      <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
+      <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify} inbox={inbox?.count??0}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>}
     <main><RegulationBanner/>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button className="icon" aria-label="Dismiss notification" onClick={()=>setMessage(null)}><Px icon={CloseIcon} size={16}/></button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
@@ -117,6 +120,7 @@ export default function App(){
       {team&&parts[2]==='mon'&&<PokemonWorkspace team={team} data={pageData} mutate={mutate} versionId={parts[3]} slot={Number(parts[4])} swap={parts[5]==='swap'}/>}
       {team&&parts[2]==='bench'&&candidate&&<BenchWorkspace key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} benchId={candidate.id}/>}
       {team&&parts[2]!=='mon'&&!candidate&&<TeamHub key={team.id} team={team} data={pageData} mutate={mutate} notify={notify} load={load} tab={parts[2]??'overview'} versionId={parts[3]??'all'}/>}
+      {route==='inbox'&&<InboxPage inbox={inbox} data={pageData} load={load} reload={reloadInbox} notify={notify} openDock={()=>setDockOpen(true)}/>}
       {route==='account'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Settings profile={data.profile} reload={load} notify={notify}/></>}
       {route==='news'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
       {route==='data'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><DataPool art={data.art}/></>}

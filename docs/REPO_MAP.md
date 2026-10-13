@@ -43,6 +43,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 - `mcp.ts`: the MCP connector for Claude, ChatGPT and CLI agents.
 - `replay-intake.ts`: replay add (links or HTML, auto-link) and single-replay delete, shared by the HTTP API and MCP. `pokepaste.ts`: publish a team to pokepast.es.
 - `focus.ts`: what the player has open (`get_focus`) and the calcs an assistant ran over MCP, kept in small per-user files outside the workspace revision. The app reports focus from `web/focus.ts` and lists the calcs in `web/team/AssistantCalcs.tsx`.
+- `inbox.ts`: the Inbox (`GET /api/inbox`, `get_inbox`): replays with no team link, unaccepted suggestions, replays waiting for a summary, assistant calcs and regulation notices (`knowledge/regulations/notices.json`, read only), computed from the records the team views read. Only notice dismissals are stored (`inbox-state.json`, per user). The page is `web/Inbox.tsx`.
 - `scheduled-run.ts`: `npm run daily` and `npm run weekly` (no AI).
 
 **Workspace storage** (teams, sets, versions, replays)

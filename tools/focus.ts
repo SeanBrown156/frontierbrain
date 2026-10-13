@@ -9,7 +9,7 @@ import type {Workbench} from '../shared/workbench.ts';
 
 export const FOCUS_FILE='.cache/focus.json',CALCS_FILE='.cache/assistant-calcs.json';
 export const FOCUS_STALE_MS=10*60_000,CALC_LIMIT=20,CALC_TTL_MS=24*3600_000;
-export const PAGES=['welcome','teams','overview','strategy','replays','versions','slot','news','data','references','account'] as const;
+export const PAGES=['welcome','teams','overview','strategy','replays','versions','slot','news','data','references','account','inbox'] as const;
 export interface FocusCalc {kind:'damage'|'speed';input:any}
 export interface Focus {page:string;teamId?:string;versionId?:string;slot?:number;replayId?:string;calc?:FocusCalc;at:string;tab:string}
 export interface AssistantCalc {id:string;kind:'damage'|'speed';input:any;result:any;label:string;at:string}
@@ -31,7 +31,7 @@ export async function writeFocus(input:any){const f=cleanFocus(input);await save
 // "Viewing Perish Drum › Pokémon › Mawile (slot 2)": what the focus points at, resolved against the workspace.
 export function describeFocus(db:Workbench,f:Focus){
   const team=f.teamId?db.teams.find(t=>t.id===f.teamId):undefined;const parts:string[]=[];
-  const where:Record<string,string>={welcome:'the welcome page',teams:'the Teams page',news:'the news page',data:'the data pool',references:'the references page',account:'Account settings'};
+  const where:Record<string,string>={welcome:'the welcome page',teams:'the Teams page',news:'the news page',data:'the data pool',references:'the references page',account:'Account settings',inbox:'the Inbox'};
   if(!team){parts.push(where[f.page]??'Frontier Brain');}
   else{parts.push(team.name);const v=team.versions.find(x=>x.id===(f.versionId??team.activeVersionId));
     if(f.page==='slot'){parts.push('Pokémon');try{const view=currentTeam(db,team,v?.id);const sp=f.slot!==undefined?view.sets[f.slot]?.species:undefined;if(sp)parts.push(`${sp} (slot ${f.slot!+1})`);}catch{}}

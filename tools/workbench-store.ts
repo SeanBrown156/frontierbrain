@@ -288,7 +288,8 @@ export async function readStore(storageRoot=ROOT):Promise<Workbench>{
   const teams=await Promise.all(manifest.teamIds.map(async(id:string)=>{const path=`teams/${recordId(id)}`;const {versionIds,...meta}=JSON.parse(await readFile(resolve(storageRoot,path,'team.json'),'utf8'));return {...meta,versions:await Promise.all(versionIds.map(async(vid:string)=>{const v:any=await optionalFile(resolve(storageRoot,path,'versions',recordId(vid)+'.json'));const {configurationIds,...meta}=v;return {...meta,configurations:await Promise.all(configurationIds.map((cid:string)=>optionalFile(resolve(storageRoot,path,'configurations',recordId(cid)+'.json'))))};}))};}));
   const benchmarkLists=await Promise.all(manifest.pokemonIds.map(async(id:string)=>{const meta:any=await optionalFile(resolve(storageRoot,'pokemon',recordId(id),'pokemon.json'));return Promise.all((meta.benchmarkIds??[]).map((bid:string)=>optionalFile(resolve(storageRoot,'pokemon',id,'benchmarks',recordId(bid)+'.json'))));}));
   const coachingEntries=await Promise.all(manifest.teamIds.map(async(id:string)=>[id,await optionalFile(resolve(storageRoot,'teams',recordId(id),'coaching.json'))]));
-  const db={schemaVersion:1,revision:manifest.revision,bank,teams,coaching:Object.fromEntries(coachingEntries.filter(([,c])=>c)),associations:await optionalFile(resolve(storageRoot,'replays/associations.json'))??{},matches:await optionalFile(resolve(storageRoot,'replays/matches.json'))??[],benchmarks:benchmarkLists.flat()} as Workbench;
+  const queued=await optionalFile<any[]>(resolve(storageRoot,'teams/pending.json')); // assistant suggestions not yet accepted
+  const db={schemaVersion:1,revision:manifest.revision,bank,teams,coaching:Object.fromEntries(coachingEntries.filter(([,c])=>c)),associations:await optionalFile(resolve(storageRoot,'replays/associations.json'))??{},matches:await optionalFile(resolve(storageRoot,'replays/matches.json'))??[],benchmarks:benchmarkLists.flat(),...queued?.length?{pending:queued}:{}} as Workbench;
   // A writer might have committed while this reader assembled the records.
   const committed=await optionalFile<{db:Workbench}>(resolve(storageRoot,'.cache/coach-transaction.json'));if(committed)return committed.db;
   const latest:any=await optionalFile(resolve(storageRoot,'teams/index.json'));if(latest.revision!==manifest.revision)return readStore(storageRoot);return db;
@@ -299,6 +300,7 @@ async function materialize(db:Workbench,root:string){
   for(const t of db.teams){const {versions,...meta}=t;await atomicJSON(root,`teams/${t.id}/team.json`,{...meta,versionIds:versions.map(v=>v.id)});for(const v of versions){const {configurations,...meta}=v;await atomicJSON(root,`teams/${t.id}/versions/${v.id}.json`,{...meta,configurationIds:configurations.map(c=>c.id)});for(const c of configurations)await atomicJSON(root,`teams/${t.id}/configurations/${c.id}.json`,c);}}
   for(const [teamId,c] of Object.entries(db.coaching??{}))await atomicJSON(root,`teams/${recordId(teamId)}/coaching.json`,c);
   for(const b of db.benchmarks??[])await atomicJSON(root,`pokemon/${b.bankId}/benchmarks/${recordId(b.id)}.json`,b);
+  await atomicJSON(root,'teams/pending.json',db.pending??[]);
   await atomicJSON(root,'replays/associations.json',db.associations);await atomicJSON(root,'replays/matches.json',db.matches);
   await atomicJSON(root,'teams/index.json',{schemaVersion:2,revision:db.revision,teamIds:db.teams.map(t=>t.id),pokemonIds:db.bank.map(b=>b.id)});
   await rm(resolve(root,'.cache/coach-transaction.json'),{force:true});

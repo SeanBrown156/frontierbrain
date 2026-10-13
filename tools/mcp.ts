@@ -26,6 +26,7 @@ import {createPokepaste} from './pokepaste.ts';
 import {activeAI,config as profile} from './io.ts';
 import {focusTools,focusCall,focusInstructions} from './focus.ts';
 import {benchTools,benchNames,benchCall,benchGuidance} from './mcp-bench.ts';
+import {inboxTools,inboxNames,inboxCall} from './inbox.ts'; // get_inbox (read-only)
 
 const teamId={teamId:{type:'string',description:'Team id from list_teams'}};
 const str={type:'string'};
@@ -84,6 +85,7 @@ const own=[
 ];
 const all=[...own,...benchTools,...shared];
 all.push(...focusTools as any[]); // get_focus (tools/focus.ts)
+all.push(...inboxTools as any[]); // get_inbox (tools/inbox.ts)
 // "What's changing": the same before → after the app's suggestion tiles show, as markdown for the chat.
 const changeLines=(before:any,after:any):string[]=>{const L:string[]=[];
   if(String(before.species)!==String(after.species))L.push(`**Pokémon:** ${before.species} → ${after.species}`);
@@ -268,6 +270,7 @@ async function call(name:string,input:any){
     const gone=await deleteReplays(r.result?.replays??[]);await removeFile(`reports/replay-digests/${t.id}.json`).catch(()=>{});
     return {deleted:t.name,replaysDeleted:gone};}
   if(benchNames.has(name))return benchCall(name,input,db);
+  if(inboxNames.has(name))return inboxCall(name,db);
   const focused=await focusCall(name,db,input,()=>runTool(name,input,{},db)); // get_focus, and calcs handed to the app
   if(focused!==undefined)return focused;
   return runTool(name,input,name==='get_team'?{teamId:input.teamId}:{},db);
