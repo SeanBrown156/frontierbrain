@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {chat,runTool,tools} from '../chat.ts';
 import {damage} from '../mechanics.ts';
-import {readStore,emptyStore,makeTeam} from '../workbench-store.ts';
+import {readStore,emptyStore,makeTeam,applyAction} from '../workbench-store.ts';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {ROOT} from '../io.ts';
@@ -28,6 +28,12 @@ test('Chat refuses without a key and surfaces engine rejections instead of appro
 test('get_team exposes the open configuration with final stats and provenance',async()=>{
   const db=emptyStore();const pastes=JSON.parse(await readFile(resolve(import.meta.dirname,'fixtures/teams.json'),'utf8'));const team=makeTeam(db,'Test',pastes[0].paste);
   const r:any=await runTool('get_team',{},{teamId:team.id,versionId:team.activeVersionId},db);assert.equal(r.sets.length,6);assert.equal(r.sets[0].provenance,'paste');assert.ok(r.sets[0].finalStats.hp>0);
+});
+test('get_team lists the bench apart from the six, with what each candidate could replace',async()=>{
+  const db=emptyStore();const pastes=JSON.parse(await readFile(resolve(import.meta.dirname,'fixtures/teams.json'),'utf8'));const team=makeTeam(db,'Test',pastes[0].paste);
+  const none:any=await runTool('get_team',{},{teamId:team.id},db);assert.deepEqual(none.bench,[]);
+  applyAction(db,{type:'bench-add',teamId:team.id,set:{species:'Golisopod',nature:'Adamant',ability:'Emergency Exit',item:'Chople Berry',statPoints:{hp:32,atk:32},moves:['First Impression','Liquidation','Leech Life','Close Combat']},replaces:'Farigiraf',notes:{role:'## Role\nPivot',benchmarks:''}});
+  const r:any=await runTool('get_team',{},{teamId:team.id},db);assert.equal(r.sets.length,6);assert.equal(r.bench.length,1);assert.equal(r.bench[0].species,'Golisopod');assert.equal(r.bench[0].couldReplace,'Farigiraf');assert.match(r.bench[0].strategy,/Pivot/);assert.ok(r.bench[0].finalStats.hp>0);
 });
 // A model that answers with invalid JSON once, then valid JSON when repaired; it rejects the reasoning setting first.
 function repairModel(log:any[]){let rejected=false;return (async(_url:string,init:any)=>{const body=JSON.parse(init.body);log.push(body);

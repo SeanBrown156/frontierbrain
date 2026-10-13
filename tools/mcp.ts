@@ -19,6 +19,7 @@ import {removeFile} from './io.ts';
 import {loadGames} from './replays.ts';
 import {transcript,readGame,readSummary,isStale,saveReplaySummary,saveTeamDigest,STYLES} from './replay-summary.ts';
 import {readPreferences,preferencesText} from './player.ts';
+import {benchTools,benchNames,benchCall,benchGuidance} from './mcp-bench.ts';
 
 const teamId={teamId:{type:'string',description:'Team id from list_teams'}};
 const str={type:'string'};
@@ -71,7 +72,7 @@ const own=[
   {name:'delete_benchmark',description:'Delete a saved benchmark by id (list_benchmarks). Its input comes back in the result, so it can be saved again.',parameters:{type:'object',properties:{benchmarkId:str},required:['benchmarkId']}},
   {name:'delete_team',description:'Delete a team, its plans and its replays with their analysis. Only when the player explicitly asked to delete it: needs playerAgreed: true and confirmName equal to the team\'s exact name.',parameters:{type:'object',properties:{...teamId,confirmName:str,...agreed},required:['teamId','confirmName','playerAgreed']}},
 ];
-const all=[...own,...shared];
+const all=[...own,...benchTools,...shared];
 // "What's changing": the same before → after the app's suggestion tiles show, as markdown for the chat.
 const changeLines=(before:any,after:any):string[]=>{const L:string[]=[];
   if(String(before.species)!==String(after.species))L.push(`**Pokémon:** ${before.species} → ${after.species}`);
@@ -106,8 +107,8 @@ async function call(name:string,input:any){
   if(name==='set_team_format'){await mutateLatest(d=>applyAction(d,{type:'team-format',teamId:input.teamId,format:input.format} as any));return {format:input.format};}
   if(name==='export_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');return {name:t.name,paste:exportText(currentTeam(db,t).sets as any,t.format)};}
   if(name==='duplicate_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const view=currentTeam(db,t);
-    const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name||`${t.name} (copy)`).slice(0,120),paste:exportText(view.sets as any,t.format),format:t.format,notes:view.version.notes??''} as any));
-    const n:any=r.result;return {created:n.id,name:n.name,note:'A copy of the six and the game-plan text. Plans and replays stay with the original.'};}
+    const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name||`${t.name} (copy)`).slice(0,120),paste:exportText(view.sets as any,t.format),format:t.format,notes:view.version.notes??'',benchFrom:t.id} as any));
+    const n:any=r.result;return {created:n.id,name:n.name,note:'A copy of the six, the game-plan text and the bench. Plans and replays stay with the original.'};}
   if(name==='replace_pokemon'||name==='star_set'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const view=currentTeam(db,t);
     const slot=view.sets.findIndex((s:any)=>String(s.species).toLowerCase()===String(input.pokemon).toLowerCase());if(slot<0)throw new Error(`"${input.pokemon}" is not on this team (${view.sets.map((s:any)=>s.species).join(', ')}).`);
     if(name==='star_set'){const r:any=await mutateLatest(d=>applyAction(d,{type:input.unstar?'set-unstar':'set-star',teamId:t.id,slot,label:input.label} as any));return {pokemon:view.sets[slot].species,starred:!input.unstar,label:r.result?.starred?.label??null};}
@@ -224,6 +225,7 @@ async function call(name:string,input:any){
     // Same as the app: a deleted team takes its replays and their analysis with it.
     const gone=await deleteReplays(r.result?.replays??[]);await removeFile(`reports/replay-digests/${t.id}.json`).catch(()=>{});
     return {deleted:t.name,replaysDeleted:gone};}
+  if(benchNames.has(name))return benchCall(name,input,db);
   return runTool(name,input,name==='get_team'?{teamId:input.teamId}:{},db);
 }
 
@@ -256,7 +258,7 @@ function server(prefs:string){
   // Clients that show connector icons read them from the server info (MCP 2025-11-25); some fall back to /favicon.ico.
   const SITE='https://frontierbrain.vercel.app';
   const info={name:'frontier-brain',title:'Frontier Brain',version:'1.0.0',websiteUrl:SITE,icons:[{src:`${SITE}/brand/icon-512.png`,mimeType:'image/png',sizes:['512x512']},{src:`${SITE}/brand/icon-192.png`,mimeType:'image/png',sizes:['192x192']}]};
-  const s=new Server(info,{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}\n${prefs}`});
+  const s=new Server(info,{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}\n${benchGuidance}\n${prefs}`});
   s.setRequestHandler(ListPromptsRequestSchema,async()=>({prompts:prompts.map(({text,...p})=>p)}));
   s.setRequestHandler(GetPromptRequestSchema,async req=>{const p=prompts.find(x=>x.name===req.params.name);if(!p)throw new Error(`Unknown prompt ${req.params.name}`);
     return {description:p.description,messages:[{role:'user',content:{type:'text',text:p.text(req.params.arguments??{})}}]};});

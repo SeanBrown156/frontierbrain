@@ -28,3 +28,11 @@ test('The docked assistant leads with the page guidance, accepts any proposal ki
   const named=validateProposals('assist',{proposals:[{kind:'set',slot:4,set:set('Feraligatr',other)}]},six,2,'slot');assert.equal(named.proposals[0].slot,4,'an explicit other slot is kept');
   assert.doesNotThrow(()=>validateProposals('assist',{proposals:[]},six,undefined,'overview'));
 });
+
+test('Bench proposals add a candidate: standard strategy required, the replaced Pokémon must be on the team',async()=>{
+  const six=await team();const cand={species:'Golisopod',ability:'Emergency Exit',item:'Chople Berry',nature:'Adamant',moves:['First Impression','Liquidation','Leech Life','Close Combat'],statPoints:{hp:32,atk:32}};
+  const strategy='## Role\nPivot.\n\n## How to play\nLead.\n\n## Watch out for\nFake Out.';
+  const ok=validateProposals('assist',{reply:'r',proposals:[{kind:'bench',set:cand,replaces:six[1].species,why:'x',strategy}]},six,undefined,'bench');assert.equal(ok.proposals[0].kind,'bench');assert.equal(ok.proposals[0].replaces,six[1].species);
+  assert.throws(()=>validateProposals('assist',{reply:'r',proposals:[{kind:'bench',set:cand,strategy:'nope'}]},six,undefined,'bench'),/How to play/);
+  assert.throws(()=>validateProposals('assist',{reply:'r',proposals:[{kind:'bench',set:cand,replaces:'Mew',strategy}]},six,undefined,'bench'),/not on the team/);
+});

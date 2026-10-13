@@ -145,3 +145,50 @@ test('MCP replays: with no AI key, games wait for the assistant, which saves a s
     await withData(ctx,async()=>{assert.equal((await readDigest(teamId))!.edited,true);});
   }finally{await client.close();server.close();await rm(root,{recursive:true});}
 });
+
+test('MCP bench: candidates are saved straight away, promoting is a suggestion first and applies on request',async()=>{
+  const root=await mkdtemp(resolve(tmpdir(),'fb-mcp-bench-'));const store=memoryStore();
+  const ctx={user:fileBackend(root),shared:fileBackend(root,CODE),store,hosted:true};
+  const server=createServer((req,res)=>withData(ctx,async()=>{let raw='';for await(const c of req)raw+=c;await handleMcp(req,res,raw?JSON.parse(raw):undefined);}));
+  await new Promise<void>(ok=>server.listen(0,'127.0.0.1',ok));const port=(server.address() as any).port;
+  const client=new Client({name:'test',version:'1'});
+  try{
+    await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/api/mcp`)));
+    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['get_bench','add_to_bench','update_bench','remove_from_bench','promote_from_bench'])assert.ok(names.includes(n),n);
+    const text=async(name:string,args:any)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
+    const fails=async(name:string,args:any,re:RegExp)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(r.isError,`${name} should fail`);assert.match(r.content[0].text,re);};
+    const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;
+    const made=await text('import_team',{name:'Perish',paste});const teamId=made.created;
+    const strategy='## Role\nBulky Water pivot that replaces Farigiraf.\n\n## How to play\nFirst Impression on turn one, then Emergency Exit out.\n\n## Watch out for\nFake Out and Rock Slide.';
+    const golisopod='Golisopod @ Chople Berry\nAbility: Emergency Exit\nEVs: 32 HP / 32 Atk / 2 SpD\nAdamant Nature\nLevel: 50\n- First Impression\n- Liquidation\n- Leech Life\n- Close Combat';
+    assert.deepEqual((await text('get_bench',{teamId})).bench,[]);
+    // the standard strategy format and a real team member are required
+    await fails('add_to_bench',{teamId,paste:golisopod,strategy:'It is good.'},/How to play/);
+    await fails('add_to_bench',{teamId,paste:golisopod,strategy,replaces:'Mew'},/not on this team/);
+    await fails('add_to_bench',{teamId,paste:'Golisopod\nAbility: Nonexistent Ability\n- First Impression',strategy},/./);
+    const sixBefore=JSON.stringify(store.db.teams[0].versions[0].configurations);
+    const added=await text('add_to_bench',{teamId,paste:golisopod,strategy,replaces:'Farigiraf'});assert.equal(added.added,'Golisopod');assert.equal(added.replaces,'Farigiraf');
+    assert.equal(store.db.pending??[].length,0,'a bench add is not in the Accept/Reject queue');assert.equal(JSON.stringify(store.db.teams[0].versions[0].configurations),sixBefore,'the six is untouched');
+    const got=await text('get_bench',{teamId});assert.equal(got.bench.length,1);assert.equal(got.bench[0].pokemon,'Golisopod');assert.equal(got.bench[0].replaces,'Farigiraf');assert.equal(got.bench[0].strategy,strategy);assert.ok(got.bench[0].finalStats.hp>0);assert.equal(got.bench[0].fits.length,6);
+    assert.equal(store.db.teams[0].bench![0].source,'assistant');
+    const benchId=got.bench[0].id;
+    const upd=await text('update_bench',{teamId,benchId,changes:{item:'Sitrus Berry',statPoints:{spd:0,spe:2}}});assert.match(upd.changes.join(' '),/Sitrus Berry/);
+    assert.equal((await text('get_bench',{teamId})).bench[0].item,'Sitrus Berry');assert.equal((await text('get_bench',{teamId})).bench[0].strategy,strategy,'a set edit keeps the strategy');
+    await text('update_bench',{teamId,benchId,changes:{item:'Chople Berry'}});
+    await fails('update_bench',{teamId,benchId,changes:{strategy:'no format'}},/How to play/);await fails('update_bench',{teamId,benchId:'nope',changes:{item:'x'}},/No candidate/);
+    // promote: a suggestion first (one per candidate), nothing applied
+    const steps=store.db.teams[0].versions[0].configurations.length;
+    const sug=await text('promote_from_bench',{teamId,benchId,summary:'Golisopod beats Fake Out better'});assert.equal(sug.proposed,true);assert.match(sug.message,/Suggested: promote Golisopod/);
+    assert.equal(store.db.pending!.length,1);assert.equal(store.db.pending![0].proposal.kind,'promote');assert.equal(store.db.pending![0].proposal.benchId,benchId);assert.equal(store.db.teams[0].versions[0].configurations.length,steps);
+    await text('promote_from_bench',{teamId,benchId,summary:'again'});assert.equal(store.db.pending!.length,1,'repeating replaces the earlier suggestion');
+    await fails('promote_from_bench',{teamId,benchId,pokemon:'Mew',summary:'x'},/not on this team/);
+    const done=await text('promote_from_bench',{teamId,benchId,summary:'Golisopod beats Fake Out better',apply:true});assert.equal(done.promoted,'Golisopod');assert.equal(done.displaced,'Farigiraf');
+    assert.equal(store.db.teams[0].versions[0].configurations.length,steps+1);assert.equal(store.db.pending!.length,0,'applying clears the queued suggestion');
+    const after=await text('get_bench',{teamId});assert.equal(after.bench.length,1);assert.equal(after.bench[0].pokemon,'Farigiraf');assert.equal(after.bench[0].replaces,'Golisopod');
+    assert.ok(after.six.includes('Golisopod'));assert.ok(!after.six.includes('Farigiraf'));
+    // a candidate that breaks the item clause is refused before the player sees a suggestion
+    const clash=await text('add_to_bench',{teamId,paste:golisopod.replace('Chople Berry','Leftovers').replace('Adamant','Jolly'),strategy});
+    await fails('promote_from_bench',{teamId,benchId:clash.benchId,pokemon:'Incineroar',summary:'x'},/Not legal in slot 1/);assert.equal(store.db.pending!.length,0);
+  }
+  finally{await client.close();server.close();await rm(root,{recursive:true});}
+});

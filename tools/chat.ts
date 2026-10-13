@@ -12,7 +12,7 @@ import {damage,speed,spreadSearch,finalStats,dex} from './mechanics.ts';
 import {metaSets,standardSet,type MetaSource} from './meta-sets.ts';
 import {poolSets,poolOverview} from './pool.ts';
 import {readStore,currentTeam} from './workbench-store.ts';
-import {setStrategyText} from '../shared/workbench.ts';
+import {setStrategyText,BENCH_LABEL} from '../shared/workbench.ts';
 import type {Workbench} from '../shared/workbench.ts';
 
 export const DEFAULT_MODEL='gpt-6-astra';
@@ -51,7 +51,7 @@ Rules:
 - Every damage number, speed comparison, stat, spread or usage percentage MUST come from a tool result in this conversation. Never estimate or recall numbers.
 - "Typical"/"standard"/"common" opponent = standard_set with no source: it uses the team pool when it has enough exact spreads, else PokéBase M-C tournaments (spread 0). Always state the label you used, e.g. "vs PokéBase M-C Careful 32/0/2/0/32/0 Incineroar (22.4% of spreads)". Offer to rerun on the 2nd/3rd spread when the top share is small.
 - Real usage, sets and results come from team_pool_sets and meta_overview first (one deduplicated pool: Limitless official + online team lists, VGCPastes spreads). Cite examples by player, event and placing. usage_data is for a single named outside source.
-- The player's own sets come from get_team. If a field is "inferred", say the result depends on that assumption.
+- The player's own sets come from get_team. If a field is "inferred", say the result depends on that assumption. get_team also lists the team's ${BENCH_LABEL} ("bench"): Pokémon being considered but not on the team; never count them as team members.
 - Report damage as % range and KO chance from the tool, plus the conditions (field, items, abilities, boosts). Mention Intimidate, spread-move reduction or terrain only if they were in the calc input.
 - A Pokémon holding its Mega Stone (e.g. Gengar @ Gengarite) fights as its Mega form once evolved: calc species "Gengar-Mega" unless the question is about the turn before Mega Evolution, and say which form you used.
 - If the engine rejects an input, say so plainly; do not approximate. Multi-hit moves report per-hit rolls and an exact KO chance; set moveOptions.hits when the hit count matters. Rage Fist, Last Respects, Stomping Tantrum, Avalanche, Assurance and Payback take moveOptions.context ({timesHit}, {faintedAllies}, {lastMoveFailed}, {hitFirst}, {targetDamaged}, {movesLast}); state the battle state you assumed.
@@ -68,7 +68,9 @@ function teamPayload(db:Workbench,ctx:ChatContext){
   const team=db.teams.find(t=>t.id===ctx.teamId);if(!team)return {error:'No team is open in this chat context.'};
   const view=currentTeam(db,team,ctx.versionId,ctx.configurationId);
     return {team:team.name,format:team.format,strategy:view.version.notes,version:`V${view.version.number}${view.version.label?` · ${view.version.label}`:''}`,focus:ctx.slot!==undefined?view.sets[ctx.slot]?.species:undefined,
-    sets:view.configuration.slots.map((slot,i)=>{const r=db.bank.find(b=>b.id===slot.bankId)!.revisions.find(r=>r.id===slot.revisionId)!;return {slot:i,...r.set,strategy:setStrategyText(r.notes),finalStats:finalStats(r.set),provenance:r.provenance??'paste',fields:r.fields,knownMoves:r.knownMoves};})};
+    sets:view.configuration.slots.map((slot,i)=>{const r=db.bank.find(b=>b.id===slot.bankId)!.revisions.find(r=>r.id===slot.revisionId)!;return {slot:i,...r.set,strategy:setStrategyText(r.notes),finalStats:finalStats(r.set),provenance:r.provenance??'paste',fields:r.fields,knownMoves:r.knownMoves};}),
+    // Candidates the player is considering for this team (not on the team): their sets, the Pokémon each could replace, and their notes.
+    bench:(team.bench??[]).map(b=>{const r=db.bank.find(x=>x.id===b.bankId)?.revisions.find(x=>x.id===b.revisionId);return r?{id:b.id,...r.set,strategy:setStrategyText(r.notes),finalStats:finalStats(r.set),couldReplace:b.replaces}:null;}).filter(Boolean)};
 }
 const trim=(m:any)=>({source:m.source,species:m.species,period:m.period,population:m.population,sample:m.sample,url:m.url,notes:m.notes,moves:m.moves.slice(0,10),items:m.items.slice(0,8),abilities:m.abilities.slice(0,4),natures:m.natures.slice(0,6),spreads:m.spreads.slice(0,8),teammates:m.teammates.slice(0,8)});
 const brief=(r:any)=>({description:r.description,range:r.range,percentOfMaxHP:r.percentOfMaxHP.map((x:number)=>Math.round(x*10)/10),koChanceOnHit:r.koChanceOnHit,...r.hits>1?{hits:r.hits,perHitRange:r.perHit.map((h:number[])=>[h[0],h.at(-1)])}:{},notes:r.assumptions.slice(0,-1),attackerStats:r.attackerStats,defenderStats:r.defenderStats,...r.combined?{combined:r.combined}:{}});
