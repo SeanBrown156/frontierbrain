@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import {CODE} from '../io.ts';
 import {damage,speed,speedOrder} from '../mechanics.ts';
 import {emptyStore,makeTeam,applyAction} from '../workbench-store.ts';
-import {withSet,outcome,holds,ownSide,autoTitle,speedPairs,targetRows,benchmarkLabel,labelText} from '../../shared/benchmarks.ts';
+import {withSet,outcome,holds,ownSide,speedPairs,targetRows,benchmarkLabel,labelText} from '../../shared/benchmarks.ts';
 
 const gholdengo={species:'Gholdengo',nature:'Modest',statPoints:{hp:17,spa:7,spd:22,spe:20},item:'Life Orb',ability:'Good as Gold',moves:['Shadow Ball','Make It Rain','Nasty Plot','Protect']};
 const incineroar={species:'Incineroar',nature:'Careful',statPoints:{hp:32,def:14,spd:20},item:'Sitrus Berry',ability:'Intimidate'};
@@ -14,7 +14,7 @@ test('Benchmarks re-run with the current set swapped in and say whether they sti
   const input={attacker:{...gholdengo,boosts:{spa:2}},defender:incineroar,move:'Shadow Ball',field:{gameType:'Doubles'}};
   const b:any={kind:'damage',side:'attacker',input,result:damage(input)};
   assert.equal(ownSide({kind:'damage',input},'Gholdengo'),'attacker');assert.equal(ownSide({kind:'damage',input},'Incineroar'),'defender');
-  assert.match(autoTitle('damage','attacker',input),/^Damage to Incineroar · Shadow Ball · Careful · /);
+  assert.match(labelText(benchmarkLabel({kind:'damage',side:'attacker',input})),/^Damage to Incineroar · Shadow Ball · Careful · /);
   const same=withSet(b,gholdengo);assert.deepEqual(same.attacker.boosts,{spa:2},'battle conditions are kept');
   const saved=outcome('damage',b.result);assert.ok(holds('damage','attacker',saved,outcome('damage',damage(same))));
   const weaker={...gholdengo,nature:'Bold',statPoints:{hp:32,def:32,spe:2},item:'Leftovers'};
@@ -26,7 +26,7 @@ test('Benchmarks are saved with an automatic title and side, and can be deleted'
   const db=emptyStore();makeTeam(db,'T',JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste);
   const entry=db.bank.find(e=>e.revisions[0].set.species!=='Incineroar')!;const mine={...entry.revisions[0].set};
   const b:any=applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:entry.revisions[0].id,kind:'damage',input:{attacker:incineroar,defender:mine,move:'Flare Blitz',field:{gameType:'Doubles'}}} as any);
-  assert.equal(b.side,'defender');assert.match(b.title,/^Damage from Incineroar · Flare Blitz · Careful · /);assert.equal(b.input.defender.species,mine.species);
+  assert.equal(b.side,'defender');assert.equal(b.title,undefined);assert.match(labelText(b.label),/^Damage from Incineroar · Flare Blitz · Careful · /);assert.equal(b.input.defender.species,mine.species);
   applyAction(db,{type:'benchmark-delete',benchmarkId:b.id} as any);assert.equal(db.benchmarks!.length,0);
 });
 
@@ -36,7 +36,7 @@ test('Benchmarks with two attackers are judged on the combined damage and say so
   const r=damage(input);const o=outcome('damage',r);
   // Rock Slide (one target) 62-73 plus Wood Hammer: both together are far past Farigiraf's 195 HP, a guaranteed OHKO, while the first hit alone is not.
   assert.equal(o.low,r.combined!.percentOfMaxHP[0]);assert.equal(o.guaranteed,1);assert.ok(outcome('damage',{percentOfMaxHP:r.percentOfMaxHP}).guaranteed!>1);
-  assert.match(autoTitle('damage','attacker',input),/^Damage to Farigiraf · Rock Slide .*one target.*with Rillaboom's Wood Hammer$/);
+  assert.match(labelText(benchmarkLabel({kind:'damage',side:'attacker',input})),/^Damage to Farigiraf · Rock Slide .*one target.*with Rillaboom's Wood Hammer$/);
   const two=damage({attacker,defender,move:'Rock Slide',secondDefender:{species:'Incineroar',nature:'Serious',ability:'Intimidate'}});
   // Incineroar takes 76-90 of 170 HP (derivation in mechanics.test.ts): 44.7-52.9%.
   assert.match(outcome('damage',two).text,/other target 44\.7–52\.9%/);
@@ -57,7 +57,7 @@ test('A four-way order saves as independent pairwise speed benchmarks, each with
   assert.match(titles['0-2'],/^Your Incineroar is outsped by their Salamence-Mega \(your Tailwind up\) · from a four-way order$/);
   assert.match(titles['0-3'],/^Your Incineroar outspeeds their Incineroar \(your Tailwind up\) · from a four-way order$/);
   // Each saves as an ordinary speed benchmark and is judged on its own pair.
-  const saved:any[]=rows.filter(r=>r.defaultOn).map(r=>applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:rev.id,kind:r.kind,side:r.side,input:r.input,title:r.title} as any));
+  const saved:any[]=rows.filter(r=>r.defaultOn).map(r=>applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:rev.id,kind:r.kind,side:r.side,input:r.input,origin:r.origin} as any));
   assert.deepEqual(saved.map(b=>b.kind),['speed','speed']);assert.deepEqual(saved.map(b=>b.result.first),['b','a']);
   assert.ok(saved.every(b=>b.input.a.tailwind===true&&b.input.pokemon===undefined));
   // Without Tailwind (our 80 vs their Incineroar 80) the "outspeeds" pair no longer holds (it is a tie), while the
@@ -77,7 +77,7 @@ test('A spread move saves one damage benchmark per target, each judged on its ow
   assert.match(rows[1].title,/second target of Rock Slide/);assert.match(rows[0].title,/first target of a spread move/);
   assert.equal(rows[1].input.field.defenderSide.isFriendGuard,undefined);assert.equal(rows[1].input.field.defenderSide.isReflect,true);  // per-Pokémon flag dropped, screen kept
   assert.equal(rows[0].input.secondDefender,undefined);assert.equal(rows[1].input.secondDefender,undefined);
-  const saved:any[]=rows.map(r=>applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:rev.id,kind:r.kind,side:r.side,input:r.input,title:r.title} as any));
+  const saved:any[]=rows.map(r=>applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:rev.id,kind:r.kind,side:r.side,input:r.input,origin:r.origin} as any));
   assert.equal(saved.length,2);assert.deepEqual(saved.map(b=>b.result.range),[damage(rows[0].input).range,damage(rows[1].input).range]);assert.notDeepEqual(saved[0].result.range,saved[1].result.range);
   // Independent: re-check both with the attacker unchanged but a bulkier second target (Def 32 SP: 110 -> 142). Incineroar's
   // 2HKO-possible result worsens and its benchmark fails; Farigiraf's result is untouched and its benchmark still holds.
@@ -113,13 +113,29 @@ test('Benchmark labels are derived from the data: role, opponent and facts in a 
   for(const [first,role] of [['a','Outspeeds'],['b','Outsped by'],['tie','Speed tie']])assert.equal(benchmarkLabel({kind:'speed',input:speedIn,result:{first}}).role,role);
   assert.deepEqual(benchmarkLabel({kind:'speed',input:speedIn,result:{first:'a'}}).detail,['Careful · 0 Spe','your Tailwind','Trick Room','their paralysed']);
   assert.equal(benchmarkLabel({kind:'speed',input:speedIn,result:{first:'a'}}).opponent,'Incineroar');
-  // Origin of a split benchmark is kept; an assistant's own title never becomes the headline.
-  assert.ok(benchmarkLabel({kind:'speed',input:speedIn,result:{first:'a'},title:'Your Rillaboom outspeeds … · from a four-way order'}).detail.includes('from a four-way order'));
-  assert.equal(benchmarkLabel({kind:'damage',side:'attacker',input:{attacker:rilla,defender:mega,move:'Rock Slide'},title:'Candidate: 98% survive'},'Rillaboom').role,'Damage to');
-  // The stored title uses the same wording as the label.
+  // Origin of a split benchmark is kept in the label.
+  assert.ok(benchmarkLabel({kind:'speed',input:speedIn,result:{first:'a'}},undefined,'from a four-way order').detail.includes('from a four-way order'));
+  // The stored label is the same one benchmarkLabel computes; a supplied title is ignored.
   const db=emptyStore();makeTeam(db,'T',JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste);
   const entry=db.bank.find(e=>e.revisions[0].set.species==='Incineroar')!;
-  const b:any=applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:entry.revisions[0].id,kind:'speed',input:{a:{species:'Incineroar',statPoints:{spe:32}},b:{species:'Rillaboom',nature:'Jolly',statPoints:{spe:0}}},origin:'from a four-way order'} as any);
-  assert.equal(b.title,labelText(benchmarkLabel(b)));// Incineroar 60+32+20 = 112 vs Jolly Rillaboom 85+20 = 105 * 1.1 = 115: outsped.
-  assert.match(b.title,/^Outsped by Rillaboom · Jolly · 0 Spe · from a four-way order$/);
+  const b:any=applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:entry.revisions[0].id,kind:'speed',title:'Candidate: anything',input:{a:{species:'Incineroar',statPoints:{spe:32}},b:{species:'Rillaboom',nature:'Jolly',statPoints:{spe:0}}},origin:'from a four-way order'} as any);
+  // No title is stored; the label is. Incineroar 60+32+20 = 112 vs Jolly Rillaboom 85+20 = 105 * 1.1 = 115: outsped.
+  assert.equal(b.title,undefined);assert.match(labelText(b.label),/^Outsped by Rillaboom · Jolly · 0 Spe · from a four-way order$/);
+});
+
+test('A benchmark is pure data: no title is stored, the move leads, priority moves are named, legacy titles are ignored',()=>{
+  // Legacy record with a free-text title and no stored label: the headline comes from the data only.
+  const legacy:any={kind:'damage',title:'Candidate: Shadow Ball line',input:{attacker:{species:'Gholdengo',nature:'Timid',statPoints:{spa:32}},defender:{species:'Incineroar'},move:'Shadow Ball',field:{weather:'Rain'}}};
+  const l=benchmarkLabel(legacy,'Incineroar');
+  assert.equal(l.role,'Damage from');assert.deepEqual(l.detail,['Shadow Ball','Timid · 32 SpA','Rain']);assert.equal(l.opponent,'Gholdengo');
+  assert.ok(!labelText(l).includes('Candidate'));
+  // Speed: a move is named only when its priority matters (priorities come from the speed result).
+  const pri=benchmarkLabel({kind:'speed',input:{a:{species:'Incineroar',move:'Fake Out'},b:{species:'Rillaboom',move:'Wood Hammer'}},result:speed({a:{species:'Incineroar',move:'Fake Out'},b:{species:'Rillaboom',move:'Wood Hammer'}})});
+  assert.equal(pri.role,'Outspeeds');assert.deepEqual(pri.detail,['your Fake Out (+3 priority)']);   // Wood Hammer is priority 0: not named
+  // A stored label wins over recomputation; saving ignores a supplied title.
+  const db=emptyStore();makeTeam(db,'T',JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste);
+  const entry=db.bank.find(e=>e.revisions[0].set.species==='Incineroar')!;
+  const b:any=applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:entry.revisions[0].id,kind:'damage',title:'Candidate: nonsense',input:legacy.input,context:'because'} as any);
+  assert.equal(b.title,undefined);assert.equal(b.context,'because');assert.equal(b.label.role,'Damage from');assert.equal(b.label.detail[0],'Shadow Ball');
+  assert.equal(benchmarkLabel({...b,label:{...b.label,opponent:'Stored'}}).opponent,'Stored');
 });

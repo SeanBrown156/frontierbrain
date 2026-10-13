@@ -44,25 +44,31 @@ const BOOST:Record<string,string>={atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'
 const bits=(set:any,who:string)=>[
   ...Object.entries(set?.boosts??{}).filter(([k,v])=>v&&BOOST[k]).map(([k,v]:any)=>`${who} ${v>0?'+':''}${v} ${BOOST[k]}`),
   ...set?.status?[`${who} ${STATUS[set.status]??set.status}`]:[],...set?.curHP?[`${who} at ${set.curHP} HP`]:[]];
-export interface BenchmarkLabel {role:'Damage to'|'Damage from'|'Outspeeds'|'Outsped by'|'Speed tie'|'Speed';opponent:string;opponentSpecies:string;detail:string[]}
-// The origin of a benchmark made by splitting a multi-Pokémon calc is only in its stored title (the store schema has no field).
-const ORIGINS=/(from a four-way order|second target of [^·]+|first target of a spread move)/;
-// {role, opponent, detail[]} from kind, side, input and result. Only facts present in the input/result appear.
-export function benchmarkLabel(b:{kind:string;side?:Side;input:any;result?:any;title?:string},ownSpecies?:string):BenchmarkLabel{
-  const i=b.input??{};const origin=ORIGINS.exec(b.title??'')?.[1]?.trim();
+export interface BenchmarkLabel {role:'Damage to'|'Damage from'|'Outspeeds'|'Outsped by'|'Speed tie'|'Speed'|'Spread search';opponent:string;opponentSpecies:string;detail:string[]}
+// {role, opponent, detail[]} from kind, side, input and result; never from free text. A benchmark made by splitting a
+// multi-Pokémon calc passes its `origin` ("from a four-way order", "second target of Rock Slide") when it is saved, and the
+// label is stored with the record. A stored label wins; legacy records compute the same label from their input.
+export function benchmarkLabel(b:{kind:string;side?:Side;input:any;result?:any;label?:BenchmarkLabel},ownSpecies?:string,origin?:string):BenchmarkLabel{
+  if(b.label)return b.label;
+  const i=b.input??{};
+  if(b.kind==='spread')return {role:'Spread search',opponent:displayName(i.species),opponentSpecies:i.species??'',detail:(i.benchmarks??[]).map((x:any)=>`${x.direction==='incoming'?'survive':'hit'} ${x.move}`)};
   if(b.kind==='speed'){
     const f=b.result?.first;const role=f==='a'?'Outspeeds':f==='b'?'Outsped by':f==='tie'?'Speed tie':'Speed';const o=i.b??{};
+    // A move is named only when its priority matters (the result's own priority, else an explicit one).
+    const pa=b.result?.priorityA??i.a?.priority,pb=b.result?.priorityB??o.priority;
+    const prio=(m:any,p:number|undefined,who:string)=>p&&p!==0?[`${who} ${m.move??'priority move'} (${p>0?'+':''}${p} priority)`]:[];
     const flags=[...i.a?.tailwind?['your Tailwind']:[],...o.tailwind?['their Tailwind']:[],...i.trickRoom?['Trick Room']:[],
       ...i.a?.paralyzed?['your paralysed']:[],...o.paralyzed?['their paralysed']:[],...i.a?.stage?[`your ${i.a.stage>0?'+':''}${i.a.stage} Speed`]:[],...o.stage?[`their ${o.stage>0?'+':''}${o.stage} Speed`]:[],
       ...i.a?.multiplier&&i.a.multiplier!==1?[`your ×${i.a.multiplier} Speed`]:[],...o.multiplier&&o.multiplier!==1?[`their ×${o.multiplier} Speed`]:[],
-      ...i.a?.quickClaw?['your Quick Claw']:[],...o.quickClaw?['their Quick Claw']:[],...i.a?.move?[`your ${i.a.move}`]:[],...o.move?[`their ${o.move}`]:[],
-      ...i.field?.weather?[i.field.weather]:[],...i.field?.terrain?[`${i.field.terrain} Terrain`]:[],...origin&&/four-way/.test(origin)?[origin]:[]];
+      ...i.a?.quickClaw?['your Quick Claw']:[],...o.quickClaw?['their Quick Claw']:[],...prio(i.a??{},pa,'your'),...prio(o,pb,'their'),
+      ...i.field?.weather?[i.field.weather]:[],...i.field?.terrain?[`${i.field.terrain} Terrain`]:[],...origin?[origin]:[]];
     const spe=o.statPoints?.spe!==undefined?`${o.statPoints.spe} Spe`:'';
     return {role,opponent:displayName(o.species),opponentSpecies:o.species??'',detail:[[o.nature,spe].filter(Boolean).join(' · '),o.item,o.ability,...flags].filter(Boolean)};
   }
   const side=ownSide({kind:b.kind as 'damage',input:i,side:b.side},ownSpecies??i.attacker?.species);const attacks=side==='attacker';const other=attacks?i.defender:i.attacker;
   const sideFlags=(s:any,mine:boolean)=>Object.entries(s??{}).filter(([k,v])=>v&&SIDE_FLAGS[k]).map(([k]:any)=>`${mine?'your':'their'} ${SIDE_FLAGS[k]}`);
   const f=i.field??{};
+  // The move always leads: for damage to, your move; for damage from, the attacker's move.
   const detail=[i.move,[other?.nature,points(other)].filter(Boolean).join(' · '),other?.item,other?.ability,
     ...f.weather?[f.weather]:[],...f.terrain?[`${f.terrain} Terrain`]:[],...Object.entries(FIELD_FLAGS).filter(([k])=>f[k]).map(([,l])=>l),
     ...sideFlags(f.attackerSide,attacks),...sideFlags(f.defenderSide,!attacks),
@@ -72,11 +78,6 @@ export function benchmarkLabel(b:{kind:string;side?:Side;input:any;result?:any;t
   return {role:attacks?'Damage to':'Damage from',opponent:displayName(other?.species),opponentSpecies:other?.species??'',detail};
 }
 export const labelText=(l:BenchmarkLabel)=>`${l.role} ${l.opponent}${l.detail.length?` · ${l.detail.join(' · ')}`:''}`;
-// The stored title when none is given: the label's own wording, so lists, exports and assistants read the same.
-export function autoTitle(kind:string,side:Side,input:any,result?:any,origin?:string){
-  if(kind==='spread')return `Spread search for ${displayName(input?.species)}`;
-  return labelText(benchmarkLabel({kind,side,input,result,title:origin?` · ${origin}`:''}));
-}
 
 // ---- Multi-Pokémon calcs are saved as their independent single claims, never as a composite benchmark ----
 // Side flags that belong to one Pokémon rather than the side; they do not carry over to a second target.
