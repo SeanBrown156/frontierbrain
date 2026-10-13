@@ -33,7 +33,9 @@ export default function App(){
   const [menuOpen,setMenuOpen]=useState(false);
   // Jade × Phosphor: the once-per-session boot, the screen switching on after it, and text that resolves from noise.
   // The landing page goes straight in; the boot belongs to the app and starts when you open it (see openApp).
-  const [booting,setBooting]=useState(()=>shouldBoot()&&(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams'))!=='welcome'),[powerOn,setPowerOn]=useState(false);
+  // Opening the app always shows the loading animation until the data is in: the full sequence once per session, a quick
+  // version of the same after that (so there is never a plain "Opening…" box).
+  const [booting,setBooting]=useState(()=>(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams'))!=='welcome'),[quick,setQuick]=useState(()=>!shouldBoot()),[powerOn,setPowerOn]=useState(false);
   const bootDone=()=>{setBooting(false);setPowerOn(true);setTimeout(()=>setPowerOn(false),1400);};
   const page=pageOf(route);const decodedPage=useRef('');
   useEffect(()=>{if(!data||booting||decodedPage.current===page)return;
@@ -92,16 +94,16 @@ export default function App(){
   const dock:DockContext=team?parts[2]==='mon'?{page:'slot',versionId:parts[3],slot:Number(parts[4])}:{page:(({strategy:'strategy',coaching:'strategy',replays:'replays',history:'versions'} as any)[parts[2]]??'overview'),versionId:parts[3]??'all'}:{page:'general',versionId:'all',label:({data:'Data pool',news:'News',references:'References',account:'Settings'} as any)[parts[0]]??'Your teams'};
   const withDock=dockOpen;
   // "Open the app" on the landing page: mark it seen, run the boot (once per session), then open your teams.
-  const openApp=()=>{try{localStorage.setItem(WELCOMED,'1');}catch{}if(shouldBoot())setBooting(true);location.hash='#teams';};
+  const openApp=()=>{try{localStorage.setItem(WELCOMED,'1');}catch{}if(shouldBoot()){setQuick(false);setBooting(true);}location.hash='#teams';};
   // Ask Frontier Brain floats over the page as an overlay, so opening it never reflows the layout.
-  return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&route!=='welcome'&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}{route==='welcome'?<header className="masthead landing-nav"><Brand/><ThemeToggle/>
+  return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot quick={quick} data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&route!=='welcome'&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}{route==='welcome'?<header className="masthead landing-nav"><Brand/><ThemeToggle/>
       <a className="button lp-nav-src" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</a><button className="primary lp-nav-go" onClick={openApp}>Open the app<span aria-hidden="true">→</span></button></header>
     :<header className={'masthead'+(menuOpen?' menu-open':'')}><Brand/><SavePill/>
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>}
     <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button className="icon" aria-label="Dismiss notification" onClick={()=>setMessage(null)}><Px icon={CloseIcon} size={16}/></button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
-    {!data?<Empty>Opening Frontier Brain…</Empty>:<>
+    {!data?(error?<Empty>Couldn't open Frontier Brain.</Empty>:null):<>
       {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
       {route==='welcome'&&<Welcome data={data} onOpen={openApp}/>}
       {(route==='teams'||route==='dashboard')&&<TeamsLanding data={data} reload={load} onImport={()=>setImporting({})} onReview={review=>setImporting({review})}/>}
