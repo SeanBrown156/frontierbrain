@@ -16,6 +16,7 @@ import {metaSets,type MetaSource} from './meta-sets.ts';
 import {showdownReplayHTML} from './replay-links.ts';
 import {fetchText} from './research.ts';
 import {refreshPool,poolStatus,poolOverview,poolTeams} from './pool.ts';
+import {regulationStatus} from './format.ts';
 import {iconIndex,iconNumber,iconSheet,homeSprite,homeSpriteId,homeSpriteURL,dexInfo,itemSheet,ITEM_SHEET_URL,favicon,faviconURL,validHost} from './icons.ts';
 import {startJob,listJobs,getJob,dismissJob,cancelJob} from './ai-jobs.ts';
 import {modelSettings,saveModelSettings,availableModels} from './models.ts';
@@ -137,7 +138,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       const sections=report.split(/(?=^### )/m);const specific=sections.filter((s:string)=>s.includes(game.id));return respond(res,200,{game,coaching:specific.length?specific.join('\n'):report,reportPath:entry.reviewPath,association:(await readStore()).associations[game.id]??null});
     }
     if(req.method==='GET'&&path==='/api/export'){
-      const db=await readStore();const team=db.teams.find(t=>t.id===url.searchParams.get('team'));if(!team)throw new Error('Team not found');return respond(res,200,{paste:teamPaste(db,team,url.searchParams.get('version')??undefined,url.searchParams.get('configuration')??undefined)});
+      const db=await readStore();const team=db.teams.find(t=>t.id===url.searchParams.get('team'));if(!team)throw new Error('Team not found');const v=url.searchParams.get('version')??undefined,c=url.searchParams.get('configuration')??undefined;return respond(res,200,{paste:teamPaste(db,team,v,c),errors:currentTeam(db,team,v,c).errors});
     }
     if(req.method==='GET'&&path==='/api/report'){
       const file=url.searchParams.get('path')??'';if(!/^(reports|knowledge|teams|context)\/[a-zA-Z0-9/_.-]+\.md$/.test(file))throw new Error('Expected a local Markdown report');return respond(res,200,{text:await readText(dataPath(file))});
@@ -200,6 +201,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       const icons=await iconIndex().catch(e=>{console.error('Box icons unavailable:',e.message);return null;});
       return respond(res,200,names.map((n:string)=>({name:n,usage:teams.length?Math.round(1000*(counts.get(speciesKey(n))??0)/teams.length)/10:0,...icons?{icon:iconNumber(n,icons)}:{}})).sort((a:any,b:any)=>b.usage-a.usage||a.name.localeCompare(b.name)));}
     if(req.method==='GET'&&path==='/api/icon-sheet'){await iconIndex();res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'public, max-age=604800','X-Content-Type-Options':'nosniff'});res.end(await iconSheet());return;}
+    if(req.method==='GET'&&path==='/api/regulation')return respond(res,200,regulationStatus()??{status:'unknown'});
     if(req.method==='GET'&&path==='/api/pool'){const status=await poolStatus();return respond(res,200,{status,overview:status?await poolOverview({top:60}):null,refreshing:poolRefreshing});}
     if(req.method==='POST'&&path==='/api/pool-refresh'){startPoolRefresh();return respond(res,202,{refreshing:true});}
     if(req.method==='POST'&&path==='/api/calculate'){const input=await body(req);const methods:Record<string,(i:any)=>unknown>={stats:finalStats,damage,speed,spread:spreadSearch};if(!methods[input.kind])throw new Error('Unknown calculation');return respond(res,200,methods[input.kind](input.input));}

@@ -2,7 +2,7 @@ import ps from 'pokemon-showdown';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {resolve,relative} from 'node:path';
 import {ROOT,json,save,hash,workspacePath} from './io.ts';
-import {validateTeam,finalStats,FORMAT,VERSIONS,dex,type SetInput} from './mechanics.ts';
+import {validateTeam,teamSets,finalStats,FORMAT,VERSIONS,dex,type SetInput} from './mechanics.ts';
 import type {ReplayIndex,Game} from './replays.ts';
 
 export function importText(text:string):SetInput[] {
@@ -11,7 +11,8 @@ export function importText(text:string):SetInput[] {
   const team=ps.Teams.import(text);if(!team?.length)throw new Error('No Showdown team sets found');
   return team.map((s: {name:string;species:string;nature:string;evs:any;item:string;ability:string;moves:string[];gender:string})=>({species:s.species,nickname:s.name===s.species?undefined:s.name,nature:s.nature,statPoints:s.evs,item:s.item,ability:s.ability,moves:s.moves,gender:s.gender||undefined}));
 }
-export function exportText(sets:SetInput[],format=FORMAT) {return ps.Teams.export(validateTeam(sets,format) as any);}
+// Validates by default; pass {validate:false} to export a team that is no longer legal (for revising it).
+export function exportText(sets:SetInput[],format=FORMAT,opts:{validate?:boolean}={}) {return ps.Teams.export((opts.validate===false?teamSets(sets):validateTeam(sets,format)) as any);}
 export async function teamImport(path:string,version:string,format=FORMAT,storageRoot=ROOT) {
   if(!/^[a-z0-9][a-z0-9-]{0,63}$/.test(version))throw new Error('Version ID must be lowercase letters/digits/hyphens, <=64 chars');
   const text=await readFile(resolve(path),'utf8');const sets=importText(text);const exported=exportText(sets,format);const createdAt=new Date().toISOString();

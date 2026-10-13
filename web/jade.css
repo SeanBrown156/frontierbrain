@@ -2220,3 +2220,7 @@ html.jade .ra-actions>*{height:44px!important;min-height:44px!important;margin:0
 html.jade .ra-file{position:relative}
 html.jade .replay-add .footnote,html.jade .replay-add .error{margin:var(--s3) 0 0}
 @media(max-width:720px){html.jade .ra-form{grid-template-columns:minmax(0,1fr)}html.jade .ra-actions{display:grid;grid-template-columns:1fr 1fr}}
+/* Regulation ending / ended notice. */
+html.jade .reg-banner{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin:0 0 var(--s4);padding:var(--s3) var(--s4);border:1px solid var(--ln);border-left-width:3px;border-radius:4px;background:var(--glass)}
+html.jade .reg-banner p{margin:0;line-height:1.5}html.jade .reg-banner.ending{border-left-color:var(--hot,#e0a800)}html.jade .reg-banner.ended{border-left-color:var(--bad,#e5484d)}
+@media(max-width:620px){html.jade .reg-banner{flex-direction:column;align-items:stretch;text-align:center}}

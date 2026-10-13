@@ -162,10 +162,16 @@ export function speed(input:SpeedInput) {
   return {a,b,priorityA:pa,priorityB:pb,first:order,decidedBy:why,trickRoom:!!input.trickRoom,versions:VERSIONS,assumptions:`Speed from the calculator's rules: stages, Tailwind, ${w?w+' ':''}${t?t+' Terrain ':''}weather/terrain abilities, Unburden, Choice Scarf, Iron Ball and paralysis. Priority from the move and Prankster/Gale Wings/Triage; Quick Claw/Custap when set; Lagging Tail, Full Incense and Stall move last in their bracket.`};
 }
 
+// The sets in the shape the validator and the Showdown exporter read. No legality checks: a team that stopped being
+// legal (a regulation ended, a rule changed) must still be exportable and duplicable so the player can revise it.
+export function teamSets(sets:SetInput[]) {
+  return sets.map(s=>({name:s.nickname??s.species,species:species(s.species).name,item:s.item??'',ability:s.ability??species(s.species).abilities[0],moves:s.moves??[],nature:s.nature??'Serious',evs:points(s.statPoints),level:50,gender:s.gender??'',ivs:{hp:31,atk:31,def:31,spa:31,spd:31,spe:31}}));
+}
+
 export function validateTeam(sets:SetInput[], format=FORMAT) {
   if(![FORMAT,`${FORMAT}bo3`].includes(format))throw new Error('Only configured Champions M-C formats are supported');
   if(sets.length!==6)throw new Error('A VGC team must contain six Pokémon');
-  const team=sets.map(s=>({name:s.nickname??s.species,species:species(s.species).name,item:s.item??'',ability:s.ability??species(s.species).abilities[0],moves:s.moves??[],nature:s.nature??'Serious',evs:points(s.statPoints),level:50,gender:s.gender??'',ivs:{hp:31,atk:31,def:31,spa:31,spd:31,spe:31}}));
+  const team=teamSets(sets);
   const errors=new ps.TeamValidator(format).validateTeam(team as any);
   if(errors?.length)throw new Error(`Illegal team:\n${errors.join('\n')}`);
   return team;

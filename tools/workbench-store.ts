@@ -262,7 +262,8 @@ export async function legacyTeams(storageRoot=ROOT){
   const names=await readdir(resolve(storageRoot,'teams')).catch(()=>[] as string[]);const output=[];
   for(const name of names){try{const record=JSON.parse(await readFile(resolve(storageRoot,'teams',name,'team.json'),'utf8'));if(record.sets&&record.id)output.push(record);}catch(e){if(!['ENOENT','ENOTDIR'].includes((e as NodeJS.ErrnoException).code??''))throw e;}}return output;
 }
-export function teamPaste(db:Workbench,team:Formula,versionId?:string,configId?:string){const view=currentTeam(db,team,versionId,configId);if(view.errors.length)throw new Error(view.errors.join('\n'));return exportText(view.sets,team.format);}
+// Export works for a team that is no longer legal (its errors are reported separately), so it can always be revised elsewhere.
+export function teamPaste(db:Workbench,team:Formula,versionId?:string,configId?:string){const view=currentTeam(db,team,versionId,configId);return exportText(view.sets,team.format,{validate:false});}
 export function sameRoster(a:string[],b:string[]){const norm=(names:string[])=>names.map(n=>speciesKey(n)).sort().join('|');return a.length===b.length&&norm(a)===norm(b);}
 export function associateReplay(db:Workbench,game:Game,input:any){
   if(input.certainty==='clear'){delete db.associations[game.id];return {cleared:true};}

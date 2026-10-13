@@ -104,9 +104,9 @@ async function call(name:string,input:any){
     const t:any=r.result;return {created:t.id,name:t.name,note:'New team created. Open it in Frontier Brain to review; nothing existing was changed.'};}
   if(name==='rename_team'){await mutateLatest(d=>applyAction(d,{type:'team-rename',teamId:input.teamId,name:input.name} as any));return {renamed:String(input.name).trim()};}
   if(name==='set_team_format'){await mutateLatest(d=>applyAction(d,{type:'team-format',teamId:input.teamId,format:input.format} as any));return {format:input.format};}
-  if(name==='export_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');return {name:t.name,paste:exportText(currentTeam(db,t).sets as any,t.format)};}
+  if(name==='export_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');return {name:t.name,paste:exportText(currentTeam(db,t).sets as any,t.format,{validate:false}),legal:!currentTeam(db,t).errors.length};}
   if(name==='duplicate_team'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const view=currentTeam(db,t);
-    const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name||`${t.name} (copy)`).slice(0,120),paste:exportText(view.sets as any,t.format),format:t.format,notes:view.version.notes??''} as any));
+    const r=await mutateLatest(d=>applyAction(d,{type:'import',name:String(input.name||`${t.name} (copy)`).slice(0,120),paste:exportText(view.sets as any,t.format,{validate:false}),format:t.format,notes:view.version.notes??''} as any));
     const n:any=r.result;return {created:n.id,name:n.name,note:'A copy of the six and the game-plan text. Plans and replays stay with the original.'};}
   if(name==='replace_pokemon'||name==='star_set'){const t=db.teams.find(t=>t.id===input.teamId);if(!t)throw new Error('Team not found');const view=currentTeam(db,t);
     const slot=view.sets.findIndex((s:any)=>String(s.species).toLowerCase()===String(input.pokemon).toLowerCase());if(slot<0)throw new Error(`"${input.pokemon}" is not on this team (${view.sets.map((s:any)=>s.species).join(', ')}).`);

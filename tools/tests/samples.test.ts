@@ -36,7 +36,8 @@ test('A new hosted workspace gets the sample teams once; deleting a team keeps i
 test('A team\'s format can be changed to a known format only',()=>{
   const db=emptyStore();const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;
   const team:any=applyAction(db,{type:'import',name:'T',paste} as any);const id=team.id??db.teams[0].id;
-  applyAction(db,{type:'team-format',teamId:id,format:'gen9championsvgc2026regmb'} as any);assert.equal(db.teams[0].format,'gen9championsvgc2026regmb');
+  applyAction(db,{type:'team-format',teamId:id,format:'gen9championsvgc2026regmc'} as any);assert.equal(db.teams[0].format,'gen9championsvgc2026regmc');
+  assert.throws(()=>applyAction(db,{type:'team-format',teamId:id,format:'gen9championsvgc2026regmb'} as any),/Unknown format/,'M-B is no longer offered');
   assert.throws(()=>applyAction(db,{type:'team-format',teamId:id,format:'gen9ou'} as any),/Unknown format/);
 });
 

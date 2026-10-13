@@ -14,6 +14,7 @@ import Welcome,{WELCOMED,REPO} from './Welcome.tsx';
 import {GitHubMark} from './landing-marks.tsx';
 import BrainBackdrop from './brain/BrainBackdrop.tsx';
 import Boot,{shouldBoot} from './Boot.tsx';
+import RegulationBanner from './RegulationBanner.tsx';
 import {decode,hoverDecode,glitch,reduced} from './fx.ts';
 // Names and labels that resolve from noise when you point at them: team and Pokémon names, the header menus, the Ask
 // button and section headings. Titles do the same when you arrive on a new page.
@@ -102,7 +103,7 @@ export default function App(){
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify}/>
       <button className="menu-toggle" aria-expanded={menuOpen} aria-controls="site-nav" aria-label={menuOpen?'Close menu':'Open menu'} onClick={()=>setMenuOpen(!menuOpen)}><Px icon={menuOpen?Close:MenuIcon}/></button>
       <div className="masthead-nav" id="site-nav" onClick={e=>{if((e.target as HTMLElement).closest('a'))setMenuOpen(false);}}>{data&&<QuickLinks sources={data.sources}/>}{data?.news?.length>0&&<button className="drawer-news" onClick={()=>{setMenuOpen(false);setNewsOpen(true);}}><Px icon={Zap}/>This week's news</button>}</div></header>}
-    <main>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button className="icon" aria-label="Dismiss notification" onClick={()=>setMessage(null)}><Px icon={CloseIcon} size={16}/></button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
+    <main><RegulationBanner/>{message&&<div className={'toast'+(message.error?' error':'')} role={message.error?'alert':'status'}>{message.text}<button className="icon" aria-label="Dismiss notification" onClick={()=>setMessage(null)}><Px icon={CloseIcon} size={16}/></button></div>}{error&&<div className="notice error">{error} <button onClick={()=>void load()}>Retry</button></div>}
     {!data?(error?<Empty>Couldn't open Frontier Brain.</Empty>:null):<>
       {data.legacyTeams?.length>0&&<Notice>{data.legacyTeams.length} CLI team records are ready to import. <button onClick={async()=>{try{await api('/migrate-legacy',{revision:data.db.revision});await load();notify('CLI teams imported; originals preserved.');}catch(e){notify((e as Error).message,true);}}}>Import CLI teams</button></Notice>}
       {route==='welcome'&&<Welcome data={data} onOpen={openApp}/>}

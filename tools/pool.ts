@@ -105,7 +105,7 @@ export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}
       const status={...(before?.refreshedAt===previous!.refreshedAt?before:{counts:laneCounts(previous!.teams)}),refreshedAt:previous!.refreshedAt,errors,
         notes:[...notes,`Kept the previous pool (refreshed ${previous!.refreshedAt}): this refresh had errors.`],lastAttempt:{started,at:now,counts,errors},excluded};
       await save(STATUS,status);return status;}
-    const status={refreshedAt:now,started,minPlayers,counts,notes,errors,excluded};
+    const status={refreshedAt:now,regulation:'M-C',started,minPlayers,counts,notes,errors,excluded};
     await save(TEAMS,{refreshedAt:now,teams});memo=null;await save(STATUS,status);return status;})();
   try{return await running;}finally{running=null;}
 }

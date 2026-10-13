@@ -24,7 +24,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
   const shown=all?team.versions.find((v:any)=>v.id===team.activeVersionId):team.versions.find((v:any)=>v.id===versionId);
   const [copied,setCopied]=useState(false),[publishing,setPublishing]=useState(false);
   // Showdown: copy the export straight to the clipboard (the button itself says Copied).
-  const copyShowdown=async()=>{const getPaste=()=>api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`).then((r:any)=>String(r.paste));
+  const copyShowdown=async()=>{const getPaste=()=>api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`).then((r:any)=>{if(r.errors?.length)notify('Copied. Note: this team is not legal in its format right now, so check the paste before using it.');return String(r.paste);});
     try{if(typeof ClipboardItem!=='undefined'&&navigator.clipboard?.write)await navigator.clipboard.write([new ClipboardItem({'text/plain':getPaste().then(t=>new Blob([t],{type:'text/plain'}))})]);
       else await navigator.clipboard.writeText(await getPaste());
       setCopied(true);setTimeout(()=>setCopied(false),2000);}catch(e){notify((e as Error).message||'Could not copy. Allow clipboard access and try again.');}};
