@@ -20,12 +20,19 @@ export const sourceName=(v:any)=>v.source==='observed'?'from replays':v.source==
 export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{team:any;data:any;mutate:Mutate;notify:(s:string)=>void;load:()=>Promise<void>;tab:string;versionId:string}){
   const all=versionId==='all'||!team.versions.some((v:any)=>v.id===versionId);
   const teamGames=data.games.filter((g:any)=>g.association?.teamId===team.id);const scopedGames=all?teamGames:teamGames.filter((g:any)=>g.association?.versionId===versionId);
-  const [exported,setExported]=useState<string|null>(null),[renaming,setRenaming]=useState(false),[name,setName]=useState(team.name);
+  const [renaming,setRenaming]=useState(false),[name,setName]=useState(team.name);
   const shown=all?team.versions.find((v:any)=>v.id===team.activeVersionId):team.versions.find((v:any)=>v.id===versionId);
-  const [pokepaste,setPokepaste]=useState(''),[publishing,setPublishing]=useState(false);
-  const publish=async()=>{setPublishing(true);try{const r=await api('/pokepaste-create',{teamId:team.id,versionId:shown.id,configurationId:shown.currentConfigurationId,author:data.profile?.player??''});setPokepaste(r.url);void navigator.clipboard.writeText(r.url).catch(()=>{});}catch(e){notify((e as Error).message);}finally{setPublishing(false);}};
-  const pokepasteNow=async()=>{await paste();await publish();};
-  const paste=async()=>{setPokepaste('');try{setExported((await api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`)).paste);}catch(e){notify((e as Error).message);}};
+  const [copied,setCopied]=useState(false),[publishing,setPublishing]=useState(false);
+  // Showdown: copy the export straight to the clipboard (the button itself says Copied).
+  const copyShowdown=async()=>{const getPaste=()=>api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`).then((r:any)=>String(r.paste));
+    try{if(typeof ClipboardItem!=='undefined'&&navigator.clipboard?.write)await navigator.clipboard.write([new ClipboardItem({'text/plain':getPaste().then(t=>new Blob([t],{type:'text/plain'}))})]);
+      else await navigator.clipboard.writeText(await getPaste());
+      setCopied(true);setTimeout(()=>setCopied(false),2000);}catch(e){notify((e as Error).message||'Could not copy. Allow clipboard access and try again.');}};
+  // PokePaste: publish the team and open the paste in a new tab (opened first so the browser allows it).
+  const openPokepaste=async()=>{const w=window.open('about:blank','_blank');setPublishing(true);
+    try{const r=await api('/pokepaste-create',{teamId:team.id,versionId:shown.id,configurationId:shown.currentConfigurationId,author:data.profile?.player??''});
+      if(w)w.location.href=r.url;else{void navigator.clipboard.writeText(r.url).catch(()=>{});notify(`PokePaste created and copied: ${r.url}`);}}
+    catch(e){w?.close();notify((e as Error).message);}finally{setPublishing(false);}};
   const rename=async()=>{setRenaming(false);if(name.trim()&&name.trim()!==team.name)await mutate({type:'team-rename',teamId:team.id,name:name.trim()}).catch(()=>setName(team.name));};
   return <div className="team-hub">
     <a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a>
@@ -35,10 +42,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} data={data} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
     {tab==='replays'&&<Replays team={team} data={data} versionId={all?'all':versionId} load={load} notify={notify}/>}
-    {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate} notify={notify} onExport={()=>void paste()} onPokepaste={()=>void pokepasteNow()} publishing={publishing}/>}
-    {exported!==null&&<Modal title="Showdown export" onClose={()=>setExported(null)}><Notice>Champions stat points use the “EVs:” label only for Showdown compatibility.{shown.source==='observed'?' This version was rebuilt from replays; guessed fields are assumptions.':''}</Notice><textarea className="paste" aria-label="Team export" readOnly rows={20} value={exported}/><div className="button-row export-actions"><button className="primary" onClick={()=>{void navigator.clipboard.writeText(exported).then(()=>notify('Paste copied.')).catch(()=>notify('Select and copy the paste manually.'));}}>Copy paste</button>
-      {pokepaste?<a className="button" href={pokepaste} target="_blank" rel="noreferrer">{pokepaste.replace('https://','')} ↗</a>:<button disabled={publishing} onClick={()=>void publish()}>{publishing?'Creating…':'Create PokePaste'}</button>}</div>
-      {pokepaste&&<p className="footnote">Public link, copied to your clipboard.</p>}</Modal>}
+    {tab==='history'&&<Versions team={team} data={data} games={teamGames} mutate={mutate} notify={notify} onExport={()=>void copyShowdown()} onPokepaste={()=>void openPokepaste()} publishing={publishing} copied={copied}/>}
   </div>;
 }
 function Overview({team,data,version,mutate}:{team:any;data:any;version:any;mutate:Mutate}){
@@ -121,7 +125,7 @@ function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:strin
 // History: every saved change, newest first, across the team's whole life. Versions are kept in the data (and older
 // milestones still exist) but the player never manages them; restoring an edit records it as a new change.
 // Manage: export (Showdown paste or PokePaste), the format, duplicating, every saved change, and deleting the team.
-function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing}:{team:any;data:any;games?:any[];mutate:Mutate;notify:(s:string)=>void;onExport:()=>void;onPokepaste:()=>void;publishing:boolean}){
+function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing,copied}:{team:any;data:any;games?:any[];mutate:Mutate;notify:(s:string)=>void;onExport:()=>void;onPokepaste:()=>void;publishing:boolean;copied:boolean}){
   const [viewing,setViewing]=useState<{version:any;config:any}|null>(null);
   const active=team.versions.find((v:any)=>v.id===team.activeVersionId);
   const entries=team.versions.flatMap((v:any)=>v.configurations.map((c:any,n:number)=>({v,c,first:n===0}))).sort((a:any,b:any)=>b.c.createdAt.localeCompare(a.c.createdAt));
@@ -130,7 +134,7 @@ function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing}:{tea
     await mutate({type:'team-configure',teamId:team.id,versionId:active.id,parentConfigurationId:active.currentConfigurationId,slots:e.c.slots,summary:`Restored from ${date(e.c.createdAt)}`}).catch(()=>{});};
   return <div className="versions history manage">
     <div className="manage-tiles">
-      <section className="manage-tile"><span className="eyebrow">Export</span><div className="manage-actions"><button onClick={onExport}><Px icon={Share}/>Showdown paste</button><button onClick={onPokepaste} disabled={publishing}><Px icon={Link}/>{publishing?'Creating…':'PokePaste'}</button></div></section>
+      <section className="manage-tile"><span className="eyebrow">Export</span><div className="manage-actions"><button onClick={onExport} className={copied?'copied':''}><Px icon={copied?Check:Share}/>{copied?'Copied':'Showdown'}</button><button onClick={onPokepaste} disabled={publishing}><Px icon={Link}/>{publishing?'Opening…':'PokePaste'}</button></div></section>
       <FormatTile team={team} mutate={mutate} notify={notify}/>
       <DuplicateTile team={team} mutate={mutate} notify={notify}/>
     </div>
