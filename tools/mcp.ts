@@ -19,6 +19,7 @@ import {removeFile} from './io.ts';
 import {loadGames} from './replays.ts';
 import {transcript,readGame,readSummary,isStale,saveReplaySummary,saveTeamDigest,STYLES} from './replay-summary.ts';
 import {readPreferences,preferencesText} from './player.ts';
+import {focusTools,focusCall,focusInstructions} from './focus.ts';
 
 const teamId={teamId:{type:'string',description:'Team id from list_teams'}};
 const str={type:'string'};
@@ -72,6 +73,7 @@ const own=[
   {name:'delete_team',description:'Delete a team, its plans and its replays with their analysis. Only when the player explicitly asked to delete it: needs playerAgreed: true and confirmName equal to the team\'s exact name.',parameters:{type:'object',properties:{...teamId,confirmName:str,...agreed},required:['teamId','confirmName','playerAgreed']}},
 ];
 const all=[...own,...shared];
+all.push(...focusTools as any[]); // get_focus (tools/focus.ts)
 // "What's changing": the same before → after the app's suggestion tiles show, as markdown for the chat.
 const changeLines=(before:any,after:any):string[]=>{const L:string[]=[];
   if(String(before.species)!==String(after.species))L.push(`**Pokémon:** ${before.species} → ${after.species}`);
@@ -224,6 +226,8 @@ async function call(name:string,input:any){
     // Same as the app: a deleted team takes its replays and their analysis with it.
     const gone=await deleteReplays(r.result?.replays??[]);await removeFile(`reports/replay-digests/${t.id}.json`).catch(()=>{});
     return {deleted:t.name,replaysDeleted:gone};}
+  const focused=await focusCall(name,db,input,()=>runTool(name,input,{},db)); // get_focus, and calcs handed to the app
+  if(focused!==undefined)return focused;
   return runTool(name,input,name==='get_team'?{teamId:input.teamId}:{},db);
 }
 
@@ -243,6 +247,7 @@ Work as a collaborator, in short turns, and hand choices back to the player:
 - Each Pokémon\'s Strategy (changes.strategy, replace_pokemon strategy, import_team setNotes) always has the same three sections, kept short: "## Role" (one line: the job it does for this team), "## How to play" (when it comes in, what it protects or enables, key moves and calc numbers), "## Watch out for" (what beats it or punishes its plan). Example: Role: Intimidate / Fake Out / pivot support. How to play: Protect the win conditions with Fake Out and Intimidate; Parting Shot gives safer entries. Watch out for: opposing Fake Out denial, strong Water or Ground damage, predictable pivots.
 - Replays waiting for a summary: when the player has no AI key in Frontier Brain, new replays are kept and wait for you. list_replays marks them needsSummary. For each one call replay_transcript, judge every decision only with the information available at that turn, then save_replay_summary (if a game already has a summary, build on it: the player may have edited it (editedByPlayer), so keep their wording and points where they still hold; play mistakes, team-building weaknesses and variance kept apart; cite real turn numbers; never state an opponent\'s unrevealed item, spread or move as fact; a few games is a small sample). When two or more are summarised, finish with save_team_digest. The player can edit summaries and the debrief themselves, so re-saves should keep their wording where it still holds. Tell the player what you saved.
 - When a calc is what a set is built around (what it must survive, KO or outspeed), save it with save_benchmark so it sits on that Pokémon's page; list_benchmarks shows what is already saved.
+${focusInstructions}
 - End a turn with a question whenever the next choice is theirs.`;
 const prompts=[
   {name:'build_around',description:'Build a team together around Pokémon you want to use',arguments:[{name:'pokemon',description:'The Pokémon to build around, e.g. "Mega Chimecho, Trevenant, Kommo-o"',required:true},{name:'style',description:'Optional: playstyle or anything you already know you want',required:false}],
