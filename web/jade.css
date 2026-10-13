@@ -2200,3 +2200,8 @@ html.jade .pool-top{align-items:stretch!important}
 html.jade .pool-col{display:grid;min-width:0}
 html.jade .pool-fill>.pool-col-left{position:relative}
 html.jade .pool-fill>.pool-col-left>*{position:absolute;inset:0;overflow:hidden;margin:0}
+/* Replays waiting for the player's assistant (no API key in the app). */
+html.jade .waiting-ai{display:grid;gap:var(--s2);padding:var(--s4);border:1px solid var(--ln);border-radius:4px;background:var(--glass);margin-bottom:var(--s4)}
+html.jade .waiting-ai h3{margin:0;display:flex;align-items:center;gap:var(--s2);font:700 15px/1.4 var(--fb)}
+html.jade .waiting-ai p{margin:0}
+html.jade .waiting-ask{font-family:var(--fm,monospace);font-size:13px;color:var(--ac)}

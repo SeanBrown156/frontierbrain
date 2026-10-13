@@ -6,7 +6,10 @@ import {tmpdir} from 'node:os';
 import {resolve} from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import {withData,fileBackend,CODE} from '../io.ts';
+import {withData,fileBackend,CODE,save} from '../io.ts';
+import {addReplays,parseReplay} from '../replays.ts';
+import {mutateStore,associateReplay,currentTeam,makeTeam} from '../workbench-store.ts';
+import {readdir} from 'node:fs/promises';
 import {emptyStore,Conflict,type StoreBackend} from '../workbench-store.ts';
 import {handleMcp} from '../mcp.ts';
 import {readFileSync} from 'node:fs';
@@ -98,5 +101,33 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     assert.match(client.getInstructions()??'',/one Mega Evolution per battle/i);
     const profile=await text('pokemon_profile',{species:'Chimecho',top:10});assert.ok(profile.forms.some((f:any)=>f.name==='Chimecho-Mega'));assert.ok(profile.roles['speed control'].includes('Trick Room'));assert.equal(profile.metaSheet.summary.length,profile.forms.length);
     const bad:any=await client.callTool({name:'nope',arguments:{}});assert.ok(bad.isError);
+  }finally{await client.close();server.close();await rm(root,{recursive:true});}
+});
+
+test('MCP replays: with no AI key, games wait for the assistant, which saves a summary and a digest that show up in the app',async()=>{
+  const root=await mkdtemp(resolve(tmpdir(),'fb-mcp-replays-'));const store=memoryStore();
+  const ctx={user:fileBackend(root),shared:fileBackend(root,CODE),store,hosted:true};
+  const server=createServer((req,res)=>withData(ctx,async()=>{let raw='';for await(const c of req)raw+=c;await handleMcp(req,res,raw?JSON.parse(raw):undefined);}));
+  await new Promise<void>(ok=>server.listen(0,'127.0.0.1',ok));const port=(server.address() as any).port;
+  const client=new Client({name:'test',version:'1'});
+  try{
+    await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/api/mcp`)));
+    const text=async(name:string,args:any)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
+    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['save_replay_summary','save_team_digest'])assert.ok(names.includes(n),n);
+    const ids:string[]=[];let teamId='';
+    await withData(ctx,async()=>{await save('config.json',{player:'Player'});
+      const dir=resolve(CODE,'tools/tests/fixtures/corpus');const files=(await readdir(dir)).filter(f=>/game0[4-6]\.html$/.test(f));
+      const rain=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[2].paste;
+      const html=files.map(f=>({f,html:readFileSync(resolve(dir,f),'utf8')}));const saved=await addReplays(html.map(h=>({html:h.html,filename:h.f})),{as:'Player'});
+      await mutateStore(store.db.revision,db=>{const t=makeTeam(db,'Rain',rain) as any;teamId=t.id;saved.results.forEach((r:any,i:number)=>{const g=parseReplay(html[i].html,html[i].f,'Player');g.id=r.id;ids.push(r.id);associateReplay(db,g,{teamId:t.id,versionId:currentTeam(db,t).version.id,certainty:'family'});});});});
+    const waiting=await text('list_replays',{teamId});assert.equal(waiting.length,3);assert.ok(waiting.every((r:any)=>r.needsSummary===true&&r.summary===null),'all games wait for a summary');
+    const t=(await text('replay_transcript',{replayId:ids[0]})).transcript as string;assert.match(t,/Turn 1:/);
+    const bad:any=await client.callTool({name:'save_replay_summary',arguments:{replayId:ids[0],summary:'x',keyMoments:[{turn:999,text:'?'}],workOn:[]}});assert.ok(bad.isError);assert.match(bad.content[0].text,/not in this game/);
+    const one=await text('save_replay_summary',{replayId:ids[0],summary:'Won through Trick Room.',keyMoments:[{turn:1,text:'Set Trick Room on turn 1.'}],workOn:[{title:'Keep the lead',detail:'Fine.',category:'play',turn:1}],opponentStyle:['Trick Room']});
+    assert.equal(one.stillWaiting,2);
+    const after=await text('list_replays',{teamId});const row=after.find((r:any)=>r.id===ids[0]);assert.equal(row.needsSummary,false);assert.equal(row.summarisedBy,'Your assistant (MCP)');assert.equal(after.filter((r:any)=>r.needsSummary).length,2);
+    const early:any=await client.callTool({name:'save_team_digest',arguments:{teamId,themes:[{title:'x',detail:'y',games:[ids[0]]}]}});assert.ok(early.isError);assert.match(early.content[0].text,/at least two/);
+    await text('save_replay_summary',{replayId:ids[1],summary:'Lost to Fake Out.',keyMoments:[{turn:1,text:'Flinched.'}],workOn:[{title:'Respect Fake Out',detail:'Lead around it.',category:'play'}]});
+    const dig=await text('save_team_digest',{teamId,themes:[{title:'Respect Fake Out',detail:'Lead around it.',games:[ids[0],ids[1],'bogus'],of:'games'}],strengths:['Trick Room sets reliably']});assert.equal(dig.games,2);assert.match(dig.themes[0],/2 of 2/);
   }finally{await client.close();server.close();await rm(root,{recursive:true});}
 });

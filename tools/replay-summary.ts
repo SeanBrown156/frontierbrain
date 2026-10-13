@@ -49,11 +49,30 @@ const guidance=`You are summarising ONE of the player's Pokémon Champions VGC d
 Judge each decision only with information available at that turn, not what was revealed later. Never state an opponent's unrevealed item, spread or move as fact. Separate play mistakes (play), team-building weaknesses (building) and luck such as crits, misses or speed ties (variance). Cite turn numbers. Be concrete and brief; no generic advice.
 Reply as JSON only: {"summary":"1–2 sentences: how the game was won or lost","keyMoments":[{"turn":n,"text":"..."}] (2–4),"workOn":[{"title":"short imperative","detail":"one or two sentences","category":"play|building|variance","turn":n?}] (1–3, most important first; for a clean win it can be one 'keep doing' item),"opponentStyle":[tags from: ${STYLES.join(', ')}],"confidence":"high|medium|low"}.`;
 
-export async function summariseReplay(gameId:string,emit:(e:any,d:any)=>void=()=>{},opts:ChatOptions={}):Promise<ReplaySummary>{
+// The game, its team link and the sets it is judged against (shared by the in-app AI and by summaries an assistant saves).
+async function replayContext(gameId:string){
   const game=await readGame(gameId);const db=await readStore();const association=db.associations[gameId];const team=association?db.teams.find(t=>t.id===association.teamId):undefined;
   let sets='No team linked.',setsBasis='none';
   if(team){const v=currentTeam(db,team,association!.versionId??team.activeVersionId,association!.certainty==='exact'?association!.configurationId:undefined);setsBasis=association!.certainty==='exact'?(association!.basis==='auto'?'sets current when played, consistent with the game (spreads unconfirmed)':'exact sets played'):'current sets (the sets played were not matched)';
     sets=v.sets.map(s=>`${s.species} @ ${s.item||'no item'} · ${s.ability} · ${s.nature} · ${(s.moves??[]).join(' / ')}`).join('\n');}
+  return {game,db,association,team,sets,setsBasis};
+}
+// A summary written by the player's own assistant over MCP: checked by the same rules as the in-app AI's, then stored the same way.
+export async function saveReplaySummary(gameId:string,value:any,model='Your assistant (MCP)'):Promise<ReplaySummary>{
+  const {game,association,setsBasis}=await replayContext(gameId);if(!association)throw new Error('Replay not found');
+  const out:ReplaySummary={gameId,...validateSummary(value,game),model,createdAt:new Date().toISOString(),association:fingerprint(association),setsBasis};
+  await save(`${DIR}/${gameId}.json`,out);return out;
+}
+// The team's "what to work on" digest written by an assistant. Counts and totals are recomputed here from the saved summaries.
+export async function saveTeamDigest(teamId:string,value:any,model='Your assistant (MCP)'):Promise<TeamDigest>{
+  const db=await readStore();const ids=Object.entries(db.associations).filter(([,a])=>a.teamId===teamId).map(([id])=>id);
+  const rows:{gameId:string;result:string}[]=[];for(const id of ids){if(!(await readSummary(id)))continue;const g=await readGame(id).catch(()=>null);if(g)rows.push({gameId:id,result:g.result});}
+  if(rows.length<2)throw new Error('Save summaries for at least two of this team\'s replays first.');
+  const out:TeamDigest={teamId,...validateDigest(value,rows),games:rows.length,model,createdAt:new Date().toISOString()};
+  await save(`${DIGESTS}/${teamId}.json`,out);return out;
+}
+export async function summariseReplay(gameId:string,emit:(e:any,d:any)=>void=()=>{},opts:ChatOptions={}):Promise<ReplaySummary>{
+  const {game,association,team,sets,setsBasis}=await replayContext(gameId);
   const other=game.ownSide==='p1'?'p2':'p1';
   const prompt=`Result: ${game.result} (${game.turns.length} turns). Format: ${game.format}.
 The player's team (${setsBasis}):\n${sets}

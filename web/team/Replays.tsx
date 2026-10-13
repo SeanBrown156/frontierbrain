@@ -4,7 +4,7 @@ import {aiReady} from '../ai/AssistDock.tsx';
 import {useState,useEffect,useLayoutEffect,useRef,useId,useMemo,type RefObject} from 'react';
 import {Search,Tag} from 'lucide-react';
 import {api,Art,Modal,date,downloadOriginal,sentences,useDex,TYPE_COLOURS,PokeIcon} from '../ui.tsx';
-import {Px,Upload,Sparkles,ChevronDown,Close,Check} from '../icons.tsx';
+import {Px,Upload,Sparkles,ChevronDown,Close,Check,Copy} from '../icons.tsx';
 import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
 import {record} from './Hub.tsx';
@@ -21,6 +21,8 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
   useEffect(()=>{void refresh();},[team.id,games.length]);
   useEffect(()=>{if(!info.running.length)return;const t=setInterval(()=>void refresh(),3000);return()=>clearInterval(t);},[info.running.length]);
   const ai=canUseAI(useAccount());const [needAI,setNeedAI]=useState(false);
+  // Without an AI key in the app, new games are kept and wait for the player's assistant (MCP) to summarise them.
+  const [keyed,setKeyed]=useState<boolean|null>(null);useEffect(()=>{if(!ai)return;let alive=true;void aiReady().then(k=>{if(alive)setKeyed(k);});return()=>{alive=false;};},[ai]);
   const summarise=async(gameIds:string[])=>{if(!ai)return requireAccount('Sign in for free to summarise replays with your preferred AI tool.');if(!(await aiReady())){setNeedAI(true);return;}try{await api('/replay-summarise',{teamId:team.id,gameIds});await refresh();}catch(e){notify((e as Error).message,true);}};
   const tags=new Map<string,Set<string>>(games.map((g:any)=>[g.id,new Set(gameTags(g,info.summaries[g.id]).map(tagKey))]));
   const shown=games.filter((g:any)=>(!result||g.result===result)&&picked.every(t=>tags.get(g.id)!.has(tagKey(t))));
@@ -33,8 +35,9 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
       <div className="rf-find"><TagSearch games={games} summaries={info.summaries} value={picked} onChange={setPicked}/></div>
       <div className="segmented rf-result" role="group" aria-label="Result">{[['','All'],['win','Wins'],['loss','Losses']].map(([v,l])=><button key={v} className={result===v?'on':''} aria-pressed={result===v} onClick={()=>setResult(v)}>{l}</button>)}</div>
     </div>}
-    {missing.length>0&&!busy&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
-    <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)}/>)}
+    {missing.length>0&&!busy&&keyed===false&&ai&&<WaitingForAssistant n={missing.length} team={team.name} connect={()=>setNeedAI(true)}/>}
+    {missing.length>0&&!busy&&keyed!==false&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
+    <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} waiting={keyed===false&&ai&&!busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)}/>)}
       {games.length>0&&!shown.length&&<p className="muted">No games match these filters.</p>}</div>
     {needAI&&<ConnectAI onClose={()=>setNeedAI(false)}/>}
     {open&&<GameDrawer g={games.find((x:any)=>x.id===open)} s={info.summaries[open]} team={team} data={data} load={load} notify={notify} close={()=>setOpen(null)} resummarise={()=>void summarise([open])}/>}
@@ -97,6 +100,15 @@ function TagSearch({games,summaries,value,onChange}:{games:any[];summaries:Recor
 
 
 // Summaries run on the player's own AI. With no key connected, say so and offer both ways in.
+// No key in the app: the replays are saved and linked, and your assistant (over MCP) can summarise them.
+function WaitingForAssistant({n,team,connect}:{n:number;team:string;connect:()=>void}){
+  const ask=`Summarise my new Frontier Brain replays for ${team}.`;const [copied,setCopied]=useState(false);
+  return <aside className="notice waiting-ai" role="status"><h3><Px icon={Sparkles}/>{n} game{n===1?' is':'s are'} waiting to be summarised</h3>
+    <p>They're saved and linked to this team. Ask the assistant you've connected over MCP (Claude or ChatGPT) and it will read each game and save its summary here, then update the team's "what to work on".</p>
+    <p className="waiting-ask"><q>{ask}</q></p>
+    <div className="button-row"><button onClick={()=>{void navigator.clipboard.writeText(ask).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request'}</button>
+      <button className="text-button" onClick={connect}>Connect MCP or add an API key</button></div></aside>;
+}
 function ConnectAI({onClose}:{onClose:()=>void}){
   const go=(mode:'key'|'mcp')=>{try{sessionStorage.setItem('frontierbrain.ai-mode',mode);}catch{}onClose();location.hash='#account';};
   return <Modal title="Connect your AI to analyse replays" onClose={onClose}>
@@ -141,14 +153,14 @@ function AtAGlance({games,info,art}:{games:any[];info:any;art:any}){
     </section>;
 }
 
-function GameCard({g,s,pending,art,open}:{g:any;s:any;pending:boolean;art:any;open:()=>void}){
+function GameCard({g,s,pending,waiting,art,open}:{g:any;s:any;pending:boolean;waiting?:boolean;art:any;open:()=>void}){
   const o=other(g);
   return <article className={'game '+g.result} onClick={open} onKeyDown={e=>{if(e.key==='Enter')open();}} tabIndex={0} role="button" aria-label={`${g.result} vs ${g.players[o].name}`}>
     <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.players[o].name}</span>{s?.stale&&<span className="tag">link changed</span>}</div>
     <div className="game-teams"><div className="six">{g.preview[o].map((m:string)=><span key={m} className={g.leads[o].includes(m)?'lead':g.revealed[o].includes(m)?'brought':'benched'} title={m}><Art name={m} art={art} small/></span>)}</div></div>
     {s?<><p className="game-summary">{s.summary}</p>{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
       {s.opponentStyle.length>0&&<div className="chip-row style-tags">{s.opponentStyle.map((t:string)=><span key={t} className="chip small">{t}</span>)}</div>}</>
-      :<p className="muted">{pending?'Summarising…':'No summary yet.'}</p>}
+      :<p className="muted">{pending?'Summarising…':waiting?'Waiting for your assistant to summarise it.':'No summary yet.'}</p>}
   </article>;
 }
 
