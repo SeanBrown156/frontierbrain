@@ -3,17 +3,17 @@ import {resolve,relative} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
-import {ROOT,CODE,json,optionalJSON,save,hash,id,dataPath,listDir,readText,readBytes,removeFile,withData,dataContext,config as profile} from './io.ts';
+import {ROOT,CODE,json,optionalJSON,save,id,dataPath,listDir,readText,readBytes,removeFile,withData,dataContext,config as profile} from './io.ts';
 import {dashboard,cacheArtwork,backfillUsage,refreshEvents,coachStats} from './workbench-data.ts';
 import {readStore as readRootStore,mutateStore as mutateRootStore,mutateLatest as mutateRootLatest,applyAction,currentTeam,teamPaste,sameRoster,Conflict,legacyTeams as legacyRootTeams,makeTeam,associateReplay} from './workbench-store.ts';
-import {parseReplay,addReplay,loadGames,deleteReplays} from './replays.ts';
+import {loadGames,deleteReplays} from './replays.ts';
 import {refreshResearch} from './research.ts';
 import {workflowLock} from './workbench-jobs.ts';
 import {exportText} from './teams.ts';
 import {speciesKey,finalStats,damage,speed,spreadSearch,dex,contextMoves} from './mechanics.ts';
 import {jobKinds} from './workbench-worker.ts';
 import {metaSets,type MetaSource} from './meta-sets.ts';
-import {showdownReplayHTML} from './replay-links.ts';
+import {saveReplay as saveReplayFor,intakeReplays,removeReplay} from './replay-intake.ts';
 import {fetchText} from './research.ts';
 import {refreshPool,poolStatus,poolOverview,poolTeams} from './pool.ts';
 import {iconIndex,iconNumber,iconSheet,homeSprite,homeSpriteId,homeSpriteURL,dexInfo,itemSheet,ITEM_SHEET_URL,favicon,faviconURL,validHost} from './icons.ts';
@@ -49,18 +49,7 @@ export function createWorkbenchHandler(storageRoot=ROOT,apiPort=API_PORT,{hosted
 const readStore=()=>readRootStore(storageRoot);const mutateStore=(revision:number,fn:Parameters<typeof mutateRootStore>[1])=>mutateRootStore(revision,fn,storageRoot);const legacyTeams=()=>legacyRootTeams(storageRoot);
 // Saves apply to the latest workspace: the client's revision is only a hint, record-level checks guard real clashes.
 const mutateLatest=(fn:Parameters<typeof mutateRootStore>[1])=>mutateRootLatest(fn,storageRoot);
-async function saveReplay(html:string,associationInput:any,revision:number){
-  const config=await profile();const parsed=parseReplay(html,'upload',config.player,config.aliases);
-  return workflowLock(async()=>{
-    if(associationInput)associateReplay(await readStore(),parsed,associationInput);
-    const saved=await addReplay(html,`${parsed.id}-${hash(html).slice(0,12)}.html`);parsed.id=saved.id;const outcome:any=saved.duplicate?{duplicate:true,id:saved.id}:{added:saved.added,id:saved.id};
-    if(associationInput){
-      const changed=await mutateLatest(db=>associateReplay(db,parsed,associationInput));
-      if(storageRoot===ROOT){const latest=await json('replays/index.json');const entry=latest.games.find((g:any)=>g.logHash===parsed.logHash);entry.teamVersion=changed.db.associations[parsed.id]?.configurationId??null;entry.reviewedAt=null;entry.reviewPath=null;const g=await json(entry.parsed);g.teamVersion=entry.teamVersion;await save(entry.parsed,g);await save('replays/index.json',latest);}
-    }
-    return outcome;
-  });
-}
+const saveReplay=(html:string,association:any,_revision?:number)=>saveReplayFor(html,association,storageRoot);
 // The caller's own AI key rides along with each request (X-AI-Provider / X-AI-Key) and is never stored.
 return function withCallerAI(req:IncomingMessage,res:ServerResponse){
   const key=req.headers['x-ai-key'];if(typeof key!=='string'||!key)return serve(req,res);
@@ -105,22 +94,16 @@ async function serve(req:IncomingMessage,res:ServerResponse){
       const input=await body(req);if(typeof input.html!=='string'||input.html.length>6_000_000)throw new Error('Expected replay HTML under 6 MB');
       const result=await saveReplay(input.html,input.association,input.revision);if('status'in result)return respond(res,409,{error:(result as any).reason});if(!(result as any).duplicate)void queueSummaries(input.association?.teamId,[(result as any).id]);return respond(res,200,result);
     }
-    // Batch intake: Showdown replay links and/or HTML files. By default each replay is linked automatically
-    // (tools/replay-link.ts): the team whose six it matches, at the edit current when it was played. Explicit exact
-    // links fall back to a roster link (sets unconfirmed) when recorded moves contradict the saved sets.
+    // Batch intake: Showdown replay links and/or HTML files, linked automatically unless an association is given (tools/replay-intake.ts).
     if(req.method==='POST'&&path==='/api/replays'){
-      const input=await body(req);if(!Array.isArray(input.items)||!input.items.length||input.items.length>40)throw new Error('Send 1–40 replays');const results=[];
-      for(const item of input.items){const label=item.url??item.name??'replay';
-        try{const html=item.url?await showdownReplayHTML(item.url):item.html;if(typeof html!=='string'||html.length>6_000_000)throw new Error('Expected replay HTML under 6 MB');
-          const revision=(await readStore()).revision;let association=input.association??{certainty:'auto'},note='';
-          let r:any=await saveReplay(html,association,revision).catch(async e=>{if(association?.certainty!=='exact'||!/absent from this configuration|Roster does not match/.test(e.message))throw e;
-            note=e.message;association={teamId:association.teamId,versionId:/Roster/.test(e.message)?undefined:association.versionId,certainty:'family'};return saveReplay(html,association,(await readStore()).revision);});
-          if('status'in r)throw new Error(r.reason);const link=(await readStore()).associations[r.id];results.push({label,ok:true,id:r.id,duplicate:!!r.duplicate,certainty:link?.certainty??'inbox',basis:link?.basis,...note||link?.note?{note:note||link?.note}:{}});
-        }catch(e){results.push({label,ok:false,error:(e as Error).message});}}
+      const input=await body(req);if(!Array.isArray(input.items)||!input.items.length||input.items.length>40)throw new Error('Send 1–40 replays');
+      const {results,fresh}=await intakeReplays(input.items,input.association,storageRoot);
       // Each new game gets an AI summary in the background, then the team's "what to work on" digest is refreshed.
-      const fresh:string[]=[];for(const r of results as any[])if(r.ok&&(!r.duplicate||!(await readSummary(r.id))))fresh.push(r.id);if(fresh.length)void queueSummaries(input.association?.teamId,fresh);
+      if(fresh.length)void queueSummaries(input.association?.teamId,fresh);
       return respond(res,200,{results});
     }
+    // Remove one replay: its link, original, parsed copy and summary; the team's debrief is brought in line.
+    if(req.method==='POST'&&path==='/api/replay-delete'){const input=await body(req);if(typeof input.replayId!=='string')throw new Error('replayId is required');return respond(res,200,await removeReplay(input.replayId,storageRoot));}
     if(req.method==='GET'&&path==='/api/replay-summaries'){const teamId=url.searchParams.get('team')??'';const db=await readStore();const summaries:Record<string,any>={};
       for(const [id,a] of Object.entries(db.associations))if(a.teamId===teamId){const s=await readSummary(id);if(s)summaries[id]={...s,stale:isStale(s,a)};}
       return respond(res,200,{summaries,digest:await readDigest(teamId),running:await runningFor(teamId)});}
