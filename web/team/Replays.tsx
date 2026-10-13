@@ -205,13 +205,13 @@ function AddReplays({team,versionId,load,notify,after,locked=false}:{team:any;ve
   const [links,setLinks]=useState(''),[files,setFiles]=useState<File[]>([]),[busy,setBusy]=useState(false),[results,setResults]=useState<any[]>([]);
   const submit=async()=>{setBusy(true);setResults([]);try{const items=[...links.split(/\s+/).filter(l=>l.startsWith('http')).map(url=>({url})),...await Promise.all(files.map(async f=>({name:f.name,html:await f.text()})))];
       const r=await api('/replays',{items,association:{teamId:team.id,certainty:'auto'}});await load();
-      const ok=r.results.filter((x:any)=>x.ok);const matched=ok.filter((x:any)=>x.certainty==='exact').length;setResults(r.results.filter((x:any)=>!x.ok||x.certainty!=='exact'));notify(`${ok.length} of ${r.results.length} replay(s) added${matched?`; ${matched} matched to your sets at the time`:''}.`);if(ok.length===r.results.length){setLinks('');setFiles([]);}after();}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
+      const ok=r.results.filter((x:any)=>x.ok);const matched=ok.filter((x:any)=>x.certainty==='exact').length;setResults(r.results.filter((x:any)=>!x.ok||x.certainty!=='exact'));const unlinked=ok.filter((x:any)=>x.certainty==='inbox').length;notify(`${ok.length} of ${r.results.length} replay(s) added${matched?`; ${matched} matched to your sets at the time`:''}${unlinked?`; ${unlinked} not linked, in your Inbox`:''}.`);if(ok.length===r.results.length){setLinks('');setFiles([]);}after();}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
   return <section className={'replay-add panel'+(locked?' locked':'')} aria-disabled={locked||undefined} title={locked?'Add your Showdown name above first':undefined}>
     <fieldset className="ra-form" disabled={locked}>
       <textarea rows={links.includes('\n')?3:1} value={links} onChange={e=>setLinks(e.target.value)} placeholder={locked?'Add your Showdown name above to add replays':'Paste Showdown replay links (one per line)'} aria-label="Showdown replay links"/>
       <div className="ra-actions"><label className="button ra-file"><Px icon={Upload}/>{files.length?`${files.length} file${files.length===1?'':'s'}`:'HTML files'}<input className="file-input" type="file" multiple accept=".html,.htm" onChange={e=>setFiles([...(e.target.files??[])])}/></label>
         <button className="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</button></div></fieldset>
-    {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?(r.certainty==='inbox'?'not linked: its six don\'t match this team':`linked by team only${r.note?` (${r.note})`:''}`):r.error}</p>)}
+    {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?(r.certainty==='inbox'?<>not linked: its six doesn't match this team. It's saved in your <a href="#inbox">Inbox</a>, where you can link it to another team or delete it.</>:`linked by team only${r.note?` (${r.note})`:''}`):r.error}</p>)}
   </section>;
 }
 

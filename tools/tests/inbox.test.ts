@@ -8,7 +8,7 @@ import {resolve} from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {withData,fileBackend,CODE,ROOT,save} from '../io.ts';
-import {emptyStore,Conflict,makeTeam,type StoreBackend} from '../workbench-store.ts';
+import {emptyStore,Conflict,makeTeam,applyAction,mutateStore,readStore,type StoreBackend} from '../workbench-store.ts';
 import {handleMcp} from '../mcp.ts';
 import {createWorkbenchHandler} from '../workbench-server.ts';
 import {intakeReplays} from '../replay-intake.ts';
@@ -99,4 +99,12 @@ test('Notices reader tolerates anything in the file',async()=>{
     await save(STATE_FILE,'oops');assert.deepEqual(await readInboxState(),{dismissed:[]});
     await save(STATE_FILE,{dismissed:['a',3,null,'b']});assert.deepEqual((await readInboxState()).dismissed,['a','b']);
   });
+});
+
+test('Suggestions left for the player survive in the local file store',async()=>{
+  const root=await mkdtemp(resolve(tmpdir(),'fb-pending-'));
+  const made=await mutateStore(0,db=>{const t=makeTeam(db,'Sun',teams[0].paste);applyAction(db,{type:'pending-add',teamId:t.id,summary:'More bulk',proposal:{kind:'set',slot:0,set:{species:'Incineroar'}}} as any);return t.id;},root);
+  const db=await readStore(root);assert.equal(db.pending?.length,1);assert.equal(db.pending![0].teamId,made.result);
+  await mutateStore(db.revision,d=>{applyAction(d,{type:'pending-resolve',id:d.pending![0].id} as any);},root);
+  assert.equal((await readStore(root)).pending,undefined,'resolved suggestions leave the file store');
 });

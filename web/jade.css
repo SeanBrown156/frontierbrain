@@ -2274,3 +2274,32 @@ html.jade .bench-bar .bench-replaces{margin-top:var(--s1);min-width:200px}
   html.jade .bench-grid.six-grid{grid-template-columns:minmax(0,1fr)!important}
   html.jade .bench-bar{display:grid}
 }
+
+/* Inbox: the header entry with its count, and the page that lists what is waiting on the player. */
+html.jade .account-menu{display:flex;align-items:center;gap:var(--s2)}
+html.jade a.inbox-button{position:relative;display:inline-flex;align-items:center;gap:var(--s2);height:var(--control-height);min-height:var(--control-height);padding:0 var(--s3);border-radius:2px;border:1px solid transparent;color:var(--tx);text-decoration:none;font:400 15px/1 var(--fd)}
+html.jade a.inbox-button:hover{background:var(--hover);border-color:var(--ln)}
+html.jade .inbox-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--ac);color:var(--on);font:700 12px var(--fnum)}
+html.jade .inbox-page{display:grid;gap:var(--s4)}
+html.jade .inbox-section{display:grid;gap:var(--s2)}
+html.jade .inbox-h{display:flex;align-items:center;gap:var(--s2);margin:var(--s2) 0 0;font:700 12px/1.3 var(--fb);letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
+html.jade .inbox-n{font:700 12px var(--fnum);color:var(--mu)}
+html.jade .inbox-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s3)}
+html.jade .inbox-item{display:grid;gap:var(--s3);min-width:0;padding:var(--s4);border:1px solid var(--ln);border-radius:var(--r,4px);background:var(--glass)}
+html.jade .inbox-item p{margin:0;overflow-wrap:anywhere}
+html.jade .inbox-head{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2)}
+html.jade .inbox-title{min-width:0;overflow-wrap:anywhere}
+html.jade .inbox-why{font-size:14px}
+html.jade .inbox-diff{list-style:none;margin:0;padding:0;display:grid;gap:var(--s1);font-size:13px;color:var(--mu)}
+html.jade .inbox-item .selections{display:flex;flex-wrap:wrap;gap:var(--s4)}
+html.jade .inbox-item .button-row{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center;justify-content:flex-start}
+html.jade .inbox-item a.button{display:inline-flex;align-items:center;gap:var(--s2);text-decoration:none}
+html.jade .tag.warn{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 50%,transparent)}
+@media(max-width:720px){
+  html.jade .inbox-label{display:none}
+  html.jade a.inbox-button{width:var(--control-height);padding:0;justify-content:center}
+  html.jade a.inbox-button .inbox-count{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;font-size:11px}
+  html.jade .inbox-item{padding:var(--s3)}
+  html.jade .inbox-item .button-row>*{flex:1 1 100%;justify-content:center}
+  html.jade .inbox-item .button-row>.text-button{flex:0 0 auto;margin:0 auto}
+}
