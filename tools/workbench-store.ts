@@ -5,7 +5,7 @@ import {readFile,mkdir,writeFile,rename,rm,readdir,copyFile} from 'node:fs/promi
 import {resolve} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {ROOT,dataContext} from './io.ts';
-import {speciesKey,dex,points,finalStats,validateTeam,FORMAT,damage,speed,spreadSearch} from './mechanics.ts';
+import {speciesKey,species as rosterSpecies,dex,points,finalStats,validateTeam,FORMAT,damage,speed,spreadSearch} from './mechanics.ts';
 import {importText,exportText} from './teams.ts';
 import {setStrategyText,BENCH_LIMIT} from '../shared/workbench.ts';
 import type {Workbench,Slot,SetNotes,SetRevision,PokemonSet,Formula,Configuration,TeamCoaching} from '../shared/workbench.ts';
@@ -211,7 +211,7 @@ function applyBench(db:Workbench,action:any):unknown {
     if(action.bankId){lookup(action.bankId,action.revisionId);bankId=action.bankId;revisionId=action.revisionId;
       if(bench.some(b=>b.revisionId===revisionId))throw new Error('That set is already on the bench.');}
     else{let given=action.set;if(action.paste!==undefined){const sets=importText(checkText(action.paste));if(sets.length!==1)throw new Error('Paste one Pokémon.');given=sets[0];}
-      const set=cleanSet(given);
+      const set=cleanSet(given);rosterSpecies(set.species);
       if(bench.some(b=>same(lookup(b.bankId,b.revisionId).r.set,set)))throw new Error(`${set.species} with this set is already on the bench.`);
       const revision:SetRevision={id:uid('set'),number:1,createdAt:now(),set,notes:action.notes?cleanNotes({...blankNotes(),...action.notes}):blankNotes(),provenance:'manual'};
       const entry={id:uid('bank'),name:`${set.species} · ${team.name}`,revisions:[revision]};db.bank.push(entry);bankId=entry.id;revisionId=revision.id;}
@@ -224,7 +224,7 @@ function applyBench(db:Workbench,action:any):unknown {
     if(action.set===undefined&&action.notes===undefined)return saved(item);
     // Same rule as a team slot: a save builds on the revision the editor started from.
     if(action.baseRevisionId!==item.revisionId)throw new Conflict('This candidate was changed elsewhere. Reload before saving.');
-    const {e:entry,r:prev}=lookup(item.bankId,item.revisionId);const set=action.set!==undefined?cleanSet(action.set):prev.set;const notes=action.notes!==undefined?cleanNotes(action.notes):prev.notes;
+    const {e:entry,r:prev}=lookup(item.bankId,item.revisionId);const set=action.set!==undefined?cleanSet(action.set):prev.set;if(set.species!==prev.set.species)rosterSpecies(set.species);const notes=action.notes!==undefined?cleanNotes(action.notes):prev.notes;
     // Reusing a set that is already saved (a restore, a starred set) points at it, so its benchmarks stay attached.
     if(action.reuse===true){const found=db.bank.flatMap(b=>b.revisions.map(x=>({b,x}))).find(({x})=>same(x.set,set));
       if(found){if(bench.some(b=>b.id!==item.id&&b.revisionId===found.x.id))throw new Error('That set is already on the bench.');item.bankId=found.b.id;item.revisionId=found.x.id;return saved(item);}}

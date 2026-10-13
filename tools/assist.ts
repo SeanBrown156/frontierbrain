@@ -6,7 +6,7 @@ import {resolveTier} from './models.ts';
 import {chatJSON,type ChatTurn,type ChatContext,type ChatOptions} from './chat.ts';
 import {cleanSet,readStore,currentTeam} from './workbench-store.ts';
 import {importText} from './teams.ts';
-import {validateTeam,dex} from './mechanics.ts';
+import {validateTeam,dex,species} from './mechanics.ts';
 import {checkPokemonStrategy} from '../shared/workbench.ts';
 import type {PokemonSet} from '../shared/workbench.ts';
 
@@ -76,7 +76,7 @@ export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,foc
       const next=team.map((s,i)=>i===slot?c.set:s);try{validateTeam(next);}catch(e){throw new Error(`${c.set.species} is not legal in slot ${slot}: ${(e as Error).message.replace(/^Illegal team:\s*/,'')}`);}
       const items=next.map(s=>s.item).filter(Boolean);if(new Set(items).size!==items.length)throw new Error('Duplicate held items');
       return {kind:'promote',benchId:String(p.benchId),slot,species:c.set.species,replacing:team[slot].species,set:c.set,why:text(p.why,1500),baseRevisionId:bench?.revisions[slot],...c.strategy.trim()?{strategy:c.strategy}:{},forSpecies:team[slot].species};}
-    case 'bench':{const set=checkSet(p.set);return {kind:'bench',set,why:text(p.why,1500),strategy:strategyText(p.strategy??''),...p.replaces?{replaces:member(String(p.replaces))}:{}};}
+    case 'bench':{const set=checkSet(p.set);species(set.species);return {kind:'bench',set,why:text(p.why,1500),strategy:strategyText(p.strategy??''),...p.replaces?{replaces:member(String(p.replaces))}:{}};}
     case 'lead':return {kind:'lead',...p.title?{title:text(p.title,80)}:{},lead:names(p.lead,2).map(member),back:names(p.back,4).map(member),...(['core','situational','niche','avoid'].includes(p.role)?{role:p.role}:{}),when:text(p.when,1000),plan:text(p.plan,3000)};
     case 'matchup':return {kind:'matchup',opponent:text(p.opponent||p.archetype,200),...p.archetype?{archetype:archetypeStyle(p.archetype,text(p.opponent||p.archetype,80))}:{},...Array.isArray(p.examples)?{examples:names(p.examples,8)}:{},threat:['low','medium','high'].includes(p.threat)?p.threat:'medium',bring:names(p.bring,4).map(member),plan:text(p.plan,3000)};
     case 'objective':return {kind:'objective',type:p.type==='todo'?'todo':'test',text:text(p.text,1000)};

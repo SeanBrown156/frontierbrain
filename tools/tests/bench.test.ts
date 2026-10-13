@@ -146,3 +146,12 @@ test('Bench: accepting a chat promote proposal swaps the slot, and a slot change
   const r:any=applyAction(db,{type:'bench-promote',teamId:team.id,benchId:item.id,slot:1,baseRevisionId:view().configuration.slots[1].revisionId});
   assert.equal(r.promoted,'Golisopod');assert.equal(view().sets[1].species,'Golisopod');assert.equal(team.bench![0].replaces,'Golisopod');assert.notEqual(team.bench![0].revisionId,out.revisionId,'the retuned Farigiraf is the one on the bench');void c;
 });
+
+test('Bench: a Pokémon outside the current regulation roster is refused on add and on species change',()=>{
+  const {db,team}=setup();
+  const ironHands={species:'Iron Hands',nature:'Adamant',ability:'Quark Drive',item:'Assault Vest',statPoints:{hp:32,atk:32,spd:2},moves:['Fake Out','Drain Punch','Wild Charge','Close Combat']};
+  assert.throws(()=>applyAction(db,{type:'bench-add',teamId:team.id,set:ironHands}),/not available in the pinned Champions M-C roster/);
+  assert.equal((team.bench??[]).length,0);
+  const added:any=applyAction(db,{type:'bench-add',teamId:team.id,set:golisopod});
+  assert.throws(()=>applyAction(db,{type:'bench-update',teamId:team.id,benchId:added.id,baseRevisionId:added.revisionId,set:ironHands}),/not available/);
+});
