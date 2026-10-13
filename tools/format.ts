@@ -1,22 +1,20 @@
 // The format, as the AI needs to understand it: rules read from the pinned Showdown validator and the verified
 // regulation record (knowledge/regulations), plus what those rules mean for building and playing. Nothing here is
 // recalled from memory; if the regulation record is missing a fact, the primer says it's unknown.
-import {readFileSync,existsSync} from 'node:fs';
-import {resolve} from 'node:path';
-import {CODE} from './io.ts';
 import {dex,FORMAT} from './mechanics.ts';
 import {FORMATS} from '../shared/formats.ts';
+import {currentRegulations,activeRegulation,recordForFormat,regulationStatusFor} from './regulation.ts';
 
-const regulations:Record<string,any>={'gen9championsvgc2026regmc':'m-c.json'};
-function regulation(format:string){const file=regulations[format];const path=file&&resolve(CODE,'knowledge/regulations',file);return path&&existsSync(path)?JSON.parse(readFileSync(path,'utf8')):null;}
+// The regulation record for a format: the record whose Showdown formats include it, else (for the pinned engine
+// format) the active record. Records come from the index (knowledge/regulations/index.json), not a hard-coded map.
+function regulation(format:string){const state=currentRegulations();return format.replace(/bo3$/,'')===FORMAT?activeRegulation(state):recordForFormat(state,format);}
 
-// Where a regulation stands today, from its record: active, ending (within 21 days) or ended. Nothing else in the app
-// reads the end date, so this is the one place that says "this regulation has expired".
-export function regulationStatus(format=FORMAT,now=Date.now()){
-  const reg=regulation(format.replace(/bo3$/,''));if(!reg?.endsAt)return null;
-  const ends=Date.parse(reg.endsAt),starts=reg.startsAt?Date.parse(reg.startsAt):null;const daysLeft=Math.ceil((ends-now)/86_400_000);
-  const status=now>ends?'ended':starts&&now<starts?'upcoming':daysLeft<=21?'ending':'active';
-  return {id:reg.id as string,format:format.replace(/bo3$/,''),startsAt:reg.startsAt as string,endsAt:reg.endsAt as string,verifiedAt:reg.verifiedAt as string,source:reg.officialURL as string,status,daysLeft};
+// Where a regulation stands today, from its record: active, ending (within 21 days) or ended. With no format it is the
+// regulation the app calls current (the index's active one), which after a switch can be newer than the pinned engine:
+// then engineVerified is false and everything that speaks about legality says so.
+export function regulationStatus(format?:string,now=Date.now()){
+  const state=currentRegulations();
+  return regulationStatusFor(state,format&&format.replace(/bo3$/,'')!==FORMAT?format:undefined,now)??null;
 }
 export function formatRules(format=FORMAT){
   const f=dex.formats.get(format);if(!f.exists)throw new Error(`Unknown format ${format}`);const rt=dex.formats.getRuleTable(f);const reg=regulation(format);
@@ -28,7 +26,7 @@ export function formatRules(format=FORMAT){
     bestOf:has('bestof')?3:1,
     megaEvolutionPerBattle:reg?.megaEvolutionPerBattle??null,duplicateHeldItems:reg?.duplicateHeldItems??null,timers:reg?.timers??null,
     period:reg?{starts:reg.startsAt,ends:reg.endsAt,verified:reg.verifiedAt,source:reg.officialURL}:null,
-    regulation:regulationStatus(format),
+    regulation:regulationStatus(format.replace(/bo3$/,'')===FORMAT?undefined:format),
     statPoints:'0–32 per stat, 66 total; no IVs; natures ±10%',
   };
 }
@@ -36,7 +34,9 @@ export function formatRules(format=FORMAT){
 // The short version every assistant prompt carries.
 export function formatPrimer(format=FORMAT){
   const r=formatRules(format);const reg=r.regulation;
-  const clock=!reg?'':reg.status==='ended'?`\nIMPORTANT: Regulation ${reg.id} ended on ${reg.endsAt.slice(0,10)}. Say so before advising, treat legality and usage here as ${reg.id} data only, and ask which regulation the player is building for.`:reg.status==='ending'?`\nNote: Regulation ${reg.id} ends on ${reg.endsAt.slice(0,10)} (${reg.daysLeft} day${reg.daysLeft===1?'':'s'} left); mention it when advising on long-term builds.`:'';let bo3:ReturnType<typeof formatRules>|null=null;try{bo3=formatRules(format.endsWith('bo3')?format:`${format}bo3`);}catch{}
+  const clock=!reg?'':(reg.status==='ended'?`\nIMPORTANT: Regulation ${reg.id} ended on ${reg.endsAt.slice(0,10)}. Say so before advising, treat legality and usage here as ${reg.id} data only, and ask which regulation the player is building for.`:reg.status==='ending'?`\nNote: Regulation ${reg.id} ends on ${reg.endsAt.slice(0,10)} (${reg.daysLeft} day${reg.daysLeft===1?'':'s'} left); mention it when advising on long-term builds.`:'')
+    +(reg.next&&(reg.status==='ended'||reg.status==='ending')?`\nNext regulation: ${reg.next.id}${reg.next.startsAt?` starts ${reg.next.startsAt.slice(0,10)}`:' (dates not confirmed)'}${reg.next.confidence==='official'&&reg.next.status==='upcoming'?' (official)':' (not confirmed by an official source yet)'}.`:'')
+    +(reg.engineVerified?'':`\nIMPORTANT: Legality data for ${reg.id} is not verified yet. The rules, species and item legality and calcs below come from the pinned ${FORMATS[0].label} engine, so say that legality for ${reg.id} is unconfirmed and point the player to the official eligible list.`);let bo3:ReturnType<typeof formatRules>|null=null;try{bo3=formatRules(format.endsWith('bo3')?format:`${format}bo3`);}catch{}
   const megas=r.megaEvolutionPerBattle===1
     ?`One Mega Evolution per battle, but a team may carry several Mega Stone holders${r.duplicateHeldItems===false?' (each stone is a different item, so the item clause allows it)':''}. Which one Mega Evolves is a per-game choice made from team preview and the board: e.g. two Megas give two different modes, and the one you don't evolve still plays as its base form holding the stone (no other item). Never tell the player a team can only have one Mega.`
     :'Mega Evolution limits: not in the regulation record; check with the player or official rules before advising.';

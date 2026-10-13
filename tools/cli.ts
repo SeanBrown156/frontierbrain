@@ -6,6 +6,7 @@ import {replayReports,migrateReplays,markReviewed} from './replays.ts';
 import {refreshResearch,weeklyReport,sourceIndex,setDistribution,type Source} from './research.ts';
 import {teamImport,attachTeam} from './teams.ts';
 import {workflowLock} from './workbench-jobs.ts';
+import {regulationCheck} from './regulation-routine.ts';
 
 const help=`VGC workspace commands:
   sources [category|search]       Source quick reference
@@ -23,6 +24,7 @@ const help=`VGC workspace commands:
   daily                          Ingest HTML, aggregate and queue coaching
   migrate-replays <directory>    Verified move of saved HTML into workspace
   review-mark <replay> <report>   Mark successfully completed coaching
+  regulation-check [--dry-run] [--force] [--out <file>]  Confirm/switch the current regulation, find the next one
   status                         Data and replay status
 See tools/README.md for inputs and limitations.`;
 const [command='help',...args]=process.argv.slice(2);
@@ -46,6 +48,7 @@ try{
     case 'daily':result=await workflowLock(()=>replayReports());break;
     case 'migrate-replays':if(!args[0])throw new Error('Explicit source directory required');result=await migrateReplays(args[0]);break;
     case 'review-mark':result=await markReviewed(args[0],args[1]);break;
+    case 'regulation-check':{const o=args.indexOf('--out');result=await regulationCheck({dryRun:args.includes('--dry-run'),force:args.includes('--force'),out:o>=0?args[o+1]:undefined});break;}
     case 'status':result={versions:VERSIONS,replays:await optionalJSON('replays/index.json',null),metagame:await optionalJSON('knowledge/metagame/latest.json',null)};break;
     default:throw new Error(`Unknown command ${command}\n${help}`);
   }
