@@ -2132,3 +2132,35 @@ html.jade .mode-switch .ms-short{display:none}
 /* the "connect your AI" prompt: two stacked full-width choices (side by side when there is room) */
 html.jade .connect-ai-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:var(--s2);margin:16px 0}
 html.jade .connect-ai-options>button{width:100%;justify-content:center}
+
+/* News: one readable column. A briefing block, signal cards, then the articles as a tidy list; nothing runs to the edges. */
+html.jade .news-page>:not(.panel-heading){max-width:860px;margin-inline:auto;width:100%;box-sizing:border-box}
+html.jade .news-page .week-tabs{margin-bottom:20px}
+html.jade .news-page .weekly-digest{display:grid;gap:10px;padding:18px 20px;border-radius:var(--r);background:var(--sunk);border:1px solid var(--ln);border-left:3px solid var(--ac);margin-bottom:24px}
+html.jade .news-page .weekly-digest p{margin:0;font-size:16.5px;line-height:1.6;color:var(--tx);max-width:68ch;overflow-wrap:anywhere}
+html.jade .news-page .weekly-digest .eyebrow{margin:0}
+html.jade .news-page .news-h{margin:8px 0 12px;font:700 11px/1.3 var(--fb);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
+html.jade .news-page .news-signal{display:grid;gap:8px;padding:18px 20px!important;margin-block:0 12px;border-radius:var(--r);min-width:0}
+html.jade .news-page .news-signal .tag{justify-self:start}
+html.jade .news-page .news-signal h3{margin:0;font:700 18px/1.3 var(--fb);overflow-wrap:anywhere}
+html.jade .news-page .news-signal p{margin:0;line-height:1.6;color:var(--tx);overflow-wrap:anywhere}
+html.jade .news-page .news-signal .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+html.jade .news-page .news-signal .tags a{height:auto;min-height:32px;padding:4px 12px;border-radius:999px;border:1px solid var(--ln-2);overflow-wrap:anywhere}
+html.jade .news-page .articles{display:grid;gap:10px;margin-bottom:20px}
+html.jade .news-page .articles>article{display:grid;grid-template-columns:36px minmax(0,1fr);gap:14px;align-items:start;padding:16px 18px;border-radius:var(--r);background:var(--sunk);border:1px solid var(--ln);min-width:0}
+html.jade .news-page .article-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:10px}
+html.jade .news-page .articles>article>div{display:grid;gap:6px;min-width:0}
+html.jade .news-page .article-meta{font:500 11px/1.4 var(--fnum);letter-spacing:.06em;text-transform:uppercase;color:var(--mu);overflow-wrap:anywhere}
+html.jade .news-page .articles h3{margin:0;font:700 17px/1.35 var(--fb);overflow-wrap:anywhere}
+html.jade .news-page .articles p{margin:0;line-height:1.6;overflow-wrap:anywhere}
+html.jade .news-page .articles .muted{font-size:12.5px;overflow-wrap:anywhere}
+html.jade .news-page .coverage{margin-top:8px;padding:14px 18px;border-radius:var(--r);border:1px dashed var(--ln-2)}
+html.jade .news-page .coverage summary{cursor:pointer;font-weight:600}
+html.jade .news-page .coverage p,html.jade .news-page .coverage span{display:block;margin:10px 0 0;color:var(--mu);line-height:1.6;overflow-wrap:anywhere}
+@media (max-width:620px){
+  html.jade .news-page .weekly-digest{padding:14px 16px}
+  html.jade .news-page .weekly-digest p{font-size:15.5px}
+  html.jade .news-page .news-signal{padding:14px 16px!important}
+  html.jade .news-page .articles>article{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 16px}
+  html.jade .news-page .article-mark{width:28px;height:28px}
+}
