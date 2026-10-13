@@ -3,6 +3,16 @@ export interface PokemonSet {species:string;nickname?:string;nature?:string;stat
 // Older records also had `partners` and `matchups`; those are folded into the write-up when a record is saved.
 export interface SetNotes {role:string;benchmarks:string;}
 export const NOTE_TITLES={benchmarks:'Damage & speed benchmarks',partners:'Partners & positioning',matchups:'Matchups & testing goals'} as const;
+// A Pokémon's Strategy follows one shape so every team reads the same: three short sections, each a sentence or two.
+export const POKEMON_STRATEGY_HEADINGS=['Role','How to play','Watch out for'] as const;
+export const POKEMON_STRATEGY_TEMPLATE=`## Role\nOne line: the job it does for this team.\n\n## How to play\nWhen it comes in, what it protects or enables, the key moves and calcs.\n\n## Watch out for\nWhat beats it or punishes its plan.`;
+export const composePokemonStrategy=(p:{role?:string;howToPlay?:string;watchOut?:string})=>
+  [['Role',p.role],['How to play',p.howToPlay],['Watch out for',p.watchOut]].filter(([,t])=>t?.trim()).map(([h,t])=>`## ${h}\n${t!.trim()}`).join('\n\n');
+// null when `text` has the three sections in order, otherwise what is missing (for assistants that write one).
+export function checkPokemonStrategy(text:string):string|null{
+  const found=[...text.matchAll(/^#{1,3}\s*(.+?)\s*$/gm)].map(m=>m[1].toLowerCase());
+  const missing=POKEMON_STRATEGY_HEADINGS.filter(h=>!found.includes(h.toLowerCase()));
+  return missing.length?`A Pokémon's strategy uses these sections, in order: ${POKEMON_STRATEGY_HEADINGS.map(h=>`"## ${h}"`).join(', ')}. Missing: ${missing.join(', ')}. Format:\n${POKEMON_STRATEGY_TEMPLATE}`:null;}
 // The text shown as a Pokémon's Strategy: the write-up, then any recorded benchmark reasons (and, for older records, the
 // retired partner and matchup notes) under their headings.
 export const setStrategyText=(n?:Partial<Record<'role'|'benchmarks'|'partners'|'matchups',string>>|null):string=>

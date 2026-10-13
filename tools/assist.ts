@@ -7,6 +7,7 @@ import {chatJSON,type ChatTurn,type ChatContext,type ChatOptions} from './chat.t
 import {cleanSet,readStore,currentTeam} from './workbench-store.ts';
 import {importText} from './teams.ts';
 import {validateTeam,dex} from './mechanics.ts';
+import {checkPokemonStrategy} from '../shared/workbench.ts';
 import type {PokemonSet} from '../shared/workbench.ts';
 
 // `build` makes a whole team from a brief (New team). `assist` is the one docked chat on team pages; `page` says
@@ -16,7 +17,7 @@ export type Page='overview'|'slot'|'strategy'|'coaching'|'replays'|'versions'|'g
 type Emit=(event:'tool'|'message'|'error',data:unknown)=>void;
 const rules='Champions rules: level 50; stat points 0–32 per stat and at most 66 total (Showdown "EVs:" line); no IVs/Tera/Dynamax; six different species; no duplicate items; every Pokémon has an ability and four legal moves.';
 const research='Research with tools before proposing: meta_overview (what wins), team_pool_sets (real items/natures/moves/spreads with player examples), standard_set + calc_damage / calc_speed / spread_search to justify spreads. Quote numbers only from tool results.';
-const setShape='{"kind":"set","slot":<0-5 index in get_team>,"set":{"species","ability","item","nature","moves":[4],"statPoints":{"hp","atk","def","spa","spd","spe"}},"why":"one or two sentences with the key calc or usage fact","strategy":optional markdown: the full Strategy write-up of that Pokémon (role, benchmarks, partners; it replaces the current one, shown as "strategy" in get_team, so keep what should stay)}. To change only the strategy, send the set exactly as it is now plus "strategy"';
+const setShape='{"kind":"set","slot":<0-5 index in get_team>,"set":{"species","ability","item","nature","moves":[4],"statPoints":{"hp","atk","def","spa","spd","spe"}},"why":"one or two sentences with the key calc or usage fact","strategy":optional markdown, the full Strategy write-up of that Pokémon, always exactly these three sections: "## Role" (one line), "## How to play", "## Watch out for" (it replaces the current one, shown as "strategy" in get_team, so keep what should stay)}. To change only the strategy, send the set exactly as it is now plus "strategy"';
 export const guidance:Record<Area,string>={
   build:`Build a complete team from the player's brief. ${research} ${rules}
 Proposals: exactly one {"kind":"team","name","strategy":markdown (game plan, win conditions, key threats, weaknesses),"paste":full Showdown export,"roles":[{"species","role","notes"}],"leads":[{"lead":[a,b],"back":[c,d],"when","plan"}],"matchups":[{"opponent","threat":"low|medium|high","bring":[4],"plan"}]}.`,
@@ -53,6 +54,7 @@ export function validateTeamProposal(p:any){
     leads:(Array.isArray(p.leads)?p.leads:[]).slice(0,4).map((l:any)=>({...l.title?{title:text(l.title,80)}:{},lead:names(l.lead,2),back:names(l.back,4),...(['core','situational','niche','avoid'].includes(l.role)?{role:l.role}:{}),when:text(l.when,1000),plan:text(l.plan,3000)})),
     matchups:(Array.isArray(p.matchups)?p.matchups:[]).slice(0,6).map((m:any)=>({opponent:text(m.opponent||m.archetype,200),...m.archetype?{archetype:text(m.archetype,80)}:{},...Array.isArray(m.examples)?{examples:names(m.examples,8)}:{},threat:['low','medium','high'].includes(m.threat)?m.threat:'medium',bring:names(m.bring,4),plan:text(m.plan,3000)}))};
 }
+const strategyText=(v:string)=>{const t=text(v,6000);const e=checkPokemonStrategy(t);if(e)throw new Error(e);return t;};
 export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,focus?:number,page?:Page):{reply:string;proposals:Proposal[]}{
   const reply=text(value?.reply,6000);const raw=Array.isArray(value?.proposals)?value.proposals.slice(0,6):[];const members=new Set((team??[]).map(s=>dex.species.get(s.species).baseSpecies));
   const member=(n:string)=>{const b=dex.species.get(n).baseSpecies;if(!members.has(b))throw new Error(`${n} is not on the team`);return dex.species.get(n).name;};
@@ -60,7 +62,7 @@ export function validateProposals(area:Area,value:any,team:PokemonSet[]|null,foc
     case 'set':{const pinned=area==='slot'||(area==='assist'&&page==='slot');const slot=pinned&&focus!==undefined&&(area==='slot'||p.slot===undefined||p.slot===null)?focus:Number(p.slot);if(!Number.isInteger(slot)||slot<0||slot>5)throw new Error('Set proposals need slot 0–5');const set=checkSet(p.set);
       if(team){const others=team.filter((_,i)=>i!==slot);if(set.item&&others.some(s=>s.item===set.item))throw new Error(`${set.item} is already held by another team member`);if(others.some(s=>dex.species.get(s.species).baseSpecies===dex.species.get(set.species).baseSpecies))throw new Error(`${set.species} is already on the team`);}
       // forSpecies records what the slot held when proposed, so a late Accept can warn if it has changed since.
-      return {kind:'set',slot,set,why:text(p.why,1500),...typeof p.strategy==='string'&&p.strategy.trim()?{strategy:text(p.strategy,6000)}:{},forSpecies:team?.[slot]?.species};}
+      return {kind:'set',slot,set,why:text(p.why,1500),...typeof p.strategy==='string'&&p.strategy.trim()?{strategy:strategyText(p.strategy)}:{},forSpecies:team?.[slot]?.species};}
     case 'team':return validateTeamProposal(p);
     case 'lead':return {kind:'lead',...p.title?{title:text(p.title,80)}:{},lead:names(p.lead,2).map(member),back:names(p.back,4).map(member),...(['core','situational','niche','avoid'].includes(p.role)?{role:p.role}:{}),when:text(p.when,1000),plan:text(p.plan,3000)};
     case 'matchup':return {kind:'matchup',opponent:text(p.opponent||p.archetype,200),...p.archetype?{archetype:text(p.archetype,80)}:{},...Array.isArray(p.examples)?{examples:names(p.examples,8)}:{},threat:['low','medium','high'].includes(p.threat)?p.threat:'medium',bring:names(p.bring,4).map(member),plan:text(p.plan,3000)};
