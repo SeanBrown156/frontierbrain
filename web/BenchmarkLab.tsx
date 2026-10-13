@@ -78,9 +78,11 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const status=new Set<string>(dex?.statusMoves??[]);const attackerMoves=(attackerSet.moves??[]).filter((m:string)=>m&&!status.has(m));
   useEffect(()=>{if(!attackerMoves.includes(move)&&attackerMoves.length)setMove(attackerMoves[0]);},[direction,JSON.stringify(attackerSet.moves),dex]);
   const fieldInput={...field,attackerSide:onlyTrue(flags[attackerSide]),defenderSide:onlyTrue(flags[defenderSide])};
-  const isSpread=!!dex?.spreadMoves?.includes(move);
-  const secAtk=tab==='Damage'&&secondAtk&&partnerC(attackerSide)?.move?partnerC(attackerSide):null;
-  const secTgt=tab==='Damage'&&secondTgt&&isSpread&&!spreadOne&&!secAtk?partnerC(defenderSide):null;
+  // Expanding Force only hits both foes in Psychic Terrain; that one cannot be calculated as hitting a single target.
+  const expandingSpread=move==='Expanding Force'&&field.terrain==='Psychic';
+  const isSpread=!!dex?.spreadMoves?.includes(move)||expandingSpread;
+  const secAtk=tab==='Damage'&&outgoing&&secondAtk&&partnerC(attackerSide)?.move?partnerC(attackerSide):null;
+  const secTgt=tab==='Damage'&&outgoing&&secondTgt&&isSpread&&!spreadOne&&!secAtk?partnerC(defenderSide):null;
   const secondSpread=!!secAtk&&spreadOne&&!!dex?.spreadMoves?.includes(secAtk.move);
   const damageInput={attacker:outgoing?ownC:otherC,defender:outgoing?otherC:ownC,move,field:fieldInput,moveOptions:{...options,...isSpread&&spreadOne?{spread:false}:{}},
     ...secTgt?{secondDefender:secTgt}:{},...secAtk?{secondMove:secAtk.move,secondAttacker:secAtk,...Object.values(secondFlags).some(Boolean)?{secondAttackerSide:onlyTrue(secondFlags)}:{},...secondSpread?{secondMoveOptions:{spread:false}}:{}}:{}};
@@ -151,7 +153,7 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
       {attackerMoves.length>0&&<div className="move-chips">{attackerMoves.map((m:string)=><button type="button" key={m} className={'toggle'+(m===move?' on':'')} aria-pressed={m===move} onClick={()=>{setMove(m);setOptions(({hits,context,...o}:any)=>o);}}>{m}</button>)}</div>}
       <div className="move-input"><MovePicker label="Another move" dex={dex} value={attackerMoves.includes(move)?'':move} onChange={v=>{setMove(v);setOptions(({hits,context,...o}:any)=>o);}}/></div>
       <MoveContext move={move} dex={dex} options={options} setOptions={setOptions}/>
-      {isSpread&&<><span className="ctx-label">Targets</span><div className="toggles"><Toggle on={!spreadOne} label="Hits both targets (×0.75)" set={()=>setSpreadOne(false)}/><Toggle on={spreadOne} label="Hits one target" set={()=>setSpreadOne(true)}/></div></>}
+      {isSpread&&!expandingSpread&&<><span className="ctx-label">Targets</span><div className="toggles"><Toggle on={!spreadOne} label="Hits both targets (×0.75)" set={()=>setSpreadOne(false)}/><Toggle on={spreadOne} label="Hits one target" set={()=>setSpreadOne(true)}/></div></>}
       <span className="ctx-label">Boosting this attack</span><div className="toggles">{ATTACK_SIDE.map(([k,l])=><Toggle key={k} on={!!flags[side][k]} label={l} set={v=>setFlag(side,k,v)}/>)}<Toggle on={!!options.isCrit} label="Critical hit" set={v=>setOptions({...options,isCrit:v})}/></div>
       <span className="ctx-label">Already happened</span><div className="toggles"><Toggle on={(s.boosts?.atk??0)<0&&s.intimidated} label="Intimidated (−1 Atk)" set={v=>update({...s,intimidated:v,boosts:{...s.boosts,atk:(s.boosts?.atk??0)+(v?-1:1)}})}/>{s.item&&used}</div></div>
     :<div className="ctx"><span className="ctx-label">Protecting this Pokémon</span><div className="toggles">{DEFEND_SIDE.map(([k,l])=><Toggle key={k} on={!!flags[side][k]} label={l} set={v=>setFlag(side,k,v)}/>)}</div>{s.item&&<><span className="ctx-label">Already happened</span><div className="toggles">{used}</div></>}</div>;};
@@ -178,8 +180,8 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const body=<div className="lab"><Tabs tabs={['Damage','Speed']} value={tab} onChange={setTab}/>
     {fromAsk&&<p className="from-ask" role="status"><img src="/brand/icon-64.png" alt="" width={18} height={18}/>{fromAsk}</p>}
     <div className="matchup">{sideCard(order[0])}{axis}{sideCard(order[1])}</div>
-    {tab==='Damage'&&<div className="doubles"><div className="toggles"><Toggle on={secondAtk} label="+ Second attacker" set={v=>{setSecondAtk(v);if(v)setSecondTgt(false);}}/>
-      <button type="button" className={'toggle'+(secondTgt?' on':'')} aria-pressed={secondTgt} disabled={!isSpread} title={isSpread?undefined:'Only spread moves (Rock Slide, Heat Wave…) hit a second target'} onClick={()=>{setSecondTgt(!secondTgt);if(!secondTgt)setSecondAtk(false);}}>+ Second target</button></div>
+    {tab==='Damage'&&outgoing&&<div className="doubles"><div className="toggles"><Toggle on={secondAtk} label="+ Second attacker" set={v=>{setSecondAtk(v);if(v)setSecondTgt(false);}}/>
+      <button type="button" className={'toggle'+(secondTgt?' on':'')} aria-pressed={secondTgt} disabled={!isSpread} title={isSpread?undefined:'Only spread moves hit a second target: Rock Slide, Heat Wave, or Expanding Force in Psychic Terrain'} onClick={()=>{setSecondTgt(!secondTgt);if(!secondTgt)setSecondAtk(false);}}>+ Second target</button></div>
       {secondTgt&&spreadOne&&<p className="footnote">The move hits one target, so no second target is hit. Switch to “Hits both targets” to see it.</p>}
       {(secondAtk||secondTgt)&&<div className="partners">{secondAtk?<PartnerCard key={'atk'+attackerSide} role="attacker" side={attackerSide} set={partner[attackerSide]} setSet={v=>setPartner(p=>({...p,[attackerSide]:v}))} saved={starred} art={data.art} mega={partnerMega(attackerSide)} megaOn={pMega[attackerSide]} setMega={v=>setPMega(m=>({...m,[attackerSide]:v}))} formName={formName} dex={dex}
           editor={partner[attackerSide]&&<SetFields set={partner[attackerSide]} update={(x:any)=>setPartner(p=>({...p,[attackerSide]:x}))} dex={dex} form={partnerC(attackerSide)?.species??partner[attackerSide].species}/>}

@@ -100,7 +100,8 @@ export async function buildInbox(db:Workbench):Promise<Inbox>{
   const order=(k:InboxKind)=>INBOX_KINDS.indexOf(k);
   items.sort((a,b)=>order(a.kind)-order(b.kind)||when(b)-when(a)||(b.count??0)-(a.count??0));
   const byKind=Object.fromEntries(INBOX_KINDS.map(k=>[k,items.filter(i=>i.kind===k).length])) as Record<InboxKind,number>;
-  return {items,count:items.length,byKind};
+  // The count is action items only: an assistant's calc result is shown on the page but needs nothing from the player.
+  return {items,count:items.filter(i=>i.kind!=='calc').length,byKind};
 }
 
 // MCP: get_inbox (read-only), registered from tools/mcp.ts in its own block.

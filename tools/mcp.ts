@@ -248,12 +248,10 @@ async function call(name:string,input:any){
     const {results,fresh}=await intakeReplays([...links.map(url=>({url})),...html.map((h,i)=>({html:h,name:`pasted replay ${i+1}`}))],{...teamId?{teamId}:{},certainty:'auto'});
     const after=await readStore();const names=(id:string)=>after.teams.find(t=>t.id===after.associations[id]?.teamId)?.name??null;
     const out=results.map(r=>({label:r.label,ok:r.ok,...r.ok?{replayId:r.id,duplicate:r.duplicate,team:names(r.id!),linked:r.certainty==='inbox'?'not linked: its six match no saved team':r.certainty==='exact'?`sets consistent with the game${r.basis==='auto'?' (matched automatically, not confirmed by the player)':''}`:'same six, sets not matched',...r.note?{note:r.note}:{}}:{error:r.error}}));
-    // New games are summarised in the background when an AI key is set (grouped by the team they ended up on).
-    const keyed=!!activeAI();const byTeam=new Map<string|undefined,string[]>();for(const id of fresh){const t=after.associations[id]?.teamId;byTeam.set(t,[...byTeam.get(t)??[],id]);}
-    if(keyed)for(const [t,ids] of byTeam)void queueSummaries(t,ids);
+    // Adding a replay never spends the player's AI key: new games wait (needsSummary) until the player presses Summarise or you do it.
     const added=results.filter(r=>r.ok&&!r.duplicate).length;
     return {added,duplicates:results.filter(r=>r.ok&&r.duplicate).length,failed:results.filter(r=>!r.ok).length,results:out,
-      summaries:fresh.length?keyed?{queued:fresh.length,note:'Frontier Brain is summarising these in the background with the player\'s AI key.'}:{waiting:fresh.length,note:'No AI key in Frontier Brain, so these wait for you: list_replays marks them needsSummary; read each with replay_transcript and save_replay_summary, then save_team_digest.'}:{note:'Nothing new to summarise.'}};}
+      summaries:fresh.length?{waiting:fresh.length,note:'Not summarised automatically (Frontier Brain does not spend the player\'s AI key on its own). They wait: list_replays marks them needsSummary; read each with replay_transcript and save_replay_summary, then save_team_digest.'}:{note:'Nothing new to summarise.'}};}
   if(name==='delete_replay'){const id=String(input.replayId??'');const a:any=db.associations[id];const games=await loadGames();const g=games.find(x=>x.id===id);
     if(!g)throw new Error('Replay not found: use an id from list_replays.');
     if(input.playerAgreed!==true)throw new Error('Not deleted: the player has to ask for this. Confirm with them, then call again with playerAgreed: true.');

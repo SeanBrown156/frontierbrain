@@ -39,7 +39,7 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
     </div>}
     {missing.length>0&&!busy&&keyed===false&&ai&&<WaitingForAssistant n={missing.length} team={team.name} connect={()=>setNeedAI(true)}/>}
     {missing.length>0&&!busy&&keyed!==false&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
-    <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} waiting={keyed===false&&ai&&!busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)}/>)}
+    <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} waiting={keyed===false&&ai&&!busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)} summarise={()=>void summarise([g.id])}/>)}
       {games.length>0&&!shown.length&&<p className="muted">No games match these filters.</p>}</div>
     {needAI&&<ConnectAI onClose={()=>setNeedAI(false)}/>}
     {open&&<GameDrawer g={games.find((x:any)=>x.id===open)} s={info.summaries[open]} team={team} data={data} load={load} notify={notify} close={()=>setOpen(null)} resummarise={()=>void summarise([open])} saved={()=>void refresh()}/>}
@@ -165,14 +165,16 @@ function AtAGlance({games,info,art}:{games:any[];info:any;art:any}){
     </section>;
 }
 
-function GameCard({g,s,pending,waiting,art,open}:{g:any;s:any;pending:boolean;waiting?:boolean;art:any;open:()=>void}){
+function GameCard({g,s,pending,waiting,art,open,summarise}:{g:any;s:any;pending:boolean;waiting?:boolean;art:any;open:()=>void;summarise:()=>void}){
   const o=other(g);
   return <article className={'game '+g.result} onClick={open} onKeyDown={e=>{if(e.key==='Enter')open();}} tabIndex={0} role="button" aria-label={`${g.result} vs ${g.players[o].name}`}>
     <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.players[o].name}</span>{s?.stale&&<span className="tag">link changed</span>}</div>
     <div className="game-teams"><div className="six">{g.preview[o].map((m:string)=><span key={m} className={g.leads[o].includes(m)?'lead':g.revealed[o].includes(m)?'brought':'benched'} title={m}><Art name={m} art={art} small/></span>)}</div></div>
     {s?<><p className="game-summary">{s.summary}</p>{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
       {s.opponentStyle.length>0&&<div className="chip-row style-tags">{s.opponentStyle.map((t:string)=><span key={t} className="chip small">{t}</span>)}</div>}</>
-      :<p className="muted">{pending?'Summarising…':waiting?'Waiting for your assistant to summarise it.':'No summary yet.'}</p>}
+      :pending?<p className="muted">Summarising…</p>
+      :<div className="game-pending"><span className="tag">Not summarised</span>{waiting&&<span className="muted tiny">Your assistant can do this, or add an API key.</span>}
+        <button className="summarise" onClick={e=>{e.stopPropagation();summarise();}} onKeyDown={e=>e.stopPropagation()}><Px icon={Sparkles} size={14}/>Summarise</button></div>}
   </article>;
 }
 

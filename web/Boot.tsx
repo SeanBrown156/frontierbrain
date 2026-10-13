@@ -10,10 +10,12 @@ export const shouldBoot=()=>{if(reduced())return false;try{return !sessionStorag
 const TITLE='loading frontier-brain.exe';
 const sleep=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
 
-export default function Boot({data,error,onDone,quick=false}:{data:any;error:string;onDone:()=>void;quick?:boolean}){
+// `landing`: the same loader for the welcome page. It holds until the data, the fonts and the hero art are in, so the page
+// never shows up half-empty, and it leaves the once-per-session boot for "Open the app".
+export default function Boot({data,error,onDone,quick=false,landing=false}:{data:any;error:string;onDone:()=>void;quick?:boolean;landing?:boolean}){
   const [typed,setTyped]=useState(0),[lines,setLines]=useState<[string,string][]>([]),[pct,setPct]=useState(0),[leaving,setLeaving]=useState(false);
   const dataRef=useRef(data);dataRef.current=data;const errRef=useRef(error);errRef.current=error;const done=useRef(false);
-  const finish=()=>{if(done.current)return;done.current=true;try{sessionStorage.setItem(KEY,'1');}catch{}
+  const finish=()=>{if(done.current)return;done.current=true;if(!landing)try{sessionStorage.setItem(KEY,'1');}catch{}
     // the brain behind detonates first, then the boot text clears and the app switches on through it
     dispatchEvent(new CustomEvent('fb-boot-progress',{detail:1}));dispatchEvent(new Event('fb-boot-explode'));
     setTimeout(()=>setLeaving(true),quick?450:650);setTimeout(onDone,quick?900:1250);};
@@ -22,7 +24,10 @@ export default function Boot({data,error,onDone,quick=false}:{data:any;error:str
   useEffect(()=>{let alive=true;
     (async()=>{
       // A repeat visit: the title is already there, the brain sweeps while the data comes in, then it lights up.
-      if(quick){setTyped(TITLE.length);for(let i=0;i<100&&alive&&!dataRef.current&&!errRef.current;i++){sendProgress(Math.min(.92,.25+i*.035));await sleep(80);}
+      if(quick){setTyped(TITLE.length);
+        const art=landing?Promise.race([Promise.all([document.fonts?.ready,...['/landing/mega-alakazam.png','/brand/icon-64.png'].map(u=>new Promise<void>(r=>{const i=new Image();i.onload=i.onerror=()=>r();i.src=u;}))]),sleep(4000)]):Promise.resolve();
+        let artReady=!landing;void art.then(()=>{artReady=true;});
+        for(let i=0;i<100&&alive&&((!dataRef.current&&!errRef.current)||!artReady);i++){sendProgress(Math.min(.92,.25+i*.035));await sleep(80);}
         if(!alive)return;sendProgress(.97);setPct(100);await sleep(120);finish();return;}
       for(let i=1;i<=TITLE.length;i++){if(!alive)return;setTyped(i);sendProgress(i/TITLE.length*0.25);await sleep(42);}
       await sleep(180);

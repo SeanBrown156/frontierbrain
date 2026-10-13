@@ -8,7 +8,7 @@ export async function createPokepaste(db:Workbench,input:{teamId:string;versionI
   const team=db.teams.find(t=>t.id===input.teamId);if(!team)throw new Error('Team not found');
   const paste=teamPaste(db,team,input.versionId,input.configurationId);
   const form=new URLSearchParams({paste,title:clip(team.name,100),author:clip(String(input.author??''),60),notes:clip(String(input.notes??''),1000)});
-  const r=await post('https://pokepast.es/create',{method:'POST',body:form,redirect:'manual',signal:AbortSignal.timeout(15000)});const link=r.headers.get('location');
+  const r=await post('https://pokepast.es/create',{method:'POST',body:form,redirect:'manual',signal:AbortSignal.timeout(15000)});const raw=r.headers.get('location');const link=raw?new URL(raw,'https://pokepast.es/').href:null; // PokePaste answers with a relative Location
   if(!link||!/^https:\/\/pokepast\.es\/[a-f0-9]+$/.test(link))throw new Error(`PokePaste didn't return a link (HTTP ${r.status})`);
   return {url:link,name:team.name};
 }

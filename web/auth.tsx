@@ -2,6 +2,7 @@ import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 
 import {createClient,type Session} from '@supabase/supabase-js';
 import {Sparkles} from './icons.tsx';
 import {X} from 'lucide-react';
+import BrainBackdrop from './brain/BrainBackdrop.tsx';
 
 // Hosted site only: Supabase Auth. Without VITE_SUPABASE_URL the app runs in local mode with no sign-in at all.
 // Nobody is asked to sign in up front: a first visit starts an anonymous guest session, so work saves straight away.
@@ -59,6 +60,12 @@ function useSession(){
     const {data}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>data.subscription.unsubscribe();},[]);
   return session;
 }
+// Before a session exists: the wireframe brain and the loader title, never a plain text line.
+function Splash(){
+  useEffect(()=>{const t=setInterval(()=>dispatchEvent(new CustomEvent('fb-boot-progress',{detail:Math.min(.5,.1+Math.random()*.4)})),400);return()=>clearInterval(t);},[]);
+  return <div className="shell booting"><BrainBackdrop route="teams" booting/>
+    <div className="boot" role="status" aria-label="Starting Frontier Brain"><div className="boot-inner"><p className="boot-exe">loading frontier-brain<span className="ext">.exe</span><span className="caret" aria-hidden="true"/></p></div></div></div>;
+}
 export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
   const session=useSession(),[error,setError]=useState(''),[note,setNote]=useState(''),[dialog,setDialog]=useState<{step:Step;email?:string;error?:string}|null>(null),starting=useRef(false);
   showDialog=setDialog;
@@ -75,7 +82,7 @@ export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
     void bringGuestWork(session).then(m=>{if(m){setNote(m);setTimeout(()=>location.reload(),1500);}});},[session]);
   if(!supabase)return <AccountContext.Provider value={{kind:'local'}}>{children({kind:'local'})}</AccountContext.Provider>;
   if(error)return <main className="welcome"><div className="welcome-card"><h1>Frontier Brain</h1><p className="error">Couldn't start a session: {error}</p><button className="primary" onClick={()=>location.reload()}>Try again</button></div></main>;
-  if(!session)return <main className="welcome"><p className="muted">Opening Frontier Brain…</p></main>;
+  if(!session)return <Splash/>;
   const account:Account=session.user.is_anonymous?{kind:'guest'}:{kind:'account',email:session.user.email??''};
   return <AccountContext.Provider value={account}>{children(account)}
     {note&&<div className="toast" role="status">{note}</div>}

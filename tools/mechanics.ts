@@ -103,10 +103,14 @@ export function damage(input: CalcInput) {
   const {basePower:explicitPower,context,hits,spread,...options}=input.moveOptions??{};const notes:string[]=[];
   // Spread moves: Doubles reduces damage to 0.75x when the move has more than one target. `spread:false` is the move hitting
   // one target (the partner is Protected, fainted or untargetable), so there is no reduction; absent means both targets.
-  const spreadMove=SPREAD_TARGETS.includes(m.target);const doubles=(input.field?.gameType??'Doubles')==='Doubles';
+  // Expanding Force becomes a spread move (both foes, so the 0.75x applies) in Psychic Terrain when the user is grounded.
+  const expanding=m.name==='Expanding Force'&&input.field?.terrain==='Psychic'&&(input.field?.gameType??'Doubles')==='Doubles';
+  const spreadMove=SPREAD_TARGETS.includes(m.target)||expanding;const doubles=(input.field?.gameType??'Doubles')==='Doubles';
   if(spread!==undefined){if(typeof spread!=='boolean')throw new Error('spread must be true (hits both targets) or false (hits one)');
     if(!spreadMove)throw new Error(`${m.name} hits one target; the spread option applies only to moves that can hit both opposing Pokémon`);}
   const reduced=spreadMove&&doubles&&spread!==false;
+  if(expanding&&spread===false)throw new Error('Expanding Force in Psychic Terrain always hits both opposing Pokémon in this calculator, so it cannot be calculated as hitting one target.');
+  if(expanding)notes.push('Expanding Force: in Psychic Terrain it hits both opposing Pokémon, so the 0.75x spread reduction applies (the calculator also needs the user grounded for the boost).');
   if(spreadMove)notes.push(!doubles?`${m.name}: Singles has one target, so no spread reduction.`:spread===false?`${m.name}: hits one target (partner Protected, fainted or untargetable), so no 0.75x spread reduction.`:`${m.name}: spread move hitting both targets in Doubles, 0.75x${m.target==='allAdjacent'?'; it also hits the user\'s ally, which is not calculated unless supplied as the second target':''}. Set “hits one target” if the other target is out.`);
   if(explicitPower!==undefined&&!conditional.includes(m.name))throw new Error('Base-power override only allowed for untracked contextual moves; native dynamic moves calculate power from their supplied state');
   if(explicitPower!==undefined&&(!Number.isInteger(explicitPower)||explicitPower<1))throw new Error('Explicit basePower must be a positive integer');

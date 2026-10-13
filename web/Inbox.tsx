@@ -15,9 +15,9 @@ export function useInbox(rev:unknown){
     return()=>{clearInterval(t);document.removeEventListener('visibilitychange',tick);};},[reload]);
   return {inbox,reload};
 }
-// The header entry beside the account button: a count badge when something is waiting (9+ past nine).
+// The header entry beside the account button: just the tray icon, with a red number when something needs an action (9+ past nine).
 export function InboxLink({count}:{count:number}){
-  return <a className="inbox-button" href="#inbox" aria-label={count>0?`Inbox, ${count} waiting`:'Inbox'}><Px icon={InboxIcon}/><span className="inbox-label">Inbox</span>{count>0&&<span className="inbox-count" aria-hidden="true">{count>9?'9+':count}</span>}</a>;
+  return <a className="inbox-button" href="#inbox" aria-label={count>0?`${count} waiting on you`:'Nothing waiting on you'} title={count>0?`${count} waiting on you`:'Nothing waiting'}><Px icon={InboxIcon}/>{count>0&&<span className="inbox-count" aria-hidden="true">{count>9?'9+':count}</span>}</a>;
 }
 
 const SECTIONS:[string,string,string][]=[
@@ -42,8 +42,8 @@ export default function InboxPage({inbox,data,load,reload,notify,openDock}:{inbo
     dismissCalc:(i:any)=>guard(async()=>{await api('/assistant-calcs/remove',{id:i.calcId});await reload();}),
   };
   return <><Back/><Panel title="Inbox" kicker="WAITING ON YOU" className="inbox-page">
-    {!inbox.count?<p className="muted">Nothing is waiting on you.</p>
-      :<p className="muted">{inbox.count} thing{inbox.count===1?'':'s'} waiting. Newest first within each group.</p>}
+    {!inbox.count?<p className="muted">Nothing needs an action from you.</p>
+      :<p className="muted">{inbox.count} action{inbox.count===1?'':'s'} waiting. Newest first within each group.</p>}
     {SECTIONS.map(([kind,title,hint])=>{const items=inbox.items.filter((i:any)=>i.kind===kind);if(!items.length)return null;
       return <section key={kind} className="inbox-section" aria-label={title}><h3 className="inbox-h">{title}<span className="inbox-n">{items.length}</span></h3><p className="muted tiny">{hint}</p>
         <ul className="inbox-list">{items.map((i:any)=><li key={i.id} className={'inbox-item '+kind}>{

@@ -41,8 +41,10 @@ export default function App(){
   // The landing page goes straight in; the boot belongs to the app and starts when you open it (see openApp).
   // Opening the app always shows the loading animation until the data is in: the full sequence once per session, a quick
   // version of the same after that (so there is never a plain "Opening…" box).
-  const [booting,setBooting]=useState(()=>(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams'))!=='welcome'),[quick,setQuick]=useState(()=>!shouldBoot()),[powerOn,setPowerOn]=useState(false);
-  const bootDone=()=>{setBooting(false);setPowerOn(true);setTimeout(()=>setPowerOn(false),1400);};
+  const [booting,setBooting]=useState(true),[quick,setQuick]=useState(()=>!shouldBoot()||(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams'))==='welcome'),[powerOn,setPowerOn]=useState(false);
+  // The welcome page waits behind the same loader (without using up the once-per-session boot).
+  const [landingLoad,setLandingLoad]=useState(()=>(normalise(location.hash.slice(1))||(firstVisit()?'welcome':'teams'))==='welcome');
+  const bootDone=()=>{setLandingLoad(false);setBooting(false);setPowerOn(true);setTimeout(()=>setPowerOn(false),1400);};
   const page=pageOf(route);const decodedPage=useRef('');
   useEffect(()=>{if(!data||booting||decodedPage.current===page)return;
     // A page can paint its title a few frames late; look for it briefly before giving up.
@@ -56,6 +58,8 @@ export default function App(){
       if(el.closest('.team-card')){glitch(el);hoverDecode(el,800);}else hoverDecode(el);}};
     addEventListener('pointerover',over,{passive:true});return()=>removeEventListener('pointerover',over);},[]);
   useEffect(()=>setMenuOpen(false),[route]);
+  // The sticky header's height, so sticky side rails stop just under it instead of sliding beneath it.
+  useEffect(()=>{const set=()=>{const m=document.querySelector('.shell>.masthead') as HTMLElement|null;if(m)document.documentElement.style.setProperty('--mast-h',(m.offsetHeight+(parseFloat(getComputedStyle(m).top)||0))+'px');};set();addEventListener('resize',set);const t=setInterval(set,2000);return()=>{removeEventListener('resize',set);clearInterval(t);};},[]);
   const setDockOpen=(b:boolean)=>{setDockOpenState(b);try{localStorage.setItem('pokecoach.dock',b?'open':'closed');}catch{}};
   // The latest saved revision, so consecutive saves in one handler don't trip the stale-edit check.
   const revision=useRef<number|null>(null);const dataRef=useRef<any>(null);const lastHash=useRef(location.hash);
@@ -106,7 +110,7 @@ export default function App(){
   // "Open the app" on the landing page: mark it seen, run the boot (once per session), then open your teams.
   const openApp=()=>{try{localStorage.setItem(WELCOMED,'1');}catch{}if(shouldBoot()){setQuick(false);setBooting(true);}location.hash='#teams';};
   // Ask Frontier Brain floats over the page as an overlay, so opening it never reflows the layout.
-  return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot quick={quick} data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&route!=='welcome'&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}{route==='welcome'?<header className="masthead landing-nav"><Brand/><ThemeToggle/>
+  return <div className={'shell'+(withDock?' dock-open':'')+(booting?' booting':'')+(powerOn?' power-on':'')}><BrainBackdrop route={route} booting={booting}/>{booting?<Boot quick={quick} landing={landingLoad} data={data} error={error} onDone={bootDone}/>:<i className="screen-sweep" key={'sweep-'+page} aria-hidden="true"/>}{data&&route!=='welcome'&&<Ticker weeks={data.news} openNews={()=>setNewsOpen(true)}/>}{route==='welcome'?<header className="masthead landing-nav"><Brand/><ThemeToggle/>
       <a className="button lp-nav-src" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</a><button className="primary lp-nav-go" onClick={openApp}>Open the app<span aria-hidden="true">→</span></button></header>
     :<header className={'masthead'+(menuOpen?' menu-open':'')}><Brand/><SavePill/>
       <ThemeToggle/><AccountMenu profile={data?.profile} reload={load} notify={notify} inbox={inbox?.count??0}/>

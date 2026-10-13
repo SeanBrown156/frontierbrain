@@ -33,3 +33,7 @@ html.jade .partner-art .art{width:72px!important;height:72px!important}
 .benchmarks .bm-opp b{font-size:14px;overflow-wrap:anywhere}
 .benchmarks .bm-detail{color:var(--tx);overflow-wrap:anywhere}
 .benchmarks .bm-note{font-style:italic;opacity:.8;overflow-wrap:anywhere}
+/* second attacker / second target: set clear of the matchup above, one full-width card */
+.doubles{display:grid;gap:12px;margin-top:20px}
+.doubles .toggles{margin:0}
+.doubles .partners{grid-template-columns:minmax(0,1fr)}

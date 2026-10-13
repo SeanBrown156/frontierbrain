@@ -30,10 +30,13 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     try{if(typeof ClipboardItem!=='undefined'&&navigator.clipboard?.write)await navigator.clipboard.write([new ClipboardItem({'text/plain':getPaste().then(t=>new Blob([t],{type:'text/plain'}))})]);
       else await navigator.clipboard.writeText(await getPaste());
       setCopied(true);setTimeout(()=>setCopied(false),2000);}catch(e){notify((e as Error).message||'Could not copy. Allow clipboard access and try again.');}};
-  // PokePaste: publish the team and open the paste in a new tab (opened first so the browser allows it).
-  const openPokepaste=async()=>{const w=window.open('about:blank','_blank');setPublishing(true);
-    try{const r=await api('/pokepaste-create',{teamId:team.id,versionId:shown.id,configurationId:shown.currentConfigurationId,author:data.profile?.player??''});
-      if(w)w.location.href=r.url;else{void navigator.clipboard.writeText(r.url).catch(()=>{});notify(`PokePaste created and copied: ${r.url}`);}}
+  // PokePaste: the browser itself posts the team to pokepast.es into a tab opened by the click, so the paste page opens
+  // directly (nothing goes through our server and there is no blank tab to land on).
+  const openPokepaste=async()=>{const w=window.open('about:blank','fb-pokepaste');setPublishing(true);
+    try{const r:any=await api(`/export?team=${team.id}&version=${shown.id}&configuration=${shown.currentConfigurationId}`);
+      const form=document.createElement('form');form.method='POST';form.action='https://pokepast.es/create';form.target=w?'fb-pokepaste':'_blank';form.style.display='none';
+      for(const [k,v] of Object.entries({paste:String(r.paste),title:team.name.slice(0,100),author:String(data.profile?.player??'').slice(0,60),notes:''})){const i=document.createElement('input');i.type='hidden';i.name=k;i.value=v;form.appendChild(i);}
+      document.body.appendChild(form);form.submit();form.remove();}
     catch(e){w?.close();notify((e as Error).message);}finally{setPublishing(false);}};
   const rename=async()=>{setRenaming(false);if(name.trim()&&name.trim()!==team.name)await mutate({type:'team-rename',teamId:team.id,name:name.trim()}).catch(()=>setName(team.name));};
   return <div className="team-hub">

@@ -99,14 +99,14 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     }
     if(req.method==='POST'&&path==='/api/upload'){
       const input=await body(req);if(typeof input.html!=='string'||input.html.length>6_000_000)throw new Error('Expected replay HTML under 6 MB');
-      const result=await saveReplay(input.html,input.association,input.revision);if('status'in result)return respond(res,409,{error:(result as any).reason});if(!(result as any).duplicate)void queueSummaries(input.association?.teamId,[(result as any).id]);return respond(res,200,result);
+      const result=await saveReplay(input.html,input.association,input.revision);if('status'in result)return respond(res,409,{error:(result as any).reason});return respond(res,200,result);
     }
     // Batch intake: Showdown replay links and/or HTML files, linked automatically unless an association is given (tools/replay-intake.ts).
     if(req.method==='POST'&&path==='/api/replays'){
       const input=await body(req);if(!Array.isArray(input.items)||!input.items.length||input.items.length>40)throw new Error('Send 1–40 replays');
       const {results,fresh}=await intakeReplays(input.items,input.association,storageRoot);
-      // Each new game gets an AI summary in the background, then the team's "what to work on" digest is refreshed.
-      if(fresh.length)void queueSummaries(input.association?.teamId,fresh);
+      // New games wait for the player to press Summarise (or for their assistant); adding never spends the AI key.
+      void fresh;
       return respond(res,200,{results});
     }
     // Remove one replay: its link, original, parsed copy and summary; the team's debrief is brought in line.
