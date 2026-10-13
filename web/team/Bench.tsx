@@ -77,7 +77,7 @@ function AddDialog({team,data,mutate,count,onClose}:{team:any;data:any;mutate:Mu
       </>}
       {error&&<p className="error" role="alert">{error}</p>}
     </div>}
-    <div className="modal-footer"><button onClick={onClose}>Cancel</button>{!full&&<button className="primary" disabled={busy||!ready} onClick={()=>void add()}><Px icon={Plus}/>{busy?'Adding…':mode==='pokemon'&&choice?`Add ${choice.species}`:`Add to the ${BENCH_LABEL}`}</button>}</div>
+    <div className="modal-footer">{!full&&<button className="primary" disabled={busy||!ready} onClick={()=>void add()}><Px icon={Plus}/>{busy?'Adding…':mode==='pokemon'&&choice?`Add ${choice.species}`:`Add to the ${BENCH_LABEL}`}</button>}</div>
   </Modal>;
 }
 
@@ -98,7 +98,7 @@ function CompareDialog({team,data,mutate,notify,item,promote,onClose}:{team:any;
     {problems.length?<ul className="bench-problems" role="alert">{problems.map(p=><li key={p}>{p}</li>)}</ul>:<p className="bench-fit ok">Legal in slot {slot+1}.</p>}
     <p className="footnote">Saved as a new step in History, which you can restore. {current.species} goes onto the {BENCH_LABEL}; {cand.species}’s benchmarks and strategy come with it.</p>
     {error&&<p className="error" role="alert">{error}</p>}
-    <div className="modal-footer"><button onClick={onClose}>Cancel</button><button className="primary" disabled={busy||problems.length>0} onClick={()=>void go()}>{busy?'Promoting…':`Promote ${cand.species}`}</button></div>
+    <div className="modal-footer"><button className="primary" disabled={busy||problems.length>0} onClick={()=>void go()}>{busy?'Promoting…':`Promote ${cand.species}`}</button></div>
   </Modal>;
 }
 
