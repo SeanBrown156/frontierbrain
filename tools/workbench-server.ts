@@ -30,6 +30,7 @@ import {createBackup,restoreBackup} from './backup.ts';
 import {handleMcp} from './mcp.ts';
 import {readPreferences,updatePreferences} from './player.ts';
 import {writeFocus,getFocus,listCalcs,removeCalc} from './focus.ts';
+import {buildInbox,dismissNotice} from './inbox.ts';
 
 function respond(res:ServerResponse,status:number,data:unknown){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));}
 const WEB_PORT=Number(process.env.WEB_PORT??5173),API_PORT=Number(process.env.API_PORT??5174);
@@ -89,7 +90,7 @@ async function serve(req:IncomingMessage,res:ServerResponse){
         const games=await loadGames();const game=games.find(g=>g.id===input.replayId);if(!game)throw new Error('Replay not found');
         const changed=await mutateLatest(db=>associateReplay(db,game,input));
         // Requeue exact-set changes for coaching. Preserve every original and historical report.
-        if(storageRoot===ROOT&&(input.certainty==='exact'||game.teamVersion?.startsWith('config-'))){const index=await json('replays/index.json');const entry=index.games.find((g:any)=>g.id===game.id);entry.teamVersion=changed.db.associations[game.id]?.configurationId??null;entry.reviewedAt=null;entry.reviewPath=null;game.teamVersion=entry.teamVersion;await save(entry.parsed,game);await save('replays/index.json',index);}
+        if(storageRoot===ROOT&&(input.certainty==='exact'||input.certainty==='auto'||game.teamVersion?.startsWith('config-'))){const index=await json('replays/index.json');const entry=index.games.find((g:any)=>g.id===game.id);entry.teamVersion=changed.db.associations[game.id]?.configurationId??null;entry.reviewedAt=null;entry.reviewPath=null;game.teamVersion=entry.teamVersion;await save(entry.parsed,game);await save('replays/index.json',index);}
         return changed;});
       if('status'in result)return respond(res,409,{error:result.reason});return respond(res,200,{revision:result.db.revision,result:result.result});
     }
@@ -189,6 +190,9 @@ async function serve(req:IncomingMessage,res:ServerResponse){
     if(req.method==='POST'&&path==='/api/calculate'){const input=await body(req);const methods:Record<string,(i:any)=>unknown>={stats:finalStats,damage,speed,'speed-order':speedOrder,spread:spreadSearch};if(!Object.hasOwn(methods,input.kind))throw new Error('Unknown calculation');return respond(res,200,methods[input.kind](input.input));}
     // What the player has open and the calcs an assistant handed over: small per-user records outside the workspace revision.
     if(path==='/api/focus'){if(req.method==='POST'){const f=await writeFocus(await body(req));return respond(res,200,{at:f.at});}if(req.method==='GET')return respond(res,200,await getFocus(await readStore()));}
+    // Everything waiting on the player, computed from the same records the team views read (tools/inbox.ts).
+    if(req.method==='GET'&&path==='/api/inbox')return respond(res,200,await buildInbox(await readStore()));
+    if(req.method==='POST'&&path==='/api/inbox/dismiss')return respond(res,200,await dismissNotice(String((await body(req)).id??'')));
     if(req.method==='GET'&&path==='/api/assistant-calcs')return respond(res,200,await listCalcs());
     if(req.method==='POST'&&path==='/api/assistant-calcs/remove'){await removeCalc(String((await body(req)).id??''));return respond(res,200,await listCalcs());}
     return respond(res,404,{error:'Not found'});

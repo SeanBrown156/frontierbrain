@@ -1,0 +1,7 @@
+{"notices":[
+  {"id":"reg-2026-10-14","at":"2026-10-14T09:00:00Z","kind":"regulation","level":"warning","title":"Regulation M-C rules updated","body":"The official rules page changed. Check your teams against the new list.","url":"https://example.com/rules"},
+  {"id":"reg-2026-10-01","at":"2026-10-01T09:00:00Z","kind":"regulation","level":"info","title":"Season dates announced","body":"A new season starts next month.","url":"javascript:alert(1)"},
+  {"id":"broken","title":"No body"},
+  "not an object",
+  {"id":"reg-2026-10-01","at":"2026-10-02T09:00:00Z","title":"Duplicate id","body":"Skipped."}
+]}
