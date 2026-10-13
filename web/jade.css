@@ -2382,3 +2382,14 @@ html.jade .dock .history-list>li{display:block!important;padding:0!important;bor
 html.jade .dock .history-list>li>button{width:100%!important;box-sizing:border-box}
 html.jade .dock .history-list>li>button{display:flex!important;flex-direction:column;align-items:flex-start;gap:4px;grid-template-columns:none!important;text-align:left}
 html.jade .dock .history-list>li>button>*{margin:0}
+
+/* Ask Frontier Brain, bottom area: one-line input that grows, a compact send button, and the chip and model on one aligned row. */
+html.jade .dock .dock-input{padding:10px 16px 14px!important;display:grid;gap:8px}
+html.jade .dock .chat-input{align-items:flex-end!important;gap:8px!important}
+html.jade .dock .chat-input textarea{min-height:44px!important;max-height:140px;height:44px;padding:10px 12px;line-height:1.4;resize:none;overflow-y:auto}
+html.jade .dock .chat-input button{width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;align-self:flex-end!important}
+html.jade .dock .dock-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0!important;min-height:32px}
+html.jade .dock .dock-meta .context-chip{margin:0!important;line-height:32px}
+html.jade .dock .dock-meta .model-picker{margin:0;display:flex;align-items:center}
+html.jade .dock .dock-meta .model-picker select{height:32px;margin:0}
+@media(max-width:620px){html.jade .dock-corner button.icon:not(.dock-close){display:none}}
