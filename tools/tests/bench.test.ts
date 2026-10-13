@@ -133,3 +133,16 @@ test('Bench: a backup restores the bench and the candidates it points at into an
     });
   }finally{await rm(a,{recursive:true});await rm(b,{recursive:true});}
 });
+
+test('Bench: accepting a chat promote proposal swaps the slot, and a slot changed since is a conflict',()=>{
+  const {db,team,view}=setup();const c:any=applyAction(db,{type:'bench-add',teamId:team.id,set:golisopod});const item=team.bench![0];
+  const proposed={benchId:item.id,slot:1,baseRevisionId:view().configuration.slots[1].revisionId};
+  const out=view().configuration.slots[1];
+  // the slot is retuned after the proposal: accepting with the proposal's own base revision is refused
+  const slot=view().configuration.slots[1];const set={...db.bank.find(b=>b.id===slot.bankId)!.revisions[0].set,item:'Occa Berry'};
+  applyAction(db,{type:'team-replace-sets',teamId:team.id,versionId:view().version.id,sets:[{slot:1,set,baseRevisionId:slot.revisionId}]});
+  assert.throws(()=>applyAction(db,{type:'bench-promote',teamId:team.id,...proposed}),Conflict);
+  // the dock accepts against the slot as it is now when the same Pokémon is still there
+  const r:any=applyAction(db,{type:'bench-promote',teamId:team.id,benchId:item.id,slot:1,baseRevisionId:view().configuration.slots[1].revisionId});
+  assert.equal(r.promoted,'Golisopod');assert.equal(view().sets[1].species,'Golisopod');assert.equal(team.bench![0].replaces,'Golisopod');assert.notEqual(team.bench![0].revisionId,out.revisionId,'the retuned Farigiraf is the one on the bench');void c;
+});
