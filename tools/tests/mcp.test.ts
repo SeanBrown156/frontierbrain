@@ -24,7 +24,7 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
   const client=new Client({name:'test',version:'1'});
   try{
     await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/api/mcp`)));
-    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','save_benchmark','list_benchmarks','delete_benchmark','rename_team','set_team_format','duplicate_team','export_team','replace_pokemon','star_set','update_todos','delete_team'])assert.ok(names.includes(n),n);
+    const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','update_strategy','save_benchmark','list_benchmarks','delete_benchmark','rename_team','set_team_format','duplicate_team','export_team','replace_pokemon','star_set','update_todos','delete_team'])assert.ok(names.includes(n),n);
     const text=async(name:string,args:any)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
     const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;
     const made=await text('import_team',{name:'From Claude',paste,brief:{goal:'Rain that beats Trick Room',core:['Pelipper','Archaludon'],gamePlan:'Rain mode with Tailwind backup',ruledOut:'Kingdra: too frail'}});assert.ok(made.created);
@@ -50,15 +50,20 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const paste2=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[1]?.paste;
     const before=store.db.teams.find((x:any)=>x.id===made.created)!.versions[0].configurations.length;
     const gt=await text('get_team',{teamId:made.created});const s0=(gt.sets??gt.team)[0];const reordered=[...s0.moves].reverse();
-    const up=await text('update_set',{teamId:made.created,pokemon:a,changes:{moves:reordered},summary:'Test move reorder'});assert.deepEqual(up.updated.moves,reordered);
+    // by default a change is a suggestion the player accepts in the app, with the before → after
+    const sug=await text('update_set',{teamId:made.created,pokemon:a,changes:{moves:reordered},summary:'Test move reorder'});assert.equal(sug.proposed,true);assert.match(sug.message,/Suggested change to/);
+    assert.equal(store.db.pending?.length,1);assert.equal(store.db.pending![0].proposal.kind,'set');assert.equal(store.db.teams.find((x:any)=>x.id===made.created)!.versions[0].configurations.length,before,'nothing is applied yet');
+    // apply:true saves it now, as a new step in History
+    const up=await text('update_set',{teamId:made.created,pokemon:a,changes:{moves:reordered},summary:'Test move reorder',apply:true});assert.deepEqual(up.updated.moves,reordered);
     assert.equal(store.db.teams.find((x:any)=>x.id===made.created)!.versions[0].configurations.length,before+1,'the change is a new step in History');
+    const sg=await text('update_strategy',{teamId:made.created,text:'## Game plan\nRain first.'});assert.equal(sg.proposed,true);assert.equal(store.db.pending!.some((x:any)=>x.proposal.kind==='strategy'),true);
     const noMon:any=await client.callTool({name:'update_set',arguments:{teamId:made.created,pokemon:'Mew',changes:{item:'Leftovers'},summary:'x'}});assert.ok(noMon.isError);assert.match(noMon.content[0].text,/not on this team/);
     // benchmarks: a calc is saved on the Pokémon with one call, listed and removable
     const bm=await text('save_benchmark',{teamId:made.created,pokemon:a,kind:'damage',input:{attacker:{species:'Gholdengo',nature:'Modest',statPoints:{spa:32}},defender:{species:a,nature:'Careful',statPoints:{hp:32}},move:'Shadow Ball'},context:'Test benchmark'});assert.ok(bm.saved.id);assert.equal(bm.saved.kind,'damage');
     const lb=await text('list_benchmarks',{teamId:made.created});assert.equal(lb.length,1);assert.equal(lb[0].pokemon,a);
     const del=await text('delete_benchmark',{benchmarkId:bm.saved.id});assert.equal(del.restorable.kind,'damage');assert.equal((await text('list_benchmarks',{teamId:made.created})).length,0);
     // the six: replaced in one call, no extra gate
-    if(paste2){const upd=await text('update_team',{teamId:made.created,paste:paste2,summary:'Try another six'});assert.equal(upd.updated,true);}
+    if(paste2){const sugT=await text('update_team',{teamId:made.created,paste:paste2,summary:'Try another six'});assert.equal(sugT.proposed,true);const upd=await text('update_team',{teamId:made.created,paste:paste2,summary:'Try another six',apply:true});assert.equal(upd.updated,true);}
     // housekeeping tools
     assert.equal((await text('rename_team',{teamId:made.created,name:'Renamed'})).renamed,'Renamed');
     const exp=await text('export_team',{teamId:made.created});assert.match(exp.paste,/@/);
