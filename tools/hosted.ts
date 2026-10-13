@@ -9,6 +9,7 @@ import {gzipSync,gunzipSync} from 'node:zlib';
 import {createClient,type SupabaseClient} from '@supabase/supabase-js';
 import {CODE,fileBackend,withData,type DataBackend} from './io.ts';
 import {emptyStore,validateStoreReferences,StaleWorkspace,type StoreBackend} from './workbench-store.ts';
+import {serveBackupDownload,hostedSecret,type ExportBackend} from './backup-link.ts';
 import type {Workbench} from '../shared/workbench.ts';
 
 export interface HostedConfig {url:string;publishableKey:string;secretKey?:string}
@@ -31,6 +32,11 @@ export function userFiles(client:SupabaseClient,userId:string):DataBackend{
     async modified(path){const row:any=check(await client.from('user_files').select('updated_at').eq('user_id',userId).eq('path',path).maybeSingle());return row?Date.parse(row.updated_at):null;},
     async remove(path){check(await client.from('user_files').delete().eq('user_id',userId).eq('path',path));},
   };
+}
+// The one user's rows read with the server's secret key (no session, RLS bypassed), always filtered by user_id. Only
+// the backup download link uses it, after its signature is verified. take() deletes and returns in one statement.
+export function userFilesAsServer(writer:SupabaseClient,userId:string):ExportBackend{
+  return {...userFiles(writer,userId),async take(path){const rows:any=check(await writer.from('user_files').delete().eq('user_id',userId).eq('path',path).select('body,encoding'));return rows?.length?asBuffer(rows[0]):null;}};
 }
 // Shared rows first, then files shipped with the code (knowledge/mechanics, regulations, sources). Reads are
 // cached briefly per server instance; the pool file is large and read on most pages.
@@ -77,6 +83,8 @@ export function hostedHandler(config:HostedConfig,inner:(req:IncomingMessage,res
     const origin=`${req.headers['x-forwarded-proto']??(/^(127\.0\.0\.1|localhost)/.test(req.headers.host??'')?'http':'https')}://${req.headers['x-forwarded-host']??req.headers.host}`;
     if(path.startsWith('/.well-known/oauth-protected-resource')){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'public, max-age=3600','Access-Control-Allow-Origin':'*'});res.end(JSON.stringify({resource:`${origin}/api/mcp`,authorization_servers:[`${config.url}/auth/v1`],bearer_methods_supported:['header'],resource_name:'Frontier Brain'}));return;}
     if(LOCAL_ONLY.has(path)&&!(path==='/api/jobs'&&req.method==='GET'))return deny(res,404,'Not available on the hosted site');
+    // A plain link opened in a new tab has no Authorization header: the signed token in the URL is the credential.
+    if(path==='/api/backup-download'){if(!writer)return deny(res,503,'Backup links are not available on this site.');return serveBackupDownload(req,res,{hostedMode:true,secret:()=>hostedSecret(),backendFor:u=>userFilesAsServer(writer,u)});}
     const token=/^Bearer (.+)$/.exec(req.headers.authorization??'')?.[1];
     if(!token&&path==='/api/mcp'){res.writeHead(401,{'Content-Type':'application/json','WWW-Authenticate':`Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource"`});res.end(JSON.stringify({error:'Connect your Frontier Brain account to use this connector.'}));return;}
     if(!token){if(!PUBLIC.has(path))return deny(res,401,'Sign in or continue as a guest');return withData({user:nobody,shared,hosted:true},()=>inner(req,res));}
