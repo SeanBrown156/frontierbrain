@@ -24,6 +24,10 @@ npm run check
 
 `speed` accepts two set objects with optional `stage`, `tailwind`, `paralyzed`, `multiplier`, `priority`, plus `trickRoom`. This tool computes the explicitly supplied modifiers; priority-changing abilities and fractional item/ability combinations need Showdown verification.
 
+`calc` doubles handling: spread moves (target `allAdjacent`/`allAdjacentFoes`) take the 0.75x reduction when they hit both targets; `moveOptions.spread:false` means the move hits one target (no reduction), and `true` is the default. `secondDefender` (with optional `secondDefenderSide`; side-wide screens carry over, per-Pokémon flags such as Friend Guard do not) returns the same move on the other opposing Pokémon as `secondTarget`. `secondMove`/`secondAttacker` (with optional `secondAttackerSide` for that attack's Helping Hand/Battery/Power Spot) is two attackers into one target with an exact combined KO chance; held berries, Focus Sash, Weakness Policy, Air Balloon, Multiscale and similar between-the-hits triggers are rejected as unsupported rather than approximated.
+
+`speed-order` takes `{pokemon:[2–4 sets with side, move, stage, tailwind, paralyzed, multiplier, quickClaw], trickRoom?, tailwind?:{mine,foe}, field?}` and returns the turn order (priority bracket, then Quick Claw/Lagging Tail, then Speed; Trick Room reversed) with ties shown as ties and mid-turn changes (Tailwind/Trick Room/Quash/After You/Mega) flagged in `watch`, not simulated. Also `calc_speed_order` in the assistants.
+
 `spread-search` accepts a set, optional nature list, minimum final stat constraints, a total-point limit, and damage benchmarks. Damage benchmark: `{direction:"outgoing"|"incoming",other,move,minimumDamage?,maximumDamage?,field?}`. It returns a minimum-point solution for each nature, applying offensive requirements to minimum rolls and defensive caps to maximum rolls. Searching too many free dimensions is rejected; lock role-irrelevant stats with `fixedPoints` or use `minStats` for simple speed/offense requirements. It optimizes specified benchmarks, not team quality.
 
 `team-import` accepts Showdown text with Champions SP values on its `EVs:` line (0–32 each, <=66 total), no editable IVs, and six legal Pokémon. It saves immutable `teams/<version>/` JSON, text export and final stats; metadata/rationale belongs in that folder. `team-attach` accepts replay IDs only when roster species match; explicit attachment acknowledges that you have checked the exact sets used. Roster groups alone never auto-attach versions.
@@ -35,7 +39,7 @@ npm run check
 `npm run daily` / `npm run weekly` refresh data and write local reports; no AI runs in them. Reports stay in the data directory.
 # Frontier Brain interfaces
 
-The local UI exposes the same pinned Champions engine via `POST /api/calculate` (`stats`, `damage`, `speed`, `spread`). It never substitutes another game's mechanics. `benchmark-save` through `/api/action` recomputes results on the server and stores inputs, assumptions, sources and versions against a Pokémon revision.
+The local UI exposes the same pinned Champions engine via `POST /api/calculate` (`stats`, `damage`, `speed`, `speed-order`, `spread`). It never substitutes another game's mechanics. `benchmark-save` through `/api/action` recomputes results on the server and stores inputs, assumptions, sources and versions against a Pokémon revision.
 
 `POST /api/jobs` with `kind: review` and `scope: {teamId?, versionId?, configurationId?, replayIds: string[]}` freezes a contextual review request. Configuration scopes require exactly associated games; a team-only scope permits a building review without claiming replay evidence. Saved structured findings live in `reports/coaching/`. Other job kinds and daily/weekly scheduling remain available. HTML upload accepts optional confirmed exact association context and a workspace revision; absent context means the inbox.
 

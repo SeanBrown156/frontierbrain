@@ -82,7 +82,7 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const noMon:any=await client.callTool({name:'update_set',arguments:{teamId:made.created,pokemon:'Mew',changes:{item:'Leftovers'},summary:'x'}});assert.ok(noMon.isError);assert.match(noMon.content[0].text,/not on this team/);
     // benchmarks: a calc is saved on the Pokémon with one call, listed and removable
     const bm=await text('save_benchmark',{teamId:made.created,pokemon:a,kind:'damage',input:{attacker:{species:'Gholdengo',nature:'Modest',statPoints:{spa:32}},defender:{species:a,nature:'Careful',statPoints:{hp:32}},move:'Shadow Ball'},context:'Test benchmark'});assert.ok(bm.saved.id);assert.equal(bm.saved.kind,'damage');
-    const lb=await text('list_benchmarks',{teamId:made.created});assert.equal(lb.length,1);assert.equal(lb[0].pokemon,a);
+    const lb=await text('list_benchmarks',{teamId:made.created});assert.equal(lb.length,1);assert.equal(lb[0].pokemon,a);assert.equal(lb[0].role,'Damage from');assert.equal(lb[0].opponent,'Gholdengo');assert.equal(lb[0].detail[0],'Shadow Ball');assert.equal(lb[0].title,undefined);assert.equal(bm.saved.title,undefined);assert.equal(bm.saved.role,'Damage from');
     const del=await text('delete_benchmark',{benchmarkId:bm.saved.id});assert.equal(del.restorable.kind,'damage');assert.equal((await text('list_benchmarks',{teamId:made.created})).length,0);
     // the six: replaced in one call, no extra gate
     if(paste2){const sugT=await text('update_team',{teamId:made.created,paste:paste2,summary:'Try another six'});assert.equal(sugT.proposed,true);const upd=await text('update_team',{teamId:made.created,paste:paste2,summary:'Try another six',apply:true});assert.equal(upd.updated,true);}

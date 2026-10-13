@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {json,save,optionalJSON,config as profile} from './io.ts';
-import {finalStats,damage,speed,spreadSearch,species,VERSIONS} from './mechanics.ts';
+import {finalStats,damage,speed,speedOrder,spreadSearch,species,VERSIONS} from './mechanics.ts';
 import {replayReports,migrateReplays,markReviewed} from './replays.ts';
 import {refreshResearch,weeklyReport,sourceIndex,setDistribution,type Source} from './research.ts';
 import {teamImport,attachTeam} from './teams.ts';
@@ -16,6 +16,7 @@ const help=`VGC workspace commands:
   stats <json>                   Exact Champions final stats
   calc <json>                    Damage rolls, ranges, conditional KO probability
   speed <json>                   Explicit speed/priority comparison
+  speed-order <json>             Four-way turn order (your two leads vs theirs)
   spread-search <json>           Minimum-SP benchmark search
   team-import <text> <version> [format]  Validate and save immutable candidate
   team-attach <version> <replay>  Explicitly bind known exact team to game
@@ -38,6 +39,7 @@ try{
     case 'stats':{const set=await input();result={set,stats:finalStats(set),versions:VERSIONS};break;}
     case 'calc':result=damage(await input());break;
     case 'speed':result=speed(await input());break;
+    case 'speed-order':result=speedOrder(await input());break;
     case 'spread-search':result=spreadSearch(await input());break;
     case 'team-import':result=await teamImport(args[0],args[1],args[2]);break;
     case 'team-attach':result=await workflowLock(()=>attachTeam(args[0],args[1]));break;

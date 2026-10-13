@@ -2,6 +2,7 @@ import calc from '@smogon/calc';
 import {getFinalSpeed} from '@smogon/calc/dist/mechanics/util.js';
 import ps from 'pokemon-showdown';
 import {id} from './io.ts';
+import {PER_POKEMON_SIDE} from '../shared/benchmarks.ts';
 
 export const STATS = ['hp','atk','def','spa','spd','spe'] as const;
 export type Stat = typeof STATS[number];
@@ -55,7 +56,11 @@ export function pokemon(set: SetInput) {
   return exact(result);
 }
 
-export interface CalcInput {attacker:SetInput;defender:SetInput;move:string;field?:Record<string,any>;moveOptions?:Record<string,any>;secondMove?:string;secondAttacker?:SetInput;secondMoveOptions?:Record<string,any>;}
+export interface CalcInput {attacker:SetInput;defender:SetInput;move:string;field?:Record<string,any>;moveOptions?:Record<string,any>;secondMove?:string;secondAttacker?:SetInput;secondMoveOptions?:Record<string,any>;secondAttackerSide?:Record<string,boolean>;secondDefender?:SetInput;secondDefenderSide?:Record<string,boolean>;}
+const SPREAD_TARGETS=['allAdjacent','allAdjacentFoes'];
+// Held items that act between two hits in a turn (berries, Focus Sash, Weakness Policy, Air Balloon, Red Card…): a combined
+// two-attack calc would need battle sequencing, so those are reported as unsupported instead of approximated.
+const midTurnItem=(name?:string)=>{if(!name)return false;const i:any=dex.items.get(name);return !!i.exists&&(i.isBerry||['onDamage','onDamagingHit','onUpdate','onAfterMoveSecondary','onAfterSubDamage'].some(k=>k in i));};
 function rollList(damage: number | number[] | number[][]):number[] {
   if(typeof damage==='number')return [damage];
   return damage.some(Array.isArray)?(damage as number[][]).flat():damage as number[];
@@ -89,13 +94,20 @@ export function damage(input: CalcInput) {
   if(input.field?.terrain&&!['Electric','Grassy','Psychic','Misty'].includes(input.field.terrain))throw new Error('Unknown calculator terrain');
   const sideKeys=['spikes','steelsurge','vinelash','wildfire','cannonade','volcalith','isSR','isReflect','isLightScreen','isProtected','isSeeded','isNightmared','isSaltCured','isForesight','isCharge','isTailwind','isHelpingHand','isFlowerGift','isPowerTrick','isFriendGuard','isAuroraVeil','isBattery','isPowerSpot','isSteelySpirit','isSwitching'];
   for(const side of [input.field?.attackerSide,input.field?.defenderSide])if(side&&Object.keys(side).some(k=>!sideKeys.includes(k)))throw new Error('Unknown side option; e.g. screens use isReflect/isLightScreen');
-  if(input.moveOptions&&Object.keys(input.moveOptions).some(k=>!['basePower','isCrit','timesUsed','timesUsedWithMetronome','hits','context'].includes(k)))throw new Error('Unsupported move option; Champions excludes Z/Max moves and arbitrary data overrides');
+  if(input.moveOptions&&Object.keys(input.moveOptions).some(k=>!['basePower','isCrit','timesUsed','timesUsedWithMetronome','hits','context','spread'].includes(k)))throw new Error('Unsupported move option; Champions excludes Z/Max moves and arbitrary data overrides');
   for(const set of [input.attacker,input.defender]) {
     const p=species(set.species); const a=set.ability??p.abilities[0];
     if(a==='Supreme Overlord'&&set.alliesFainted===undefined)throw new Error('Supreme Overlord requires alliesFainted');
   }
   const attacker=pokemon(input.attacker), defender=pokemon(input.defender);
-  const {basePower:explicitPower,context,hits,...options}=input.moveOptions??{};const notes:string[]=[];
+  const {basePower:explicitPower,context,hits,spread,...options}=input.moveOptions??{};const notes:string[]=[];
+  // Spread moves: Doubles reduces damage to 0.75x when the move has more than one target. `spread:false` is the move hitting
+  // one target (the partner is Protected, fainted or untargetable), so there is no reduction; absent means both targets.
+  const spreadMove=SPREAD_TARGETS.includes(m.target);const doubles=(input.field?.gameType??'Doubles')==='Doubles';
+  if(spread!==undefined){if(typeof spread!=='boolean')throw new Error('spread must be true (hits both targets) or false (hits one)');
+    if(!spreadMove)throw new Error(`${m.name} hits one target; the spread option applies only to moves that can hit both opposing Pokémon`);}
+  const reduced=spreadMove&&doubles&&spread!==false;
+  if(spreadMove)notes.push(!doubles?`${m.name}: Singles has one target, so no spread reduction.`:spread===false?`${m.name}: hits one target (partner Protected, fainted or untargetable), so no 0.75x spread reduction.`:`${m.name}: spread move hitting both targets in Doubles, 0.75x${m.target==='allAdjacent'?'; it also hits the user\'s ally, which is not calculated unless supplied as the second target':''}. Set “hits one target” if the other target is out.`);
   if(explicitPower!==undefined&&!conditional.includes(m.name))throw new Error('Base-power override only allowed for untracked contextual moves; native dynamic moves calculate power from their supplied state');
   if(explicitPower!==undefined&&(!Number.isInteger(explicitPower)||explicitPower<1))throw new Error('Explicit basePower must be a positive integer');
   let basePower=explicitPower;const ctx=contextMoves[m.name];
@@ -103,7 +115,7 @@ export function damage(input: CalcInput) {
   // Multi-hit: the hit count is explicit when it varies (default as Showdown: 3 for 2–5 moves, more with Skill Link/Loaded Dice).
   const range=Array.isArray(m.multihit)?m.multihit:m.multihit?[m.multihit,m.multihit]:null;
   if(hits!==undefined){if(!range)throw new Error(`${m.name} is not a multi-hit move`);if(!Number.isInteger(hits)||hits<1||hits>range[1])throw new Error(`${m.name} hits 1–${range[1]} times`);}
-  const make=(h?:number)=>new calc.Move(generation,m.name,{...options,...(h!==undefined?{hits:h}:{}),overrides:basePower===undefined?options.overrides:{...options.overrides,basePower}} as any);
+  const make=(h?:number)=>new calc.Move(generation,m.name,{...options,...(h!==undefined?{hits:h}:{}),overrides:basePower===undefined&&spread!==false?options.overrides:{...options.overrides,...basePower!==undefined?{basePower}:{},...spread===false?{target:'normal'}:{}}} as any);
   const field=new calc.Field({gameType:'Doubles',...input.field} as any);
   let move=make(hits);let result:any;
   try{result=calc.calculate(generation,attacker,defender,move,field);}
@@ -116,13 +128,28 @@ export function damage(input: CalcInput) {
   // For a single hit these are the 16 rolls; for several hits, the total when every hit takes the same roll (as Showdown shows).
   const rolls=perHit[0].map((_,i)=>perHit.reduce((n,h)=>n+h[i],0));
   if(perHit.length>1){notes.push(`${m.name}: ${perHit.length} hits${range&&range[0]!==range[1]&&hits===undefined?` (calculator default; ${range[0]}–${range[1]} possible)`:''}, each rolling independently; KO chance is exact over all roll combinations and assumes every hit connects.`);}
-  const out:any={versions:VERSIONS,input,attackerStats:finalStats(input.attacker),defenderStats:finalStats(input.defender),rolls,range:[Math.min(...rolls),Math.max(...rolls)],percentOfMaxHP:[Math.min(...rolls)/defender.maxHP()*100,Math.max(...rolls)/defender.maxHP()*100],koChanceOnHit:chanceAtLeast(total,hp),hits:perHit.length,perHit:perHit.length>1?perHit:undefined,description:Math.max(...rolls)===0?`${input.attacker.species} using ${m.name} deals 0 damage to ${input.defender.species} under the supplied conditions.`:result.desc(),defaults:{weather:input.field?.weather??null,terrain:input.field?.terrain??null,attackerHP:attacker.curHP(),defenderHP:defender.curHP(),attackerStatus:input.attacker.status??'',defenderStatus:input.defender.status??''},assumptions:[...notes,'Damage/KO probability is conditional on the attack connecting. Exact opponent set and all field conditions are supplied assumptions. Missing HP means full, missing status means healthy, missing weather/terrain means absent. Default Intimidate/seed/charge-move activation follows the calculator; record an already-applied boost explicitly and check against Showdown for repeated entry effects.']};
+  const out:any={versions:VERSIONS,input,attackerStats:finalStats(input.attacker),defenderStats:finalStats(input.defender),rolls,range:[Math.min(...rolls),Math.max(...rolls)],percentOfMaxHP:[Math.min(...rolls)/defender.maxHP()*100,Math.max(...rolls)/defender.maxHP()*100],koChanceOnHit:chanceAtLeast(total,hp),hits:perHit.length,perHit:perHit.length>1?perHit:undefined,spread:{spreadMove,hitsBothTargets:reduced,reduction:reduced?0.75:null},description:Math.max(...rolls)===0?`${input.attacker.species} using ${m.name} deals 0 damage to ${input.defender.species} under the supplied conditions.`:result.desc(),defaults:{weather:input.field?.weather??null,terrain:input.field?.terrain??null,attackerHP:attacker.curHP(),defenderHP:defender.curHP(),attackerStatus:input.attacker.status??'',defenderStatus:input.defender.status??''},assumptions:[...notes,'Damage/KO probability is conditional on the attack connecting. Exact opponent set and all field conditions are supplied assumptions. Missing HP means full, missing status means healthy, missing weather/terrain means absent. Default Intimidate/seed/charge-move activation follows the calculator; record an already-applied boost explicitly and check against Showdown for repeated entry effects.']};
+  const slim=(r:any)=>({defender:r.input.defender,defenderStats:r.defenderStats,rolls:r.rolls,range:r.range,percentOfMaxHP:r.percentOfMaxHP,koChanceOnHit:r.koChanceOnHit,hits:r.hits,perHit:r.perHit,description:r.description,defaults:r.defaults,assumptions:r.assumptions});
+  if(input.secondDefender){
+    // Second target: the same spread move on the other opposing Pokémon, each target rolling independently.
+    if(input.secondMove)throw new Error('Unsupported: a second target and a second attacker in one calc. Run the second attack as its own calc.');
+    if(!spreadMove)throw new Error(`${m.name} hits one target; a second target only applies to spread moves`);
+    if(!doubles)throw new Error('A second target needs Doubles');
+    if(spread===false)throw new Error('“Hits one target” and a second target contradict each other');
+    const f:any={...input.field},side=input.field?.defenderSide??{};
+    f.defenderSide=input.secondDefenderSide??Object.fromEntries(Object.entries(side).filter(([k])=>!PER_POKEMON_SIDE.includes(k)));
+    const second=damage({...input,defender:input.secondDefender,field:f,secondDefender:undefined,secondDefenderSide:undefined});
+    out.secondTarget=slim(second);
+    out.secondTarget.assumptions=[input.secondDefenderSide?'Second target uses the supplied secondDefenderSide.':`Second target uses the same side-wide conditions (screens, Tailwind); per-Pokémon ones (${PER_POKEMON_SIDE.join(', ')}) are not carried over unless given in secondDefenderSide.`,...second.assumptions.slice(0,-1)];
+  }
   if(input.secondMove){
     const defensiveAbility=input.defender.ability??species(input.defender.species).abilities[0];
-    if(input.defender.item||['Stamina','Weak Armor','Multiscale','Shadow Shield','Disguise','Ice Face','Color Change','Anger Shell','Berserk','Emergency Exit','Wimp Out','Sand Spit','Seed Sower'].includes(defensiveAbility))throw new Error('Combined attacks with item/HP/stage/field triggers require battle sequencing, unsupported');
-    const second=damage({...input,attacker:input.secondAttacker??input.attacker,move:input.secondMove,moveOptions:input.secondMoveOptions,secondMove:undefined});
+    if(midTurnItem(input.defender.item))throw new Error(`Unsupported: ${input.defender.item} can activate between the two attacks, which needs battle sequencing. Calculate each attack separately, or use the item-used state if it is already gone.`);
+    if(['Stamina','Weak Armor','Water Compaction','Tera Shell','Multiscale','Shadow Shield','Disguise','Ice Face','Color Change','Anger Shell','Berserk','Emergency Exit','Wimp Out','Sand Spit','Seed Sower'].includes(defensiveAbility))throw new Error(`Unsupported: ${defensiveAbility} can change between the two attacks, which needs battle sequencing`);
+    const second=damage({...input,attacker:input.secondAttacker??input.attacker,move:input.secondMove,moveOptions:input.secondMoveOptions,field:{...input.field,...input.secondAttackerSide?{attackerSide:input.secondAttackerSide}:{}},secondMove:undefined,secondAttacker:undefined,secondAttackerSide:undefined,secondMoveOptions:undefined});
     const both=convolve(total,second.distribution as Dist);const values=[...both.keys()];
-    out.combined={range:[Math.min(...values),Math.max(...values)],koChanceOnBothHits:chanceAtLeast(both,hp),assumptions:'Independent rolls, both attacks connect; no intervening state changes or triggers. Not a sequencing or win probability.'};
+    out.second=slim(second);
+    out.combined={range:[Math.min(...values),Math.max(...values)],percentOfMaxHP:[Math.min(...values)/defender.maxHP()*100,Math.max(...values)/defender.maxHP()*100],koChanceOnBothHits:chanceAtLeast(both,hp),assumptions:`Independent rolls, both attacks connect${input.secondAttackerSide?'; the second attack uses its own attacker-side conditions (Helping Hand, Battery, Power Spot…)':'; the second attack shares the first attack\'s attacker-side conditions'}; no intervening state changes or triggers. Not a sequencing or win probability.`};
   }
   Object.defineProperty(out,'distribution',{value:total,enumerable:false});
   return out;
@@ -166,6 +193,42 @@ export function speed(input:SpeedInput) {
 // legal (a regulation ended, a rule changed) must still be exportable and duplicable so the player can revise it.
 export function teamSets(sets:SetInput[]) {
   return sets.map(s=>({name:s.nickname??s.species,species:species(s.species).name,item:s.item??'',ability:s.ability??species(s.species).abilities[0],moves:s.moves??[],nature:s.nature??'Serious',evs:points(s.statPoints),level:50,gender:s.gender??'',ivs:{hp:31,atk:31,def:31,spa:31,spd:31,spe:31}}));
+}
+
+// Four-way order: your two leads and their two, each with its chosen move. Same per-Pokémon pieces as speed() (effective
+// Speed, move priority, the Quick Claw / Lagging Tail bracket), sorted: priority, then bracket, then Speed (Trick Room
+// reversed). Pokémon with identical keys are tied and shown as one rank. Mid-turn changes are flagged, never simulated.
+export type SpeedOrderMon=SpeedInput['a']&{side?:'mine'|'foe';label?:string};
+export interface SpeedOrderInput {pokemon:SpeedOrderMon[];trickRoom?:boolean;field?:SpeedInput['field'];tailwind?:{mine?:boolean;foe?:boolean};}
+export function speedOrder(input:SpeedOrderInput) {
+  const list=input?.pokemon;if(!Array.isArray(list)||list.length<2||list.length>4)throw new Error('Speed order takes 2–4 Pokémon (your two leads and their two)');
+  const rows=list.map((m,index)=>{
+    const tw=m.side?input.tailwind?.[m.side]:undefined;const set={...m,tailwind:m.tailwind||!!tw};
+    const speed=effectiveSpeed(set,input.field),priority=movePriority(set),br=bracket(set);
+    if(!Number.isInteger(priority)||priority< -7||priority>7)throw new Error('Move priority must be an integer -7..7');
+    return {index,side:m.side??null,label:m.label??m.nickname??m.species,species:m.species,move:m.move??null,speed,priority,bracket:br,tailwind:set.tailwind,paralyzed:!!m.paralyzed,stage:m.stage??0,set};
+  });
+  const cmp=(x:typeof rows[0],y:typeof rows[0])=>y.priority-x.priority||y.bracket-x.bracket||(input.trickRoom?x.speed-y.speed:y.speed-x.speed);
+  const sorted=[...rows].sort((x,y)=>cmp(x,y)||x.index-y.index);
+  const order:any[]=[];let rank=0;
+  for(const [i,r] of sorted.entries()){
+    const prev=sorted[i-1];if(prev&&cmp(prev,r)!==0)rank++;
+    const tiedWith=sorted.filter(o=>o!==r&&cmp(o,r)===0).map(o=>o.index);
+    const decidedBy=!prev?'first':cmp(prev,r)===0?'tie':prev.priority!==r.priority?'priority':prev.bracket!==r.bracket?'item or ability order':'speed';
+    order.push({position:i+1,rank:rank+1,index:r.index,side:r.side,label:r.label,species:r.species,move:r.move,speed:r.speed,priority:r.priority,bracket:r.bracket===1?'first in bracket (Quick Claw / Custap)':r.bracket===-1?'last in bracket (Lagging Tail / Full Incense / Stall)':'normal',tied:tiedWith.length>0,tiedWith,decidedBy,tailwind:r.tailwind,paralyzed:r.paralyzed,stage:r.stage});
+  }
+  const watch:string[]=[];
+  const named=(m:string)=>rows.filter(r=>r.move&&id(r.move)===id(m));
+  for(const r of named('Tailwind'))watch.push(`${r.label} uses Tailwind this turn: Speed doubles for its side only after it resolves, so slower moves that come after it act at the new Speed. The order above is the state at the start of the turn.`);
+  for(const r of named('Trick Room'))watch.push(`${r.label} uses Trick Room this turn (priority -7, so it resolves last): ${input.trickRoom?'Trick Room is already up, so this ends it.':'it reverses the order from the next turn.'} The order above is the state at the start of the turn.`);
+  for(const r of named('Quash'))watch.push(`${r.label} uses Quash: its target moves last among the remaining Pokémon this turn, ignoring the order above.`);
+  for(const r of named('After You'))watch.push(`${r.label} uses After You: its target moves immediately after it, ignoring the order above.`);
+  for(const r of rows){const stone=r.set.item?dex.items.get(r.set.item):null;const megaForm=(stone as any)?.megaStone as Record<string,string>|string|undefined;
+    const formName=typeof megaForm==='string'?megaForm:megaForm?.[dex.species.get(r.species).name];
+    if(formName){const f=dex.species.get(formName);if(f.exists&&f.name!==dex.species.get(r.species).name){let ifMega:number|undefined;try{ifMega=effectiveSpeed({...r.set,species:f.name,ability:f.abilities[0],priority:undefined,move:r.move??undefined},input.field);}catch{}
+      watch.push(`${r.label} holds its Mega Stone: the order above uses ${r.species}; as ${f.name} its Speed is ${ifMega??'not calculable'}, and the order follows the Mega form once it evolves.`);}}}
+  const ties=order.filter((o,i)=>o.tied&&order.findIndex(p=>p.rank===o.rank)===i).map(o=>order.filter(p=>p.rank===o.rank).map(p=>p.label));
+  return {order,ties,trickRoom:!!input.trickRoom,watch,versions:VERSIONS,assumptions:`Order by priority bracket, then Quick Claw/Custap and Lagging Tail/Full Incense/Stall, then effective Speed (reversed under Trick Room). Speed from the calculator's rules: stages, Tailwind, paralysis, Choice Scarf, Iron Ball, Unburden and weather/terrain abilities${input.field?.weather?` (${input.field.weather})`:''}. Ties are shown as ties (the game flips a coin). State is the start of the turn: Tailwind or Trick Room set, Quash, After You and Mega Evolution this turn are flagged, not simulated.`};
 }
 
 export function validateTeam(sets:SetInput[], format=FORMAT) {
