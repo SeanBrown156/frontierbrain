@@ -137,7 +137,9 @@ function AIKey(){
 
 function Backup({reload,notify}:{reload:()=>Promise<void>;notify:(t:string,e?:boolean)=>void}){
   const file=useRef<HTMLInputElement>(null),[busy,setBusy]=useState(false);
-  const download=async()=>{setBusy(true);try{const b=await api('/backup');const url=URL.createObjectURL(new Blob([JSON.stringify(b)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`frontierbrain-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);}catch(e){notify((e as Error).message,true);}setBusy(false);};
+  const download=async()=>{setBusy(true);try{const b=await api('/backup');const url=URL.createObjectURL(new Blob([JSON.stringify(b)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`frontierbrain-backup-${new Date().toISOString().slice(0,10)}.json`;a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();
+      // Some browsers drop the download if the link is removed or the URL revoked straight away.
+      setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},4000);notify('Backup downloaded.');}catch(e){notify((e as Error).message,true);}setBusy(false);};
   const restore=async(f:File)=>{setBusy(true);try{const r=await api('/restore',JSON.parse(await f.text()));await reload();notify(`Restored ${r.teams} team${r.teams===1?'':'s'} and ${r.games} replay${r.games===1?'':'s'}. Anything already here was kept.`);}catch(e){notify(e instanceof SyntaxError?'That file is not a Frontier Brain backup.':(e as Error).message,true);}setBusy(false);if(file.current)file.current.value='';};
   return <Panel title="Backup"><p className="muted">One file with your teams, sets, strategy, replays and summaries. Restoring adds what's missing and never overwrites anything already here.</p>
     <div className="settings-actions"><button disabled={busy} onClick={()=>void download()}><Px icon={Download}/>Download backup</button><button disabled={busy} onClick={()=>file.current?.click()}><Px icon={Upload}/>Restore from a backup</button></div>
