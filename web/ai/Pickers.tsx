@@ -37,20 +37,29 @@ const typePill=(t:string)=><span className="type-badge mini" style={{'--type':TY
 const cat=(c:string)=><span className={'move-cat '+c.toLowerCase()} title={c}>{c==='Physical'?'Phys':c==='Special'?'Spec':'Status'}</span>;
 // Moves with type, category and power. Only moves the species can learn that are legal in the format are listed (a move
 // it cannot learn is never offered, and typed text that is not one of them snaps back). With no learnset to go on the
-// whole format list is used. The highlighted move shows what it does under the list; a chosen move has an info button.
+// whole format list is used. On desktop the highlighted move shows what it does under the list and the chosen move
+// has a tooltip. On touch there is no hover: tapping a chosen move first opens its details as a panel attached under
+// the field, and a second tap opens the picker.
 type MoveInfo=[string,string,number,string?,(number|boolean)?,number?];
 const moveLine=(m:MoveInfo)=>[m[1],m[2]?`${m[2]} power`:null,typeof m[4]==='number'?`${m[4]}% accuracy`:null,m[5]?`PP ${m[5]}`:null].filter(Boolean).join(' · ');
+const touchLike=()=>typeof window!=='undefined'&&(window.matchMedia('(hover:none)').matches||window.innerWidth<=620);
 export function MovePicker({value,onChange,dex,label,exclude=[]}:{value:string;onChange:(v:string)=>void;dex:any;label:string;exclude?:string[]}){
-  const info:Record<string,MoveInfo>=dex?.moveInfo??{};const learn:string[]=dex?.learnset??[];const all:string[]=dex?.moves??[];const m=info[value];const [showInfo,setShowInfo]=useState(false);
+  const info:Record<string,MoveInfo>=dex?.moveInfo??{};const learn:string[]=dex?.learnset??[];const all:string[]=dex?.moves??[];const m=info[value];
+  const [open,setOpen]=useState(false);const field=useRef<HTMLDivElement>(null);useEffect(()=>setOpen(false),[value]);
+  useEffect(()=>{if(!open)return;const away=(e:Event)=>{if(!field.current?.contains(e.target as Node))setOpen(false);};document.addEventListener('pointerdown',away);return()=>document.removeEventListener('pointerdown',away);},[open]);
   const pool=(learn.length?learn:all).filter(n=>!Object.keys(info).length||info[n]);const byLower=new Map(pool.map(n=>[n.toLowerCase(),n]));
   const text=m?`${value}: ${m[3]||'No description.'} (${moveLine(m)})`:undefined;
-  return <div className="move-field"><Combo label={label} value={value} onChange={onChange} placeholder="Search moves" className="move-picker" icon={m?typePill(m[0]):undefined} title={text}
-    resolve={t=>byLower.get(t.toLowerCase())??null}
-    rows={q=>{const match=(n:string)=>!q||n.toLowerCase().includes(q)||info[n]?.[0].toLowerCase()===q;
-      return pool.filter(match).map(n=>({value:n,label:<>{info[n]&&typePill(info[n][0])}<span>{n}</span>{info[n]?.[3]&&<em className="row-sub">{info[n][3]}</em>}</>,hint:info[n]?<>{cat(info[n][1])}{info[n][2]?<b>{info[n][2]}</b>:null}</>:undefined,off:exclude.includes(n)&&n!==value,
-        note:info[n]?.[3]?<><b>{n}</b> {info[n][3]} <small>{moveLine(info[n])}</small></>:undefined}));}}
-    after={m?<button type="button" className="icon move-info-btn" aria-label={`What ${value} does`} aria-expanded={showInfo} onClick={()=>setShowInfo(v=>!v)}>i</button>:undefined}/>
-    {m&&showInfo&&<p className="move-desc" role="note"><b>{value}</b> {m[3]||'No description.'} <small>{moveLine(m)}</small></p>}</div>;
+  // First tap on a chosen move (touch only) opens the details instead of the picker; the next tap goes through.
+  const firstTap=(e:{preventDefault:()=>void;stopPropagation:()=>void})=>{if(m&&!open&&touchLike()){e.preventDefault();e.stopPropagation();setOpen(true);}};
+  return <div className={'move-field'+(m&&open?' details':'')} ref={field} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setOpen(false);}}>
+    <div className="move-field-input" onMouseDownCapture={firstTap} onClickCapture={e=>{if(m&&!open&&touchLike())e.stopPropagation();}}>
+      <Combo label={label} value={value} onChange={onChange} placeholder="Search moves" className="move-picker" icon={m?typePill(m[0]):undefined} title={touchLike()?undefined:text}
+        resolve={t=>byLower.get(t.toLowerCase())??null}
+        rows={q=>{const match=(n:string)=>!q||n.toLowerCase().includes(q)||info[n]?.[0].toLowerCase()===q;
+          return pool.filter(match).map(n=>({value:n,label:<>{info[n]&&typePill(info[n][0])}<span>{n}</span>{info[n]?.[3]&&<em className="row-sub">{info[n][3]}</em>}</>,hint:info[n]?<>{cat(info[n][1])}{info[n][2]?<b>{info[n][2]}</b>:null}</>:undefined,off:exclude.includes(n)&&n!==value,
+            note:info[n]?.[3]?<><b>{n}</b> {info[n][3]} <small>{moveLine(info[n])}</small></>:undefined}));}}/>
+    </div>
+    {m&&open&&<div className="move-desc" role="note" onClick={()=>{setOpen(false);field.current?.querySelector('input')?.focus();}}><p>{m[3]||'No description.'}</p><small>{moveLine(m)}</small></div>}</div>;
 }
 
 // Team styles (shared/team-styles.ts), grouped; styles already chosen are shown but can't be picked again. Anything

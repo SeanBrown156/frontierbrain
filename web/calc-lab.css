@@ -38,18 +38,14 @@ html.jade .partner-art .art{width:72px!important;height:72px!important}
 .doubles .toggles{margin:0}
 .doubles .partners{grid-template-columns:minmax(0,1fr)}
 
-/* Move picker: what the highlighted move does, and the info button on a chosen move */
+/* Move picker: what the highlighted move does (desktop, under the list) and the details panel attached under a tapped move (touch) */
 .move-field{position:relative;min-width:0}
 .move-field .move-picker{position:relative}
-.move-field .move-info-btn{border:0;background:transparent;box-shadow:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;min-width:28px;min-height:28px;padding:0;border-radius:50%;font:700 13px/1 var(--fb);font-style:italic;color:var(--mu)}
-.move-picker.combo input{padding-right:40px}
-.move-desc{margin:6px 0 0;font-size:12.5px;line-height:1.5;color:var(--mu)}
-.move-desc b{color:var(--tx)}.move-desc small{display:block;margin-top:2px;color:var(--mu)}
 .combo-list li.combo-note{position:sticky;bottom:0;display:block;padding:8px 10px;margin-top:4px;font-size:12.5px;line-height:1.45;color:var(--mu);background:var(--bg);border-top:1px solid var(--ln);cursor:default}
 .combo-list li.combo-note b{color:var(--tx)}.combo-list li.combo-note small{display:block;margin-top:2px}
-html.jade .move-field .move-info-btn:not(#_){border:0!important;background:transparent!important;box-shadow:none!important;width:32px;height:32px;min-width:32px;min-height:32px;max-height:none!important;top:50%;right:4px;transform:translateY(-50%)}
-@media (max-width:620px){html.jade .move-field .move-info-btn:not(#_){width:44px;height:44px;min-width:44px;min-height:44px;right:0}}
-
+.move-desc{margin:-1px 0 0;padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--mu);background:var(--sunk);border:1px solid var(--ln-2);border-top:1px dashed var(--ln-2);border-radius:0 0 var(--rs) var(--rs);cursor:pointer}
+.move-desc p{margin:0;color:var(--tx)}.move-desc small{display:block;margin-top:4px;color:var(--mu)}
+.move-field.details .combo input{border-bottom-left-radius:0;border-bottom-right-radius:0}
 /* Touch: there is no hover, so each move in the list carries its one-line description */
 .combo-list .row-sub{display:none}
 @media (hover:none),(max-width:620px){
