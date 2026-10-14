@@ -1,6 +1,6 @@
 import {useState,useEffect,useRef} from 'react';
 import type {PokemonSet} from '../../shared/workbench.ts';
-import {api,Markdown,date} from '../ui.tsx';
+import {api,Markdown,date,Button,IconButton,LinkButton,Field,Tag} from '../ui.tsx';
 import {Px,Sparkles,Message,Trash,Close} from '../icons.tsx';
 import {Maximize2,Minimize2,History,Plus} from 'lucide-react';
 import {aiKey} from './keys.tsx';
@@ -98,25 +98,25 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
     try{localStorage.setItem(HISTORY,JSON.stringify(readHistory().filter(x=>x.id!==a.id)));}catch{}save(a.turns);setViewMode('chat');};
   useEffect(()=>{const onKey=(e:KeyboardEvent)=>{const el=e.target as HTMLElement;const typing=el.closest('input,textarea,select,[contenteditable]');
     if(e.key==='/'&&!typing&&!e.metaKey&&!e.ctrlKey){e.preventDefault();setOpen(true);}else if(e.key==='Escape'&&open&&!document.querySelector('dialog[open]'))setOpen(false);};addEventListener('keydown',onKey);return()=>removeEventListener('keydown',onKey);},[open]);
-  if(!open)return <button className={'dock-toggle'+(pending?' busy':'')} onClick={()=>setOpen(true)} title="Ask Frontier Brain (press /)"><img className="dock-mark" src="/brand/icon-64.png" alt="" width={22} height={22}/>Ask Frontier Brain{pending&&<span className="dot" aria-label="working"/>}</button>;
+  if(!open)return <Button variant="primary" className={'dock-toggle'+(pending?' busy':'')} onClick={()=>setOpen(true)} title="Ask Frontier Brain (press /)"><img className="dock-mark" src="/brand/icon-64.png" alt="" width={22} height={22}/>Ask Frontier Brain{pending&&<span className="dot" aria-label="working"/>}</Button>;
   const shown=turns;const readOnly=false;
   const dockEl=<aside className={'dock'+(expanded?' expanded':'')} aria-label="Ask Frontier Brain" {...(expanded?{role:'dialog','aria-modal':true} as any:{})}>
     <header className="dock-head"><h2><img className="dock-mark" src="/brand/icon-64.png" alt="" width={28} height={28}/>Ask Frontier Brain</h2>
-      <div className="dock-corner"><button className="icon" aria-label={expanded?'Back to the side panel':'Expand to the centre of the screen'} title={expanded?'Side panel':'Expand'} onClick={()=>setExpanded(!expanded)}><Px icon={expanded?Minimize2:Maximize2}/></button><button className="icon dock-close" aria-label="Close" title="Close (Esc)" onClick={()=>setOpen(false)}><Px icon={Close}/></button></div></header>
-    {(turns.length>0||readHistory().some(here))&&<div className="dock-bar"><button className={'dock-past'+(view_==='history'?' on':'')} aria-pressed={view_==='history'} onClick={()=>setViewMode(view_==='history'?'chat':'history')}><Px icon={History} size={15}/>Past chats</button>
-      {turns.length>0&&!pending&&<button className="dock-new" onClick={()=>newChat()}><Px icon={Plus} size={15}/>New chat</button>}</div>}
+      <div className="dock-corner"><IconButton label={expanded?'Back to the side panel':'Expand to the centre of the screen'} title={expanded?'Side panel':'Expand'} onClick={()=>setExpanded(!expanded)} icon={<Px icon={expanded?Minimize2:Maximize2}/>}/><IconButton label="Close" icon={<Px icon={Close}/>} className="dock-close" title="Close (Esc)" onClick={()=>setOpen(false)}/></div></header>
+    {(turns.length>0||readHistory().some(here))&&<div className="dock-bar"><Button className={'dock-past'+(view_==='history'?' on':'')} aria-pressed={view_==='history'} onClick={()=>setViewMode(view_==='history'?'chat':'history')}><Px icon={History} size={15}/>Past chats</Button>
+      {turns.length>0&&!pending&&<Button className="dock-new" onClick={()=>newChat()}><Px icon={Plus} size={15}/>New chat</Button>}</div>}
     {view_==='history'&&(turns.length>0||readHistory().some(here))&&<div className="dock-body"><div className="dock-log"><HistoryList current={turns} pending={!!pending} chats={readHistory().filter(here)} onCurrent={()=>setViewMode('chat')} onPick={openChat}/></div></div>}
     {(view_==='chat'||!(turns.length>0||readHistory().some(here)))&&<div className={"dock-body"+(ai?"":" locked")}><div className="dock-log" {...(ai?{}:{inert:true} as any)}>{!shown.length&&<div className="chat-empty"><p>{team?<>Ask anything about {team.name}.{' Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.'}</>:'Ask about the metagame, sets, spreads and calcs. Open a team to ask about it or change it.'}</p></div>}
       {shown.map((t,ti)=>t.jobId&&!t.proposals&&!t.failed&&!readOnly?<div key={ti} className="chat-turn assistant working"><p><Px icon={Sparkles}/>{steps.length?`${stepNames[steps.at(-1).name]??steps.at(-1).name}${steps.at(-1).input?`: ${steps.at(-1).input}`:''}`:'Starting…'} <span className="muted">· {steps.length} step{steps.length===1?'':'s'}</span></p>
-          <div className="button-row"><button className="text-button" onClick={()=>setShowSteps(!showSteps)}>{showSteps?'Hide':'Show'} steps</button><button className="text-button" onClick={()=>void cancel()}>Cancel</button></div>{showSteps&&<ol className="steps">{steps.map((s,i)=><li key={i} className={s.error?'error':''}>{stepNames[s.name]??s.name}{s.input?`: ${s.input}`:''}</li>)}</ol>}</div>
+          <div className="button-row"><Button variant="quiet" onClick={()=>setShowSteps(!showSteps)}>{showSteps?'Hide':'Show'} steps</Button><Button variant="quiet" onClick={()=>void cancel()}>Cancel</Button></div>{showSteps&&<ol className="steps">{steps.map((s,i)=><li key={i} className={s.error?'error':''}>{stepNames[s.name]??s.name}{s.input?`: ${s.input}`:''}</li>)}</ol>}</div>
         :<div key={ti} className={'chat-turn '+t.role+(t.failed?' error':'')}>{t.role==='user'&&t.page&&<span className="asked-from">{t.page}</span>}{t.role==='assistant'&&!t.failed?<Markdown text={t.content}/>:<p>{t.content}</p>}
-          {t.failed&&!readOnly&&<button onClick={()=>retry(ti)} disabled={!!pending}>Retry</button>}
+          {t.failed&&!readOnly&&<Button onClick={()=>retry(ti)} disabled={!!pending}>Retry</Button>}
           {t.proposals?.length?<div className="proposals">{t.proposals.map((p,pi)=><ProposalCard key={pi} p={live(p)} art={data.art} current={slot=>view?.sets[slot]} decide={yes=>void decide(ti,pi,yes)} readOnly={readOnly}/>)}</div>:null}
-          {!readOnly&&(t.proposals?.filter(p=>!live(p).status&&['lead','matchup'].includes(p.kind)).length??0)>1&&<button className="primary" onClick={()=>void acceptAll(ti)}>Accept all plans</button>}
+          {!readOnly&&(t.proposals?.filter(p=>!live(p).status&&['lead','matchup'].includes(p.kind)).length??0)>1&&<Button variant="primary" onClick={()=>void acceptAll(ti)}>Accept all plans</Button>}
           {t.role==='assistant'&&(t.model||t.note)&&<p className="model-line">{t.model}{t.seconds!==undefined?` · ${t.seconds} s`:''}{t.note?` · ${t.note}`:''}</p>}</div>)}<div ref={end}/></div>
-    {!readOnly&&<div className="dock-rest" {...(ai?{}:{inert:true} as any)}>{!turns.length&&<div className="chat-suggestions">{suggestionsFor(context.page,species).map(s=><button key={s} onClick={()=>void send(s)}>{s}</button>)}</div>}
+    {!readOnly&&<div className="dock-rest" {...(ai?{}:{inert:true} as any)}>{!turns.length&&<div className="chat-suggestions">{suggestionsFor(context.page,species).map(s=><Button variant="tile" key={s} onClick={()=>void send(s)}>{s}</Button>)}</div>}
     <form className="dock-input" onSubmit={e=>{e.preventDefault();void send(draft);}}><div className="dock-meta"><span className="context-chip" title="What Frontier Brain is looking at">Looking at: {pageLabel}</span>{ai&&<KeyOrModel/>}</div>
-      <div className="chat-input"><textarea ref={input} rows={1} value={draft} placeholder={context.page==='slot'?`e.g. Make ${species} survive a typical Mega Gengar Shadow Ball`:team?'Ask about this team…':'Ask about the metagame, sets or calcs…'} onChange={e=>{setDraft(e.target.value);const t=e.target;t.style.height='auto';t.style.height=Math.min(t.scrollHeight,140)+'px';}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void send(draft);}}}/><button className="primary" disabled={!!pending||!draft.trim()} aria-label="Send"><Px icon={Message}/></button></div></form></div>}{!ai&&<div className="dock-lock"><SignInForAI verb="ask questions"/></div>}</div>}
+      <div className="chat-input"><textarea ref={input} rows={1} value={draft} placeholder={context.page==='slot'?`e.g. Make ${species} survive a typical Mega Gengar Shadow Ball`:team?'Ask about this team…':'Ask about the metagame, sets or calcs…'} onChange={e=>{setDraft(e.target.value);const t=e.target;t.style.height='auto';t.style.height=Math.min(t.scrollHeight,140)+'px';}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();void send(draft);}}}/><Button variant="primary" disabled={!!pending||!draft.trim()} aria-label="Send"><Px icon={Message}/></Button></div></form></div>}{!ai&&<div className="dock-lock"><SignInForAI verb="ask questions"/></div>}</div>}
   </aside>;
   // One wrapper in both modes, so expanding and shrinking never remounts the chat (that lost the model picker and any draft).
   return <div className={expanded?'dock-scrim':'dock-wrap'} onMouseDown={e=>{if(expanded&&e.target===e.currentTarget)setExpanded(false);}}>{dockEl}</div>;
@@ -124,7 +124,7 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
 
 // Every chat for this team, the current one first. Click one to continue it.
 function HistoryList({current,pending,chats,onCurrent,onPick}:{current:Turn[];pending:boolean;chats:Archived[];onCurrent:()=>void;onPick:(a:Archived)=>void}){
-  const n=(t:Turn[])=>t.filter(x=>x.role==='user').length;const row=(title:string,sub:string,tag:string|null,go:()=>void,key:string)=><li key={key}><button onClick={go} disabled={!tag&&pending}><b>{title.slice(0,90)}</b><span className="muted">{sub}</span>{tag&&<span className="tag">{tag}</span>}</button></li>;
+  const n=(t:Turn[])=>t.filter(x=>x.role==='user').length;const row=(title:string,sub:string,tag:string|null,go:()=>void,key:string)=><li key={key}><Button variant="tile" onClick={go} disabled={!tag&&pending}><b>{title.slice(0,90)}</b><span className="muted">{sub}</span>{tag&&<Tag>{tag}</Tag>}</Button></li>;
   if(!current.length&&!chats.length)return <div className="chat-empty"><p>No chats yet.</p></div>;
   return <ul className="history-list">{current.length>0&&row(asked(current),`${n(current)} question${n(current)===1?'':'s'}`,'This session',onCurrent,'current')}
     {chats.map(a=>row(asked(a.turns),`${date(a.at)} · ${n(a.turns)} question${n(a.turns)===1?'':'s'}`,null,()=>onPick(a),a.id))}</ul>;
@@ -137,12 +137,12 @@ export async function aiReady():Promise<boolean>{const l=await (modelList??=api(
 // Before a key works there's nothing to choose between: show "Add AI key". Once the provider lists models (a key in
 // Settings, or the local .env key), show the model picker instead.
 function KeyOrModel(){const [list,setList]=useState<string[]|null>(null);useEffect(()=>{(modelList??=api('/models').catch(()=>[])).then(l=>{if(!l.length)modelList=null;setList(l);});},[]);
-  if(list===null)return null;return list.length?<ModelPicker tier="chat"/>:<a className="button compact" href="#account" title="Your AI key lives in Account">Add AI key</a>;}
+  if(list===null)return null;return list.length?<ModelPicker tier="chat"/>:<LinkButton size="compact" href="#account" title="Your AI key lives in Account">Add AI key</LinkButton>;}
 let settingsCache:any=null;
 export function ModelPicker({tier}:{tier:'chat'|'build'}){
   const [models,setModels]=useState<any>(settingsCache),[list,setList]=useState<string[]>([]);
   useEffect(()=>{api('/settings').then(r=>{settingsCache=r.models;setModels(r.models);}).catch(()=>{});(modelList??=api('/models').catch(()=>[])).then(l=>{if(!l.length)modelList=null;setList(l);});},[]);
   if(!models||!list.length)return null;const current=models[tier].model;const claude=models.provider==='anthropic';const options=[...new Set([current,...(claude?['claude-haiku-4-5','claude-sonnet-5-5','claude-opus-5-5',...list.filter(m=>m.startsWith('claude'))]:['gpt-6-luna','gpt-6-sol','gpt-6-astra',...list.filter(m=>m.startsWith('gpt-6'))])])];
   const choose=async(model:string)=>{try{const m=(await api('/settings',{models:{[tier]:{...models[tier],model}}})).models;settingsCache=m;setModels(m);}catch{}};
-  return <label className="model-picker" title="Which model answers"><span className="sr-only">Model</span><select value={current} onChange={e=>void choose(e.target.value)}>{options.map(m=><option key={m} value={m}>{m.replace('gpt-','').replace('claude-','')}</option>)}</select></label>;
+  return <Field className="model-picker" title="Which model answers" label={<span className="sr-only">Model</span>}><select value={current} onChange={e=>void choose(e.target.value)}>{options.map(m=><option key={m} value={m}>{m.replace('gpt-','').replace('claude-','')}</option>)}</select></Field>;
 }

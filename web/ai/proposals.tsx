@@ -1,5 +1,5 @@
 import type {PokemonSet} from '../../shared/workbench.ts';
-import {Art,Markdown,SetArt} from '../ui.tsx';
+import {Art,Markdown,SetArt,Button,Tag} from '../ui.tsx';
 import SetTile from './SetTile.tsx';
 import {getView} from '../team/editors.tsx';
 import {teamHref,addPlans} from '../team/Hub.tsx';
@@ -42,7 +42,7 @@ export async function saveCoaching(ps:Proposal[],env:AcceptEnv){
 }
 
 export function ProposalCard({p,art,current,decide,readOnly,rejectLabel='Reject',compact}:{p:Proposal;art:any;current:(slot:number)=>PokemonSet|undefined;decide:(accept:boolean)=>void;readOnly?:boolean;rejectLabel?:string;compact?:boolean}){
-  const actions=p.status==='accepted'?<span className="tag ok">Accepted</span>:p.status==='rejected'?<span className="tag">Dismissed</span>:p.status==='queued'?<span className="tag">In your Inbox</span>:p.status==='replaced'?<span className="tag">Replaced by a newer suggestion</span>:p.status==='handled'?<span className="tag">Handled in your Inbox</span>:readOnly?<span className="tag">No decision</span>:<><button className="primary" disabled={p.status==='saving'} onClick={()=>decide(true)}>{p.status==='saving'?'Saving…':'Accept'}</button><button disabled={p.status==='saving'} onClick={()=>decide(false)}>{rejectLabel}</button></>;
+  const actions=p.status==='accepted'?<Tag tone="ok">Accepted</Tag>:p.status==='rejected'?<Tag>Dismissed</Tag>:p.status==='queued'?<Tag>In your Inbox</Tag>:p.status==='replaced'?<Tag>Replaced by a newer suggestion</Tag>:p.status==='handled'?<Tag>Handled in your Inbox</Tag>:readOnly?<Tag>No decision</Tag>:<><Button variant="primary" disabled={p.status==='saving'} onClick={()=>decide(true)}>{p.status==='saving'?'Saving…':'Accept'}</Button><Button disabled={p.status==='saving'} onClick={()=>decide(false)}>{rejectLabel}</Button></>;
   const note=p.error&&<p className={p.status==='accepted'?'muted':'error'}>{p.error}</p>;
   const foot=<>{note}<div className="button-row">{actions}</div></>;
   if(p.kind==='set')return <SetTile set={p.set} current={current(p.slot)} art={art} note={p.why} strategy={p.strategy} strategyOpen={!compact} actions={<>{note}{actions}</>}/>;
