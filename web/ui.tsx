@@ -39,8 +39,8 @@ export function Art({name,art,small=false,kind='home',fallback}:{name:string;art
   // render on a page keeps the same 3D style.
   const alt=fallback&&fallback!==name?urls(fallback):[];
   // The sprite setting (Settings) puts Showdown's animated sprites first; HOME renders stay the fallback.
-  const sprite=useSpriteStyle();const sprites=kind==='home'&&sprite!=='home'?[...spriteUrls(name,sprite),...(fallback&&fallback!==name?spriteUrls(fallback,sprite):[])]:[];
-  const sources=[...sprites,...(kind==='home'&&alt.length?[urls(name)[0],alt[0],urls(name)[1],alt[1]]:[...urls(name),...alt])].filter(Boolean) as string[];
+  const sprite=useSpriteStyle();const illustrated=sprite==='art';const sprites=kind==='home'&&sprite!=='home'&&!illustrated?[...spriteUrls(name,sprite),...(fallback&&fallback!==name?spriteUrls(fallback,sprite):[])]:[];
+  const homeFirst=kind==='home'&&!illustrated;const sources=[...sprites,...(homeFirst&&alt.length?[urls(name)[0],alt[0],urls(name)[1],alt[1]]:illustrated&&kind==='home'?[...urls(name).slice().reverse(),...alt.slice().reverse()]:[...urls(name),...alt])].filter(Boolean) as string[];
   const [step,setStep]=useState(0);useEffect(()=>setStep(0),[name,sprite]);const src=sources[step];const isSprite=step<sprites.length;
   return <span className={'art '+(small?'small':'')+(isSprite?' sprite sprite-'+sprite:'')} title={name}>{src?<img key={src} src={src} alt={name} loading="lazy" onError={()=>setStep(step+1)}/>:<span className="art-fallback" aria-label={`${name}; artwork unavailable`}>?<small>{name}</small></span>}</span>;}
 // Species types and item sheet positions, fetched once per name and shared by every card on the page.

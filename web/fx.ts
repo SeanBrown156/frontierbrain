@@ -56,10 +56,10 @@ export function useRolling(text:string,key:string,duration=520){
   return shown;
 }
 
-// Pokémon art style: HOME renders (default) or Showdown's animated sprites, Black/White or XY. Kept per browser.
-export type SpriteStyle='home'|'gen5'|'xy';
+// Pokémon art style: HOME 3D models (default), the official illustrations, or Showdown's animated Black & White or X & Y sprites. Kept per browser.
+export type SpriteStyle='home'|'art'|'gen5'|'xy';
 const KEY='frontierbrain.sprites';const listeners=new Set<()=>void>();
-let style:SpriteStyle=(()=>{try{const v=localStorage.getItem(KEY);return v==='gen5'||v==='xy'?v:'home';}catch{return 'home';}})();
+let style:SpriteStyle=(()=>{try{const v=localStorage.getItem(KEY);return v==='gen5'||v==='xy'||v==='art'?v:'home';}catch{return 'home';}})();
 export function setSpriteStyle(next:SpriteStyle){style=next;try{localStorage.setItem(KEY,next);}catch{}listeners.forEach(f=>f());}
 export const useSpriteStyle=()=>useSyncExternalStore(f=>{listeners.add(f);return()=>{listeners.delete(f);};},()=>style);
 

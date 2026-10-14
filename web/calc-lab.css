@@ -37,3 +37,24 @@ html.jade .partner-art .art{width:72px!important;height:72px!important}
 .doubles{display:grid;gap:12px;margin-top:20px}
 .doubles .toggles{margin:0}
 .doubles .partners{grid-template-columns:minmax(0,1fr)}
+
+/* Move picker: what the highlighted move does, and the info button on a chosen move */
+.move-field{position:relative;min-width:0}
+.move-field .move-picker{position:relative}
+.move-field .move-info-btn{border:0;background:transparent;box-shadow:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;min-width:28px;min-height:28px;padding:0;border-radius:50%;font:700 13px/1 var(--fb);font-style:italic;color:var(--mu)}
+.move-picker.combo input{padding-right:40px}
+.move-desc{margin:6px 0 0;font-size:12.5px;line-height:1.5;color:var(--mu)}
+.move-desc b{color:var(--tx)}.move-desc small{display:block;margin-top:2px;color:var(--mu)}
+.combo-list li.combo-note{position:sticky;bottom:0;display:block;padding:8px 10px;margin-top:4px;font-size:12.5px;line-height:1.45;color:var(--mu);background:var(--bg);border-top:1px solid var(--ln);cursor:default}
+.combo-list li.combo-note b{color:var(--tx)}.combo-list li.combo-note small{display:block;margin-top:2px}
+html.jade .move-field .move-info-btn:not(#_){border:0!important;background:transparent!important;box-shadow:none!important;width:32px;height:32px;min-width:32px;min-height:32px;max-height:none!important;top:50%;right:4px;transform:translateY(-50%)}
+@media (max-width:620px){html.jade .move-field .move-info-btn:not(#_){width:44px;height:44px;min-width:44px;min-height:44px;right:0}}
+
+/* Touch: there is no hover, so each move in the list carries its one-line description */
+.combo-list .row-sub{display:none}
+@media (hover:none),(max-width:620px){
+  html.jade .move-picker .combo-list li:not(#_){align-items:flex-start;flex-wrap:wrap}
+  html.jade .move-picker .combo-list .row-main:not(#_){display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;white-space:normal;overflow:visible;text-overflow:clip}
+  html.jade .combo-list .row-sub:not(#_){display:block;flex-basis:100%;white-space:normal;font-style:normal;font-size:12px;line-height:1.4;color:var(--mu)}
+  html.jade .combo-list li.combo-note:not(#_){display:none!important}
+}

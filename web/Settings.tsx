@@ -150,10 +150,10 @@ function Backup({reload,notify}:{reload:()=>Promise<void>;notify:(t:string,e?:bo
 // previews Alakazam (the brain) in that style.
 function Looks(){
   const style=useSpriteStyle();
-  const options:[SpriteStyle,string,string,string][]=[['home','HOME','3D renders',`/api/home?species=Alakazam`],['gen5','Black/White','Animated pixel sprites',spriteUrls('Alakazam','gen5')[0]],['xy','XY','Animated 3D sprites',spriteUrls('Alakazam','xy')[0]]];
+  const options:[SpriteStyle,string,string,string][]=[['home','HOME','3D models',`/api/home?species=Alakazam`],['art','Official art','Illustrated by Ken Sugimori',`/api/art?id=alakazam`],['gen5','Black & White','Animated pixel sprites',spriteUrls('Alakazam','gen5')[0]],['xy','X & Y','Animated 3D models',spriteUrls('Alakazam','xy')[0]]];
   return <Panel title="Pokémon art"><div className="sprite-choice" role="radiogroup" aria-label="Pokémon art">{options.map(([k,label,note,src])=>
     <button key={k} type="button" role="radio" aria-checked={style===k} className={'sprite-option'+(style===k?' on':'')} onClick={()=>setSpriteStyle(k)}>
-      <span className={'sprite-preview sprite-'+k}><img src={src} alt="" loading="lazy"/></span><b>{label}</b><small>{note}</small></button>)}</div></Panel>;
+      <span className={'sprite-preview sprite-'+k}><img src={src} alt="" loading="lazy" onError={e=>{const i=e.currentTarget;if(!i.dataset.fell){i.dataset.fell='1';i.src=`/api/home?species=Alakazam`;}}}/></span><b>{label}</b><small>{note}</small></button>)}</div></Panel>;
 }
 
 // Deleting the account removes it and everything stored under it on the hosted site; afterwards a fresh guest session starts.
