@@ -24,7 +24,7 @@ export default function PartnerCard({side,set,setSet,saved,art,mega,megaOn,setMe
     <div className="partner-art">{set?<Art name={shown} fallback={set.species} art={art}/>:<span className="partner-empty" aria-hidden="true">+</span>}</div>
     <div className="partner-main"><span className="eyebrow">{label}</span>
       <div className="name-row"><SpeciesPicker label={`${label} species`} placeholder="Choose a Pokémon" value={set?.species??''} saved={saved} onPick={sp=>void load(sp)} onPickSaved={pickSaved}/>
-        {mega&&set&&<Button type="button" className={'mega-switch mega-badge mega-toggle'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}`:`Switch on to battle as ${formName(mega.name)}`}><MegaOrb size={14}/>Mega</Button>}</div>
+        {mega&&set&&<Toggle variant="mega" on={megaOn} onChange={setMega} title={megaOn?`Battling as ${formName(mega.name)}`:`Switch on to battle as ${formName(mega.name)}`}><MegaOrb size={14}/>Mega</Toggle>}</div>
       {set&&<TypeBadges species={shown}/>}
       {loading&&<p className="footnote" role="status">Loading its set…</p>}
       {set&&<>

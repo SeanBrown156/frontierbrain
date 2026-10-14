@@ -84,25 +84,33 @@ export function ModalFooter({children}:{children:ReactNode}){return <div classNa
 // new screen needs no CSS of its own.
 // Buttons keep the native default type (submit inside a form), exactly like a plain <button>; pass type="button" for
 // an action inside a form that must not submit it.
-type Variant='secondary'|'primary'|'danger'|'quiet'|'ghost'|'tile'|'plain';
-const buttonClass=(variant:Variant,size:'regular'|'compact',className?:string)=>[variant==='quiet'?'text-button':variant==='secondary'?'':variant,size==='compact'?'compact':'',className??''].filter(Boolean).join(' ')||undefined;
+type Variant='secondary'|'primary'|'danger'|'quiet'|'ghost'|'tile'|'plain'|'google';
+type Size='regular'|'compact'|'large'|'hero';
+const buttonClass=(variant:Variant,size:Size,className?:string)=>[variant==='quiet'?'text-button':variant==='secondary'?'':variant,size==='regular'?'':size,className??''].filter(Boolean).join(' ')||undefined;
 // `solid` fills a danger button (the one irreversible action in a danger zone).
-type ButtonProps=React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?:Variant;size?:'regular'|'compact';icon?:ReactNode;solid?:boolean};
+type ButtonProps=React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?:Variant;size?:Size;icon?:ReactNode;solid?:boolean};
 export function Button({variant='secondary',size='regular',icon,solid=false,className,children,...rest}:ButtonProps){
   return <button className={buttonClass(variant,size,solid?(className?'solid '+className:'solid'):className)} {...rest}>{icon}{children}</button>;}
 // A link that looks like a button (opens a page or a download, never runs an action).
-export function LinkButton({variant='secondary',size='regular',className,children,...rest}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{variant?:Variant;size?:'regular'|'compact'}){
+export function LinkButton({variant='secondary',size='regular',className,children,...rest}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{variant?:Variant;size?:Size}){
   const cls=buttonClass(variant,size,className);return <a className={variant==='quiet'?cls:'button'+(cls?' '+cls:'')} {...rest}>{children}</a>;}
 // Square icon-only button; `label` is its accessible name.
-export function IconButton({label,icon,variant='secondary',size='regular',className,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode;variant?:'secondary'|'ghost';size?:'regular'|'compact'}){
-  return <button className={'icon'+(variant==='ghost'?' ghost':'')+(size==='compact'?' compact':'')+(className?' '+className:'')} aria-label={label} {...rest}>{icon}</button>;}
+// variant="star" is the save-to-My-sets star: pass aria-pressed and .on when saved.
+export function IconButton({label,icon,variant='secondary',size='regular',className,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode;variant?:'secondary'|'ghost'|'star';size?:'regular'|'compact'}){
+  return <button className={'icon'+(variant==='secondary'?'':' '+variant)+(size==='compact'?' compact':'')+(className?' '+className:'')} aria-label={label} {...rest}>{icon}</button>;}
+// A checkbox drawn as a sliding switch, its label beside it.
+export function Switch({children,className,...rest}:Omit<React.InputHTMLAttributes<HTMLInputElement>,'type'|'children'>&{children:ReactNode}){return <label className={'switch'+(className?' '+className:'')}><input type="checkbox" role="switch" {...rest}/><span>{children}</span></label>;}
+// Tabs that are links (the team hub): same track as Tabs; each item is an <a> with aria-selected.
+export function TabLinks({items,className,nav=false}:{items:{href:string;label:ReactNode;icon?:ReactNode;selected:boolean;key:string}[];className?:string;nav?:boolean}){
+  return <nav className={'tabs'+(nav?' nav':'')+(className?' '+className:'')} role="tablist">{items.map(i=><a key={i.key} role="tab" aria-selected={i.selected} className={i.selected?'selected':''} href={i.href}>{i.icon}{i.label}</a>)}</nav>;}
 // A checkbox with its label beside it.
 export function Checkbox({children,className,...rest}:Omit<React.InputHTMLAttributes<HTMLInputElement>,'type'|'children'>&{children:ReactNode}){return <label className={'radio'+(className?' '+className:'')}><input type="checkbox" {...rest}/>{children}</label>;}
 export function Field({label,children,className,...rest}:Omit<React.LabelHTMLAttributes<HTMLLabelElement>,'children'>&{label:ReactNode;children:ReactNode}){return <label className={className} {...rest}>{label}{children}</label>;}
 export function Tag({tone,className,children,...rest}:React.HTMLAttributes<HTMLSpanElement>&{tone?:'ok'|'warn'}){return <span className={'tag'+(tone?' '+tone:'')+(className?' '+className:'')} {...rest}>{children}</span>;}
 export function CountBadge({count}:{count:number}){return count>0?<span className="count-badge" aria-hidden="true">{count>9?'9+':count}</span>:null;}
 // Pills that switch something on and off (Toggle, calc effects) or pick and filter (Chip). Both show `.on`.
-export function Toggle({on,onChange,className,children,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'onChange'>&{on:boolean;onChange:(on:boolean)=>void}){return <button type="button" className={'toggle'+(on?' on':'')+(className?' '+className:'')} aria-pressed={on} onClick={()=>onChange(!on)} {...rest}>{children}</button>;}
+// variant="mega" is the Mega switch (battle as the Mega): a dashed pill off, the rainbow pill on.
+export function Toggle({on,onChange,variant,className,children,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'onChange'>&{on:boolean;onChange:(on:boolean)=>void;variant?:'mega'}){return <button type="button" className={'toggle'+(variant?' '+variant:'')+(on?' on':'')+(className?' '+className:'')} aria-pressed={on} onClick={()=>onChange(!on)} {...rest}>{children}</button>;}
 // A chip that is a checkbox (pick up to N): the label is the pill, the box itself is hidden.
 export function ChoiceChip({checked,disabled,onChange,children}:{checked:boolean;disabled?:boolean;onChange:(checked:boolean)=>void;children:ReactNode}){return <label className={'choose'+(checked?' on':'')}><input type="checkbox" checked={checked} disabled={disabled} onChange={e=>onChange(e.target.checked)}/>{children}</label>;}
 // A chip that only shows a value (a team style on a replay).

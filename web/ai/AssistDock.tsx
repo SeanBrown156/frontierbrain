@@ -1,6 +1,6 @@
 import {useState,useEffect,useRef} from 'react';
 import type {PokemonSet} from '../../shared/workbench.ts';
-import {api,Markdown,date,Button,IconButton,LinkButton,Field,Tag} from '../ui.tsx';
+import {api,Markdown,date,Button,IconButton,LinkButton,Field,Tag,Toggle} from '../ui.tsx';
 import {Px,Sparkles,Message,Trash,Close} from '../icons.tsx';
 import {Maximize2,Minimize2,History,Plus} from 'lucide-react';
 import {aiKey} from './keys.tsx';
@@ -103,8 +103,8 @@ export default function AssistDock({team,data,context,mutate,notify,open,setOpen
   const dockEl=<aside className={'dock'+(expanded?' expanded':'')} aria-label="Ask Frontier Brain" {...(expanded?{role:'dialog','aria-modal':true} as any:{})}>
     <header className="dock-head"><h2><img className="dock-mark" src="/brand/icon-64.png" alt="" width={28} height={28}/>Ask Frontier Brain</h2>
       <div className="dock-corner"><IconButton label={expanded?'Back to the side panel':'Expand to the centre of the screen'} title={expanded?'Side panel':'Expand'} onClick={()=>setExpanded(!expanded)} icon={<Px icon={expanded?Minimize2:Maximize2}/>}/><IconButton label="Close" icon={<Px icon={Close}/>} className="dock-close" title="Close (Esc)" onClick={()=>setOpen(false)}/></div></header>
-    {(turns.length>0||readHistory().some(here))&&<div className="dock-bar"><Button className={'dock-past'+(view_==='history'?' on':'')} aria-pressed={view_==='history'} onClick={()=>setViewMode(view_==='history'?'chat':'history')}><Px icon={History} size={15}/>Past chats</Button>
-      {turns.length>0&&!pending&&<Button className="dock-new" onClick={()=>newChat()}><Px icon={Plus} size={15}/>New chat</Button>}</div>}
+    {(turns.length>0||readHistory().some(here))&&<div className="dock-bar"><Toggle className="dock-past" on={view_==='history'} onChange={()=>setViewMode(view_==='history'?'chat':'history')}><Px icon={History} size={15}/>Past chats</Toggle>
+      {turns.length>0&&!pending&&<Button variant="quiet" className="dock-new" onClick={()=>newChat()}><Px icon={Plus} size={15}/>New chat</Button>}</div>}
     {view_==='history'&&(turns.length>0||readHistory().some(here))&&<div className="dock-body"><div className="dock-log"><HistoryList current={turns} pending={!!pending} chats={readHistory().filter(here)} onCurrent={()=>setViewMode('chat')} onPick={openChat}/></div></div>}
     {(view_==='chat'||!(turns.length>0||readHistory().some(here)))&&<div className={"dock-body"+(ai?"":" locked")}><div className="dock-log" {...(ai?{}:{inert:true} as any)}>{!shown.length&&<div className="chat-empty"><p>{team?<>Ask anything about {team.name}.{' Frontier Brain checks the data pool and runs calcs, then proposes changes you can accept or reject.'}</>:'Ask about the metagame, sets, spreads and calcs. Open a team to ask about it or change it.'}</p></div>}
       {shown.map((t,ti)=>t.jobId&&!t.proposals&&!t.failed&&!readOnly?<div key={ti} className="chat-turn assistant working"><p><Px icon={Sparkles}/>{steps.length?`${stepNames[steps.at(-1).name]??steps.at(-1).name}${steps.at(-1).input?`: ${steps.at(-1).input}`:''}`:'Starting…'} <span className="muted">· {steps.length} step{steps.length===1?'':'s'}</span></p>

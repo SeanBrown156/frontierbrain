@@ -1,6 +1,6 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge,TYPE_COLOURS,Button,LinkButton,Tag,Field} from '../ui.tsx';
+import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge,TYPE_COLOURS,Button,LinkButton,Tag,Field,TabLinks} from '../ui.tsx';
 import {Px,Share,Home,Target,Play,ArrowLeft,Pencil,Plus,Eye,Check,WarningDiamond,SettingsCog,Copy,Link,Swap,Users} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
@@ -43,7 +43,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     <LinkButton variant="quiet" className="back-link" href="#teams"><Px icon={ArrowLeft} size={12}/>Teams</LinkButton>
     <div className="hub-head"><div className="hub-title">{renaming?<input className="rename" aria-label="Team name" autoFocus value={name} onChange={e=>setName(e.target.value)} onBlur={()=>void rename()} onKeyDown={e=>{if(e.key==='Enter')void rename();if(e.key==='Escape'){setName(team.name);setRenaming(false);}}}/>
         :<h1><Button variant="plain" className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></Button></h1>}</div></div>
-    <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav></div>
+    <div className="hub-nav"><TabLinks nav className="hub-tabs" items={tabs.map(([key,label,icon])=>({key,label,icon:<Px icon={icon}/>,href:teamHref(team.id,key,versionId),selected:tab===key||(key==='strategy'&&tab==='coaching')}))}/></div>
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} data={data} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
     {tab==='bench'&&<Bench team={team} data={data} mutate={mutate} notify={notify}/>}

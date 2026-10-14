@@ -1,7 +1,7 @@
 import {useState,useEffect,useRef,type ReactNode} from 'react';
 import {setStrategyText,POKEMON_STRATEGY_TEMPLATE} from '../../shared/workbench.ts';
 import type {SetRevision,SetNotes,PokemonSet,BankEntry} from '../../shared/workbench.ts';
-import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown,SetArt,MegaBadge,Button,LinkButton,Field,Tag,Segmented} from '../ui.tsx';
+import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown,SetArt,MegaBadge,Button,LinkButton,Field,Tag,Segmented,IconButton} from '../ui.tsx';
 import {Px as Icon,Pencil,Check} from '../icons.tsx';
 import {Px,ArrowLeft,WarningDiamond} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
@@ -83,8 +83,8 @@ export function SetWorkspace({team,data,mutate,view,slot,swap,candidate}:{team:a
       <fieldset className="plain" disabled={readOnly}>
       {d.changedElsewhere&&<Notice className="warn">This Pokémon was changed elsewhere (e.g. accepted from Ask Frontier Brain). <span className="button-row"><Button onClick={d.loadLatest}>Load latest</Button><Button onClick={d.keepMine}>Keep my edits</Button></span></Notice>}
       <div className="set-card-head"><div className="art-wrap"><Art name={megaForm?.name??set.species} fallback={set.species} art={data.art}/>
-        {!readOnly&&<Button type="button" className={'fav'+(isStarred?' on':'')} aria-pressed={isStarred} aria-label={isStarred?`In My sets as “${revision.starred!.label}”. Remove from My sets`:'Save to My sets'} title={isStarred?`In My sets: ${revision.starred!.label} (click to remove)`:'Save to My sets'}
-          onClick={()=>{if(isStarred)void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{});else setStarring(!starring);}}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg></Button>}
+        {!readOnly&&<IconButton variant="star" type="button" className={'fav'+(isStarred?' on':'')} aria-pressed={isStarred} label={isStarred?`In My sets as “${revision.starred!.label}”. Remove from My sets`:'Save to My sets'} title={isStarred?`In My sets: ${revision.starred!.label} (click to remove)`:'Save to My sets'}
+          onClick={()=>{if(isStarred)void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{});else setStarring(!starring);}} icon={<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg>}/>}
         {starring&&!isStarred&&<div className="fav-pop" role="dialog" aria-label="Save to My sets"><Field label="Name for My sets"><input autoFocus placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/></Field><div className="button-row"><Button variant="primary" onClick={()=>void star()} disabled={problems.length>0||!starLabel.trim()}>Save</Button><Button onClick={()=>setStarring(false)}>Cancel</Button></div>{problems.length>0&&<p className="footnote">Finish the set first: {problems[0]}</p>}</div>}</div><div className="grow">
         <SpeciesPicker label="Species" value={set.species} onPick={sp=>void pickSpecies(sp)} onPickSaved={o=>replace(o.value.set,{reuse:true,basis:[`Reusing your saved set: ${o.label}.`]})} disabled={others.map((s:any)=>s.species)} saved={savedSets} autoFocus={swap}/>
         <div className="set-types"><TypeBadges species={megaForm?.name??set.species}/>{megaForm&&<MegaBadge title={`Battles as Mega ${set.species}`}/>}{isStarred&&<span className="fav-label">★ {revision.starred!.label}</span>}</div>
@@ -143,7 +143,7 @@ function StatBars({base,final,points,setPoint,head}:{base?:Record<string,number>
       return <Field key={k} className="stat-row" label={<span className="stat-name">{statLabel[k]}{nat>0?<b className="nat up" title="Nature +10%">↑</b>:nat<0?<b className="nat down" title="Nature −10%">↓</b>:null}</span>}>
         <span className="stat-bar" title={base?`Base ${b} + ${sp} stat points${nat?`, nature ${nat>0?'+':'−'}10%`:''} = ${f??'…'}`:''}><span className="base" style={{width:barWidth(b),background:baseColour(b)}}/><span className="sp" style={{width:barWidth(sp)}}/></span>
         <span className="stat-base">{base?b:'—'}{sp>0&&<b className="stat-plus">+{sp}</b>}</span>
-        <input type="number" min="0" max="32" aria-label={`${statLabel[k]} stat points`} value={sp} onChange={e=>setPoint(k,Math.max(0,Math.min(32,Number(e.target.value)||0)))}/>
+        <input className="compact num" type="number" min="0" max="32" aria-label={`${statLabel[k]} stat points`} value={sp} onChange={e=>setPoint(k,Math.max(0,Math.min(32,Number(e.target.value)||0)))}/>
         <output className={'stat-final'+(nat>0?' up':nat<0?' down':'')}>{f??'—'}</output></Field>;})}
   </div>;
 }

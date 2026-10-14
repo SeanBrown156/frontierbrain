@@ -79,7 +79,7 @@
  body{margin:0}
  button,input,select,textarea{font:inherit;color:inherit}
  a{color:inherit;text-decoration:none}
- :focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:var(--r-xs)}
+ :is(:focus-visible,[data-state=focus]){outline:2px solid var(--ac);outline-offset:3px;border-radius:var(--r-xs)}
 h1,h2{font-family:var(--fd);font-weight:400}h2{margin:var(--s1) 0}h3{margin:0 0 var(--s2)}details{margin-top:var(--s4);font-size:12px}summary{cursor:pointer;color:var(--ac);padding:var(--s1) 0}table{border-collapse:collapse;width:100%;font-size:12px;min-width:460px;text-align:left}th{background:var(--sunk);border-bottom:1px solid var(--tx)}td{border-bottom:1px solid var(--ln)}tbody tr:nth-child(even){background:var(--sunk)}b,strong{color:var(--tx)}h3{font-family:var(--fd);font-size:16px;line-height:1.4}small{font-size:12.5px}
 td{font-variant-numeric:tabular-nums}
 b,strong{font-weight:600}em{font-style:italic}
@@ -128,30 +128,68 @@ main h1{text-shadow:var(--phos-title)}
   font:600 var(--t-md)/1.2 var(--fb);letter-spacing:0;white-space:nowrap;text-decoration:none;cursor:pointer;
   color:var(--tx);background:color-mix(in srgb,var(--glass-2) 70%,transparent);border:1px solid var(--ln);border-radius:var(--rs);box-shadow:var(--e-inset);
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .15s,border-color .2s,background .2s,box-shadow .2s}
- :is(button,.button):hover:not(:disabled){border-color:color-mix(in srgb,var(--ac) 50%,var(--ln));background:var(--hover);color:var(--tx);transform:translateY(-1px)}
- :is(button,.button):active{transform:translateY(1px)}
+ :is(button,.button):is(:hover:not(:disabled),[data-state=hover]){border-color:color-mix(in srgb,var(--ac) 50%,var(--ln));background:var(--hover);color:var(--tx);transform:translateY(-1px)}
+ :is(button,.button):is(:active,[data-state=active]){transform:translateY(1px)}
  :is(button,.button):disabled{opacity:.55;cursor:not-allowed}
- :is(button,.button).primary{background:linear-gradient(180deg,var(--ac-2),var(--ac));color:var(--on);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 22px -10px var(--glow)}
- :is(button,.button).primary:hover:not(:disabled){filter:brightness(1.07);background:linear-gradient(180deg,var(--ac-2),var(--ac));color:var(--on);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 12px 28px -10px var(--glow)}
+ :is(button,.button):is(.primary,.google){background:linear-gradient(180deg,var(--ac-2),var(--ac));color:var(--on);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 22px -10px var(--glow)}
+ :is(button,.button):is(.primary,.google):is(:hover:not(:disabled),[data-state=hover]){filter:brightness(1.07);background:linear-gradient(180deg,var(--ac-2),var(--ac));color:var(--on);border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 12px 28px -10px var(--glow)}
  :is(button,.button).danger{color:var(--hot);background:var(--glass-2);border-color:color-mix(in srgb,var(--hot) 45%,transparent)}
- :is(button,.button).danger:hover:not(:disabled){background:var(--hot);color:#fff;border-color:var(--hot)}
+ :is(button,.button).danger:is(:hover:not(:disabled),[data-state=hover]){background:var(--hot);color:#fff;border-color:var(--hot)}
  .text-button{display:inline-flex;align-items:center;justify-content:start;gap:var(--gap-inline);height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s2);
   font:600 var(--t-md)/1.2 var(--fb);white-space:normal;color:var(--ac);background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
- .text-button:hover:not(:disabled){color:var(--ac-2);background:none;transform:none}
+ .text-button:is(:hover:not(:disabled),[data-state=hover]){color:var(--ac-2);background:none;transform:none}
  .text-button.danger{color:var(--hot);background:none;border:0;box-shadow:none}
- .text-button.danger:hover:not(:disabled){color:var(--hot);background:none;text-decoration:underline;text-underline-offset:3px}
+ .text-button.danger:is(:hover:not(:disabled),[data-state=hover]){color:var(--hot);background:none;text-decoration:underline;text-underline-offset:3px}
  /* ghost: no fill or edge until pointed at (header links, icon toggles); an icon ghost is muted until hovered */
  :is(button,.button).ghost{color:var(--tx);background:transparent;border-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
- :is(button,.button).ghost:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
+ :is(button,.button).ghost:is(:is(:hover:not(:disabled),[data-state=hover]),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
  :is(button,.button).ghost.icon{color:var(--mu);border-color:transparent}
- :is(button,.button).ghost.icon:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);border-color:transparent}
+ :is(button,.button).ghost.icon:is(:is(:hover:not(:disabled),[data-state=hover]),[aria-expanded=true]){color:var(--tx);border-color:transparent}
+ /* sizes for calls to action: large (48px) and hero (68px, 60px on phones) */
+ :is(button,.button).large{height:48px;min-height:48px;max-height:48px;padding:0 var(--s6);font-size:15px}
+ :is(button,.button).hero{height:68px;min-height:68px;max-height:68px;padding:0 var(--s12);font-size:20px;border-radius:var(--r)}
+ :is(button,.button):is(.large,.hero) svg{width:20px;height:20px;flex:none}
+ /* Google sign-in: the primary look with the four-colour G on a white disc; full width when stacked on phones */
+ .google .google-g-wrap{display:inline-grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(8,32,26,.2)}
+ .google .google-g{display:block}
+ /* Mega switch (Toggle variant="mega"): a dashed pill with a dimmed orb when off, the rainbow pill when on */
+ .toggle.mega{height:24px;min-height:24px;max-height:24px;gap:var(--s1);padding:0 var(--s2) 0 var(--s1);font:700 11px/1 var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);background:transparent;border:1px dashed var(--ln-2);transition:color .2s,border-color .2s,background .2s}
+ .toggle.mega .mega-orb{width:16px;height:16px;filter:grayscale(1);opacity:.45;transition:filter .2s,opacity .2s}
+ .toggle.mega:is(:hover:not(:disabled),[data-state=hover]){color:var(--tx);background:transparent;border-color:color-mix(in srgb,var(--gd) 60%,transparent)}
+ .toggle.mega.on{color:var(--tx);border-style:solid;border-color:color-mix(in srgb,var(--gd) 45%,transparent);background:linear-gradient(90deg,rgba(255,94,126,.14),rgba(255,233,94,.14),rgba(94,255,168,.14),rgba(94,200,255,.14),rgba(163,94,255,.14))}
+ .toggle.mega.on .mega-orb{filter:none;opacity:1}
+ .toggle.mega.on::before{content:none}
+ /* Star (IconButton variant="star"): save to My sets; gold when saved */
+ :is(button,.button).icon.star{width:32px;min-width:32px;height:32px;min-height:32px;max-height:32px;border-radius:50%;color:var(--mu);background:var(--glass-2);border:0;box-shadow:inset 0 0 0 1px var(--ln),0 4px 12px -6px var(--shade)}
+ .star svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;transition:transform .35s cubic-bezier(.2,.8,.2,1),fill .2s}
+ :is(button,.button).icon.star:is(:hover:not(:disabled),[data-state=hover]){color:var(--gd);background:color-mix(in srgb,var(--gd) 14%,transparent);border:0;transform:none}
+ .star:is(:hover:not(:disabled),[data-state=hover]) svg{transform:rotate(-12deg) scale(1.1)}
+ :is(button,.button).icon.star:is(.on,[aria-pressed=true]){color:var(--gd);background:color-mix(in srgb,var(--gd) 16%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gd) 50%,transparent),0 4px 12px -6px var(--shade)}
+ .star:is(.on,[aria-pressed=true]) svg{fill:currentColor;animation:jStar .45s cubic-bezier(.2,.8,.2,1)}
+ /* Tabs as links (TabLinks) and the large nav tabs of the team hub */
+ .tabs>a{display:inline-flex;align-items:center;justify-content:center;gap:var(--gap-inline);font:600 var(--t-md)/1.2 var(--fb);white-space:nowrap;text-decoration:none;cursor:pointer;transition:color .2s,background .25s,border-color .2s}
+ .tabs.nav{gap:var(--s1);padding:var(--s1);border-radius:14px;background:var(--glass);-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
+ .tabs.nav>:is(button,a){height:38px;min-height:38px;max-height:38px;padding:0 var(--s4);border-radius:10px;font:700 15px var(--fd);letter-spacing:.06em;text-transform:uppercase}
+ .tabs.nav>:is(button,a):is(.selected,[aria-selected=true]){box-shadow:var(--e-inset),0 6px 16px -10px var(--shade)}
+ /* Switch: a checkbox drawn as a sliding switch, its label beside it */
+ label.switch{flex-direction:row;align-items:center;gap:var(--s2);margin:0;cursor:pointer}
+ label.switch input{-webkit-appearance:none;appearance:none;position:relative;flex:none;width:44px;min-width:0;height:26px;min-height:26px;max-height:26px;margin:0;padding:0;cursor:pointer;border-radius:var(--r-pill);background:var(--field);border:1px solid var(--ln-2);transition:background .2s,border-color .2s}
+ label.switch input::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--mu);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s}
+ label.switch input:is(:hover:not(:disabled),[data-state=hover]){border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
+ label.switch input:checked{background:color-mix(in srgb,var(--ac) 30%,transparent)}
+ label.switch input:checked::after{transform:translateX(18px);background:var(--ac)}
+ /* compact and numeric fields (stat points, speed stage, boosts) */
+ :is(input,select).compact{height:var(--compact-height);min-height:var(--compact-height);padding:0 var(--s2)}
+ input.num{text-align:center;font:600 var(--t-md) var(--fb);font-variant-numeric:tabular-nums}
+ /* links styled as buttons can't be disabled; aria-disabled shows the same state */
+ .button[aria-disabled=true]{opacity:.55;pointer-events:none}
  .chip:has(>.chip-remove){gap:var(--s1);padding:0 var(--s1) 0 var(--s3)}
  .segmented.block{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);width:100%}
  .segmented.block>button{height:auto;min-height:var(--control-height);max-height:none;white-space:normal}
  /* a chip that only shows a value, smaller; and the x that removes a chip */
  .chip.small{height:26px;min-height:26px;max-height:26px;padding:0 var(--s2);font-size:12px;cursor:default}
  :is(button,.button).chip-remove{width:20px;min-width:20px;height:20px;min-height:20px;max-height:20px;padding:0;color:inherit;background:transparent;border:0;border-radius:50%;box-shadow:none}
- :is(button,.button).chip-remove:hover:not(:disabled){color:var(--tx);background:color-mix(in srgb,var(--tx) 12%,transparent);transform:none}
+ :is(button,.button).chip-remove:is(:hover:not(:disabled),[data-state=hover]){color:var(--tx);background:color-mix(in srgb,var(--tx) 12%,transparent);transform:none}
  :is(button,.button).icon.compact{width:var(--compact-height);min-width:var(--compact-height)}
  .tabs>button:has(>small){flex-direction:column;gap:var(--s05)}
  /* tile: a whole card you click (history rows, team pickers, search results); .on / aria-selected marks the chosen one */
@@ -159,10 +197,10 @@ main h1{text-shadow:var(--phos-title)}
  :is(button,.button).tile:is(.on,[aria-selected=true],[aria-pressed=true]){color:var(--tx);background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 16%,transparent),transparent 60%),var(--glass-2);border-color:color-mix(in srgb,var(--ac) 50%,transparent)}
  /* plain: text that is also a button (a title you click to rename) */
  :is(button,.button).plain{display:inline-flex;align-items:center;gap:var(--s2);height:auto;min-height:0;max-height:none;padding:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;white-space:normal;background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
- :is(button,.button).plain:hover:not(:disabled){color:var(--ac);background:none;transform:none}
+ :is(button,.button).plain:is(:hover:not(:disabled),[data-state=hover]){color:var(--ac);background:none;transform:none}
  /* solid danger: the one irreversible action in a danger zone */
  :is(button,.button).danger.solid{color:#fff;background:var(--hot);border-color:transparent;box-shadow:0 10px 24px -10px color-mix(in srgb,var(--hot) 80%,transparent)}
- :is(button,.button).danger.solid:hover:not(:disabled){color:#fff;background:var(--hot);border-color:transparent;filter:brightness(1.08)}
+ :is(button,.button).danger.solid:is(:hover:not(:disabled),[data-state=hover]){color:#fff;background:var(--hot);border-color:transparent;filter:brightness(1.08)}
  /* tabs that share the row equally (calc, new team, news weeks); labels may wrap or carry a second line */
  .tabs.block{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);width:100%}
  .tabs.block>button{height:auto;min-height:var(--control-height);max-height:none;padding:var(--s1) var(--s2);white-space:normal;line-height:1.3}
@@ -182,13 +220,13 @@ main h1{text-shadow:var(--phos-title)}
  :is(input,select,textarea){width:100%;min-width:0;min-height:var(--control-height);padding:var(--s2) var(--pad-field);font-family:var(--fb);font-size:14px;
   color:var(--tx);background:var(--field);border:1px solid var(--ln-2);border-radius:var(--rs);transition:border-color .2s,box-shadow .2s}
  :is(input,select){height:var(--control-height)}
- :is(input,select,textarea):focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+ :is(input,select,textarea):is(:focus,[data-state=focus]){outline:none;border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
  textarea{resize:vertical;line-height:1.6;padding:var(--pad-field)}
  /* Select: its own chevron, inset 12px */
  select{-webkit-appearance:none;appearance:none;background-image:var(--chev)!important;background-repeat:no-repeat!important;background-position:right var(--s3) center!important;background-size:12px 12px!important;
   padding:0 36px 0 var(--pad-field);line-height:38px;text-overflow:ellipsis;cursor:pointer}
- select:hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
- select:disabled{opacity:.55;cursor:default}
+ select:is(:hover,[data-state=hover]){border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
+ :is(input,select,textarea):disabled{opacity:.55;cursor:not-allowed}
  select option{background:var(--bg);color:var(--tx)}
  fieldset{min-width:0;margin:0 0 var(--s6);padding:var(--s4) var(--s6) var(--s6);border:1px solid var(--ln);border-radius:var(--s3)}
  legend{padding:0 var(--s2);margin-left:calc(-1 * var(--s2));font:700 var(--t-eyebrow) var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--gd)}
@@ -231,16 +269,16 @@ main h1{text-shadow:var(--phos-title)}
  /* ---- Tabs and Segmented: one sunk track; the chosen option lifts out as glass with an emerald edge ---- */
  :is(.tabs,.segmented){display:inline-flex;flex-wrap:wrap;gap:var(--s05);padding:var(--s05);margin:0;border-radius:var(--s3);background:var(--sunk);border:1px solid var(--ln)}
  .tabs{margin-bottom:var(--s4)}
- :is(.tabs,.segmented)>button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);
+ :is(.tabs,.segmented)>:is(button,a){height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);
   color:var(--mu);background:transparent;border:1px solid transparent;border-radius:9px;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
- :is(.tabs,.segmented)>button:hover:not(:disabled){color:var(--tx);background:var(--hover);border-color:transparent;transform:none}
- :is(.tabs,.segmented)>button:is(.selected,.on,[aria-pressed=true],[aria-selected=true]){color:var(--tx);background:var(--glass-2);border-color:color-mix(in srgb,var(--ac) 45%,transparent);box-shadow:var(--e-inset),0 6px 16px -10px var(--glow)}
+ :is(.tabs,.segmented)>:is(button,a):is(:hover:not(:disabled),[data-state=hover]){color:var(--tx);background:var(--hover);border-color:transparent;transform:none}
+ :is(.tabs,.segmented)>:is(button,a):is(.selected,.on,[aria-pressed=true],[aria-selected=true]){color:var(--tx);background:var(--glass-2);border-color:color-mix(in srgb,var(--ac) 45%,transparent);box-shadow:var(--e-inset),0 6px 16px -10px var(--glow)}
 
  /* ---- Toggle and Chip: small pills that light up emerald when on ---- */
  .toggle,.chip,.chip-row>button,.choose{display:inline-flex;align-items:center;gap:var(--gap-inline);height:30px;min-height:30px;max-height:30px;padding:0 var(--s3);
   font:600 12.5px/1 var(--fb);color:var(--mu);background:transparent;border:1px solid var(--ln-2);border-radius:var(--r-pill);box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
  .toggle{height:var(--control-height);min-height:var(--control-height);max-height:var(--control-height)}
- .toggle:hover:not(:disabled),.chip:hover:not(:disabled),.chip-row>button:hover:not(:disabled),.choose:hover{color:var(--tx);background:transparent;border-color:color-mix(in srgb,var(--ac) 55%,var(--ln-2));transform:none}
+ .toggle:is(:hover:not(:disabled),[data-state=hover]),.chip:is(:hover:not(:disabled),[data-state=hover]),.chip-row>button:is(:hover:not(:disabled),[data-state=hover]),.choose:is(:hover,[data-state=hover]){color:var(--tx);background:transparent;border-color:color-mix(in srgb,var(--ac) 55%,var(--ln-2));transform:none}
  .toggle.on,.chip.on,.chip-row>button.on,.choose.on{color:var(--tx);background:color-mix(in srgb,var(--ac) 16%,transparent);border-color:color-mix(in srgb,var(--ac) 60%,transparent)}
  .toggle.on::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ac);margin-right:var(--s05)}
  .toggles{display:flex;flex-wrap:wrap;gap:var(--s2)}
@@ -269,14 +307,14 @@ main h1{text-shadow:var(--phos-title)}
  /* ---- Two-way switch (ModeSwitch in ui.tsx) ---- */
  .mode-switch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;width:100%;height:60px;min-height:60px;max-height:60px;padding:var(--s1);margin:0 0 var(--s4);
   border-radius:var(--r-pill);background:var(--field);border:1px solid var(--ln-2);box-shadow:inset 0 2px 8px rgba(0,0,0,.28);cursor:pointer;text-align:center}
- .mode-switch:hover:not(:disabled){background:var(--field);border-color:var(--ln-2);transform:none}
+ .mode-switch:is(:hover:not(:disabled),[data-state=hover]){background:var(--field);border-color:var(--ln-2);transform:none}
  .mode-switch .ms-thumb{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 2);border-radius:var(--r-pill);pointer-events:none;
   background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 38%,var(--bg)),color-mix(in srgb,var(--ac) 24%,var(--bg)));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 70%,transparent),0 0 22px -6px var(--glow);transition:transform .38s cubic-bezier(.3,1.2,.4,1)}
  .mode-switch.right .ms-thumb{transform:translateX(100%)}
  .mode-switch .ms-side{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);min-width:0;padding:0 var(--s3);color:var(--mu);font:700 16px/1.2 var(--fb);transition:color .25s}
  .mode-switch .ms-side svg{width:20px;height:20px;flex:none}
  .mode-switch .ms-side.on{color:var(--tx);text-shadow:var(--phos-title)}
- .mode-switch:hover .ms-side:not(.on){color:var(--tx)}
+ .mode-switch:is(:hover,[data-state=hover]) .ms-side:not(.on){color:var(--tx)}
  .mode-switch .ms-short{display:none}
 
  /* ---- Phones: 44px touch targets, full-width stacked actions, dialogs fill the screen ---- */
@@ -290,6 +328,11 @@ main h1{text-shadow:var(--phos-title)}
   .modal-footer>*{width:100%;justify-content:center}
  }
  @media (max-width:620px){
+  .toggle.mega,:is(button,.button).icon.star{position:relative}
+  .toggle.mega::after{content:'';position:absolute;left:calc(-1 * var(--s1));right:calc(-1 * var(--s1));top:50%;height:var(--touch);transform:translateY(-50%)}
+  :is(button,.button).icon.star::after{content:'';position:absolute;inset:calc((var(--touch) - 32px) / -2)}
+  :is(button,.button).google{width:100%}
+  :is(button,.button).hero{height:60px;min-height:60px;max-height:60px;padding:0 var(--s8);font-size:18px}
   /* touch: regular controls are 44px (--control-height); smaller pills keep their look but get a 44px hit area */
   select{line-height:calc(var(--control-height) - 2px)}
   :is(.chip,.chip-row>button,.choose,.text-button,.compact,.segmented>button,.tabs>button){position:relative}
@@ -360,7 +403,6 @@ main h1{text-shadow:var(--phos-title)}
 .strategy{white-space:pre-wrap;font-size:13px}
 .form-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .sp-inputs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
-.sp-inputs input{padding:var(--s1) var(--s1)}
 .radio{display:flex;flex-direction:row;align-items:center;gap:var(--s2)}
 .radio input{width:16px;min-height:16px;margin:0;flex-shrink:0}
 .score-strip{display:flex;justify-content:space-around;gap:var(--s3);border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);padding:var(--s4) 0;margin:var(--s4) 0}
@@ -399,7 +441,6 @@ main h1{text-shadow:var(--phos-title)}
 @media(max-width:760px){
  .form-grid{grid-template-columns:minmax(0,1fr)}
  .source-grid{grid-template-columns:minmax(0,1fr)}
- .sp-inputs input{padding:var(--s2) var(--s1)}
  .set-notes{grid-template-columns:1fr}
  .timeline>div{grid-template-columns:30px 65px minmax(0,1fr)}
 }
@@ -407,7 +448,6 @@ main h1{text-shadow:var(--phos-title)}
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 .landing-head,.hub-head{justify-content:space-between;flex-wrap:wrap}
 .landing-head p:last-child{color:var(--mu);margin:0}
-.hub-tabs a.selected:after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--hot)}
 .six-grid{display:grid}
 .mon-card{display:flex;flex-direction:column}
 .mon-card-head p{margin:0;color:var(--mu)}
@@ -437,7 +477,6 @@ i.inferred{font-size:11px;margin-left:var(--s1)}
 .new-team textarea{width:100%}
 .draft-review{border-top:1px solid var(--ln)}
 a .px-icon,button .px-icon{margin-right:var(--s1)}
-.hub-tabs a{display:inline-flex;align-items:center}
 .pool-counts{display:grid;margin:var(--s2) 0}
 .pool-counts>div{display:grid}
 .pool-counts span{color:var(--mu)}
@@ -479,10 +518,8 @@ a .px-icon,button .px-icon{margin-right:var(--s1)}
 .source-card a{display:flex;gap:var(--s2);align-items:center}
 .source-card p{font-size:12px}
 .team-card-title h3,.lab-result h3{font-family:var(--fd);font-size:16px;line-height:1.4}
-.hub-tabs{font-size:16px}
 .eyebrow,.tag,.status,.result,.sp-inputs label,.threat,.score-strip span,.reference-groups h3,.art-fallback{font-family:var(--fb)}
-.sp-inputs input,.tile-stats b,.tile-stats small,.score-strip b{font-variant-numeric:tabular-nums}
-.sp-inputs input{font-size:14px}
+.tile-stats b,.tile-stats small,.score-strip b{font-variant-numeric:tabular-nums}
 .markdown strong{font-weight:600}
 .markdown em{font-style:italic}
 .paste,.mono{font-family:var(--fb)}
@@ -537,7 +574,6 @@ input.nickname{margin-top:var(--s1);font-size:13px}
 .dock-input textarea{min-height:44px}
 .dock .chat-turn.working p{margin:0 0 var(--s1);display:flex;gap:var(--s1);align-items:center;flex-wrap:wrap}
 .dock .button-row{margin-top:var(--s1)}
-.lab .sp-inputs input{min-width:0;padding:var(--s1) var(--s1);text-align:center}
 .mon-card-head h3{overflow:hidden;text-overflow:ellipsis}
 .mon-card-head span,.mon-card-head p{overflow-wrap:anywhere}
 @media(max-width:760px){
@@ -602,7 +638,6 @@ fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--su
 .stat-bar>span{height:100%;transition:width .15s}
 .stat-bar .sp{opacity:.9}
 .stat-base{text-align:right;font-variant-numeric:tabular-nums}
-.stat-row input{text-align:center;font-variant-numeric:tabular-nums}
 .welcome{min-height:100vh;display:grid;place-items:center}
 .welcome-card{display:grid}
 .welcome-card h1{margin:0}
@@ -613,7 +648,7 @@ fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--su
 .profile-card p{margin:0}
 .shell{margin-inline:auto;padding:0 var(--s8) var(--s8)}
 main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s4)}
-.team-card-title h3,.mon-card-head h3,.status,.result,.hub-tabs{font-family:var(--fd);letter-spacing:0}
+.team-card-title h3,.mon-card-head h3,.status,.result{font-family:var(--fd);letter-spacing:0}
 .markdown h1,.markdown h2,.markdown h3,.markdown h4,.news-signal h3,.articles h3,.plan-card h3,.set-tile h3{font-family:var(--fb)}
 .score-strip,.sp-inputs,.stat-row,.tile-stats,.stat-table{font-family:var(--fb);font-variant-numeric:tabular-nums}
 .stat-final,.stat-base,.score-strip b,.pool-counts b,.lab-result h3{font-family:var(--fb)}
@@ -635,10 +670,7 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .status,.result{font:600 12px/1.4 var(--fb);padding:var(--s1) var(--s2);background:var(--sunk);border:1px solid var(--ln);border-radius:2px;white-space:nowrap}
 .status.complete,.nat.up,.stat-final.up{color:var(--ac)}
 .hub-nav{display:flex;align-items:center;justify-content:center}
-.hub-nav .hub-tabs,.hub-tabs{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--s2);margin:0;border:0;font:500 17px var(--fd)}
-.hub-tabs a{display:inline-flex;align-items:center;position:relative}
-.hub-tabs a.selected,.hub-tabs a:hover{background:var(--ac);color:var(--on);border-color:var(--ac)}
-.hub-tabs a.selected:after{display:none}
+.hub-nav .hub-tabs{margin:0}
 .version-select{margin:0;align-self:center}
 .version-select select{max-width:260px}
 .six-grid{margin-top:0}
@@ -683,13 +715,11 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .set-fields label:last-child{grid-column:1/-1}
 .set-fields .moves label:last-child{grid-column:auto}
 .stat-row{grid-template-columns:40px minmax(0,1fr) 28px 48px 36px;gap:var(--s2);margin:0 0 var(--s2);font-size:13px}
-.stat-row input{height:32px;min-height:32px;max-height:32px;padding:var(--s1);font-family:var(--fb)}
 .stat-bar .sp,.key-sp{background:repeating-linear-gradient(135deg,var(--ac) 0 3px,var(--ac) 3px 6px)}
 .history li{align-items:center;gap:var(--s2);padding:var(--s2) 0}
 .benchmark-save input{min-width:0}
 .lab fieldset{margin-top:0}
 .sp-inputs{gap:var(--s1)}
-.sp-inputs input{height:40px;font-family:var(--fb)}
 .lab .form-grid{align-items:end}
 .lab-result .text-button{height:auto;min-height:32px;max-height:none;padding:var(--s2);white-space:normal}
 .new-team .button-row{margin:var(--s4) 0;align-items:center}
@@ -785,7 +815,6 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
  .milestone{width:100%;flex-direction:column;gap:var(--s2)}
  .hub-nav{flex-direction:column}
  .hub-nav .hub-tabs{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);overflow:visible}
- .hub-tabs a{white-space:nowrap}
  .version-select{width:100%}
  .version-select select{width:100%;max-width:100%}
  .teams-landing .team-list,.six-grid{grid-template-columns:minmax(0,1fr);gap:var(--s4)}
@@ -892,14 +921,13 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .team-hub .hub-head{display:block!important;text-align:left!important;margin:var(--s4) 0 var(--s4)!important}
 .team-hub .hub-title{display:block!important;text-align:left!important}
 .team-hub .hub-title h1,.team-hub .title-button{justify-content:flex-start!important;text-align:left!important}
-.team-hub .hub-nav{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:var(--s3)!important;width:100%}
-.team-hub .hub-tabs{justify-content:flex-start!important;margin:0!important}
+.team-hub .hub-nav{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:var(--s3);width:100%}
+.team-hub .hub-tabs{margin:0}
 @media(max-width:720px){
- .team-hub .hub-nav{flex-direction:column!important;align-items:stretch!important}
- .team-hub .hub-tabs{display:grid!important;grid-template-columns:1fr 1fr;gap:var(--s2)}
+ .team-hub .hub-nav{flex-direction:column;align-items:stretch}
+ .team-hub .hub-tabs{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
 }
-.hub-tabs a{padding:0 var(--s4)!important;gap:var(--s2)!important;justify-content:center}
-button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
+button .px-icon,.button .px-icon,.tabs>a .px-icon{margin-right:0}
 .title-button .px-icon{flex:none;color:var(--mu);transition:color .2s}
 .title-button:is(:hover,:focus-visible) .px-icon{color:var(--ac)}
 .replays>.profile-card,.profile-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto!important;align-items:end!important;text-align:left!important;justify-items:stretch!important}
@@ -909,10 +937,10 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
 @media(max-width:720px){
  .replays>.profile-card,.profile-card{grid-template-columns:minmax(0,1fr)!important}
 }
-.team-hub .hub-nav{flex-wrap:nowrap!important}
-.team-hub .hub-tabs{flex-wrap:nowrap!important;flex:none}
+.team-hub .hub-nav{flex-wrap:nowrap}
+.team-hub .hub-tabs{flex-wrap:nowrap;flex:none}
 @media(max-width:1100px){
- .team-hub .hub-nav{flex-wrap:wrap!important}
+ .team-hub .hub-nav{flex-wrap:wrap}
 }
 .profile-card>button{grid-column:3!important;grid-row:2!important;width:auto!important}
 .profile-card>label{grid-row:2}
@@ -1095,12 +1123,8 @@ html.jade .team-card .art:nth-child(6) img{transition-delay:.15s}
 
 /* ---------- team hub ---------- */
 html.jade .hub-title h1,html.jade .landing-head h1{font-size:clamp(36px,5vw,58px)}
-html.jade .hub-nav{border-bottom:1px solid var(--ln)!important}
-html.jade .hub-tabs{gap:var(--s1)!important;border:0!important;padding:var(--s1);background:var(--sunk);border-radius:14px;margin-bottom:var(--s2)!important}
-html.jade .hub-tabs a{height:38px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--mu)!important;font:700 15px var(--fd)!important;text-transform:uppercase;letter-spacing:.06em;transition:color .2s,background .25s}
-html.jade .hub-tabs a:hover{color:var(--tx)!important;background:var(--hover)!important}
-html.jade .hub-tabs a.selected{background:var(--glass-2)!important;color:var(--tx)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--shade)}
-html.jade .hub-tabs a.selected::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--hot);box-shadow:0 0 8px var(--hot);animation:jPulse 1.6s ease-in-out infinite}
+html.jade .hub-nav{border-bottom:1px solid var(--ln)}
+html.jade .hub-tabs{margin-bottom:var(--s2)}
 /* the six */
 html.jade .six-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--s4)}
 html.jade .mon-card{border-top:1px solid var(--ln)!important;gap:var(--s2);animation:jRise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms)}
@@ -1222,7 +1246,6 @@ html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user))::after{content:'';wid
 /* ---------- selects: our own chevron, inset 12px, never floating at the edge ---------- */
 
 /* ---------- no flashing LEDs on selected states ---------- */
-html.jade .hub-tabs a.selected::before{display:none!important}
 html.jade .mon-switcher a.selected::after{background:var(--ac);box-shadow:0 0 8px var(--glow)}
 html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user))::after{display:none!important}
 
@@ -1230,7 +1253,7 @@ html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user))::after{display:none!i
 html.jade .form-grid{gap:0 var(--s4)!important}
 html.jade .muted{line-height:1.55}
 html.jade .chip-row>*{padding:var(--s1) var(--s3)!important;border-radius:999px!important;font-size:12px!important;line-height:20px}
-html.jade .hub-nav{padding-bottom:var(--s4);margin-bottom:var(--s6)!important;gap:var(--s4)!important}
+html.jade .hub-nav{padding-bottom:var(--s4);margin-bottom:var(--s6);gap:var(--s4)}
 html.jade .hub-head{margin:var(--s2) 0 var(--s4)!important}
 html.jade .back-link{margin:var(--s6) 0 var(--s2)!important}
 html.jade .workspace-grid{gap:var(--s6)!important}
@@ -1329,12 +1352,7 @@ html.jade .benchmark-save{display:flex;align-items:center;gap:var(--s3);flex-wra
 
 /* ---------- favourite star on the Pokémon's image ---------- */
 html.jade .art-wrap{position:relative;flex:none}
-html.jade .fav{position:absolute;top:-4px;right:-4px;width:36px;height:36px;padding:0;border-radius:50%;background:var(--bg)!important;border:1px solid var(--ln-2);box-shadow:0 8px 18px -10px var(--shade);z-index:2;color:var(--mu)}
-html.jade .fav svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;transition:transform .35s cubic-bezier(.2,.8,.2,1),fill .2s}
-html.jade .fav:hover{color:var(--gd)!important;border-color:var(--gd)}
-html.jade .fav:hover svg{transform:rotate(-12deg) scale(1.1)}
-html.jade .fav.on{color:var(--gd)!important;border-color:color-mix(in srgb,var(--gd) 55%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--gd) 14%,transparent),0 8px 18px -10px var(--shade)}
-html.jade .fav.on svg{fill:currentColor;animation:jStar .45s cubic-bezier(.2,.8,.2,1)}
+html.jade .fav{position:absolute;z-index:2}
 html.jade .fav-pop{position:absolute;top:40px;left:0;z-index:20;width:280px;padding:var(--s4);border-radius:14px;background:var(--bg);border:1px solid var(--ln-2);box-shadow:0 30px 60px -20px var(--shade);animation:jPop .25s cubic-bezier(.2,.8,.2,1)}
 html.jade .fav-pop label{margin-bottom:var(--s3)}
 html.jade .fav-label{display:inline-flex;align-items:center;margin-left:var(--s2);font-size:12px;font-weight:600;color:var(--gd)}
@@ -1357,7 +1375,6 @@ html.jade .chat-suggestions button{min-height:48px;padding:var(--s3) var(--s4)}
 html.jade .dock form{gap:var(--s2)}
 html.jade .set-card-head .art-wrap>.art{width:140px!important;height:140px!important;position:relative;animation:jFloat 6s ease-in-out infinite}
 html.jade .set-card-head .art-wrap>.art::after{content:'';position:absolute;left:12%;right:12%;bottom:-2px;height:16px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
-html.jade .set-card-head .fav{top:0;right:0}
 html.jade .set-fields .moves .form-grid{gap:var(--s2)!important}
 html.jade .set-fields .moves input{margin:0}
 html.jade .set-fields .moves label{margin:0}
@@ -1366,7 +1383,6 @@ html.jade .set-fields .moves label{margin:0}
 }
 /* stat rows are labels: keep them as their own grid, not the stacked label layout */
 html.jade label.stat-row{display:grid!important;flex-direction:unset;grid-template-columns:40px minmax(0,1fr) 64px 56px 44px!important;align-items:center;gap:var(--s3)!important;margin:0 0 var(--s2)!important;font-weight:500}
-html.jade label.stat-row input{min-height:36px;height:36px;padding:0 var(--s2);text-align:center;font:600 13px var(--fm)}
 html.jade .stat-base{display:flex;align-items:baseline;justify-content:flex-end;gap:var(--s1);font-size:13px;white-space:nowrap}
 html.jade .stat-plus{font:800 13px var(--fdot);color:var(--gd)}
 html.jade .stat-final{text-align:right}
@@ -1377,9 +1393,6 @@ html.jade .sp-edit{margin:var(--s2) 0 var(--s3)}
  html.jade label.stat-row{grid-template-columns:36px minmax(0,1fr) 52px 48px 40px!important;gap:var(--s2)!important}
 }
 /* round buttons stay round */
-html.jade .fav{flex:none!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px;padding:0!important;aspect-ratio:1;border-radius:50%!important;display:inline-grid!important;place-items:center;line-height:0}
-html.jade .fav svg{width:18px;height:18px;flex:none;margin:0!important}
-html.jade .set-card-head .fav{top:-4px!important;left:-4px!important;right:auto!important}
 html.jade .fav-pop{top:44px;left:0}
 /* the attack direction gets its own row between the two sides */
 .matchup-axis{height:auto!important;padding:var(--s4) var(--s6)!important}
@@ -1432,8 +1445,6 @@ html.jade .combatant-edit{border-top:1px dashed var(--ln);padding-top:var(--s1);
 html.jade .combatant-edit+.combatant-edit{border-top:0;padding-top:0}
 /* Mega switch under the render */
 .combatant-art{display:flex;flex-direction:column;align-items:center;gap:var(--s3);height:auto!important}
-html.jade .mega-switch{height:28px;padding:0 var(--s2) 0 var(--s1)!important;border-radius:999px!important;gap:var(--s2);font:700 11px var(--fm)!important;letter-spacing:.1em;text-transform:uppercase;background:var(--sunk)!important;border:1px solid var(--ln-2)!important;color:var(--mu)!important;box-shadow:none!important;transform:none!important}
-html.jade .mega-switch.on{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important;background:color-mix(in srgb,var(--gd) 12%,transparent)!important}
 /* the axis between them: who attacks, then the field everyone shares */
 .matchup-axis{display:grid!important;justify-items:center;gap:var(--s3);height:auto!important;padding:var(--s4) 0!important;position:relative}
 .matchup-axis::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed var(--ln-2)!important;border-top:0!important;z-index:0}
@@ -1554,9 +1565,8 @@ html.jade .stat-final{font-size:22px!important}
 html.jade .mon-slot{font-size:30px!important;font-weight:800!important}
 html.jade .hp-head span{font-size:17px!important}
 html.jade .sp-bar .v{font-size:13px!important}
-html.jade :is(.status,.result,.ctx-label,.verdict,.type-badge,.lane-stat em,.rolls-label,.hp-scale,.stat-name,.sp-bar .k,th,.direction small,.work-on .cat,.mega-switch,.mono,.combatant-sum .mono,.stat-base,.lab-big span){font-family:var(--fb)!important}
+html.jade :is(.status,.result,.ctx-label,.verdict,.type-badge,.lane-stat em,.rolls-label,.hp-scale,.stat-name,.sp-bar .k,th,.direction small,.work-on .cat,.mono,.combatant-sum .mono,.stat-base,.lab-big span){font-family:var(--fb)!important}
 html.jade .ctx-label{letter-spacing:.1em;font-weight:700}
-html.jade label.stat-row input{font-family:var(--fb)!important}
 
 /* ---------- header: Account like the other links; a quiet theme switch ---------- */
 /* items side by side in a grid never pick up the stacked-panel spacing */
@@ -1582,7 +1592,6 @@ html.jade .threat.low{color:var(--mu)!important}
 /* icons: Lucide line icons, one size and alignment everywhere */
 html.jade .px-icon{image-rendering:auto!important;vertical-align:-3px;flex:none}
 html.jade :is(button,.button,a) .px-icon{margin-right:0!important}
-html.jade .hub-tabs a{gap:var(--s2)}
 /* reference-link icons: rounded tile, monogram until the icon arrives, then a quick fade */
 .site-icon{position:relative;display:inline-grid;place-items:center;flex:none;border-radius:6px;overflow:hidden;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--ln)}
 .site-icon .mono-tile{font:700 11px/1 var(--fb);color:var(--mu);transition:opacity .2s}
@@ -1624,12 +1633,6 @@ html.jade .danger-zone h3{color:var(--hot);font:800 22px/1.1 var(--fd)!important
 html.jade .danger-zone p{color:var(--tx);opacity:.85;margin:0}
 
 /* ---------- favourite star: quiet until you hover; gold only when saved ---------- */
-html.jade .fav{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;background:color-mix(in srgb,var(--bg) 55%,transparent)!important;border:0!important;box-shadow:none!important;color:var(--mu)!important;opacity:.75;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-html.jade .fav svg{width:16px!important;height:16px!important}
-html.jade .art-wrap:hover .fav,html.jade .fav:focus-visible{opacity:1}
-html.jade .fav:hover{color:var(--gd)!important;background:color-mix(in srgb,var(--gd) 14%,transparent)!important}
-html.jade .fav.on{opacity:1;color:var(--gd)!important;background:color-mix(in srgb,var(--gd) 16%,transparent)!important;box-shadow:none!important}
-html.jade .set-card-head .fav{top:0!important;left:0!important}
 
 /* ---------- reference icons: just the icon, no tile; a monogram only if it truly fails ---------- */
 .site-icon{background:transparent!important;box-shadow:none!important;border-radius:4px}
@@ -1646,10 +1649,9 @@ html.jade .format-copy label{margin:0}
 html.jade .format-choice{margin-bottom:var(--s6)!important}
 html.jade .format-choice select{max-width:360px}
 /* header controls sit directly on the frosted bar: no second blur behind icons */
-html.jade :is(.fav,.direction){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.jade .direction{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 /* the save star sits off the render, top-left, in a soft round chip */
-html.jade .set-card-head .fav{top:-14px!important;left:-14px!important;border-radius:50%!important;background:var(--glass-2)!important;box-shadow:inset 0 0 0 1px var(--ln),0 4px 12px -6px var(--shade)!important;opacity:1}
-html.jade .set-card-head .fav.on{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gd) 50%,transparent),0 4px 12px -6px var(--shade)!important}
+html.jade .set-card-head .fav{top:-14px;left:-14px}
 /* the live 3D mark on the welcome page */
 html.jade .dock-mark{object-fit:contain}
 /* the 3D brain sits beside the headline rather than above it */
@@ -1828,7 +1830,7 @@ html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggl
 .brain-backdrop.hero{opacity:.9}
 html.jade nav.mon-switcher{background:color-mix(in srgb,var(--bg) 70%,transparent)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 /* things that sit straight on the page (tab bar, header pills, team switcher, chips row) get the same solid backing */
-html.jade :is(.hub-tabs,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
+html.jade :is(.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
 html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
 
 /* ---------- top of page: news and nav run edge to edge as one bar, and the nav stays full width when you scroll ---------- */
@@ -2004,12 +2006,6 @@ html.jade .matchup .combatant .combatant-art .art{width:96px!important;height:96
 html.jade .matchup .combatant .combatant-art::after{left:12%;right:12%}
 /* The Mega pill by the name is the switch: lit when on, an outline with a dimmed orb when off. */
 html.jade .name-row{display:inline-flex;align-items:center;flex-wrap:wrap;gap:var(--s3)}
-html.jade .mega-switch.mega-toggle{height:24px!important;min-height:24px!important;max-height:24px!important;padding:0 var(--s2) 0 var(--s1)!important;gap:var(--s1);border-radius:999px!important;font:700 11px/1 var(--fb)!important;letter-spacing:.08em;cursor:pointer;color:var(--mu)!important;background:transparent!important;border:1px dashed var(--ln-2)!important;transition:color .2s,border-color .2s,background .2s}
-html.jade .mega-switch.mega-toggle .mega-orb{width:16px!important;height:16px!important;filter:grayscale(1);opacity:.45;transition:filter .2s,opacity .2s}
-html.jade .mega-switch.mega-toggle:hover{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important}
-html.jade .mega-switch.mega-toggle.on{color:var(--tx)!important;border-style:solid!important;border-color:color-mix(in srgb,var(--gd) 45%,transparent)!important;background:linear-gradient(90deg,rgba(255,94,126,.14),rgba(255,233,94,.14),rgba(94,255,168,.14),rgba(94,200,255,.14),rgba(163,94,255,.14))!important}
-html.jade .mega-switch.mega-toggle.on .mega-orb{filter:none;opacity:1}
-html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media (max-width:620px){
  /* Moves: one per row. */
  html.jade .set-fields .moves .form-grid{grid-template-columns:minmax(0,1fr)!important}
@@ -2092,7 +2088,6 @@ html.jade .replays .rf-result{flex:none;margin:0!important;padding:var(--s05);ga
    The header is the team name and its four tabs; Export and the format moved to Manage with the history and Delete.
    Phones get a 2 × 3 grid of compact cards, one header pattern for lead and matchup plans (title left, actions top
    right, above the title on the narrowest screens), folded plan text and tighter spacing. 4px rhythm throughout. */
-html.jade .team-hub .hub-nav{justify-content:flex-start!important}
 /* Plans: lead and matchup cards share one header. */
 html.jade .plan-card header.plan-top{display:flex!important;flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important;gap:var(--s2)!important;flex-wrap:nowrap!important;text-align:left!important}
 html.jade .plan-top .plan-head{flex:1;min-width:0;min-height:32px;display:flex;align-items:center;justify-content:flex-start;gap:var(--s2);flex-wrap:wrap}
@@ -2131,9 +2126,9 @@ html.jade .manage .danger-zone{margin:0!important}
  /* Header: tighter, and the four tabs on one row. */
  html.jade .team-hub .back-link{margin:var(--s3) 0 var(--s1)!important}
  html.jade .team-hub .hub-head{margin:var(--s1) 0 var(--s3)!important}
- html.jade .team-hub .hub-nav{padding-bottom:var(--s3)!important;margin-bottom:var(--s4)!important;gap:var(--s2)!important}
- html.jade .team-hub .hub-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:var(--s1)!important;width:100%;margin:0!important}
- html.jade .team-hub .hub-tabs a{height:36px!important;padding:0 var(--s1)!important;gap:var(--s1)!important;justify-content:center;font-size:13px!important;letter-spacing:.04em}
+ html.jade .team-hub .hub-nav{padding-bottom:var(--s3);margin-bottom:var(--s4);gap:var(--s2)}
+ html.jade .team-hub .hub-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s1);width:100%;margin:0}
+ html.jade .team-hub .hub-tabs>a{height:36px;min-height:36px;max-height:36px;padding:0 var(--s1);gap:var(--s1);font-size:13px;letter-spacing:.04em}
  /* The six: one per row, full-width cards. */
  html.jade .team-hub .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:var(--s4)!important}
  /* Strategy write-up and the team row. */
@@ -2194,7 +2189,7 @@ html.jade .manage .danger-zone{margin:0!important}
 @media (max-width:380px){
  html.jade .plan-card header.plan-top{flex-direction:column-reverse!important;align-items:stretch!important;gap:var(--s1)!important}
  html.jade .plan-top .plan-actions{align-self:flex-end}
- html.jade .team-hub .hub-tabs a .px-icon{display:none}
+ html.jade .team-hub .hub-tabs>a .px-icon{display:none}
 }
 html.jade .team-hub .guide-intro .markdown>:last-child{margin-bottom:0}
 
@@ -2259,7 +2254,7 @@ html.jade .about-you .picker,html.jade .about-you .combo{width:100%}
 /* Favourite star on phones: inside the artwork's bottom-right corner instead of hanging off its top-left. */
 @media (max-width:620px){
  html.jade .set-card-head .art-wrap{position:relative}
- html.jade .set-card-head .art-wrap .fav:not(#_){top:auto!important;left:auto!important;right:4px!important;bottom:4px!important}
+ html.jade .set-card-head .art-wrap .fav{top:auto;left:auto;right:var(--s1);bottom:var(--s1)}
 }
 /* Replays: the add form is a fieldset (one `disabled` locks every control); locked until a Showdown name is set. */
 /* OAuth consent: the brain behind the card; Allow/Deny fill the bottom of the card, side by side, stacked on phones. */
@@ -2271,15 +2266,11 @@ html.jade .about-you .picker,html.jade .about-you .combo{width:100%}
  .consent .consent-actions{grid-template-columns:1fr}
 }
 /* Sign in with Google: the four-colour G on a white disc inside the primary button. */
-.google-button{display:inline-flex!important;align-items:center;justify-content:center;gap:var(--s2);white-space:nowrap}
-.google-g-wrap{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(8,32,26,.2);flex:none}
-.google-g{display:block}
 .account-signin{align-items:center;gap:var(--s6)}
 .account-signin>div{display:grid;gap:var(--s2);flex:1;min-width:0}
 .account-signin p{margin:0}
 @media (max-width:620px){
  .account-signin{flex-direction:column;align-items:stretch}
- .account-signin .google-button{width:100%}
 }
 /* AI settings: the explainer and the connector address use the glass radius like every other box. */
 html.jade .ai-explainer,html.jade .copy-line{border-radius:var(--rs)!important;overflow:hidden}
@@ -2582,10 +2573,6 @@ html.jade .dock-meta{display:flex;align-items:center;justify-content:space-betwe
 html.jade .dock-meta .context-chip{margin:0}
 html.jade .dock-meta .model-picker select{height:32px;font-size:12px}
 html.jade .dock-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);padding:0 var(--s6) var(--s3);border-bottom:1px solid var(--ln)}
-html.jade .dock-bar button{height:36px;padding:0 var(--s4);border-radius:10px;display:inline-flex;align-items:center;gap:var(--s2);font:600 13px var(--fb);background:transparent;border:1px solid var(--ln);color:var(--tx)}
-html.jade .dock-bar button:hover{border-color:var(--ac)}
-html.jade .dock-bar .dock-past.on{border-color:var(--ac);color:var(--ac)}
-html.jade .dock-bar .dock-new{border-color:transparent;color:var(--ac)}
 html.jade .history-list li button .tag{justify-self:start}
 html.jade .dock .history-list button{min-height:60px;padding:var(--s3) var(--s4)}
 html.jade .dock .history-list li{margin:0}
@@ -2645,9 +2632,6 @@ html.jade .dock-wrap,html.jade .shell>.dock-wrap{display:contents}
 }
 /* phones: the save star and the Mega switch keep their size but answer to a 44px touch */
 @media (max-width:620px){
- html.jade .fav::after{content:'';position:absolute;inset:calc((var(--touch) - 32px) / -2)}
- html.jade .mega-toggle{position:relative}
- html.jade .mega-toggle::after{content:'';position:absolute;left:calc(-1 * var(--s1));right:calc(-1 * var(--s1));top:50%;height:var(--touch);transform:translateY(-50%)}
 }
 .combo-close{display:none}
 /* phones: an open picker (species, item, move, team style) becomes a full-screen sheet: the search field on top, the list
@@ -2733,3 +2717,11 @@ html.jade .dock-wrap,html.jade .shell>.dock-wrap{display:contents}
  .quickbar-menu{position:static;width:100%;max-height:none;margin-top:var(--s2)}
 }
 @media (max-width:620px){.brand .wordmark{display:none}}
+.ds-states{display:grid;gap:var(--s4)}
+.ds-states-row{display:grid;gap:var(--s2)}
+.ds-states-cells{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--s3) var(--s4)}
+.ds-states-cells>figure{display:grid;justify-items:start;gap:var(--s1);margin:0;min-width:0}
+.ds-states-cells figcaption{font-size:var(--t-xs)}
+.ds-states-cells :is(input,select){width:160px}
+.ds-states-cells .tile{width:150px}
+.ds-states-cells .tabs{margin:0}
