@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import './landing.css';
-import {Art,TypeBadges,ModeSwitch,Button,LinkButton,Tag,Segmented} from './ui.tsx';
+import {Art,TypeBadges,ModeSwitch,Button,LinkButton,Tag,Segmented,Switch} from './ui.tsx';
 import {PlanCard} from './team/Coaching.tsx';
 import {RolePill} from './team/Coaching.tsx';
 import {MonCard} from './team/Hub.tsx';
@@ -90,8 +90,8 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
       <div className="lp-copy">
         <h1 className="lp-title">The open&#8209;source <em>brain</em> for Pokémon VGC.</h1>
         <p className="lp-sub">Build teams, run calcs and learn from your replays, with the AI you already use.</p>
-        <div className="lp-ctas"><Button variant="primary" className="lp-go" onClick={onOpen}>Open the app<span aria-hidden="true">→</span></Button>
-          <LinkButton className="lp-gh" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</LinkButton></div>
+        <div className="lp-ctas"><Button variant="primary" size="large" className="lp-go" onClick={onOpen}>Open the app<span aria-hidden="true">→</span></Button>
+          <LinkButton size="large" className="lp-gh" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</LinkButton></div>
       </div>
       <div className="lp-vis"><div className="lp-stage" ref={stage}>
         <span className="lp-floor" aria-hidden="true"/>
@@ -137,7 +137,7 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
         </section></Tilt>
         <Tilt className="lp-race" base={{y:7,x:2,z:1}}><section className="panel lab-inline lp-panel">
           <header className="panel-heading"><div><span className="eyebrow">Mega Salamence · Timid 2/32/32 · PokéBase M-C tournaments, 63.6% of spreads</span><h2>Speed</h2></div>
-            <label className="lp-tog"><input type="checkbox" checked={tr} onChange={e=>setTr(e.target.checked)}/><span>Trick Room</span></label></header>
+            <Switch className="lp-tog" checked={tr} onChange={e=>setTr(e.target.checked)}>Trick Room</Switch></header>
           <SpeedRace key={'race'+calcSeen} a={{name:'Alakazam-Mega',fallback:'Alakazam',speed:222}} b={{name:'Salamence-Mega',fallback:'Salamence',speed:189}} first={tr?'b':'a'} trickRoom={tr} art={art} decidedBy="speed"/>
         </section></Tilt>
       </div></div>
@@ -186,15 +186,15 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
             <ul className="lp-points lp-more"><li><b>Stays in this browser.</b> Your key is kept on this device only, not in your account or our database.</li><li><b>Used only for your requests.</b> It passes to the provider for that one request and is discarded. Never logged or stored.</li><li><b>You're in control.</b> Remove it any time, or set a spending limit with your provider.</li></ul></div>
           <div className="lp-side">
             <div className="lp-grid c2" role="group" aria-label="Provider">
-              <Button className={prov==='openai'?'on':undefined} aria-pressed={prov==='openai'} onClick={()=>setProv('openai')}><OpenAIMark/><span>OpenAI</span></Button>
-              <Button className={prov==='anthropic'?'on':undefined} aria-pressed={prov==='anthropic'} onClick={()=>setProv('anthropic')}><AnthropicMark style={{color:'#D97757'}}/><span>Anthropic</span></Button></div>
+              <Button variant="tile" className={prov==='openai'?'on':undefined} aria-pressed={prov==='openai'} onClick={()=>setProv('openai')}><OpenAIMark/><span>OpenAI</span></Button>
+              <Button variant="tile" className={prov==='anthropic'?'on':undefined} aria-pressed={prov==='anthropic'} onClick={()=>setProv('anthropic')}><AnthropicMark style={{color:'#D97757'}}/><span>Anthropic</span></Button></div>
             <div className="lp-cmd"><code><b>{prov==='openai'?'OPENAI_API_KEY':'ANTHROPIC_API_KEY'}</b>={prov==='openai'?'sk-…':'sk-ant-…'}</code></div>
             <p className="lp-fine">Check for yourself. Frontier Brain is open source, so you can read exactly how keys are handled.</p></div>
         </div>:<div className="lp-pane" role="tabpanel">
           <div><p className="lp-lead"><b>Use Frontier Brain from Claude, ChatGPT or your coding agent.</b> Add it as a connector and your assistant can read your teams, run exact calcs, look up the data pool, create teams and propose plans. It runs on your own subscription, with no API key needed.</p>
             <ul className="lp-points lp-more"><li><b>You approve access.</b> Connecting opens Frontier Brain so you can sign in and click Allow.</li><li><b>Only your workspace.</b> The connector sees your teams and replays, nobody else's.</li><li><b>Changes wait for you.</b> New plans arrive as proposals; nothing about an existing team changes until you accept it.</li></ul></div>
           <div className="lp-side">
-            <div className="lp-grid c3" role="group" aria-label="Client">{CLIENTS.map((c,i)=><Button key={c.n} className={i===client?'on':undefined} aria-pressed={i===client} onClick={()=>setClient(i)}>{c.icon}<span>{c.n}</span></Button>)}</div>
+            <div className="lp-grid c3" role="group" aria-label="Client">{CLIENTS.map((c,i)=><Button variant="tile" key={c.n} className={i===client?'on':undefined} aria-pressed={i===client} onClick={()=>setClient(i)}>{c.icon}<span>{c.n}</span></Button>)}</div>
             <div className="lp-cmd"><code>{cur.snip}</code><Button size="compact" onClick={()=>copy(cur.snip)}>{copied?'Copied':'Copy'}</Button></div>
             <p className="lp-fine">{cur.hint}</p></div>
         </div>}
@@ -204,7 +204,7 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
     {/* closing */}
     <section className="lp-close lp-rv">
       <h2 className="lp-title">The brain every VGC player can build on.</h2>
-      <LinkButton variant="primary" className="lp-xl" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</LinkButton>
+      <LinkButton variant="primary" size="hero" className="lp-xl" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</LinkButton>
       <p>Open source and free for anyone to tinker with. Fork it, extend it, bring your own AI, and help make the best community tools.</p>
     </section>
   </div>;

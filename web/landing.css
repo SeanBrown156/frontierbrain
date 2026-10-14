@@ -17,7 +17,6 @@ html.jade .lp-title em{font-style:normal;background:linear-gradient(180deg,var(-
 @keyframes lpSheen{0%,100%{background-position:0 100%}50%{background-position:0 0}}
 html.jade .lp-sub{font-size:19px;line-height:1.55;color:var(--mu);max-width:32em;margin:0}
 html.jade .lp-ctas{display:flex;gap:var(--s3);flex-wrap:wrap}
-html.jade .lp-go,html.jade .lp-gh{min-height:48px;padding:0 var(--s6);display:inline-flex;align-items:center;font-size:15px}
 html.jade :is(.lp-gh,.lp-xl,.lp-nav-src) svg{width:20px;height:20px;flex:none}
 html.jade .lp-vis{min-width:0}
 
@@ -98,11 +97,7 @@ html.jade .lp-dmg{z-index:2;padding-bottom:40px}
 html.jade .lp-race{margin-left:7%;margin-top:calc(-1 * var(--s8));z-index:3}
 html.jade .lp-moves{margin:0 0 var(--s3);flex-wrap:wrap}
 html.jade .lp-panel .panel-heading h2{font-size:22px}
-html.jade .lp-tog{display:inline-flex;align-items:center;gap:var(--s2);font:600 12px var(--fnum);letter-spacing:.06em;text-transform:uppercase;color:var(--mu);cursor:pointer;margin:0}
-html.jade .lp-tog input{appearance:none;width:44px;height:26px;min-height:26px;max-height:26px;flex:none;border-radius:99px;background:var(--field);border:1px solid var(--ln-2);position:relative;cursor:pointer;margin:0;padding:0;min-width:0;transition:background .2s}
-html.jade .lp-tog input::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--mu);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s}
-html.jade .lp-tog input:checked{background:color-mix(in srgb,var(--ac) 30%,transparent)}
-html.jade .lp-tog input:checked::after{transform:translateX(18px);background:var(--ac)}
+html.jade .lp-tog span{font:600 12px var(--fnum);letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
 
 /* the 'who gives you trouble' lists are the app's own glance-grid; here it is one column in a narrow card */
 html.jade .lp-glance.glance-grid{grid-template-columns:minmax(0,1fr)}
@@ -158,9 +153,7 @@ html.jade .lp-side{display:flex;flex-direction:column;gap:var(--s3);min-width:0}
 html.jade .lp-grid{display:grid;gap:var(--s2);width:100%}
 html.jade .lp-grid.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
 html.jade .lp-grid.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
-html.jade .lp-grid button{display:flex;align-items:center;justify-content:center;gap:var(--s2);min-height:52px;padding:0 var(--s3);border-radius:12px;border:1px solid var(--ln);font:700 14.5px/1.2 var(--fb)}
-html.jade .lp-grid button:hover{color:var(--tx);border-color:var(--ln-2)}
-html.jade .lp-grid button.on{color:var(--tx)}
+html.jade .lp-grid>.tile{display:flex;align-items:center;justify-content:center;gap:var(--s2);min-height:52px;padding:0 var(--s3);font:700 14.5px/1.2 var(--fb)}
 html.jade .lp-grid svg{width:22px;height:22px;flex:none}
 html.jade .lp-cmd{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);min-height:56px;border-radius:10px;background:var(--field);border:1px solid var(--ln)}
 html.jade .lp-cmd code{flex:1;min-width:0;font:500 13px/1.6 var(--fnum);color:var(--tx);overflow-wrap:anywhere;background:none;padding:0}
@@ -171,7 +164,6 @@ html.jade .lp-fine{font:400 12.5px/1.6 var(--fnum);color:var(--mu);margin:0}
 html.jade .lp-close{display:flex;flex-direction:column;align-items:center;gap:var(--s4);text-align:center;padding-block:var(--s8) var(--s12)}
 html.jade .lp-close .lp-title{font-size:clamp(30px,4vw,52px);max-width:16em}
 html.jade .lp-close p{color:var(--tx);font-size:18px;max-width:36em;margin:0}
-html.jade .lp-xl{min-height:68px;padding:0 var(--s12);border-radius:16px;font-size:20px;display:inline-flex;align-items:center}
 
 @media (max-width:1200px){
   html.jade .lp-fan{height:auto;display:grid;gap:var(--s4);perspective:none}
@@ -217,7 +209,6 @@ html.jade .lp-xl{min-height:68px;padding:0 var(--s12);border-radius:16px;font-si
   html.jade .lp-pop img{animation:none}
   html.jade .lp-grid.c3{grid-template-columns:repeat(2,minmax(0,1fr))}
   html.jade .lp-os-card{padding:var(--s4) var(--s4)}
-  html.jade .lp-xl{padding:0 var(--s8);font-size:18px;min-height:60px}
   html.jade .lp-race{margin-top:var(--s4)}
   html.jade .lp-calcs .lp-dmg{padding-bottom:0}
 }
@@ -229,11 +220,10 @@ html.jade .lp-xl{min-height:68px;padding:0 var(--s12);border-radius:16px;font-si
 /* landing nav: the brand and two actions, nothing else (no quick links, news or account) */
 html.jade .masthead.landing-nav{display:flex!important;align-items:center;gap:var(--s2)!important;flex-wrap:nowrap}
 html.jade .masthead.landing-nav .brand{margin-right:auto;min-width:0}
-html.jade .lp-nav-src,html.jade .lp-nav-go{min-height:40px;padding:0 var(--s4);display:inline-flex;align-items:center;gap:var(--s2);font-size:14px;white-space:nowrap}
+html.jade :is(.lp-nav-src,.lp-nav-go){white-space:nowrap}
 html.jade .lp-nav-src svg{width:18px;height:18px;flex:none}
 /* phones: just the logo, the theme switch and Open the app */
 @media (max-width:760px){
   html.jade .lp-nav-src{display:none}
   html.jade .masthead.landing-nav{gap:var(--s2)!important}
-  html.jade .lp-nav-go{padding:0 var(--s4)}
 }
