@@ -1,40 +1,40 @@
 /* Four-way speed order: partner cards and the four-lane race. Tokens and fonts come from jade.css. */
-.partners{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.partner{display:grid;grid-template-columns:72px minmax(0,1fr);gap:16px;align-items:start;padding:16px;border:1px solid var(--ln);border-radius:var(--r);background:var(--sunk);min-width:0}
+.partners{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s4)}
+.partner{display:grid;grid-template-columns:72px minmax(0,1fr);gap:var(--s4);align-items:start;padding:var(--s4);border:1px solid var(--ln);border-radius:var(--r);background:var(--sunk);min-width:0}
 .partner-art{width:72px;height:72px;display:grid;place-items:center}
 html.jade .partner-art .art{width:72px!important;height:72px!important}
 .partner-empty{width:56px;height:56px;border-radius:50%;border:1px dashed var(--ln-2);display:grid;place-items:center;color:var(--mu);font-size:24px}
-.partner-main{display:grid;gap:10px;min-width:0}
-.partner-main .name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.partner-main{display:grid;gap:var(--s2);min-width:0}
+.partner-main .name-row{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
 .partner-main .combo{flex:1 1 180px;max-width:300px}
 .partner-main .footnote,.partner-main .combatant-sum{margin:0}
-.lane .lane-side{font:800 10px var(--fm);letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:999px;border:1px solid var(--ln-2);color:var(--mu)}
+.lane .lane-side{font:800 10px var(--fm);letter-spacing:.1em;text-transform:uppercase;padding:var(--s05) var(--s1);border-radius:999px;border:1px solid var(--ln-2);color:var(--mu)}
 .lane.is-mine .lane-side{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 55%,transparent)}
 .lane-sub{flex-basis:100%;font-size:12px;color:var(--mu)}
 .lane.tied .lane-stat em{background:transparent;color:var(--tx);box-shadow:inset 0 0 0 1px var(--ac)}
-.race-watch{margin:0;padding:12px 16px;border:1px dashed var(--ln-2);border-radius:var(--r);display:grid;gap:6px;list-style:none;font-size:13px;color:var(--mu)}
-.race-watch li::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ac);margin-right:8px;vertical-align:middle}
-@media (max-width:760px){.partners{grid-template-columns:minmax(0,1fr)}.partner{grid-template-columns:48px minmax(0,1fr);gap:12px;padding:12px}.partner-art,html.jade .partner-art .art{width:48px!important;height:48px!important}}
-.save-list{border:1px solid var(--ln);border-radius:var(--r);padding:12px 16px;margin:0;display:grid;gap:10px;min-width:0}
-.save-list legend{padding:0 6px;font:700 11px var(--fm);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
-.save-list ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.save-list li label{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;margin:0}
-.save-list li input{margin-top:3px;flex:none}
+.race-watch{margin:0;padding:var(--s3) var(--s4);border:1px dashed var(--ln-2);border-radius:var(--r);display:grid;gap:var(--s1);list-style:none;font-size:13px;color:var(--mu)}
+.race-watch li::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ac);margin-right:var(--s2);vertical-align:middle}
+@media (max-width:760px){.partners{grid-template-columns:minmax(0,1fr)}.partner{grid-template-columns:48px minmax(0,1fr);gap:var(--s3);padding:var(--s3)}.partner-art,html.jade .partner-art .art{width:48px!important;height:48px!important}}
+.save-list{border:1px solid var(--ln);border-radius:var(--r);padding:var(--s3) var(--s4);margin:0;display:grid;gap:var(--s2);min-width:0}
+.save-list legend{padding:0 var(--s1);font:700 11px var(--fm);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.save-list ul{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
+.save-list li label{display:flex;gap:var(--s2);align-items:flex-start;font-size:13.5px;margin:0}
+.save-list li input{margin-top:var(--s05);flex:none}
 .save-list li.off{opacity:.65}
-.save-list li small{display:block;margin:2px 0 0 26px;color:var(--mu);font-size:12px}
+.save-list li small{display:block;margin:var(--s05) 0 0 var(--s6);color:var(--mu);font-size:12px}
 .save-list .primary{justify-self:start}
 /* Benchmark rows: generated headline (role pill + opponent), facts, then the outcome. A supplied title is muted context. */
-.benchmarks .bm-head{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;min-width:0}
-.benchmarks .bm-role{font:800 10.5px var(--fm);letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--ln-2);color:var(--mu);white-space:nowrap}
+.benchmarks .bm-head{display:flex;align-items:center;gap:var(--s2) var(--s2);flex-wrap:wrap;min-width:0}
+.benchmarks .bm-role{font:800 10.5px var(--fm);letter-spacing:.1em;text-transform:uppercase;padding:var(--s05) var(--s2);border-radius:999px;border:1px solid var(--ln-2);color:var(--mu);white-space:nowrap}
 .benchmarks .bm-role.damage-to,.benchmarks .bm-role.outspeeds{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 55%,transparent)}
 .benchmarks .bm-role.damage-from,.benchmarks .bm-role.outsped-by{color:var(--tx)}
-.benchmarks .bm-opp{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.benchmarks .bm-opp{display:inline-flex;align-items:center;gap:var(--s1);min-width:0}
 .benchmarks .bm-opp .art{width:32px!important;height:32px!important;flex:none}
 .benchmarks .bm-opp b{font-size:14px;overflow-wrap:anywhere}
 .benchmarks .bm-detail{color:var(--tx);overflow-wrap:anywhere}
 .benchmarks .bm-note{font-style:italic;opacity:.8;overflow-wrap:anywhere}
 /* second attacker / second target: set clear of the matchup above, one full-width card */
-.doubles{display:grid;gap:12px;margin-top:20px}
+.doubles{display:grid;gap:var(--s3);margin-top:var(--s6)}
 .doubles .toggles{margin:0}
 .doubles .partners{grid-template-columns:minmax(0,1fr)}
 

@@ -67,7 +67,7 @@
 }
 @media (max-width:760px){:root,[data-theme]{--gutter:16px}}
 @media (max-width:720px){:root,[data-theme]{--pad-dialog:var(--s4)}}
-@media (max-width:620px){:root,[data-theme]{--pad-panel:var(--s4)}}
+@media (max-width:620px){:root,[data-theme]{--pad-panel:var(--s4);--pad-card:var(--s3)}}
 
 /* ========== 2. base and 3. components ==========
    Both live in cascade layers, so any page rule (unlayered, below) wins over them without !important or long :not()
@@ -111,11 +111,11 @@ table{border-color:var(--ln)}:is(td,th){border-color:var(--ln)}@media (prefers-r
  h1{font-size:34px}
  }
 body{line-height:1.6}
-p{margin:0 0 12px}
+p{margin:0 0 var(--s3)}
 :is(p,li):last-child{margin-bottom:0}
-details>summary{cursor:pointer;padding:8px 0;color:var(--ac);font-weight:600;font-size:13px}
-details[open]>summary{margin-bottom:12px}
-:is(td,th){padding:12px 16px;vertical-align:middle}
+details>summary{cursor:pointer;padding:var(--s2) 0;color:var(--ac);font-weight:600;font-size:13px}
+details[open]>summary{margin-bottom:var(--s3)}
+:is(td,th){padding:var(--s3) var(--s4);vertical-align:middle}
 th{font:600 10.5px var(--fm);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
 body{overflow-x:clip}
 main h1{text-shadow:var(--phos-title)}
@@ -178,6 +178,9 @@ main h1{text-shadow:var(--phos-title)}
   -webkit-backdrop-filter:blur(var(--blur)) saturate(140%);backdrop-filter:blur(var(--blur)) saturate(140%)}
  .panel{position:relative;min-width:0;padding:var(--pad-panel)}
  .card{position:relative;min-width:0;padding:var(--pad-card)}
+ /* sections take the panel inset; anything that sits inside one takes the card inset */
+ .set-card,.strategy-block,.profile-card,.sample-offer,.danger-zone,.digest{padding:var(--pad-panel)}
+ .mon-card,.team-card,.plan-card,.manage-tile,.format-tile,.weekly-digest,.lab-result,.field-box,.pair-card,.inbox-item,.source-card{padding:var(--pad-card)}
  .panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s4);padding-bottom:var(--s4);margin-bottom:var(--s4);border-bottom:1px solid var(--ln)}
  .panel-heading h2{margin:0}
  .panel-heading .eyebrow{margin-bottom:var(--s1)}
@@ -194,7 +197,7 @@ main h1{text-shadow:var(--phos-title)}
  .modal-footer{display:flex;justify-content:flex-end;align-items:center;gap:var(--gap-inline);margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--ln)}
 
  /* ---- Tabs and Segmented: one sunk track; the chosen option lifts out as glass with an emerald edge ---- */
- :is(.tabs,.segmented){display:inline-flex;flex-wrap:wrap;gap:3px;padding:3px;margin:0;border-radius:var(--s3);background:var(--sunk);border:1px solid var(--ln)}
+ :is(.tabs,.segmented){display:inline-flex;flex-wrap:wrap;gap:var(--s05);padding:var(--s05);margin:0;border-radius:var(--s3);background:var(--sunk);border:1px solid var(--ln)}
  .tabs{margin-bottom:var(--s4)}
  :is(.tabs,.segmented)>button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);
   color:var(--mu);background:transparent;border:1px solid transparent;border-radius:9px;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -213,13 +216,13 @@ main h1{text-shadow:var(--phos-title)}
  .chip-row{display:flex;flex-wrap:wrap;gap:var(--s2);justify-content:center;margin-top:var(--s3)}
 
  /* ---- Tag: a quiet label pill (status, source, count) ---- */
- .tag{display:inline-block;padding:3px 10px;font:600 10px/1.4 var(--fb);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+ .tag{display:inline-block;padding:var(--s05) var(--s2);font:600 10px/1.4 var(--fb);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
   color:var(--mu);background:var(--sunk);border:1px solid var(--ln);border-radius:var(--r-pill)}
  .tag.ok{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 40%,transparent)}
  .tag.warn{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 50%,transparent)}
 
  /* ---- Badge with count: a red bubble on an icon button's corner ---- */
- .count-badge{position:absolute;top:1px;right:0;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:var(--r-pill);
+ .count-badge{position:absolute;top:1px;right:0;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 var(--s1);border-radius:var(--r-pill);
   background:#e5383b;color:#fff;font:700 11px/1 var(--fnum);box-shadow:0 0 0 2px var(--bg)}
 
  /* ---- Notice, Empty state, Toast ---- */
@@ -232,13 +235,13 @@ main h1{text-shadow:var(--phos-title)}
  .toast button.icon{width:var(--compact-height);min-width:var(--compact-height);height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);border:0;background:transparent;box-shadow:none}
 
  /* ---- Two-way switch (ModeSwitch in ui.tsx) ---- */
- .mode-switch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;width:100%;height:60px;min-height:60px;max-height:60px;padding:6px;margin:0 0 var(--s4);
+ .mode-switch{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;width:100%;height:60px;min-height:60px;max-height:60px;padding:var(--s1);margin:0 0 var(--s4);
   border-radius:var(--r-pill);background:var(--field);border:1px solid var(--ln-2);box-shadow:inset 0 2px 8px rgba(0,0,0,.28);cursor:pointer;text-align:center}
  .mode-switch:hover:not(:disabled){background:var(--field);border-color:var(--ln-2);transform:none}
  .mode-switch .ms-thumb{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 2);border-radius:var(--r-pill);pointer-events:none;
   background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 38%,var(--bg)),color-mix(in srgb,var(--ac) 24%,var(--bg)));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 70%,transparent),0 0 22px -6px var(--glow);transition:transform .38s cubic-bezier(.3,1.2,.4,1)}
  .mode-switch.right .ms-thumb{transform:translateX(100%)}
- .mode-switch .ms-side{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-width:0;padding:0 var(--s3);color:var(--mu);font:700 16px/1.2 var(--fb);transition:color .25s}
+ .mode-switch .ms-side{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);min-width:0;padding:0 var(--s3);color:var(--mu);font:700 16px/1.2 var(--fb);transition:color .25s}
  .mode-switch .ms-side svg{width:20px;height:20px;flex:none}
  .mode-switch .ms-side.on{color:var(--tx);text-shadow:var(--phos-title)}
  .mode-switch:hover .ms-side:not(.on){color:var(--tx)}
@@ -288,8 +291,7 @@ main h1{text-shadow:var(--phos-title)}
 .pool-counts{display:grid;margin:var(--s2) 0}.pool-counts>div{display:grid}.pool-counts span{color:var(--mu)}.pool-team{border-bottom:1px solid var(--ln)}.pool-team p{margin:var(--s1) 0;font-size:12px}.pool-link{border-bottom:1px solid var(--ln);margin-bottom:var(--s1)}
 .set-tile{padding:var(--s3);display:grid;gap:var(--s2)}.set-tile.swapped{border-color:var(--gd)}.set-tile-head{display:flex;gap:var(--s3);align-items:center}.set-tile-head h3{margin:0}.set-tile-head p{margin:0;font-size:12px;color:var(--mu)}.set-tile .was{color:var(--mu);font-size:11px}.set-tile .changed,.tile-stats .changed b{color:var(--hot)}.tile-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--s1);text-align:center}.tile-stats div{border:1px solid var(--ln);border-radius:3px;padding:var(--s1);display:grid}.tile-stats span{font-size:10px;color:var(--mu)}.tile-stats small{color:var(--mu)}.tile-note{font-size:12px;margin:0;color:var(--mu)}.proposals{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--s2);margin-top:var(--s2)}.proposal-card{padding:var(--s2)}.proposal-card .pair{display:flex;gap:var(--s1);align-items:center;flex-wrap:wrap}.proposal-card h3{margin:0 0 var(--s1)}.paste{max-height:240px;overflow:auto}.steps{color:var(--mu)}.steps li.error{color:var(--hot)}.chat-turn.working{border-style:dashed}.mon-card .card-footer{display:flex;gap:var(--s2);align-items:center;justify-content:space-between}.tiny{font-size:10px}.basis{font-size:12px;color:var(--mu);padding-left:var(--s4)}.strategy-head{justify-content:space-between}.strategy-head h3{margin:0}.strategy-block textarea{width:100%}
 .choose-row{display:flex;flex-wrap:wrap;gap:var(--s2)}.choose input{display:none}
-.build-jobs{display:grid;gap:var(--s2);margin-bottom:var(--s3)}.build-job{display:flex;justify-content:space-between;gap:var(--s3);align-items:center;padding:var(--s3) var(--s3)}.build-job.failed,.build-job.interrupted{border-color:var(--hot)}.build-job h3{margin:var(--s1) 0}
-.source-card{padding:var(--s2)}.source-card a{display:flex;gap:var(--s2);align-items:center}.source-card p{font-size:12px}.team-card-title h3,.lab-result h3{font-family:var(--fd);font-size:16px;line-height:1.4}.hub-tabs,.ticker-run b{font-size:16px}
+.build-jobs{display:grid;gap:var(--s2);margin-bottom:var(--s3)}.build-job{display:flex;justify-content:space-between;gap:var(--s3);align-items:center;padding:var(--s3) var(--s3)}.build-job.failed,.build-job.interrupted{border-color:var(--hot)}.build-job h3{margin:var(--s1) 0}.source-card a{display:flex;gap:var(--s2);align-items:center}.source-card p{font-size:12px}.team-card-title h3,.lab-result h3{font-family:var(--fd);font-size:16px;line-height:1.4}.hub-tabs,.ticker-run b{font-size:16px}
 .eyebrow,.tag,.status,.result,.sp-inputs label,.ticker-label,.threat,.score-strip span,.reference-groups h3,.art-fallback{font-family:var(--fb)}
 .sp-inputs input,.tile-stats b,.tile-stats small,.score-strip b{font-variant-numeric:tabular-nums}.sp-inputs input{font-size:14px}
 .markdown strong{font-weight:600}.markdown em{font-style:italic}
@@ -411,18 +413,17 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 .dock-input{border-top:1px solid var(--ln);background:var(--sunk)}.chat-input textarea{padding:var(--s2) var(--s3);background:var(--field);border-color:var(--ln)}.chat-input>.primary{width:40px;padding:0}.context-chip{margin-bottom:var(--s2)}.dock-toggle{right:24px;bottom:24px}
 .data-pool{display:grid;gap:var(--s6);padding:0}.pool-counts{grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--s3)}.pool-counts>div{align-content:start;gap:var(--s2);padding:var(--s4);text-align:center;min-width:0}.pool-counts b{font-size:24px}.pool-counts span{font-size:12px}.pool-team{padding:var(--s4) 0}.pool-team .team-six{justify-content:center}.pool-team p{text-align:center;margin-top:var(--s2)}
 .stat-table{font-size:13px}.stat-table td,.stat-table th{vertical-align:middle}.stat-table .art.small{width:40px;height:40px}.source-grid{gap:var(--s4)}.source-grid article{padding:var(--s4)}.reference-groups>section{margin:var(--s6) 0}
-.week-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2);margin-bottom:var(--s6)}.week-tabs button{height:56px;min-height:56px;max-height:56px;flex-direction:column;white-space:normal}.week-tabs small{font:12px var(--fb)}.weekly-digest{background:var(--sunk);border-left:4px solid var(--ac);padding:var(--s4);text-align:center}.weekly-digest p{font-family:var(--fb);font-size:14px;margin:var(--s3) 0 0}.news-signal{padding:var(--s6) 0}.news-signal h3{margin:var(--s3) 0}.articles article{padding:var(--s4) 0;gap:var(--s3)}.article-mark{background:var(--sunk);color:var(--tx)}.article-mark.report{color:var(--ac)}.article-mark.community{background:var(--danger-tint);color:var(--hot)}
+.week-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2);margin-bottom:var(--s6)}.week-tabs button{height:56px;min-height:56px;max-height:56px;flex-direction:column;white-space:normal}.week-tabs small{font:12px var(--fb)}.weekly-digest{background:var(--sunk);border-left:4px solid var(--ac);text-align:center}.weekly-digest p{font-family:var(--fb);font-size:14px;margin:var(--s3) 0 0}.news-signal{padding:var(--s6) 0}.news-signal h3{margin:var(--s3) 0}.articles article{padding:var(--s4) 0;gap:var(--s3)}.article-mark{background:var(--sunk);color:var(--tx)}.article-mark.report{color:var(--ac)}.article-mark.community{background:var(--danger-tint);color:var(--hot)}
 .modal .panel{border:0;padding:0;box-shadow:none}.modal .panel-heading{justify-content:center;text-align:center}.modal .panel-heading>div{width:100%}.modal .panel:before{display:none}
 .upload-box{background:var(--sunk);padding:var(--s3) var(--s4);border-left-color:var(--ac)}.footer{margin-top:var(--s8);padding:var(--s6) 0 var(--s12);gap:var(--s4);align-items:center;font:12px var(--fb)}.footer>span:first-child{font:13px var(--fd)}
 .welcome{padding:var(--s8) var(--s4)}.welcome-card{width:min(480px,100%);padding:var(--s8);gap:var(--s6);justify-items:center;text-align:center}.welcome-card h1{font:600 32px var(--fd)}.welcome-card .footnote{margin:0}
 .account-menu{flex:none;max-width:100%}.account-menu>.compact{height:40px;min-height:40px;max-height:40px;max-width:220px;overflow:hidden;text-overflow:ellipsis;background:var(--glass);color:var(--tx)}.account-menu>.primary{background:var(--glass);color:var(--ac);border-color:var(--glass)}
 .account-pop{display:grid;color:var(--tx)}.account-pop p{margin:0;overflow-wrap:anywhere}.account-pop .text-button{justify-self:center}.account-pop .button-row{flex-wrap:wrap}.account-pop .button-row .primary{flex:1}
-.profile-card,.sample-offer{margin:0 auto var(--s6);padding:var(--s6);gap:var(--s4);text-align:center}.profile-card{border-color:var(--ln-2)}.profile-card label{text-align:left}.sample-offer{display:flex;flex-direction:column;align-items:center}.sample-offer p{max-width:640px;margin:0 auto}
+.profile-card,.sample-offer{margin:0 auto var(--s6);gap:var(--s4);text-align:center}.profile-card{border-color:var(--ln-2)}.profile-card label{text-align:left}.sample-offer{display:flex;flex-direction:column;align-items:center}.sample-offer p{max-width:640px;margin:0 auto}
 @media(max-width:1100px){.masthead .quickbar{order:3;flex-basis:100%}.set-card{max-width:640px;width:100%;margin:auto}.set-fields .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.set-fields label:last-child{grid-column:auto}}
 @media(max-width:760px){
- .shell{padding:0 var(--s4) var(--s8)}.brand{white-space:nowrap}.masthead .quickbar{order:0}.save-pill{max-width:100%}.account-menu{width:100%;display:flex;justify-content:center}.account-menu>.compact{max-width:100%;width:auto}.quickbar-menu{position:fixed;left:16px;right:16px;top:160px}.hub-title h1{font-size:28px}.landing-head,.hub-head{gap:var(--s4)}.milestone{width:100%;flex-direction:column;gap:var(--s2)}.hub-nav{flex-direction:column}.hub-nav .hub-tabs{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);overflow:visible}.hub-tabs a{white-space:nowrap}.version-select{width:100%}.version-select select{width:100%;max-width:100%}.teams-landing .team-list,.six-grid{grid-template-columns:minmax(0,1fr);gap:var(--s4)}.team-card-title{min-height:64px}.team-card-title h3{font-size:21px}.mon-card-head h3{font-size:20px}
- .strategy-block,.plan-card,.set-card,.profile-card,.sample-offer{padding:var(--s4)}.panel-heading{flex-wrap:wrap;text-align:center}.panel-heading>div{width:100%}.strategy-head{justify-content:center;text-align:center}.strategy-head .grow{display:none}.strategy-head h2{width:100%}.plan-card header{flex-direction:column;text-align:center}.plan-card footer{justify-content:center}.plan-card footer .muted{flex-basis:100%;text-align:center;margin:0}.plan-card .pair{justify-content:center}.objectives li{gap:var(--s2)}.segmented{justify-content:center}.replay-list{grid-template-columns:minmax(0,1fr)}.game{padding:var(--s4)}.changes li{grid-template-columns:minmax(0,1fr);gap:var(--s2)}.changes .button-row{justify-content:flex-start}.danger-zone{flex-direction:column;text-align:center}
- .workspace .hub-head{flex-direction:column;gap:var(--s4)}.mon-switcher{flex-wrap:nowrap}.mon-switcher a{width:48px;height:48px}.set-card{max-width:100%}.set-card .combo input{font-size:20px}.set-fields .form-grid{grid-template-columns:minmax(0,1fr)}.stat-row{grid-template-columns:36px minmax(0,1fr) 24px 44px 32px;gap:var(--s1)}.stat-bars-head{justify-content:center}.stat-bars-head .muted{margin-left:0}.stat-form .button-row{margin-block:var(--s2)}.benchmark-save input{flex-basis:100%}.lab .form-grid{grid-template-columns:minmax(0,1fr)}.new-team>.tabs{gap:var(--s1);margin-bottom:var(--s4)}.new-team>.tabs button{font-size:12px;height:56px;min-height:56px;max-height:56px;padding:var(--s1);line-height:1.4}.paste-source{grid-template-columns:minmax(0,1fr);gap:var(--s2)}.paste-source>button{justify-self:center}.pool-picker>.form-grid{grid-template-columns:minmax(0,1fr)}.new-team .button-row{gap:var(--s2);flex-wrap:wrap}.model-picker select{max-width:160px}.pool-list{max-height:320px}.pool-row .pool-six{display:flex;justify-content:flex-start;grid-column:2;grid-row:2}.pool-row .pool-six .poke-icon{transform:scale(.85);transform-origin:left center;margin-right:-6px}.pool-list button.pool-row{grid-template-columns:32px minmax(0,1fr);gap:var(--s2);padding:var(--s3);min-height:112px}.pool-row>.pool-place{grid-column:1;grid-row:1/3;align-self:start}.pool-row>.pool-who{grid-column:2;grid-row:1}.pool-row>.tag{grid-column:2;justify-self:start}.pool-who small{white-space:normal;overflow:visible;text-overflow:clip}.pool-row .pool-who b{overflow-wrap:anywhere}.picked-team{flex-direction:column;gap:var(--s2);padding:var(--s3)}.slot-basis li{grid-template-columns:minmax(0,1fr) auto;gap:var(--s2)}.slot-basis li>.muted{grid-column:1/-1;line-height:1.5}
+ .shell{padding:0 var(--s4) var(--s8)}.brand{white-space:nowrap}.masthead .quickbar{order:0}.save-pill{max-width:100%}.account-menu{width:100%;display:flex;justify-content:center}.account-menu>.compact{max-width:100%;width:auto}.quickbar-menu{position:fixed;left:16px;right:16px;top:160px}.hub-title h1{font-size:28px}.landing-head,.hub-head{gap:var(--s4)}.milestone{width:100%;flex-direction:column;gap:var(--s2)}.hub-nav{flex-direction:column}.hub-nav .hub-tabs{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);overflow:visible}.hub-tabs a{white-space:nowrap}.version-select{width:100%}.version-select select{width:100%;max-width:100%}.teams-landing .team-list,.six-grid{grid-template-columns:minmax(0,1fr);gap:var(--s4)}.team-card-title{min-height:64px}.team-card-title h3{font-size:21px}.mon-card-head h3{font-size:20px}.panel-heading{flex-wrap:wrap;text-align:center}.panel-heading>div{width:100%}.strategy-head{justify-content:center;text-align:center}.strategy-head .grow{display:none}.strategy-head h2{width:100%}.plan-card header{flex-direction:column;text-align:center}.plan-card footer{justify-content:center}.plan-card footer .muted{flex-basis:100%;text-align:center;margin:0}.plan-card .pair{justify-content:center}.objectives li{gap:var(--s2)}.segmented{justify-content:center}.replay-list{grid-template-columns:minmax(0,1fr)}.game{padding:var(--s4)}.changes li{grid-template-columns:minmax(0,1fr);gap:var(--s2)}.changes .button-row{justify-content:flex-start}.danger-zone{flex-direction:column;text-align:center}
+ .workspace .hub-head{flex-direction:column;gap:var(--s4)}.mon-switcher{flex-wrap:nowrap}.mon-switcher a{width:48px;height:48px}.set-card{max-width:100%}.set-card .combo input{font-size:20px}.set-fields .form-grid{grid-template-columns:minmax(0,1fr)}.stat-row{grid-template-columns:36px minmax(0,1fr) 24px 44px 32px;gap:var(--s1)}.stat-bars-head{justify-content:center}.stat-bars-head .muted{margin-left:0}.stat-form .button-row{margin-block:var(--s2)}.benchmark-save input{flex-basis:100%}.lab .form-grid{grid-template-columns:minmax(0,1fr)}.new-team>.tabs{gap:var(--s1);margin-bottom:var(--s4)}.new-team>.tabs button{font-size:12px;height:56px;min-height:56px;max-height:56px;padding:var(--s1);line-height:1.4}.paste-source{grid-template-columns:minmax(0,1fr);gap:var(--s2)}.paste-source>button{justify-self:center}.pool-picker>.form-grid{grid-template-columns:minmax(0,1fr)}.new-team .button-row{gap:var(--s2);flex-wrap:wrap}.model-picker select{max-width:160px}.pool-list{max-height:320px}.pool-row .pool-six{display:flex;justify-content:flex-start;grid-column:2;grid-row:2}.pool-row .pool-six .poke-icon{transform:scale(.85);transform-origin:left center;margin-right:calc(-1 * var(--s1))}.pool-list button.pool-row{grid-template-columns:32px minmax(0,1fr);gap:var(--s2);padding:var(--s3);min-height:112px}.pool-row>.pool-place{grid-column:1;grid-row:1/3;align-self:start}.pool-row>.pool-who{grid-column:2;grid-row:1}.pool-row>.tag{grid-column:2;justify-self:start}.pool-who small{white-space:normal;overflow:visible;text-overflow:clip}.pool-row .pool-who b{overflow-wrap:anywhere}.picked-team{flex-direction:column;gap:var(--s2);padding:var(--s3)}.slot-basis li{grid-template-columns:minmax(0,1fr) auto;gap:var(--s2)}.slot-basis li>.muted{grid-column:1/-1;line-height:1.5}
  .dock{height:100dvh;max-height:100dvh}.dock-toggle{bottom:16px}
  .pool-counts{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}.pool-counts>div{padding:var(--s3)}.pool-counts>div:last-child{grid-column:1/-1}.pool-counts span{font-size:12px}.data-pool .stat-table{min-width:0;table-layout:fixed}.data-pool .stat-table td{overflow-wrap:anywhere}.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(1){width:10%}.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(2){width:46%}.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(3),.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(4){width:22%}.stat-table td{font-size:12px;padding:var(--s2) var(--s1)}.week-tabs{gap:var(--s1);margin-bottom:var(--s4)}.week-tabs button{padding:var(--s1)}.week-tabs small{font-size:11px}.weekly-digest{text-align:left}.modal .panel-heading{margin-bottom:var(--s4)}
  .welcome{padding:var(--s6) var(--s4)}.welcome-card{padding:var(--s6);gap:var(--s4)}.welcome-card h1{font-size:28px}.sample-offer p{max-width:100%}.footer{flex-direction:column;text-align:center;gap:var(--s3);margin-top:var(--s6);padding-bottom:96px}
@@ -537,7 +538,7 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-all .px-icon,.dr
 .profile-card>button{grid-column:3!important;grid-row:2!important;width:auto!important}
 .profile-card>label{grid-row:2}
 @media(max-width:720px){.profile-card>button{grid-column:1!important;grid-row:auto!important}.profile-card>label{grid-row:auto}}
-.history-list{list-style:none;margin:0 0 var(--s6);padding:0;border:2px solid var(--ln-2);background:var(--glass)}.history-list li{display:grid;grid-template-columns:120px minmax(0,1fr) auto auto;align-items:center;gap:var(--s4);padding:var(--s3) var(--s4);border-bottom:1px solid var(--ln)}.history-list li:last-child{border:0}.history-list li.current{background:var(--tint)}.history-list .when{color:var(--mu);font-size:13px}.history-list .team-six.mini{display:flex;gap:2px;padding:0;background:none;border:0}.history-list .team-six.mini .art.small{width:32px;height:32px}.history-list .button-row{margin:0;gap:var(--s2)}@media(max-width:720px){.history-list li{grid-template-columns:1fr auto}.history-list .team-six.mini{grid-column:1/-1;order:3}}
+.history-list{list-style:none;margin:0 0 var(--s6);padding:0;border:2px solid var(--ln-2);background:var(--glass)}.history-list li{display:grid;grid-template-columns:120px minmax(0,1fr) auto auto;align-items:center;gap:var(--s4);padding:var(--s3) var(--s4);border-bottom:1px solid var(--ln)}.history-list li:last-child{border:0}.history-list li.current{background:var(--tint)}.history-list .when{color:var(--mu);font-size:13px}.history-list .team-six.mini{display:flex;gap:var(--s05);padding:0;background:none;border:0}.history-list .team-six.mini .art.small{width:32px;height:32px}.history-list .button-row{margin:0;gap:var(--s2)}@media(max-width:720px){.history-list li{grid-template-columns:1fr auto}.history-list .team-six.mini{grid-column:1/-1;order:3}}
 .new-team>*{width:100%;max-width:none;margin-inline:0;box-sizing:border-box}
 .new-team .signin-for-ai{margin:0}
 .new-team .draft-review label,.new-team .paste-source{width:100%}
@@ -549,7 +550,7 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-all .px-icon,.dr
 .dock-body.locked .dock-log,.dock-body.locked .dock-rest{filter:grayscale(1);opacity:.45;pointer-events:none;user-select:none}
 .dock-lock{position:absolute;inset:0;display:grid;place-items:center;padding:var(--s4)}
 .dock-lock .signin-for-ai{background:var(--glass);border-style:solid;box-shadow:2px 2px 0 var(--shade);max-width:320px}
-.benchmarks{margin:var(--s4) 0;padding-top:var(--s4);border-top:1px solid var(--ln)}
+.benchmarks{margin:0}
 .benchmarks h3{margin:0 0 var(--s2);font:600 15px var(--fd)}
 .benchmarks .mark{font:700 16px var(--fb);text-align:center}
 .benchmarks .what{display:grid;min-width:0}.benchmarks .what b{font-size:13.5px;overflow-wrap:anywhere}.benchmarks .what small{color:var(--mu);font-size:12.5px}
@@ -600,9 +601,8 @@ a.account-button{text-decoration:none}
 .workspace .hub-head{margin-top:0}.workspace .hub-head .back-link{margin-bottom:0!important}
 .settings-form>button,.profile-card>button,.form-grid>button,.paste-source>button{align-self:end!important}
 .paste-source{align-items:end}
-.team-card,.team-card:nth-child(2),.team-card:nth-child(3){padding:var(--s6)}
 .team-card .card-footer{justify-content:space-between}
-@media(max-width:720px){.team-card,.team-card:nth-child(2),.team-card:nth-child(3){padding:var(--s4)}.new-team-slot{min-height:140px}}.mon-card .move-list li{line-height:1.5}
+@media(max-width:720px){.new-team-slot{min-height:140px}}.mon-card .move-list li{line-height:1.5}
 .strategy-block>.strategy-head{padding-bottom:var(--s4);margin-bottom:var(--s4);border-bottom:1px solid var(--ln)}
 .strategy-head button{flex:none}
 .set-pending{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s3);padding:var(--s2) var(--s3);font-size:13px;line-height:1.4;color:var(--gold-ink);background:var(--tint);border:1px solid var(--gd);border-radius:2px}
@@ -620,7 +620,7 @@ a.account-button{text-decoration:none}
 .danger-zone button{height:var(--control-height)!important;min-height:var(--control-height)!important;max-height:var(--control-height)!important;flex:none}
 .draft-review>.primary{justify-self:end;align-self:flex-end;margin-left:auto}
 .new-team .button-row{justify-content:flex-start}
-.pool-list{padding:2px;margin:0 -2px}
+.pool-list{padding:var(--s05);margin:0 calc(-1 * var(--s05))}
 .chat-suggestions button{text-align:left!important}
 @media(max-width:720px){
   .strategy-head{justify-content:space-between!important;text-align:left!important}
@@ -671,9 +671,9 @@ html.jade .dock-toggle{background:linear-gradient(180deg,var(--ac-2),var(--ac));
 
 /* ---------- masthead ---------- */
 html.jade .shell{max-width:1320px}
-html.jade .masthead{position:sticky;top:10px;z-index:30;margin-top:10px;background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r);padding:10px 14px!important;
+html.jade .masthead{position:sticky;top:10px;z-index:30;margin-top:var(--s2);background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r);padding:var(--s2) var(--s4)!important;
  -webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);box-shadow:inset 0 1px 0 var(--hi),0 16px 40px -30px var(--shade);color:var(--tx)!important;min-height:0!important}
-html.jade .brand{color:var(--tx)!important;font-size:22px!important;text-transform:uppercase;letter-spacing:.04em;gap:10px!important}
+html.jade .brand{color:var(--tx)!important;font-size:22px!important;text-transform:uppercase;letter-spacing:.04em;gap:var(--s2)!important}
 html.jade .brand-logo{width:34px;height:34px;filter:drop-shadow(0 4px 10px var(--glow));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 html.jade .brand:hover .brand-logo{transform:rotate(-8deg) scale(1.06)}
 html.jade .brand:hover{color:var(--tx)!important}
@@ -687,16 +687,15 @@ html.jade .theme-toggle svg{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 html.jade .theme-toggle:hover svg{transform:rotate(40deg)}
 
 /* the news strip stays quiet: a single line under glass, no red, no scoreboard energy */
-html.jade .ticker{background:transparent!important;color:var(--mu)!important;border:0!important;font-family:var(--fm);font-size:11.5px;margin-top:8px!important}
+html.jade .ticker{background:transparent!important;color:var(--mu)!important;border:0!important;font-family:var(--fm);font-size:11.5px;margin-top:var(--s2)!important}
 html.jade .ticker-label{background:transparent!important;color:var(--ac)!important;font-family:var(--fm)!important;letter-spacing:.12em}
 html.jade .ticker b{color:var(--gd)!important;font-weight:600}
 html.jade .ticker a:hover{color:var(--tx)}
 html.jade .ticker-track{-webkit-mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 
 /* ---------- landing / teams ---------- */
-html.jade .team-card{padding:18px!important}
 html.jade .team-card h3{font:800 24px/1.1 var(--fd);text-transform:uppercase;letter-spacing:.02em}
-html.jade .team-card .team-six{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:10px 0 12px}
+html.jade .team-card .team-six{display:grid;grid-template-columns:repeat(6,1fr);gap:var(--s1);margin:var(--s2) 0 var(--s3)}
 html.jade .team-card .art.small{width:100%!important;height:auto!important;aspect-ratio:1}
 html.jade .team-card:hover .art img{transform:translateY(-4px) scale(1.06)}
 html.jade .team-card .art img{transition:transform .45s cubic-bezier(.2,.8,.2,1)}
@@ -709,60 +708,60 @@ html.jade .hub-title h1,html.jade .landing-head h1{font-size:clamp(36px,5vw,58px
 html.jade .title-button{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none;padding:0;font:inherit;color:inherit;text-transform:inherit}
 html.jade .title-button:hover{transform:none;color:var(--ac)}
 html.jade .hub-nav{border-bottom:1px solid var(--ln)!important}
-html.jade .hub-tabs{gap:4px!important;border:0!important;padding:4px;background:var(--sunk);border-radius:14px;margin-bottom:10px!important}
+html.jade .hub-tabs{gap:var(--s1)!important;border:0!important;padding:var(--s1);background:var(--sunk);border-radius:14px;margin-bottom:var(--s2)!important}
 html.jade .hub-tabs a{height:38px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--mu)!important;font:700 15px var(--fd)!important;text-transform:uppercase;letter-spacing:.06em;transition:color .2s,background .25s}
 html.jade .hub-tabs a:hover{color:var(--tx)!important;background:var(--hover)!important}
 html.jade .hub-tabs a.selected{background:var(--glass-2)!important;color:var(--tx)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--shade)}
 html.jade .hub-tabs a.selected::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--hot);box-shadow:0 0 8px var(--hot);animation:jPulse 1.6s ease-in-out infinite}
 
 /* the six */
-html.jade .six-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-html.jade .mon-card{padding:18px!important;border-top:1px solid var(--ln)!important;gap:10px;animation:jRise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms)}
+html.jade .six-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--s4)}
+html.jade .mon-card{border-top:1px solid var(--ln)!important;gap:var(--s2);animation:jRise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms)}
 html.jade .mon-slot{position:absolute;top:12px;right:16px;font:900 30px/1 var(--fdot);color:color-mix(in srgb,var(--tx) 22%,transparent);transition:color .3s}
 html.jade .mon-card:hover .mon-slot{color:var(--ac)}
-html.jade .mon-card-head{display:flex;flex-direction:column;align-items:flex-start!important;gap:6px!important;border:0!important;padding:0!important;margin:0!important}
-html.jade .mon-card-head .art{width:132px!important;height:132px!important;align-self:center;position:relative;margin:-4px 0 2px}
+html.jade .mon-card-head{display:flex;flex-direction:column;align-items:flex-start!important;gap:var(--s1)!important;border:0!important;padding:0!important;margin:0!important}
+html.jade .mon-card-head .art{width:132px!important;height:132px!important;align-self:center;position:relative;margin:calc(-1 * var(--s1)) 0 var(--s05)}
 html.jade .mon-card-head .art::after{content:'';position:absolute;left:14%;right:14%;bottom:2px;height:14px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1;transition:transform .45s}
 html.jade .art img{filter:drop-shadow(0 10px 14px var(--shade))!important;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
 html.jade .mon-card:hover .mon-card-head .art img{transform:translateY(-6px) scale(1.07)}
 html.jade .mon-card:hover .mon-card-head .art::after{transform:scaleX(.82)}
 html.jade .mon-card h3{font:800 22px/1.05 var(--fd)!important;text-transform:uppercase;letter-spacing:.02em;margin:0}
-html.jade .mon-item{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:600;flex-wrap:wrap}
+html.jade .mon-item{display:flex;align-items:center;gap:var(--s1);margin:0;font-size:13px;font-weight:600;flex-wrap:wrap}
 html.jade .mon-meta{flex-basis:100%;font-weight:400;color:var(--mu);font-size:12.5px}
-html.jade .mon-card .move-list{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:2px 0 0;padding:0;list-style:none}
-html.jade .mon-card .move-list li{font-size:12px;padding:5px 9px;border-radius:8px;background:var(--sunk);border:1px solid var(--ln);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+html.jade .mon-card .move-list{display:grid;grid-template-columns:1fr 1fr;gap:var(--s1);margin:var(--s05) 0 0;padding:0;list-style:none}
+html.jade .mon-card .move-list li{font-size:12px;padding:var(--s1) var(--s2);border-radius:8px;background:var(--sunk);border:1px solid var(--ln);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
 html.jade .mon-card .move-list li.inferred{border-style:dashed}
 
 /* type badges: room to breathe, colour from the type */
-html.jade .type-badges{display:inline-flex;gap:5px;flex-wrap:wrap}
-.type-badge{--type:#888;display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font:600 10.5px/1.4 var(--fm,ui-monospace);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+html.jade .type-badges{display:inline-flex;gap:var(--s1);flex-wrap:wrap}
+.type-badge{--type:#888;display:inline-flex;align-items:center;gap:var(--s1);padding:var(--s05) var(--s2) var(--s05) var(--s2);border-radius:999px;font:600 10.5px/1.4 var(--fm,ui-monospace);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
  color:color-mix(in srgb,var(--type) var(--type-ink-mix),var(--type-ink));background:color-mix(in srgb,var(--type) 14%,transparent);border:1px solid color-mix(in srgb,var(--type) 38%,transparent)}
 .type-badge::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--type);box-shadow:0 0 6px color-mix(in srgb,var(--type) 70%,transparent)}
 /* item icons from the Showdown sheet */
 .item-icon{display:inline-block;width:24px;height:24px;flex:none;background:url(/api/item-sheet) no-repeat;image-rendering:pixelated;vertical-align:middle}
 
 /* stat bars on cards: base, with stat points stacked on top in gold */
-.sp-bars{display:grid;gap:4px;margin:2px 0}
-.sp-bar{display:grid;grid-template-columns:30px 1fr 54px;align-items:center;gap:8px;font-size:11px}
+.sp-bars{display:grid;gap:var(--s1);margin:var(--s05) 0}
+.sp-bar{display:grid;grid-template-columns:30px 1fr 54px;align-items:center;gap:var(--s2);font-size:11px}
 .sp-bar .k{font:600 10px var(--fm);letter-spacing:.06em;color:var(--mu);text-transform:uppercase}
 .sp-bar .track{display:flex;height:6px;border-radius:99px;background:var(--sunk);overflow:hidden;box-shadow:inset 0 0 0 1px var(--ln)}
 .sp-bar .b{background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 55%,transparent),var(--ac));border-radius:99px 0 0 99px;transform-origin:left;animation:jGrow .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + .15s)}
 .sp-bar .p{background:var(--gd);box-shadow:0 0 8px var(--gd);border-radius:0 99px 99px 0;transform-origin:left;animation:jGrow .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 60ms + .7s)}
 .sp-bar .v{font:800 12px var(--fdot);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.sp-bar .v b{color:var(--gd);margin-left:3px;font:inherit}
+.sp-bar .v b{color:var(--gd);margin-left:var(--s05);font:inherit}
 
 /* ---------- Pokémon page ---------- */
-html.jade .mon-switcher{gap:6px!important}
-html.jade .mon-switcher a{border-radius:12px!important;border:1px solid transparent!important;background:transparent!important;padding:4px!important;transition:transform .25s,background .25s,border-color .25s;position:relative}
+html.jade .mon-switcher{gap:var(--s1)!important}
+html.jade .mon-switcher a{border-radius:12px!important;border:1px solid transparent!important;background:transparent!important;padding:var(--s1)!important;transition:transform .25s,background .25s,border-color .25s;position:relative}
 html.jade .mon-switcher a:hover{transform:translateY(-3px);background:var(--hover)!important}
 html.jade .mon-switcher a.selected{background:var(--glass-2)!important;border-color:var(--ln)!important}
 html.jade .mon-switcher a.selected::after{content:'';position:absolute;left:30%;right:30%;bottom:-4px;height:2px;border-radius:2px;background:var(--hot);box-shadow:0 0 8px var(--hot)}
 html.jade .mon-switcher .art.small{width:52px!important;height:52px!important}
-html.jade .set-card{padding:20px!important;border-top:1px solid var(--ln)!important}
+html.jade .set-card{border-top:1px solid var(--ln)!important}
 html.jade .set-card-head{align-items:center!important}
 html.jade .set-card-head>.art{width:140px!important;height:140px!important;position:relative;animation:jFloat 6s ease-in-out infinite}
 html.jade .set-card-head>.art::after{content:'';position:absolute;left:12%;right:12%;bottom:-2px;height:16px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
-html.jade .set-types{margin:6px 0 2px}
+html.jade .set-types{margin:var(--s1) 0 var(--s05)}
 html.jade .item-field{position:relative}
 html.jade .item-field .item-icon{position:absolute;left:8px;bottom:8px}
 html.jade .item-field input{padding-left:38px}
@@ -779,7 +778,7 @@ html.jade .stat-name{font:600 11px var(--fm);letter-spacing:.06em;text-transform
 
 /* ---------- dialogs, dock, toasts ---------- */
 html.jade .dock{background:color-mix(in srgb,var(--bg) 82%,transparent)!important;-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border-left:1px solid var(--ln)!important;color:var(--tx)}
-html.jade .dock-toggle{border-radius:999px!important;padding:12px 20px!important}
+html.jade .dock-toggle{border-radius:999px!important;padding:var(--s3) var(--s6)!important}
 html.jade .footer{color:var(--mu);border-top:1px solid var(--ln)!important}
 html.jade .footer>span:first-child{font-family:var(--fd);font-weight:700;letter-spacing:.12em}
 html.jade .guess{background:color-mix(in srgb,var(--gd) 14%,transparent)!important;color:var(--gd)!important;border-radius:999px}
@@ -794,7 +793,7 @@ html.jade .markdown code,html.jade .markdown pre{background:var(--sunk)!importan
 
 /* ---------- header layout: one glass row on desktop ---------- */
 @media (min-width:1101px){
- html.jade .masthead{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand nav save theme account"!important;gap:0 10px!important;align-items:center}
+ html.jade .masthead{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand nav save theme account"!important;gap:0 var(--s2)!important;align-items:center}
  html.jade .masthead-nav{justify-content:center}
  html.jade .masthead .quickbar{flex-wrap:nowrap}
 }
@@ -812,21 +811,21 @@ html.jade .six-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media (max-width:620px){html.jade .six-grid{grid-template-columns:minmax(0,1fr)!important}}
 html.jade .menu-toggle{color:var(--tx)!important;background:var(--glass-2)!important;border-color:var(--ln-2)!important}
 /* teams page: the six stand on a lit glass shelf */
-html.jade .team-card .team-six{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;min-height:0!important;padding:10px 6px 14px!important;margin:12px 0!important;border:0!important;border-radius:12px;position:relative;
+html.jade .team-card .team-six{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s05);min-height:0!important;padding:var(--s2) var(--s1) var(--s4)!important;margin:var(--s3) 0!important;border:0!important;border-radius:12px;position:relative;
  background:radial-gradient(80% 60% at 50% 100%,var(--floor),transparent 70%),var(--sunk)!important}
 html.jade .team-card .art.small{width:100%!important;max-width:none!important;height:auto!important;display:block;aspect-ratio:1}
 html.jade .team-card .art.small img{width:100%;height:100%;object-fit:contain}
-html.jade .team-card .card-footer{border-top:1px solid var(--ln)!important;padding-top:12px}
+html.jade .team-card .card-footer{border-top:1px solid var(--ln)!important;padding-top:var(--s3)}
 html.jade .team-card .card-record{font:800 15px var(--fdot);color:var(--tx)}
-html.jade .team-list{gap:16px!important}
+html.jade .team-list{gap:var(--s4)!important}
 /* segmented choices: one sunk track, the chosen option lifts out as glass with an emerald edge */
 html.jade .pool-counts>div{background:var(--glass)!important}
 html.jade .pool-counts b,html.jade .pool-counts strong{font-family:var(--fdot);font-weight:900}
 
 /* ---------- welcome ---------- */
-.welcome-page{padding:24px 0 8px}
+.welcome-page{padding:var(--s6) 0 var(--s2)}
 /* the stage: a frosted pane, six renders on a lit arc, leaning toward the pointer */
-.footer a{color:var(--ac);margin-right:auto;margin-left:16px}
+.footer a{color:var(--ac);margin-right:auto;margin-left:var(--s4)}
 @keyframes jSheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
 /* arc sits centred inside the pane */
 /* with the Ask dock open the page is ~470px narrower: two rows until there's room for one */
@@ -851,102 +850,102 @@ html.jade .mon-switcher a.selected::after{background:var(--ac);box-shadow:0 0 8p
 html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user))::after{display:none!important}
 
 /* ---------- spacing: one 4px rhythm everywhere ---------- */
-html.jade .panel+.panel,html.jade .panel+section,html.jade section+.panel{margin-top:24px}
-html.jade .form-grid{gap:0 16px!important}
+html.jade .panel+.panel,html.jade .panel+section,html.jade section+.panel{margin-top:var(--s6)}
+html.jade .form-grid{gap:0 var(--s4)!important}
 html.jade .muted{line-height:1.55}
-html.jade .chip-row>*{padding:4px 12px!important;border-radius:999px!important;font-size:12px!important;line-height:20px}
-html.jade .hub-nav{padding-bottom:16px;margin-bottom:24px!important;gap:16px!important}
-html.jade .hub-head{margin:8px 0 16px!important}
-html.jade .back-link{margin:24px 0 8px!important}
-html.jade .workspace-grid{gap:24px!important}
-html.jade .team-list{margin-top:8px}
-html.jade .landing-head{margin-bottom:24px}
+html.jade .chip-row>*{padding:var(--s1) var(--s3)!important;border-radius:999px!important;font-size:12px!important;line-height:20px}
+html.jade .hub-nav{padding-bottom:var(--s4);margin-bottom:var(--s6)!important;gap:var(--s4)!important}
+html.jade .hub-head{margin:var(--s2) 0 var(--s4)!important}
+html.jade .back-link{margin:var(--s6) 0 var(--s2)!important}
+html.jade .workspace-grid{gap:var(--s6)!important}
+html.jade .team-list{margin-top:var(--s2)}
+html.jade .landing-head{margin-bottom:var(--s6)}
 /* reading prose: paragraphs, lists and headings get real separation, and lines stop at a readable length */
 html.jade .markdown{line-height:1.7;font-size:15px}
 html.jade .markdown>*{max-width:76ch}
-html.jade .markdown :is(p,ul,ol,blockquote,pre,.table-scroll){margin:0 0 16px}
-html.jade .markdown :is(ul,ol){padding-left:24px}
-html.jade .markdown li{margin:0 0 8px;padding-left:4px}
-html.jade .markdown li>p{margin:0 0 8px}
-html.jade .markdown :is(h1,h2,h3,h4){font-family:var(--fd);text-transform:uppercase;letter-spacing:.02em;line-height:1.15;margin:32px 0 12px}
+html.jade .markdown :is(p,ul,ol,blockquote,pre,.table-scroll){margin:0 0 var(--s4)}
+html.jade .markdown :is(ul,ol){padding-left:var(--s6)}
+html.jade .markdown li{margin:0 0 var(--s2);padding-left:var(--s1)}
+html.jade .markdown li>p{margin:0 0 var(--s2)}
+html.jade .markdown :is(h1,h2,h3,h4){font-family:var(--fd);text-transform:uppercase;letter-spacing:.02em;line-height:1.15;margin:var(--s8) 0 var(--s3)}
 html.jade .markdown>:first-child{margin-top:0}
 html.jade .markdown h2{font-size:22px}html.jade .markdown h3{font-size:18px}html.jade .markdown h4{font-size:15px}
 html.jade .markdown .table-scroll{max-width:100%}
 html.jade .markdown table{border-collapse:separate;border-spacing:0;border:1px solid var(--ln);border-radius:12px;overflow:hidden}
 html.jade .markdown th{background:var(--sunk)}
 html.jade .markdown strong{color:var(--tx);font-weight:700}
-html.jade .strategy-block{padding:24px!important;margin-top:24px!important}
-html.jade .strategy-head{display:flex;align-items:center;gap:12px;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--ln)}
+html.jade .strategy-block{margin-top:var(--s6)!important}
+html.jade .strategy-head{display:flex;align-items:center;gap:var(--s3);padding-bottom:var(--s4);margin-bottom:var(--s6);border-bottom:1px solid var(--ln)}
 html.jade .strategy-head h2{margin:0}
 /* plan cards and coaching */
-html.jade .plan-card{padding:20px!important;display:grid;gap:12px}
-html.jade .plan-card header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-html.jade .plan-card footer{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--ln)}
+html.jade .plan-card{display:grid;gap:var(--s3)}
+html.jade .plan-card header{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+html.jade .plan-card footer{display:flex;gap:var(--s2);flex-wrap:wrap;padding-top:var(--s3);border-top:1px solid var(--ln)}
 
 /* ---------- replay cards: glass, a calm result pill, readable summaries ---------- */
-html.jade article.game{background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 9%,transparent),transparent 55%),var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r)!important;padding:20px!important;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 1px 0 var(--hi);transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;cursor:pointer}
+html.jade article.game{background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 9%,transparent),transparent 55%),var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r)!important;padding:var(--s6)!important;display:flex;flex-direction:column;gap:var(--s3);box-shadow:inset 0 1px 0 var(--hi);transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;cursor:pointer}
 html.jade article.game:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--ac) 50%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi),0 22px 44px -26px var(--glow)}
-html.jade .game-top{display:flex;align-items:center;gap:12px;margin:0!important}
-html.jade .result{border-radius:999px!important;padding:2px 12px!important;font-size:10.5px!important;border:1px solid var(--ln)!important;background:var(--sunk)!important;color:var(--mu)!important}
+html.jade .game-top{display:flex;align-items:center;gap:var(--s3);margin:0!important}
+html.jade .result{border-radius:999px!important;padding:var(--s05) var(--s3)!important;font-size:10.5px!important;border:1px solid var(--ln)!important;background:var(--sunk)!important;color:var(--mu)!important}
 html.jade .result.win{color:var(--ac)!important;border-color:color-mix(in srgb,var(--ac) 40%,transparent)!important}
 html.jade .result.loss{color:var(--tx)!important}
-html.jade .game-teams .six{display:flex;gap:4px;margin:0!important}
-html.jade .game-teams .six>span{border:0!important;background:none!important;border-radius:12px;padding:2px;position:relative;transition:opacity .2s}
+html.jade .game-teams .six{display:flex;gap:var(--s1);margin:0!important}
+html.jade .game-teams .six>span{border:0!important;background:none!important;border-radius:12px;padding:var(--s05);position:relative;transition:opacity .2s}
 html.jade .game-teams .six>span.benched{opacity:.35;filter:grayscale(.6)}
 html.jade .game-teams .six>span.lead{background:color-mix(in srgb,var(--ac) 14%,transparent)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 45%,transparent)}
 html.jade .game-teams .art.small{width:44px!important;height:44px!important}
-html.jade .work-on{display:grid;gap:8px;margin:4px 0 0!important;padding:12px 0 0!important;border-top:1px solid var(--ln);list-style:none}
-html.jade .work-on li{display:flex;align-items:baseline;gap:8px;margin:0!important;line-height:1.45;font-size:13.5px}
+html.jade .work-on{display:grid;gap:var(--s2);margin:var(--s1) 0 0!important;padding:var(--s3) 0 0!important;border-top:1px solid var(--ln);list-style:none}
+html.jade .work-on li{display:flex;align-items:baseline;gap:var(--s2);margin:0!important;line-height:1.45;font-size:13.5px}
 html.jade .work-on .cat{flex:none;font:600 10px var(--fm);letter-spacing:.1em;color:var(--gd)}
-html.jade .game .chip-row{margin-top:auto;padding-top:4px}
+html.jade .game .chip-row{margin-top:auto;padding-top:var(--s1)}
 
 /* ---------- the calc: one matchup, two sides ---------- */
-html.jade .lab{display:grid;gap:20px}
-html.jade .lab>.tabs{margin:0!important;display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln);justify-self:start}
+html.jade .lab{display:grid;gap:var(--s6)}
+html.jade .lab>.tabs{margin:0!important;display:inline-flex;gap:var(--s1);padding:var(--s1);border-radius:12px;background:var(--sunk);border:1px solid var(--ln);justify-self:start}
 html.jade .lab>.tabs button{border:0!important;background:transparent!important;box-shadow:none!important;color:var(--mu)!important;min-width:96px;height:36px;border-radius:9px!important;backdrop-filter:none}
 html.jade .lab>.tabs button.selected{background:var(--glass-2)!important;color:var(--tx)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--shade)!important}
 .matchup{display:grid;border:1px solid var(--ln);border-radius:var(--r);background:var(--sunk);overflow:hidden}
-.combatant{display:grid;grid-template-columns:112px minmax(0,1fr);gap:20px;padding:20px;align-items:start}
+.combatant{display:grid;grid-template-columns:112px minmax(0,1fr);gap:var(--s6);padding:var(--s6);align-items:start}
 .combatant-art{position:relative;width:112px;height:112px}
 html.jade .combatant-art .art{width:112px!important;height:112px!important}
 .combatant-art::after{content:'';position:absolute;left:14%;right:14%;bottom:0;height:12px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
-.combatant-main{display:grid;gap:12px;min-width:0}
-.combatant-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.combatant-main{display:grid;gap:var(--s3);min-width:0}
+.combatant-head{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
 .combatant-head .eyebrow{flex-basis:100%;margin:0}
 html.jade .combatant-head h3{margin:0;font:800 24px/1.1 var(--fd);text-transform:uppercase;letter-spacing:.02em}
 html.jade .combatant-head .combo{flex:1 1 220px;max-width:320px}
 html.jade .combatant-head .combo input{font:700 15px var(--fb);height:40px}
 html.jade .combatant-pick{margin:0!important;display:block}
-html.jade .combatant-pick.two{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:8px}
+html.jade .combatant-pick.two{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:var(--s2)}
 html.jade .combatant-pick.two label{margin:0}
 html.jade .combatant-pick select{width:100%}
-.combatant-sum{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;margin:0!important;font-size:13px;color:var(--mu)}
+.combatant-sum{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s1) var(--s3);margin:0!important;font-size:13px;color:var(--mu)}
 .combatant-sum>span:not(.item-icon){display:inline-flex;align-items:center}
-.combatant-sum>span:nth-child(2){color:var(--tx);font-weight:600;margin-left:-4px}
+.combatant-sum>span:nth-child(2){color:var(--tx);font-weight:600;margin-left:calc(-1 * var(--s1))}
 .combatant-sum .mono{font:600 12px var(--fm);color:var(--tx)}
 html.jade .combatant .footnote{margin:0}
-html.jade .combatant-edit{border-top:1px dashed var(--ln);padding-top:4px}
+html.jade .combatant-edit{border-top:1px dashed var(--ln);padding-top:var(--s1)}
 html.jade .combatant-edit>summary{font-size:12.5px}
-.matchup-axis{display:flex;align-items:center;justify-content:center;position:relative;padding:0 20px;height:0}
+.matchup-axis{display:flex;align-items:center;justify-content:center;position:relative;padding:0 var(--s6);height:0}
 .matchup-axis::before{content:'';position:absolute;left:20px;right:20px;top:0;border-top:1px solid var(--ln)}
-html.jade .direction{position:relative;z-index:1;height:36px;padding:0 8px 0 12px;border-radius:999px;gap:8px;font-size:13px;background:var(--bg)!important;border:1px solid var(--ln-2);box-shadow:0 8px 20px -12px var(--shade)}
+html.jade .direction{position:relative;z-index:1;height:36px;padding:0 var(--s2) 0 var(--s3);border-radius:999px;gap:var(--s2);font-size:13px;background:var(--bg)!important;border:1px solid var(--ln-2);box-shadow:0 8px 20px -12px var(--shade)}
 html.jade .direction>span{font-size:16px;color:var(--ac);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 html.jade .direction:hover>span{transform:scaleY(-1)}
-html.jade .direction small{font:600 10px var(--fm);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);padding:2px 8px;border-radius:999px;background:var(--sunk)}
+html.jade .direction small{font:600 10px var(--fm);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);padding:var(--s05) var(--s2);border-radius:999px;background:var(--sunk)}
 html.jade .direction.static{display:inline-flex;align-items:center;font-weight:600;cursor:default}
-.lab-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 12px}
-html.jade .lab-row label{margin-bottom:12px}
-html.jade .set-edit{display:grid;gap:4px;padding-top:8px}
-html.jade .lab-result{margin:0!important;padding:20px!important;display:grid;gap:12px}
+.lab-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 var(--s3)}
+html.jade .lab-row label{margin-bottom:var(--s3)}
+html.jade .set-edit{display:grid;gap:var(--s1);padding-top:var(--s2)}
+html.jade .lab-result{margin:0!important;display:grid;gap:var(--s3)}
 html.jade .lab-result p{margin:0}
-.lab-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
+.lab-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s1) var(--s3)}
 .lab-big b{font:900 40px/1 var(--fdot);color:var(--tx)}
 .lab-big span{font:600 13px var(--fm);color:var(--mu)}
-.lab-big span+b{margin-left:12px}
+.lab-big span+b{margin-left:var(--s3)}
 .lab-desc{font-size:13px;color:var(--mu)}
 html.jade .lab-result>button{justify-self:start}
-html.jade .benchmark-save{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0!important}
-@media (max-width:620px){.combatant{grid-template-columns:72px minmax(0,1fr);gap:12px;padding:16px}.combatant-art,html.jade .combatant-art .art{width:72px!important;height:72px!important}html.jade .combatant-pick.two{grid-template-columns:minmax(0,1fr)}}
+html.jade .benchmark-save{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin:0!important}
+@media (max-width:620px){.combatant{grid-template-columns:72px minmax(0,1fr);gap:var(--s3);padding:var(--s4)}.combatant-art,html.jade .combatant-art .art{width:72px!important;height:72px!important}html.jade .combatant-pick.two{grid-template-columns:minmax(0,1fr)}}
 
 /* ---------- favourite star on the Pokémon's image ---------- */
 html.jade .art-wrap{position:relative;flex:none}
@@ -956,60 +955,60 @@ html.jade .fav:hover{color:var(--gd)!important;border-color:var(--gd)}
 html.jade .fav:hover svg{transform:rotate(-12deg) scale(1.1)}
 html.jade .fav.on{color:var(--gd)!important;border-color:color-mix(in srgb,var(--gd) 55%,transparent);box-shadow:0 0 0 4px color-mix(in srgb,var(--gd) 14%,transparent),0 8px 18px -10px var(--shade)}
 html.jade .fav.on svg{fill:currentColor;animation:jStar .45s cubic-bezier(.2,.8,.2,1)}
-html.jade .fav-pop{position:absolute;top:40px;left:0;z-index:20;width:280px;padding:16px;border-radius:14px;background:var(--bg);border:1px solid var(--ln-2);box-shadow:0 30px 60px -20px var(--shade);animation:jPop .25s cubic-bezier(.2,.8,.2,1)}
-html.jade .fav-pop label{margin-bottom:12px}
-html.jade .fav-label{display:inline-flex;align-items:center;margin-left:8px;font-size:12px;font-weight:600;color:var(--gd)}
-html.jade .set-card-head{gap:20px!important;margin-bottom:20px!important}
-html.jade .set-types{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:8px 0}
+html.jade .fav-pop{position:absolute;top:40px;left:0;z-index:20;width:280px;padding:var(--s4);border-radius:14px;background:var(--bg);border:1px solid var(--ln-2);box-shadow:0 30px 60px -20px var(--shade);animation:jPop .25s cubic-bezier(.2,.8,.2,1)}
+html.jade .fav-pop label{margin-bottom:var(--s3)}
+html.jade .fav-label{display:inline-flex;align-items:center;margin-left:var(--s2);font-size:12px;font-weight:600;color:var(--gd)}
+html.jade .set-card-head{gap:var(--s6)!important;margin-bottom:var(--s6)!important}
+html.jade .set-types{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s1);margin:var(--s2) 0}
 @keyframes jStar{0%{transform:scale(.6) rotate(-30deg)}60%{transform:scale(1.25)}100%{transform:none}}
 
 /* ---------- Ask Frontier Brain ---------- */
-html.jade .dock-toggle{font:800 16px/1 var(--fd)!important;text-transform:uppercase;letter-spacing:.06em;height:52px;padding:0 24px 0 16px!important;
+html.jade .dock-toggle{font:800 16px/1 var(--fd)!important;text-transform:uppercase;letter-spacing:.06em;height:52px;padding:0 var(--s6) 0 var(--s4)!important;
  box-shadow:0 0 0 1px color-mix(in srgb,var(--ac-2) 60%,transparent),0 0 0 6px color-mix(in srgb,var(--ac) 14%,transparent),0 18px 40px -12px var(--glow)!important;animation:jRise .6s cubic-bezier(.2,.8,.2,1) both}
 html.jade .dock-toggle:hover{transform:translateY(-2px)}
 html.jade .dock-toggle .dock-mark{width:24px;height:24px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))}
-html.jade .dock-head{display:grid!important;grid-template-columns:minmax(0,1fr) 40px;grid-template-areas:"title close" "controls controls";align-items:center;gap:16px 12px;padding:20px 20px 16px!important}
-html.jade .dock-head h2{grid-area:title;display:flex;align-items:center;gap:12px;margin:0;font:800 26px/1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em}
+html.jade .dock-head{display:grid!important;grid-template-columns:minmax(0,1fr) 40px;grid-template-areas:"title close" "controls controls";align-items:center;gap:var(--s4) var(--s3);padding:var(--s6) var(--s6) var(--s4)!important}
+html.jade .dock-head h2{grid-area:title;display:flex;align-items:center;gap:var(--s3);margin:0;font:800 26px/1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em}
 html.jade .dock-head .dock-mark{width:32px;height:32px;filter:drop-shadow(0 4px 10px var(--glow))}
 html.jade .dock-close{grid-area:close;width:40px;height:40px;padding:0!important;border-radius:12px}
-html.jade .dock-log{padding:16px 20px!important;display:grid;gap:12px;align-content:start}
-html.jade .dock-log>.chat-empty,html.jade .chat-turn{padding:16px!important;line-height:1.6}
-html.jade .chat-suggestions{display:grid!important;gap:8px!important;padding:0 20px 16px!important}
-html.jade .chat-suggestions button{width:100%;min-height:48px;justify-content:flex-start!important;text-align:left;padding:12px 16px!important;line-height:1.4;white-space:normal;font-weight:500;border-radius:12px}
-html.jade .dock form{gap:8px}
+html.jade .dock-log{padding:var(--s4) var(--s6)!important;display:grid;gap:var(--s3);align-content:start}
+html.jade .dock-log>.chat-empty,html.jade .chat-turn{padding:var(--s4)!important;line-height:1.6}
+html.jade .chat-suggestions{display:grid!important;gap:var(--s2)!important;padding:0 var(--s6) var(--s4)!important}
+html.jade .chat-suggestions button{width:100%;min-height:48px;justify-content:flex-start!important;text-align:left;padding:var(--s3) var(--s4)!important;line-height:1.4;white-space:normal;font-weight:500;border-radius:12px}
+html.jade .dock form{gap:var(--s2)}
 html.jade .set-card-head .art-wrap>.art{width:140px!important;height:140px!important;position:relative;animation:jFloat 6s ease-in-out infinite}
 html.jade .set-card-head .art-wrap>.art::after{content:'';position:absolute;left:12%;right:12%;bottom:-2px;height:16px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
 html.jade .set-card-head .fav{top:0;right:0}
-html.jade .set-fields .moves .form-grid{gap:8px!important}
+html.jade .set-fields .moves .form-grid{gap:var(--s2)!important}
 html.jade .set-fields .moves input{margin:0}
 html.jade .set-fields .moves label{margin:0}
 @media (max-width:620px){html.jade .set-card-head .art-wrap>.art{width:104px!important;height:104px!important}}
 /* stat rows are labels: keep them as their own grid, not the stacked label layout */
-html.jade label.stat-row{display:grid!important;flex-direction:unset;grid-template-columns:40px minmax(0,1fr) 64px 56px 44px!important;align-items:center;gap:12px!important;margin:0 0 8px!important;font-weight:500}
-html.jade label.stat-row input{min-height:36px;height:36px;padding:0 8px;text-align:center;font:600 13px var(--fm)}
-html.jade .stat-base{display:flex;align-items:baseline;justify-content:flex-end;gap:4px;font-size:13px;white-space:nowrap}
+html.jade label.stat-row{display:grid!important;flex-direction:unset;grid-template-columns:40px minmax(0,1fr) 64px 56px 44px!important;align-items:center;gap:var(--s3)!important;margin:0 0 var(--s2)!important;font-weight:500}
+html.jade label.stat-row input{min-height:36px;height:36px;padding:0 var(--s2);text-align:center;font:600 13px var(--fm)}
+html.jade .stat-base{display:flex;align-items:baseline;justify-content:flex-end;gap:var(--s1);font-size:13px;white-space:nowrap}
 html.jade .stat-plus{font:800 13px var(--fdot);color:var(--gd)}
 html.jade .stat-final{text-align:right}
-html.jade .stat-bars-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+html.jade .stat-bars-head{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;margin-bottom:var(--s3)}
 html.jade .sp-edit .stat-bars-head b{font:800 15px var(--fdot)}
-html.jade .sp-edit{margin:8px 0 12px}
-@media (max-width:620px){html.jade label.stat-row{grid-template-columns:36px minmax(0,1fr) 52px 48px 40px!important;gap:8px!important}}
+html.jade .sp-edit{margin:var(--s2) 0 var(--s3)}
+@media (max-width:620px){html.jade label.stat-row{grid-template-columns:36px minmax(0,1fr) 52px 48px 40px!important;gap:var(--s2)!important}}
 /* round buttons stay round */
 html.jade :is(.theme-toggle,.fav){flex:none!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px;padding:0!important;aspect-ratio:1;border-radius:50%!important;display:inline-grid!important;place-items:center;line-height:0}
 html.jade :is(.theme-toggle,.fav) svg{width:18px;height:18px;flex:none;margin:0!important}
 html.jade .set-card-head .fav{top:-4px!important;left:-4px!important;right:auto!important}
 html.jade .fav-pop{top:44px;left:0}
 /* the attack direction gets its own row between the two sides */
-.matchup-axis{height:auto!important;padding:16px 20px!important}
+.matchup-axis{height:auto!important;padding:var(--s4) var(--s6)!important}
 .matchup-axis::before{top:50%!important}
-html.jade .direction{height:40px!important;padding:0 12px 0 16px!important}
-.combatant{padding:24px!important}
+html.jade .direction{height:40px!important;padding:0 var(--s3) 0 var(--s4)!important}
+.combatant{padding:var(--s6)!important}
 /* below both columns: saved benchmarks, then notes */
-html.jade .set-extras{display:grid;gap:24px;margin-top:24px}
-html.jade .set-benchmarks .benchmarks>h3{font:700 24px/1.15 var(--fd);text-transform:uppercase;margin:0 0 16px;padding-bottom:16px;border-bottom:1px solid var(--ln)}
-html.jade .benchmarks ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-html.jade .benchmarks li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
-html.jade .benchmarks li .what{display:grid;gap:4px}
+html.jade .set-extras{display:grid;gap:var(--s6);margin-top:var(--s6)}
+html.jade .set-benchmarks .benchmarks>h3{font:700 24px/1.15 var(--fd);text-transform:uppercase;margin:0 0 var(--s4);padding-bottom:var(--s4);border-bottom:1px solid var(--ln)}
+html.jade .benchmarks ul{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
+html.jade .benchmarks li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:var(--s3);padding:var(--s3) var(--s4);border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .benchmarks li .what{display:grid;gap:var(--s1)}
 html.jade .benchmarks li .what small{color:var(--mu);font-size:12.5px}
 html.jade .benchmarks li.ok .mark{color:var(--ac)}html.jade .benchmarks li.broken .mark{color:var(--hot)}
 html.jade .benchmarks li .mark{font-weight:800;text-align:center}
@@ -1021,8 +1020,8 @@ html.jade .set-extras .set-notes-edit{display:block!important;width:100%}
 html.jade .set-extras .set-notes-edit textarea{width:100%;display:block}
 html.jade .benchmarks li.broken{border-color:color-mix(in srgb,var(--hot) 45%,transparent)!important;background:color-mix(in srgb,var(--hot) 8%,transparent)!important}
 /* a button beside labelled fields lines up with the fields, not the labels */
-html.jade :is(form,.settings-form,.settings-row,.form-grid,.button-row)>label~:is(button,.button){align-self:flex-end;height:40px;margin-bottom:16px}
-html.jade .settings-form{align-items:flex-end;gap:0 12px}
+html.jade :is(form,.settings-form,.settings-row,.form-grid,.button-row)>label~:is(button,.button){align-self:flex-end;height:40px;margin-bottom:var(--s4)}
+html.jade .settings-form{align-items:flex-end;gap:0 var(--s3)}
 
 /* =====================================================================================================
    Calc round 3: attacker over defender, effects where they belong, Mega switch, HP drain, speed race
@@ -1033,13 +1032,13 @@ html.jade .workspace-grid>*{margin-top:0!important}
 html.jade .set-card{top:96px!important}
 
 /* toggles: small pills that light up emerald */
-.ctx{display:grid;gap:8px;padding:12px 0 4px;border-top:1px dashed var(--ln)}
+.ctx{display:grid;gap:var(--s2);padding:var(--s3) 0 var(--s1);border-top:1px dashed var(--ln)}
 .ctx-label{font:600 10.5px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--gd)}
-.ctx .ctx-label:not(:first-child){margin-top:8px}
-html.jade .move-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ctx .ctx-label:not(:first-child){margin-top:var(--s2)}
+html.jade .move-chips{display:flex;flex-wrap:wrap;gap:var(--s2)}
 html.jade .move-input{margin:0!important}
 html.jade .move-input input{height:36px;min-height:36px}
-html.jade .move-context{display:flex;gap:12px;flex-wrap:wrap}
+html.jade .move-context{display:flex;gap:var(--s3);flex-wrap:wrap}
 html.jade .move-context label{margin:0}
 
 /* the cards: the attacker gets an emerald edge, the defender a quiet one */
@@ -1047,38 +1046,38 @@ html.jade .matchup{background:transparent;border:0;overflow:visible;gap:0}
 html.jade .combatant{border:1px solid var(--ln);border-radius:var(--r);background:var(--sunk);position:relative}
 html.jade .combatant.attacking{border-color:color-mix(in srgb,var(--ac) 45%,var(--ln));background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 50%),var(--sunk)}
 html.jade .combatant.attacking .eyebrow{color:var(--ac)}
-html.jade .combatant-main{gap:12px}
-html.jade .combatant-edit{border-top:1px dashed var(--ln);padding-top:4px;margin:0}
+html.jade .combatant-main{gap:var(--s3)}
+html.jade .combatant-edit{border-top:1px dashed var(--ln);padding-top:var(--s1);margin:0}
 html.jade .combatant-edit+.combatant-edit{border-top:0;padding-top:0}
 /* Mega switch under the render */
-.combatant-art{display:flex;flex-direction:column;align-items:center;gap:12px;height:auto!important}
-html.jade .mega-switch{height:28px;padding:0 10px 0 4px!important;border-radius:999px!important;gap:8px;font:700 11px var(--fm)!important;letter-spacing:.1em;text-transform:uppercase;background:var(--sunk)!important;border:1px solid var(--ln-2)!important;color:var(--mu)!important;box-shadow:none!important;transform:none!important}
+.combatant-art{display:flex;flex-direction:column;align-items:center;gap:var(--s3);height:auto!important}
+html.jade .mega-switch{height:28px;padding:0 var(--s2) 0 var(--s1)!important;border-radius:999px!important;gap:var(--s2);font:700 11px var(--fm)!important;letter-spacing:.1em;text-transform:uppercase;background:var(--sunk)!important;border:1px solid var(--ln-2)!important;color:var(--mu)!important;box-shadow:none!important;transform:none!important}
 html.jade .mega-switch.on{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important;background:color-mix(in srgb,var(--gd) 12%,transparent)!important}
 /* the axis between them: who attacks, then the field everyone shares */
-.matchup-axis{display:grid!important;justify-items:center;gap:12px;height:auto!important;padding:16px 0!important;position:relative}
+.matchup-axis{display:grid!important;justify-items:center;gap:var(--s3);height:auto!important;padding:var(--s4) 0!important;position:relative}
 .matchup-axis::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed var(--ln-2)!important;border-top:0!important;z-index:0}
 .matchup-axis>*{position:relative;z-index:1}
 html.jade .direction{background:var(--bg)!important}
 html.jade .direction>span{display:inline-block}
-.field-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;padding:8px 12px;border-radius:14px;background:var(--bg);border:1px solid var(--ln)}
+.field-row{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;justify-content:center;padding:var(--s2) var(--s3);border-radius:14px;background:var(--bg);border:1px solid var(--ln)}
 html.jade .field-row label{margin:0!important}
 html.jade .field-row select{height:36px;min-width:150px}
-html.jade .field-flags{justify-content:center;max-width:560px;padding:0 8px;background:var(--bg);border-radius:12px}
-.matchup-axis .footnote{max-width:520px;text-align:center;margin:0;background:var(--bg);padding:0 8px}
-.from-ask{display:inline-flex;align-items:center;gap:8px;justify-self:start;margin:0;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);animation:jPop .35s cubic-bezier(.2,.8,.2,1)}
+html.jade .field-flags{justify-content:center;max-width:560px;padding:0 var(--s2);background:var(--bg);border-radius:12px}
+.matchup-axis .footnote{max-width:520px;text-align:center;margin:0;background:var(--bg);padding:0 var(--s2)}
+.from-ask{display:inline-flex;align-items:center;gap:var(--s2);justify-self:start;margin:0;padding:var(--s2) var(--s4);border-radius:999px;font-size:13px;font-weight:600;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);animation:jPop .35s cubic-bezier(.2,.8,.2,1)}
 
 /* the result box: the visual first, then the save action inside it */
-html.jade .lab-result{background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 14%,transparent),transparent 60%),var(--glass)!important;border:1px solid color-mix(in srgb,var(--ac) 35%,var(--ln))!important;border-radius:var(--r)!important;gap:16px!important;transition:opacity .2s}
+html.jade .lab-result{background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 14%,transparent),transparent 60%),var(--glass)!important;border:1px solid color-mix(in srgb,var(--ac) 35%,var(--ln))!important;border-radius:var(--r)!important;gap:var(--s4)!important;transition:opacity .2s}
 html.jade .lab-result.busy{opacity:.6}
-.result-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--ln)}
-.dmg{display:grid;gap:16px}
-.dmg-head{display:grid;gap:8px}
-.verdict{justify-self:start;padding:4px 12px;border-radius:999px;font:700 12px var(--fm);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu)}
+.result-foot{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding-top:var(--s4);border-top:1px solid var(--ln)}
+.dmg{display:grid;gap:var(--s4)}
+.dmg-head{display:grid;gap:var(--s2)}
+.verdict{justify-self:start;padding:var(--s1) var(--s3);border-radius:999px;font:700 12px var(--fm);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu)}
 .verdict.maybe{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 55%,transparent)}
 .verdict.ko{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 55%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent)}
-.dmg-target{display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;align-items:center}
+.dmg-target{display:grid;grid-template-columns:64px minmax(0,1fr);gap:var(--s4);align-items:center}
 html.jade .dmg-art .art{width:64px!important;height:64px!important}
-.hp-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
+.hp-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s3);margin-bottom:var(--s2)}
 .hp-head b{font:800 18px var(--fd);text-transform:uppercase;letter-spacing:.02em}
 .hp-head span{font:800 15px var(--fdot)}
 .hp-track{position:relative;height:16px;border-radius:99px;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--ln);overflow:hidden}
@@ -1089,34 +1088,34 @@ html.jade .dmg-art .art{width:64px!important;height:64px!important}
 .hp-band{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--gd) 85%,transparent) 0 5px,color-mix(in srgb,var(--gd) 45%,transparent) 5px 10px)}
 .hp-lost{background:color-mix(in srgb,var(--hot) 22%,transparent)}
 .hp-mark{width:1px;background:color-mix(in srgb,var(--tx) 30%,transparent);transition:none!important}
-.hp-scale{position:relative;height:16px;margin-top:4px;font:600 10px var(--fm);color:var(--mu)}
+.hp-scale{position:relative;height:16px;margin-top:var(--s1);font:600 10px var(--fm);color:var(--mu)}
 .hp-scale span{position:absolute;left:0;transform:translateX(0)}
 .hp-scale span[style]{transform:translateX(-50%)}
 .hp-scale .end{left:auto;right:0}
-.rolls{position:relative;display:flex;align-items:flex-end;gap:4px;height:56px;padding:0 0 18px}
+.rolls{position:relative;display:flex;align-items:flex-end;gap:var(--s1);height:56px;padding:0 0 var(--s4)}
 .rolls i{flex:1;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--ac-2),color-mix(in srgb,var(--ac) 50%,transparent));transition:height .6s cubic-bezier(.2,.8,.2,1)}
 .rolls i.ko{background:linear-gradient(180deg,#ff8a96,var(--hot))}
 .rolls-label{position:absolute;left:0;bottom:0;font:600 10px var(--fm);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
 /* speed race */
-.race{display:grid;gap:12px}
-.lane{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:16px;align-items:center}
+.race{display:grid;gap:var(--s3)}
+.lane{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:var(--s4);align-items:center}
 .race .track{position:relative;height:72px;border-radius:14px;background:repeating-linear-gradient(90deg,transparent 0 47px,color-mix(in srgb,var(--tx) 7%,transparent) 47px 48px),var(--sunk);box-shadow:inset 0 0 0 1px var(--ln);overflow:hidden}
 .race .track .finish{position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-conic-gradient(var(--tx) 0 25%,transparent 0 50%) 0 0/10px 10px;opacity:.35}
 .race .track .runner{position:absolute;top:0;width:72px;height:72px;transition-property:left;transition-timing-function:cubic-bezier(.45,.05,.3,1)}
 html.jade .race .track .runner .art{width:72px!important;height:72px!important}
 .lane.wins .track{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 50%,transparent)}
-.lane-stat{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lane-stat{display:flex;align-items:baseline;gap:var(--s2);flex-wrap:wrap}
 .lane-stat b{font:900 30px/1 var(--fdot)}
 .lane-stat span{font-size:12.5px;color:var(--mu)}
-.lane-stat em{font:800 11px var(--fm);font-style:normal;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--ac);color:var(--on);animation:jPop .3s cubic-bezier(.2,.8,.2,1) both}
+.lane-stat em{font:800 11px var(--fm);font-style:normal;letter-spacing:.1em;text-transform:uppercase;padding:var(--s05) var(--s2);border-radius:999px;background:var(--ac);color:var(--on);animation:jPop .3s cubic-bezier(.2,.8,.2,1) both}
 .race.tr .track{background:repeating-linear-gradient(90deg,transparent 0 47px,color-mix(in srgb,#c46bff 14%,transparent) 47px 48px),var(--sunk)}
 .race-verdict{font-weight:600;margin:0}
 
 /* Strategy guide under the Pokémon */
 html.jade .set-guide .markdown{font-size:15px}
-html.jade .set-guide .markdown h2{font-size:18px;margin:24px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--ln);color:var(--ac)}
+html.jade .set-guide .markdown h2{font-size:18px;margin:var(--s6) 0 var(--s2);padding-bottom:var(--s2);border-bottom:1px solid var(--ln);color:var(--ac)}
 html.jade .set-guide .markdown h2:first-child{margin-top:0}
-html.jade .set-notes-edit .footnote{display:block;margin-top:8px}
+html.jade .set-notes-edit .footnote{display:block;margin-top:var(--s2)}
 html.jade .set-notes .panel-heading{align-items:center}
 
 @media (max-width:620px){
@@ -1130,7 +1129,7 @@ html.jade .set-notes .panel-heading{align-items:center}
  html.jade .field-row select{min-width:0}
 }
 /* one Field box between the cards */
-.field-box{display:grid;justify-items:center;gap:12px;padding:16px;border-radius:var(--r);background:var(--bg);border:1px solid var(--ln);max-width:600px;width:100%}
+.field-box{display:grid;justify-items:center;gap:var(--s3);border-radius:var(--r);background:var(--bg);border:1px solid var(--ln);max-width:600px;width:100%}
 html.jade .field-box .field-row{background:transparent;border:0;padding:0}
 html.jade .field-box .field-flags{background:transparent;padding:0}
 html.jade .field-box .footnote{background:transparent;padding:0;font-size:12px}
@@ -1149,19 +1148,19 @@ html.jade .set-guide .markdown h2{max-width:none}
  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.95) 0 12%,rgba(255,255,255,.25) 30%,transparent 55%),conic-gradient(from 210deg,#ff5e7e,#ffb35e,#ffe95e,#5effa8,#5ec8ff,#a35eff,#ff5e7e);
  box-shadow:0 0 0 1.5px #1a1030,0 0 8px rgba(255,180,120,.55)}
 .mega-orb::after{content:'';position:absolute;inset:28%;border-radius:50%;border:1.5px solid rgba(255,255,255,.85);border-left-color:transparent;border-bottom-color:transparent;transform:rotate(-20deg)}
-.mega-badge{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px 0 5px;border-radius:999px;font:700 11px/1 var(--fb);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+.mega-badge{display:inline-flex;align-items:center;gap:var(--s1);height:24px;padding:0 var(--s2) 0 var(--s1);border-radius:999px;font:700 11px/1 var(--fb);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
  color:var(--tx);background:linear-gradient(90deg,rgba(255,94,126,.14),rgba(255,233,94,.14),rgba(94,255,168,.14),rgba(94,200,255,.14),rgba(163,94,255,.14));border:1px solid color-mix(in srgb,var(--gd) 45%,transparent)}
 .set-art{position:relative;display:inline-flex}
 .set-art .mega-orb{position:absolute;right:0;bottom:2px;z-index:1}
 /* the switch on calc cards uses the same orb */
 /* Overview card head: name, then one tidy row of Mega + type pills */
-html.jade .mon-card-head>div{display:grid;gap:8px;width:100%}
+html.jade .mon-card-head>div{display:grid;gap:var(--s2);width:100%}
 html.jade .mon-card-head h3{margin:0!important}
-.mon-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-html.jade .mon-tags .type-badges{gap:6px}
-html.jade .type-badge{height:24px;padding:0 10px 0 8px;line-height:1}
-html.jade .mon-item{margin-top:4px!important;gap:8px!important}
-html.jade .set-types{gap:6px!important}
+.mon-tags{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1)}
+html.jade .mon-tags .type-badges{gap:var(--s1)}
+html.jade .type-badge{height:24px;padding:0 var(--s2) 0 var(--s2);line-height:1}
+html.jade .mon-item{margin-top:var(--s1)!important;gap:var(--s2)!important}
+html.jade .set-types{gap:var(--s1)!important}
 html.jade .team-card .set-art{width:100%}html.jade .team-card .set-art .art{width:100%!important}
 
 /* ---------- type: two families only. Titles and big numbers in Saira Condensed; everything else in Hanken Grotesk.
@@ -1178,7 +1177,7 @@ html.jade :is(.status,.result,.ctx-label,.verdict,.type-badge,.lane-stat em,.rol
 html.jade .ctx-label{letter-spacing:.1em;font-weight:700}
 html.jade label.stat-row input{font-family:var(--fb)!important}
 /* ---------- header: Account like the other links; a quiet theme switch ---------- */
-html.jade .masthead .account-button{display:inline-flex!important;align-items:center;gap:8px;padding:0 12px 0 6px!important;font:600 13px var(--fb)!important;text-transform:none!important;letter-spacing:0!important}
+html.jade .masthead .account-button{display:inline-flex!important;align-items:center;gap:var(--s2);padding:0 var(--s3) 0 var(--s1)!important;font:600 13px var(--fb)!important;text-transform:none!important;letter-spacing:0!important}
 html.jade .masthead .avatar{width:26px!important;height:26px!important;min-width:26px;border-radius:50%!important;display:inline-grid!important;place-items:center;font:700 12px var(--fb)!important;box-shadow:none!important;outline:0!important;border:0!important;padding:0!important}
 html.jade .masthead .avatar svg{width:14px;height:14px}
 html.jade .masthead .account-button:hover .avatar{box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)!important}
@@ -1186,34 +1185,34 @@ html.jade .theme-toggle{border:0!important;background:transparent!important;box-
 html.jade .theme-toggle:hover{background:var(--hover)!important;color:var(--tx)!important;transform:none!important}
 /* items side by side in a grid never pick up the stacked-panel spacing */
 html.jade :is(.team-detail-grid,.workspace-grid,.six-grid,.set-extras,.team-list)>*{margin-top:0!important}
-html.jade .team-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:24px!important;align-items:start}
+html.jade .team-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:var(--s6)!important;align-items:start}
 @media (max-width:1000px){html.jade .team-detail-grid{grid-template-columns:minmax(0,1fr)!important}}
 /* lead and matchup cards share one header layout */
-html.jade .plan-card header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-html.jade .plan-card header .pair{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+html.jade .plan-card header{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap}
+html.jade .plan-card header .pair{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;min-width:0}
 html.jade .plan-card header h3{margin:0;font:700 17px/1.3 var(--fb)}
 html.jade .plan-card .lead-back{flex-basis:100%;font-size:13px}
 html.jade .plan-card .art.small{width:44px!important;height:44px!important}
-.role-pill{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;font:700 10.5px/1 var(--fb);letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu)}
+.role-pill{display:inline-flex;align-items:center;height:22px;padding:0 var(--s2);border-radius:999px;font:700 10.5px/1 var(--fb);letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu)}
 .role-pill.core{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 50%,transparent);background:color-mix(in srgb,var(--ac) 12%,transparent)}
 .role-pill.situational{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 50%,transparent);background:color-mix(in srgb,var(--gd) 10%,transparent)}
 .role-pill.niche{color:#a37cff;border-color:color-mix(in srgb,#a37cff 50%,transparent);background:color-mix(in srgb,#a37cff 10%,transparent)}
-html.jade .threat{display:inline-flex!important;align-items:center;height:22px;padding:0 10px!important;border-radius:999px!important;font:700 10.5px/1 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;vertical-align:middle;margin-right:8px;background:transparent!important;border:1px solid var(--ln-2)}
+html.jade .threat{display:inline-flex!important;align-items:center;height:22px;padding:0 var(--s2)!important;border-radius:999px!important;font:700 10.5px/1 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;vertical-align:middle;margin-right:var(--s2);background:transparent!important;border:1px solid var(--ln-2)}
 html.jade .threat.high{color:var(--hot)!important;border-color:color-mix(in srgb,var(--hot) 50%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent)!important}
 html.jade .threat.medium{color:var(--gd)!important;border-color:color-mix(in srgb,var(--gd) 50%,transparent)}
 html.jade .threat.low{color:var(--mu)!important}
 /* icons: Lucide line icons, one size and alignment everywhere */
 html.jade .px-icon{image-rendering:auto!important;vertical-align:-3px;flex:none}
 html.jade :is(button,.button,a) .px-icon{margin-right:0!important}
-html.jade :is(.hub-tabs a,.quickbar-group>button,.quickbar-all,.drawer-news){gap:8px}
+html.jade :is(.hub-tabs a,.quickbar-group>button,.quickbar-all,.drawer-news){gap:var(--s2)}
 /* reference-link icons: rounded tile, monogram until the icon arrives, then a quick fade */
 .site-icon{position:relative;display:inline-grid;place-items:center;flex:none;border-radius:6px;overflow:hidden;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--ln)}
 .site-icon .mono-tile{font:700 11px/1 var(--fb);color:var(--mu);transition:opacity .2s}
-.site-icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:2px;opacity:0;transition:opacity .25s;background:#fff;border-radius:6px}
+.site-icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:var(--s05);opacity:0;transition:opacity .25s;background:#fff;border-radius:6px}
 .site-icon.loaded img{opacity:1}.site-icon.loaded .mono-tile{opacity:0}
 /* team switcher on the Pokémon page: six equal tiles across the page, the open one lifted in glass */
-html.jade nav.mon-switcher{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px!important;margin:0 0 24px!important;padding:6px;border-radius:calc(var(--r) + 4px);background:var(--sunk);border:1px solid var(--ln);width:100%}
-html.jade nav.mon-switcher a{position:relative;display:grid!important;justify-items:center;gap:2px;padding:10px 8px 10px!important;border-radius:var(--r)!important;border:1px solid transparent!important;background:transparent!important;color:var(--mu);transition:background .25s,border-color .25s,color .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+html.jade nav.mon-switcher{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s2)!important;margin:0 0 var(--s6)!important;padding:var(--s1);border-radius:calc(var(--r) + 4px);background:var(--sunk);border:1px solid var(--ln);width:100%}
+html.jade nav.mon-switcher a{position:relative;display:grid!important;justify-items:center;gap:var(--s05);padding:var(--s2) var(--s2) var(--s2)!important;border-radius:var(--r)!important;border:1px solid transparent!important;background:transparent!important;color:var(--mu);transition:background .25s,border-color .25s,color .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
 html.jade nav.mon-switcher a:hover{background:var(--hover)!important;color:var(--tx);transform:translateY(-2px)}
 html.jade nav.mon-switcher a.selected{background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 16%,transparent),transparent 60%),var(--glass-2)!important;border-color:color-mix(in srgb,var(--ac) 50%,transparent)!important;color:var(--tx);box-shadow:inset 0 1px 0 var(--hi),0 12px 28px -18px var(--glow)}
 html.jade nav.mon-switcher a.selected::after{display:none!important}
@@ -1223,8 +1222,8 @@ html.jade nav.mon-switcher a:hover .art.small{transform:translateY(-2px) scale(1
 .slot-name{font:700 13px/1.2 var(--fd);text-transform:uppercase;letter-spacing:.04em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slot-no{position:absolute;top:8px;left:10px;font:800 12px/1 var(--fd);color:color-mix(in srgb,var(--tx) 35%,transparent)}
 html.jade nav.mon-switcher a.selected .slot-no{color:var(--ac)}
-@media (max-width:760px){html.jade nav.mon-switcher{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px!important;padding:4px}html.jade nav.mon-switcher a{padding:6px 2px!important}html.jade nav.mon-switcher .art.small{width:40px!important;height:40px!important}.slot-name{display:none}.slot-no{display:none}}
-.sp-bar .k{display:inline-flex;align-items:center;gap:2px}
+@media (max-width:760px){html.jade nav.mon-switcher{grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s1)!important;padding:var(--s1)}html.jade nav.mon-switcher a{padding:var(--s1) var(--s05)!important}html.jade nav.mon-switcher .art.small{width:40px!important;height:40px!important}.slot-name{display:none}.slot-no{display:none}}
+.sp-bar .k{display:inline-flex;align-items:center;gap:var(--s05)}
 .sp-bar .nat{font:800 11px/1 var(--fb)}.sp-bar .nat.up{color:var(--ac)}.sp-bar .nat.down{color:var(--hot)}
 .sp-bar{grid-template-columns:40px 1fr 54px!important}
 /* dialog close: the same 40px square icon button as everywhere else */
@@ -1232,12 +1231,12 @@ html.jade nav.mon-switcher a.selected .slot-no{color:var(--ac)}
 html.jade nav.mon-switcher a{width:auto!important;height:auto!important;min-height:0!important}
 
 /* ---------- danger zone: the whole tile reads as destructive ---------- */
-html.jade .danger-zone{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:24px!important;border-radius:var(--r)!important;
+html.jade .danger-zone{display:flex;align-items:center;justify-content:space-between;gap:var(--s6);flex-wrap:wrap;border-radius:var(--r)!important;
  background:linear-gradient(135deg,color-mix(in srgb,var(--hot) 26%,transparent),color-mix(in srgb,var(--hot) 12%,transparent))!important;border:1px solid color-mix(in srgb,var(--hot) 70%,transparent)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--hot) 20%,transparent),0 18px 40px -26px color-mix(in srgb,var(--hot) 60%,transparent)!important}
 html.jade .danger-zone::after{display:none}
-html.jade .danger-zone h3{color:var(--hot);font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em;margin:0 0 6px}
+html.jade .danger-zone h3{color:var(--hot);font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em;margin:0 0 var(--s1)}
 html.jade .danger-zone p{color:var(--tx);opacity:.85;margin:0}
-html.jade .danger-zone button.danger{background:var(--hot)!important;color:#fff!important;border-color:transparent!important;height:44px;padding:0 20px!important;font-weight:700;box-shadow:0 10px 24px -10px color-mix(in srgb,var(--hot) 80%,transparent)!important}
+html.jade .danger-zone button.danger{background:var(--hot)!important;color:#fff!important;border-color:transparent!important;height:44px;padding:0 var(--s6)!important;font-weight:700;box-shadow:0 10px 24px -10px color-mix(in srgb,var(--hot) 80%,transparent)!important}
 html.jade .danger-zone button.danger:hover{filter:brightness(1.08)}
 
 /* ---------- favourite star: quiet until you hover; gold only when saved ---------- */
@@ -1255,12 +1254,12 @@ html.jade .set-card-head .fav{top:0!important;left:0!important}
 .site-icon.failed .mono-tile{opacity:1}
 
 /* ---------- format ---------- */
-.format-tile{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:24px;border-radius:var(--r);border:1px solid var(--ln);background:var(--glass)}
-.format-tile h3{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:4px 0 8px}
+.format-tile{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s6);flex-wrap:wrap;border-radius:var(--r);border:1px solid var(--ln);background:var(--glass)}
+.format-tile h3{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:var(--s1) 0 var(--s2)}
 .format-tile p{max-width:60ch;margin:0}
-.format-copy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.format-copy{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
 html.jade .format-copy label{margin:0}
-html.jade .format-choice{margin-bottom:20px!important}
+html.jade .format-choice{margin-bottom:var(--s6)!important}
 html.jade .format-choice select{max-width:360px}
 /* header controls sit directly on the frosted bar: no second blur behind icons */
 html.jade .masthead :is(button,.button,a){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -1281,7 +1280,7 @@ html.jade .history-list .team-six.mini .set-art .art.small{width:32px!important;
 /* labels styled as buttons stay one row: icon left, text right */
 html.jade .file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 /* replay filters: one 36px row, everything centred on the same line */
-html.jade .replay-filters{display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;flex-wrap:wrap;margin:24px 0 16px!important}
+html.jade .replay-filters{display:flex!important;flex-direction:row!important;align-items:center!important;gap:var(--s3)!important;flex-wrap:wrap;margin:var(--s6) 0 var(--s4)!important}
 html.jade .replay-filters>.chip-row{margin:0!important;align-items:center}
 html.jade .replay-filters .segmented{height:auto;margin:0}
 html.jade .replay-filters .segmented>button{height:30px}
@@ -1289,44 +1288,44 @@ html.jade .replay-filters .segmented>button{height:30px}
 html.jade .style-tags .chip{height:26px;font-size:12px!important;cursor:default}
 /* default buttons: lighter glass and a softer edge so they sit in the panels rather than on top of them */
 html.jade .digest .threat,html.jade .digest .tag{font-family:var(--fb)!important}
-html.jade .common{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+html.jade .common{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
 /* history strips: no Mega orbs at 32px; the render already shows the Mega */
 html.jade .team-six.mini .mega-orb{display:none}
 /* replays: at a glance */
-html.jade .glance{margin-top:24px}
-.glance-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.glance-grid>div{padding:16px;border-radius:14px;background:var(--sunk);border:1px solid var(--ln)}
-html.jade .glance-grid h3{font:700 11px/1.3 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--gd);margin:0 0 12px}
-.glance-grid ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.glance-grid li{display:flex;align-items:center;gap:8px;min-height:32px}
+html.jade .glance{margin-top:var(--s6)}
+.glance-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s4)}
+.glance-grid>div{padding:var(--s4);border-radius:14px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .glance-grid h3{font:700 11px/1.3 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--gd);margin:0 0 var(--s3)}
+.glance-grid ul{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
+.glance-grid li{display:flex;align-items:center;gap:var(--s2);min-height:32px}
 html.jade .glance-grid .art.small{width:36px!important;height:36px!important}
 .glance-name{flex:1;min-width:0;font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .glance-grid li .type-badge{margin-right:auto}
-.glance-rec{font:800 15px var(--fd);font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:8px}
+.glance-rec{font:800 15px var(--fd);font-variant-numeric:tabular-nums;padding:var(--s05) var(--s2);border-radius:8px}
 .glance-grid li.bad .glance-rec{color:var(--hot);background:color-mix(in srgb,var(--hot) 10%,transparent)}
 .glance-grid li.good .glance-rec{color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,transparent)}
 @media (max-width:1100px){.glance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:620px){.glance-grid{grid-template-columns:minmax(0,1fr)}}
 /* dropdown lists: solid, never see-through */
-html.jade .combo-list{background:var(--bg)!important;border:1px solid var(--ln-2)!important;border-radius:14px!important;box-shadow:0 24px 48px -16px var(--shade)!important;padding:6px!important;max-height:320px;z-index:60}
-html.jade .combo-list li{display:flex;align-items:center;gap:8px;padding:8px 10px!important;border-radius:10px!important;font-size:14px;min-height:36px}
+html.jade .combo-list{background:var(--bg)!important;border:1px solid var(--ln-2)!important;border-radius:14px!important;box-shadow:0 24px 48px -16px var(--shade)!important;padding:var(--s1)!important;max-height:320px;z-index:60}
+html.jade .combo-list li{display:flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s2)!important;border-radius:10px!important;font-size:14px;min-height:36px}
 html.jade .combo-list li.active{background:var(--hover)!important}
 html.jade .combo-list li.group-start::before{content:attr(data-group);display:none}
-html.jade .combo-list li[data-group]{margin-top:22px;position:relative}
+html.jade .combo-list li[data-group]{margin-top:var(--s6);position:relative}
 html.jade .combo-list li[data-group]::after{content:attr(data-group);position:absolute;left:10px;top:-18px;font:700 10px var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--gd)}
-html.jade .combo-list li:first-child[data-group]{margin-top:18px}
-.row-main{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+html.jade .combo-list li:first-child[data-group]{margin-top:var(--s4)}
+.row-main{display:flex;align-items:center;gap:var(--s2);flex:1;min-width:0}
 .row-main span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html.jade .combo-list li small{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:var(--mu)}
+html.jade .combo-list li small{display:inline-flex;align-items:center;gap:var(--s1);margin-left:auto;color:var(--mu)}
 html.jade .combo-list li small b{font:800 13px var(--fd);color:var(--tx);min-width:24px;text-align:right}
 /* pickers: an icon (item sprite or move type) inside the field */
 .picker{position:relative}
 .picker .picker-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);display:inline-flex;pointer-events:none}
 html.jade .picker:has(.picker-icon) input{padding-left:40px}
 html.jade .move-picker:has(.picker-icon) input{padding-left:88px}
-html.jade .type-badge.mini{height:20px!important;padding:0 8px 0 6px!important;font-size:9.5px!important;gap:4px}
+html.jade .type-badge.mini{height:20px!important;padding:0 var(--s2) 0 var(--s1)!important;font-size:9.5px!important;gap:var(--s1)}
 html.jade .type-badge.mini::before{width:5px;height:5px}
-.move-cat{font:700 10px var(--fb);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:6px;background:var(--sunk)}
+.move-cat{font:700 10px var(--fb);letter-spacing:.06em;text-transform:uppercase;padding:var(--s05) var(--s1);border-radius:6px;background:var(--sunk)}
 .move-cat.physical{color:#ff9a6b}.move-cat.special{color:#7ab8ff}.move-cat.status{color:var(--mu)}
 html.jade .item-field .item-icon{position:static}
 html.jade .item-field input{padding-left:40px}
@@ -1340,26 +1339,26 @@ html.jade .title-button{background:none!important;border:0!important;box-shadow:
 html.jade .title-button .px-icon{opacity:0;transition:opacity .2s;color:var(--mu)}
 html.jade .title-button:hover .px-icon{opacity:1}
 /* the team intro */
-.team-guide{display:grid;gap:24px}
-.guide-six{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
-.guide-six a{display:grid;justify-items:center;gap:4px;padding:12px 4px;border-radius:14px;color:var(--mu);transition:background .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.team-guide{display:grid;gap:var(--s6)}
+.guide-six{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s2)}
+.guide-six a{display:grid;justify-items:center;gap:var(--s1);padding:var(--s3) var(--s1);border-radius:14px;color:var(--mu);transition:background .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
 .guide-six a:hover{background:var(--hover);transform:translateY(-3px);color:var(--tx)}
 html.jade .guide-six .art{width:88px!important;height:88px!important}
 .guide-six span:last-child{font:700 13px var(--fd);text-transform:uppercase;letter-spacing:.04em}
 .guide-intro{max-width:78ch}
 html.jade .guide-intro .markdown{font-size:16px;line-height:1.75}
 /* team members in prose */
-.mon-chip{display:inline-flex;align-items:center;gap:2px;font-weight:600;color:var(--tx);white-space:nowrap;vertical-align:-6px;border-radius:8px;padding-right:4px;transition:background .2s}
+.mon-chip{display:inline-flex;align-items:center;gap:var(--s05);font-weight:600;color:var(--tx);white-space:nowrap;vertical-align:-6px;border-radius:8px;padding-right:var(--s1);transition:background .2s}
 .mon-chip:hover{background:var(--hover);color:var(--ac)}
 html.jade .mon-chip .art.small{width:26px!important;height:26px!important}
 html.jade .mon-chip .mega-orb{display:none}
 /* plan cards: a header line, a meta line, one summary line, the plan on demand */
-.plan-list{display:grid;gap:12px}
-html.jade .plan-card{padding:16px 20px!important;gap:10px!important;display:grid}
-html.jade .plan-card header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap!important}
-.plan-head{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+.plan-list{display:grid;gap:var(--s3)}
+html.jade .plan-card{gap:var(--s2)!important;display:grid}
+html.jade .plan-card header{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:nowrap!important}
+.plan-head{display:flex;align-items:center;gap:var(--s2);min-width:0;flex-wrap:wrap}
 html.jade .plan-head h3{font:700 16px/1.3 var(--fb)!important;margin:0}
-.plan-actions{display:flex;gap:4px;flex:none;opacity:.55;transition:opacity .2s}
+.plan-actions{display:flex;gap:var(--s1);flex:none;opacity:.55;transition:opacity .2s}
 .plan-card:hover .plan-actions,.plan-card:focus-within .plan-actions{opacity:1}
 html.jade .plan-actions button.icon{width:32px!important;height:32px!important;padding:0!important;display:inline-grid;place-items:center;border-color:transparent!important;background:transparent!important}
 html.jade .plan-actions button.icon:hover{background:var(--hover)!important}
@@ -1369,13 +1368,13 @@ html.jade .plan-card footer{display:none}
 html.jade .lead-record{font-size:12.5px}
 /* add replays: a glass panel like the rest */
 /* format: one tidy row */
-html.jade .format-tile{align-items:center!important;padding:16px 20px!important}
-html.jade .format-tile h3{font-size:20px!important;margin:4px 0 0!important}
-html.jade .format-copy{gap:8px}
+html.jade .format-tile{align-items:center!important}
+html.jade .format-tile h3{font-size:20px!important;margin:var(--s1) 0 0!important}
+html.jade .format-copy{gap:var(--s2)}
 html.jade .format-copy select{min-width:220px;height:40px}
 html.jade .format-copy button{height:40px}
 /* team members in prose: no underline, sprite tight to the name */
-html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:2px}
+html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:var(--s05)}
 html.jade .mon-chip:hover{color:var(--ac)!important}
 .brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
 html.jade .brand-logo{width:34px!important;height:34px!important;filter:drop-shadow(0 3px 8px var(--glow))}
@@ -1385,45 +1384,45 @@ html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggl
 html.jade .shell>.masthead{z-index:30}
 /* dialogs: title flush with the content's left edge */
 /* renaming a team keeps the big title size */
-html.jade input.rename{font:800 clamp(36px,5vw,58px)/1.05 var(--fd)!important;text-transform:uppercase;letter-spacing:.005em;height:auto!important;padding:2px 8px!important;max-width:100%!important;width:min(900px,100%);background:transparent!important;border:1px dashed var(--ln-2)!important}
+html.jade input.rename{font:800 clamp(36px,5vw,58px)/1.05 var(--fd)!important;text-transform:uppercase;letter-spacing:.005em;height:auto!important;padding:var(--s05) var(--s2)!important;max-width:100%!important;width:min(900px,100%);background:transparent!important;border:1px dashed var(--ln-2)!important}
 /* strategy: paragraph, then the team, then the chosen Pokémon's notes */
 html.jade .guide-intro .markdown{font-size:17px;line-height:1.7;max-width:72ch}
-.guide-team{display:grid;gap:12px;padding-top:20px;border-top:1px solid var(--ln)}
-html.jade .guide-six button{display:grid;justify-items:center;gap:4px;padding:12px 4px!important;border-radius:14px!important;color:var(--mu)!important;height:auto!important;transition:background .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.guide-team{display:grid;gap:var(--s3);padding-top:var(--s6);border-top:1px solid var(--ln)}
+html.jade .guide-six button{display:grid;justify-items:center;gap:var(--s1);padding:var(--s3) var(--s1)!important;border-radius:14px!important;color:var(--mu)!important;height:auto!important;transition:background .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
 html.jade .guide-six button:hover{background:var(--hover)!important;color:var(--tx)!important;transform:translateY(-3px)}
 html.jade .guide-six button.on{background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 16%,transparent),transparent 60%),var(--glass-2)!important;border-color:color-mix(in srgb,var(--ac) 50%,transparent)!important;color:var(--tx)!important}
 .guide-six button span:last-child{font:700 13px var(--fd);text-transform:uppercase;letter-spacing:.04em}
-.guide-mon{padding:20px;border-radius:14px;background:var(--sunk);border:1px solid var(--ln);animation:jPop .3s cubic-bezier(.2,.8,.2,1)}
-.guide-mon-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.guide-mon{padding:var(--s6);border-radius:14px;background:var(--sunk);border:1px solid var(--ln);animation:jPop .3s cubic-bezier(.2,.8,.2,1)}
+.guide-mon-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s3)}
 html.jade .guide-mon-head h3{font:800 22px var(--fd)!important;text-transform:uppercase;margin:0}
 html.jade .guide-mon .markdown{font-size:15px}
-html.jade .guide-mon .markdown h2{font:700 12px var(--fb)!important;letter-spacing:.1em;color:var(--gd);margin:16px 0 6px}
+html.jade .guide-mon .markdown h2{font:700 12px var(--fb)!important;letter-spacing:.1em;color:var(--gd);margin:var(--s4) 0 var(--s1)}
 /* plan cards: Front / Back (or Examples / Bring) in one aligned grid */
-.front-back{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px 12px;align-items:center}
+.front-back{display:grid;grid-template-columns:76px minmax(0,1fr);gap:var(--s2) var(--s3);align-items:center}
 .fb-label{font:700 10.5px var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
-.fb-mons{display:flex;flex-wrap:wrap;gap:4px 12px}
-.fb-mon{display:inline-flex;align-items:center;gap:2px;font-weight:600;font-size:14px}
+.fb-mons{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s3)}
+.fb-mon{display:inline-flex;align-items:center;gap:var(--s05);font-weight:600;font-size:14px}
 html.jade .fb-mon .art.small{width:32px!important;height:32px!important}
 html.jade .fb-mon .mega-orb{display:none}
-.plan-body{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--ln)}
+.plan-body{display:grid;gap:var(--s2);padding-top:var(--s3);border-top:1px solid var(--ln)}
 html.jade .plan-body .plan-summary{font-weight:600;-webkit-line-clamp:unset;display:block}
 html.jade .plan-body .markdown{font-size:14px;line-height:1.6}
-.plan-foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--mu)}
+.plan-foot{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--mu)}
 html.jade .plan-head h3{font:800 20px/1.15 var(--fd)!important;text-transform:uppercase;letter-spacing:.02em}
 .role-pill.lead{display:none}
 /* plan editor */
-.examples-field{display:grid;gap:8px;margin-bottom:16px}
+.examples-field{display:grid;gap:var(--s2);margin-bottom:var(--s4)}
 .field-label{font-size:13px;font-weight:600}
-.example-chips{display:flex;flex-wrap:wrap;gap:8px}
+.example-chips{display:flex;flex-wrap:wrap;gap:var(--s2)}
 html.jade .guide-six button{min-height:0!important;max-height:none!important;overflow:visible}
 html.jade .guide-six .set-art .art{width:88px!important;height:88px!important}
 .role-pill.avoid{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 50%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent)}
 /* Mega: rainbow keystone with the white Mega symbol, and the tag beside the name */
 .mega-orb{background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.55) 0 10%,transparent 40%),conic-gradient(from 210deg,#ff5e7e,#ffb35e,#ffe95e,#5effa8,#5ec8ff,#a35eff,#ff5e7e)!important}
 .mega-orb::after{inset:14%!important;border:0!important;transform:none!important;background:url(/brand/mega.svg) center/contain no-repeat;filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}
-.name-row{display:inline-flex!important;align-items:center;gap:10px;flex-wrap:wrap}
+.name-row{display:inline-flex!important;align-items:center;gap:var(--s2);flex-wrap:wrap}
 html.jade h3.name-row{display:flex!important}
-html.jade .mega-badge{height:22px;padding:0 9px 0 3px;font-size:10.5px}
+html.jade .mega-badge{height:22px;padding:0 var(--s2) 0 var(--s05);font-size:10.5px}
 html.jade .mega-badge .mega-orb{width:16px!important;height:16px!important}
 html.jade .set-art .mega-orb{width:18px!important;height:18px!important}
 /* reading widths: prose fills the panel up to a comfortable ~90 characters; cards use their full width */
@@ -1433,17 +1432,17 @@ html.jade .guide-mon .markdown,html.jade .guide-mon .markdown>*{max-width:92ch!i
 html.jade .plan-body .markdown>*,html.jade .plan-summary{max-width:none!important}
 html.jade .markdown>*{max-width:92ch}
 /* Examples / Bring: a hairline between the two rows */
-.fb-divider{grid-column:1/-1;height:1px;background:var(--ln);margin:2px 0}
+.fb-divider{grid-column:1/-1;height:1px;background:var(--ln);margin:var(--s05) 0}
 /* replays debrief: two clear sections */
-.debrief{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:24px}
-html.jade .debrief>section{padding:20px;border-radius:14px;background:var(--sunk);border:1px solid var(--ln)}
-html.jade .debrief h3{font:700 11px/1.3 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--gd);margin:0 0 14px}
-html.jade .debrief-good{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-html.jade .debrief-good li{position:relative;padding-left:22px;line-height:1.6;margin:0}
+.debrief{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:var(--s6)}
+html.jade .debrief>section{padding:var(--s6);border-radius:14px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .debrief h3{font:700 11px/1.3 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--gd);margin:0 0 var(--s4)}
+html.jade .debrief-good{list-style:none;margin:0;padding:0;display:grid;gap:var(--s3)}
+html.jade .debrief-good li{position:relative;padding-left:var(--s6);line-height:1.6;margin:0}
 html.jade .debrief-good li::before{content:'';position:absolute;left:2px;top:.55em;width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 8px var(--glow)}
-html.jade .debrief .themes{margin:0;padding-left:20px;display:grid;gap:18px}
-html.jade .debrief .themes li{margin:0;padding-left:4px}
-html.jade .theme-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+html.jade .debrief .themes{margin:0;padding-left:var(--s6);display:grid;gap:var(--s4)}
+html.jade .debrief .themes li{margin:0;padding-left:var(--s1)}
+html.jade .theme-head{display:flex;align-items:baseline;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s1)}
 html.jade .theme-head b{font-size:15px}
 html.jade .debrief .themes p{margin:0;line-height:1.65;color:var(--tx);opacity:.9}
 @media (max-width:1000px){.debrief{grid-template-columns:minmax(0,1fr)}}
@@ -1459,65 +1458,65 @@ html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
 /* ---------- top of page: news and nav run edge to edge as one bar, and the nav stays full width when you scroll ---------- */
 html.jade .shell>.ticker{width:100vw;margin:0 0 0 calc(50% - 50vw)!important;padding:0 var(--edge)!important;height:34px;border-radius:0!important;
  background:color-mix(in srgb,var(--bg) 88%,transparent)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--ln)!important}
-html.jade .shell>.masthead{width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw)!important;top:0!important;border-radius:0!important;border-width:0 0 1px!important;padding:10px var(--edge)!important;
+html.jade .shell>.masthead{width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw)!important;top:0!important;border-radius:0!important;border-width:0 0 1px!important;padding:var(--s2) var(--edge)!important;
  background:color-mix(in srgb,var(--bg) 82%,transparent)!important;box-shadow:none!important;}
-html.jade .shell>.masthead+*{margin-top:8px}
+html.jade .shell>.masthead+*{margin-top:var(--s2)}
 /* news label: quiet hover, no red block */
-html.jade .ticker .ticker-label{border:0!important;box-shadow:none!important;padding:0 12px 0 0!important;height:100%}
+html.jade .ticker .ticker-label{border:0!important;box-shadow:none!important;padding:0 var(--s3) 0 0!important;height:100%}
 html.jade .ticker .ticker-label:hover{background:transparent!important;color:var(--ac-2)!important;text-decoration:underline;text-underline-offset:4px}
 /* the brain sits further back */
 .brain-backdrop{opacity:.35!important}.brain-backdrop.hero{opacity:.7!important}
 /* Pokémon page: set, benchmarks and strategy stacked on the left; the calc on the right; both columns end together */
 html.jade .workspace-grid{align-items:stretch!important}
-.set-column{display:flex;flex-direction:column;gap:24px;min-width:0}
+.set-column{display:flex;flex-direction:column;gap:var(--s6);min-width:0}
 html.jade .set-column>.panel{margin:0!important}
 html.jade .set-column>.set-notes{flex:1}
 html.jade .set-card{position:static!important}
 html.jade .workspace-grid>.lab-inline{margin:0!important}
 html.jade .set-column .set-notes .markdown,html.jade .set-column .set-notes .markdown>*{max-width:none!important}
 /* history, styled like the other set sections */
-html.jade .set-history ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-html.jade .set-history li{display:grid;grid-template-columns:90px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--sunk);font-size:13px}
+html.jade .set-history ol{list-style:none;margin:0;padding:0;display:grid;gap:var(--s1)}
+html.jade .set-history li{display:grid;grid-template-columns:90px minmax(0,1fr) auto auto;align-items:center;gap:var(--s2);padding:var(--s2) var(--s2);border-radius:10px;background:var(--sunk);font-size:13px}
 html.jade .set-history li.current{background:color-mix(in srgb,var(--ac) 10%,transparent)}
 .h-date{color:var(--mu)}.h-set{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.h-sp{font:700 13px var(--fd);color:var(--mu)}
-html.jade .set-history .compact{height:28px;padding:0 10px!important;font-size:12px!important}
-html.jade .set-history legend b{font:800 13px var(--fd);color:var(--tx);margin-left:4px}
-html.jade .h-more{margin-top:8px;padding:0!important;height:auto!important}
+html.jade .set-history .compact{height:28px;padding:0 var(--s2)!important;font-size:12px!important}
+html.jade .set-history legend b{font:800 13px var(--fd);color:var(--tx);margin-left:var(--s1)}
+html.jade .h-more{margin-top:var(--s2);padding:0!important;height:auto!important}
 html.jade .set-column>.set-notes{display:block!important}
 /* replay cards: one even summary paragraph */
 html.jade article.game .game-summary{margin:0;font-size:14px;line-height:1.6;color:var(--tx);font-weight:400}
 /* replay drawer "Work on": category, title and turn on one line, the detail underneath */
-html.jade .work-on.full{display:grid;gap:12px}
-html.jade .work-on.full li{display:block!important;margin:0!important;padding:14px 16px;border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
-html.jade .wo-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+html.jade .work-on.full{display:grid;gap:var(--s3)}
+html.jade .work-on.full li{display:block!important;margin:0!important;padding:var(--s4) var(--s4);border-radius:12px;background:var(--sunk);border:1px solid var(--ln)}
+html.jade .wo-head{display:flex;align-items:baseline;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s1)}
 html.jade .wo-head b{font-size:15px}
 html.jade .wo-turn{margin-left:auto!important;font-size:12.5px!important;height:auto!important;padding:0!important}
 html.jade .work-on.full p{margin:0!important;line-height:1.6;max-width:none}
 /* category pills (Play / Building / Variance): quiet pills, everywhere they appear */
-html.jade .cat{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;font:700 10.5px/1 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu);flex:none}
+html.jade .cat{display:inline-flex;align-items:center;height:22px;padding:0 var(--s2);border-radius:999px;font:700 10.5px/1 var(--fb)!important;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu);flex:none}
 html.jade .cat.play{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 50%,transparent);background:color-mix(in srgb,var(--gd) 10%,transparent)}
 html.jade .cat.building{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 50%,transparent);background:color-mix(in srgb,var(--ac) 10%,transparent)}
 html.jade .cat.variance{color:#9aa8ff;border-color:color-mix(in srgb,#9aa8ff 45%,transparent)}
-html.jade .work-on:not(.full) li{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
+html.jade .work-on:not(.full) li{display:flex;align-items:center;gap:var(--s2);font-size:13.5px;font-weight:600}
 /* headings inside dialogs use the title font, like every other section heading */
-html.jade .modal :is(h3,h4){font:800 18px/1.2 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em;color:var(--tx);margin:24px 0 12px!important;padding-bottom:10px;border-bottom:1px solid var(--ln)}
+html.jade .modal :is(h3,h4){font:800 18px/1.2 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em;color:var(--tx);margin:var(--s6) 0 var(--s3)!important;padding-bottom:var(--s2);border-bottom:1px solid var(--ln)}
 html.jade .modal .work-on h3,html.jade .modal .plan-card h3,html.jade .modal .set-tile h3,html.jade .modal .proposal-card h3{border:0;padding:0;margin:0!important;font-size:16px!important}
 html.jade .modal .game-summary.big{font-size:16px;line-height:1.65}
 html.jade .result.loss{color:var(--hot)!important;border-color:color-mix(in srgb,var(--hot) 50%,transparent)!important;background:color-mix(in srgb,var(--hot) 10%,transparent)!important}
 /* Pokémon picker rows: icon, name (truncates), then the usage figure on the right, never overlapping */
 html.jade .combo .combo-list{min-width:360px}
-html.jade .combo-list li{display:flex!important;align-items:center;gap:8px;justify-content:flex-start!important}
+html.jade .combo-list li{display:flex!important;align-items:center;gap:var(--s2);justify-content:flex-start!important}
 html.jade .combo-list li>span:not(.poke-icon):not(.item-icon){flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html.jade .combo-list li>small{flex:none;white-space:nowrap;margin-left:auto;padding-left:8px;font-size:12px}
+html.jade .combo-list li>small{flex:none;white-space:nowrap;margin-left:auto;padding-left:var(--s2);font-size:12px}
 html.jade .combo-list li>.poke-icon{flex:none}
 
 /* an open picker list always sits above the cards that follow it */
 html.jade :is(.panel,.combatant,.mon-card,.plan-card,.set-card,.lab-result,.field-box,.matchup-axis,.guide-mon):focus-within{z-index:30!important;position:relative}
 html.jade .combo-list{z-index:100!important}
 html.jade .matchup .combatant:focus-within{isolation:auto}
-html.jade .mon-card .move-list li{display:flex!important;align-items:center;gap:6px;padding:5px 8px!important}
+html.jade .mon-card .move-list li{display:flex!important;align-items:center;gap:var(--s1);padding:var(--s1) var(--s2)!important}
 html.jade .mon-card .move-list li>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-html.jade .mon-card .move-list .type-badge.mini{flex:none;height:18px!important;padding:0 6px 0 5px!important;font-size:8.5px!important}
+html.jade .mon-card .move-list .type-badge.mini{flex:none;height:18px!important;padding:0 var(--s1) 0 var(--s1)!important;font-size:8.5px!important}
 html.jade .mon-card .move-list li>span:last-child{color:var(--tx);font-weight:500}
 /* Ask Frontier Brain: a floating glass panel over the page, not a sidebar that squeezes it */
 html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;width:min(460px,calc(100vw - 24px))!important;border-radius:22px!important;border:1px solid var(--ln-2)!important;
@@ -1526,7 +1525,7 @@ html.jade .dock{top:12px!important;right:12px!important;bottom:12px!important;wi
 @keyframes jDockIn{from{opacity:0;transform:translateX(24px) scale(.98)}to{opacity:1;transform:none}}
 @media (max-width:620px){html.jade .dock{top:0!important;right:0!important;bottom:0!important;width:100vw!important;border-radius:0!important}}
 @media (prefers-reduced-motion:reduce){html.jade .dock{animation:none}}
-.crit-alt{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0!important}.crit-alt b{font:800 22px var(--fd)}
+.crit-alt{display:flex;align-items:baseline;gap:var(--s2);flex-wrap:wrap;margin:0!important}.crit-alt b{font:800 22px var(--fd)}
 
 /* ---------- Jade × Phosphor ----------
    Saira stays for titles and Hanken for reading. IBM Plex Mono carries the numbers and the rare terminal moments (the
@@ -1555,7 +1554,7 @@ html.jade .lab-result::after{content:'';position:absolute;inset:0;pointer-events
  background:repeating-linear-gradient(180deg,var(--scan) 0 1px,transparent 1px 3px),radial-gradient(130% 100% at 50% 50%,transparent 62%,var(--scan) 100%)}
 
 /* The calc running: a mono line whose bar draws across, then the result resolves (numbers roll in fx.ts). */
-.calc-run{display:flex;align-items:center;gap:12px;margin:0 0 var(--s3);font:500 12px/1.4 var(--fnum);letter-spacing:.05em;text-transform:uppercase;color:var(--phos);text-shadow:var(--phos-glow)}
+.calc-run{display:flex;align-items:center;gap:var(--s3);margin:0 0 var(--s3);font:500 12px/1.4 var(--fnum);letter-spacing:.05em;text-transform:uppercase;color:var(--phos);text-shadow:var(--phos-glow)}
 .calc-run span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:65%}
 .calc-run i{flex:1;height:2px;border-radius:1px;background:linear-gradient(90deg,var(--ac),var(--ac-2));box-shadow:0 0 8px var(--glow);transform-origin:left;animation:fx-run .45s cubic-bezier(.6,0,.2,1) both}
 .calc-run b{font-weight:700;color:var(--phos);animation:fx-fade .2s ease .45s both}
@@ -1597,17 +1596,17 @@ html.jade .brain-backdrop{transition:opacity 1.6s ease}
 /* Pokémon art as Showdown sprites (Settings → Pokémon art): pixel-crisp Black/White, smooth XY. */
 .art.sprite img{object-fit:contain}
 .art.sprite-gen5 img{image-rendering:pixelated}
-.sprite-choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-html.jade .sprite-choice button.sprite-option:not(#_){max-height:none!important;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;height:auto!important;min-height:0!important;padding:12px 8px 16px!important;text-align:center;white-space:normal;border-radius:var(--r)!important}
+.sprite-choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s3)}
+html.jade .sprite-choice button.sprite-option:not(#_){max-height:none!important;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;gap:var(--s1);height:auto!important;min-height:0!important;padding:var(--s3) var(--s2) var(--s4)!important;text-align:center;white-space:normal;border-radius:var(--r)!important}
 html.jade .sprite-choice button.sprite-option.on:not(#_){border-color:var(--ac)!important;box-shadow:0 0 0 1px var(--ac),0 0 18px -6px var(--glow)!important;background:color-mix(in srgb,var(--ac) 10%,transparent)!important}
-.sprite-preview{display:flex;align-items:flex-end;justify-content:center;width:100%;height:120px;padding-bottom:14px;box-sizing:border-box;margin-bottom:8px;border-radius:var(--rs);background:radial-gradient(42% 16% at 50% 84%,var(--floor),transparent 100%)}
+.sprite-preview{display:flex;align-items:flex-end;justify-content:center;width:100%;height:120px;padding-bottom:var(--s4);box-sizing:border-box;margin-bottom:var(--s2);border-radius:var(--rs);background:radial-gradient(42% 16% at 50% 84%,var(--floor),transparent 100%)}
 .sprite-preview img{max-width:100%;max-height:100%;object-fit:contain}
 .sprite-preview.sprite-home img{height:100px}
 .sprite-preview.sprite-gen5 img{height:96px;image-rendering:pixelated}
 .sprite-preview.sprite-xy img{max-height:104px}
 .sprite-choice b{font:700 15px var(--fb)}
 .sprite-choice small{color:var(--mu);font-weight:400;font-size:12px}
-@media (max-width:620px){.sprite-choice{gap:8px}.sprite-preview{height:96px;padding-bottom:10px}.sprite-preview.sprite-home img{height:76px}.sprite-preview.sprite-gen5 img{height:68px}.sprite-preview.sprite-xy img{max-height:76px}html.jade .sprite-choice button.sprite-option:not(#_){padding:8px 4px 12px!important}}
+@media (max-width:620px){.sprite-choice{gap:var(--s2)}.sprite-preview{height:96px;padding-bottom:var(--s2)}.sprite-preview.sprite-home img{height:76px}.sprite-preview.sprite-gen5 img{height:68px}.sprite-preview.sprite-xy img{max-height:76px}html.jade .sprite-choice button.sprite-option:not(#_){padding:var(--s2) var(--s1) var(--s3)!important}}
 
 @media (prefers-reduced-motion:reduce){.calc-run i,.calc-run b,.shell.power-on>*,.screen-sweep,.boot-exe .caret,.boot-lines div{animation:none!important}.screen-sweep{display:none}}
 
@@ -1621,20 +1620,20 @@ html.jade .dmg-head .eyebrow{overflow-wrap:anywhere}
 .calc-run span{flex:0 1 auto;min-width:0;max-width:none}
 .calc-run i{min-width:24px}
 .calc-run b{flex:none}
-.hp-head{flex-wrap:wrap;gap:0 12px}
+.hp-head{flex-wrap:wrap;gap:0 var(--s3)}
 .hp-head b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Save as benchmark and the spread search stack, one per row. */
-html.jade .result-foot{flex-direction:column;align-items:flex-start;gap:8px}
+html.jade .result-foot{flex-direction:column;align-items:flex-start;gap:var(--s2)}
 html.jade .result-foot button{align-self:auto!important;margin:0!important;max-width:100%;white-space:normal;text-align:left}
 
 /* Calc cards: the render on top, then the role, name and the rest at full width. */
-html.jade .matchup .combatant{grid-template-columns:minmax(0,1fr)!important;gap:12px}
+html.jade .matchup .combatant{grid-template-columns:minmax(0,1fr)!important;gap:var(--s3)}
 html.jade .matchup .combatant .combatant-art{flex-direction:row;justify-content:flex-start;width:96px!important;height:96px!important}
 html.jade .matchup .combatant .combatant-art .art{width:96px!important;height:96px!important}
 html.jade .matchup .combatant .combatant-art::after{left:12%;right:12%}
 /* The Mega pill by the name is the switch: lit when on, an outline with a dimmed orb when off. */
-html.jade .name-row{display:inline-flex;align-items:center;flex-wrap:wrap;gap:12px}
-html.jade .mega-switch.mega-toggle{height:24px!important;min-height:24px!important;max-height:24px!important;padding:0 10px 0 4px!important;gap:6px;border-radius:999px!important;font:700 11px/1 var(--fb)!important;letter-spacing:.08em;cursor:pointer;
+html.jade .name-row{display:inline-flex;align-items:center;flex-wrap:wrap;gap:var(--s3)}
+html.jade .mega-switch.mega-toggle{height:24px!important;min-height:24px!important;max-height:24px!important;padding:0 var(--s2) 0 var(--s1)!important;gap:var(--s1);border-radius:999px!important;font:700 11px/1 var(--fb)!important;letter-spacing:.08em;cursor:pointer;
  color:var(--mu)!important;background:transparent!important;border:1px dashed var(--ln-2)!important;transition:color .2s,border-color .2s,background .2s}
 html.jade .mega-switch.mega-toggle .mega-orb{width:16px!important;height:16px!important;filter:grayscale(1);opacity:.45;transition:filter .2s,opacity .2s}
 html.jade .mega-switch.mega-toggle:hover{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important}
@@ -1648,41 +1647,40 @@ html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);out
  html.jade .set-fields .moves .form-grid{grid-template-columns:minmax(0,1fr)!important}
  html.jade .set-fields .moves .picker .combo-list,html.jade .set-fields .moves .form-grid>.picker:nth-child(even) .combo-list{min-width:0;left:0;right:0}
  /* Slot switcher: a six-up strip across the top. */
- html.jade nav.mon-switcher{gap:4px!important;padding:4px;margin:0 0 16px!important}
- html.jade nav.mon-switcher a{padding:4px 0!important}
+ html.jade nav.mon-switcher{gap:var(--s1)!important;padding:var(--s1);margin:0 0 var(--s4)!important}
+ html.jade nav.mon-switcher a{padding:var(--s1) 0!important}
  html.jade nav.mon-switcher .art.small{width:44px!important;height:44px!important}
  html.jade nav.mon-switcher a.selected .art.small{transform:scale(1.08)}
  /* Tighter panels so the content gets the width. */
- html.jade .workspace-grid,html.jade .set-column{gap:16px!important}
- html.jade .workspace .panel{padding:16px 12px!important}
+ html.jade .workspace-grid,html.jade .set-column{gap:var(--s4)!important}
+ html.jade .workspace .panel{padding:var(--s4) var(--s3)!important}
  html.jade .set-card fieldset.plain{padding:0!important;margin:0!important}
- html.jade .set-fields fieldset,html.jade .set-card fieldset.set-history{padding:12px!important;margin:0 0 16px!important}
- html.jade .set-card .form-grid{gap:12px!important}
- html.jade .set-card-head{gap:12px!important}
- html.jade .lab{gap:16px!important}
- html.jade .matchup .combatant{padding:12px!important}
+ html.jade .set-fields fieldset,html.jade .set-card fieldset.set-history{padding:var(--s3)!important;margin:0 0 var(--s4)!important}
+ html.jade .set-card .form-grid{gap:var(--s3)!important}
+ html.jade .set-card-head{gap:var(--s3)!important}
+ html.jade .lab{gap:var(--s4)!important}
+ html.jade .matchup .combatant{padding:var(--s3)!important}
  html.jade .matchup .combatant .combatant-art,html.jade .matchup .combatant .combatant-art .art{width:72px!important;height:72px!important}
- html.jade .field-box{padding:12px}
- html.jade .field-box .field-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+ html.jade .field-box .field-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);width:100%}
  html.jade .field-box .field-row>:is(.ctx-label,.toggles){grid-column:1/-1;justify-self:center}
  html.jade .field-box .field-row label,html.jade .field-box .field-row select{width:100%;margin:0}
  html.jade .combatant-head .combo{flex-basis:100%;max-width:none}
- html.jade .lab-result{padding:12px!important;gap:12px!important}
+ html.jade .lab-result{gap:var(--s3)!important}
  /* Damage readout sized for a phone. */
  html.jade .lab-big b{font-size:32px!important}
- .lab-big{gap:4px 8px}
- .calc-run{gap:8px;font-size:11px}
- .dmg{gap:12px}
- .dmg-target{grid-template-columns:48px minmax(0,1fr);gap:12px}
+ .lab-big{gap:var(--s1) var(--s2)}
+ .calc-run{gap:var(--s2);font-size:11px}
+ .dmg{gap:var(--s3)}
+ .dmg-target{grid-template-columns:48px minmax(0,1fr);gap:var(--s3)}
  html.jade .dmg-art .art{width:48px!important;height:48px!important}
  .hp-head b{font-size:16px}
  html.jade .hp-head span{font-size:15px!important}
- .rolls{gap:2px}
+ .rolls{gap:var(--s05)}
  /* Save as benchmark and the spread search fill the column. */
  html.jade .result-foot{align-items:stretch}
- html.jade .result-foot button{width:100%;justify-content:center;text-align:center;height:auto!important;min-height:40px!important;max-height:none!important;padding:8px 12px!important}
+ html.jade .result-foot button{width:100%;justify-content:center;text-align:center;height:auto!important;min-height:40px!important;max-height:none!important;padding:var(--s2) var(--s3)!important}
  /* History: date and action on top, the set and its spread below. */
- html.jade .set-history li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"date act" "set sp";gap:4px 12px;padding:8px 12px}
+ html.jade .set-history li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"date act" "set sp";gap:var(--s1) var(--s3);padding:var(--s2) var(--s3)}
  html.jade .set-history .h-date{grid-area:date}
  html.jade .set-history .h-set{grid-area:set}
  html.jade .set-history .h-sp{grid-area:sp;justify-self:end}
@@ -1692,32 +1690,32 @@ html.jade .mega-switch.mega-toggle:focus-visible{outline:2px solid var(--ac);out
 /* ---------- replays filter ----------
    One bar: search (multi-select chips inside the field) and the Pokémon dropdown on the left, All/Wins/Losses on the
    right. Every control is 40px; chips are 24px, sitting 8px inside the field. Stacked full width on phones. */
-html.jade .replays .replay-filters.rf{position:relative;z-index:20;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;margin:0!important}
-.rf-find{display:flex;align-items:flex-start;gap:12px;flex:1 1 auto;min-width:0}
-.rf-search{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px;flex:0 1 560px;min-width:0;min-height:40px;box-sizing:border-box;padding:7px 12px 7px 40px;background:var(--field);border:1px solid var(--ln-2);border-radius:var(--rs);cursor:text;transition:border-color .2s,box-shadow .2s}
+html.jade .replays .replay-filters.rf{position:relative;z-index:20;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:flex-start!important;justify-content:space-between!important;gap:var(--s3)!important;margin:0!important}
+.rf-find{display:flex;align-items:flex-start;gap:var(--s3);flex:1 1 auto;min-width:0}
+.rf-search{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s1);flex:0 1 560px;min-width:0;min-height:40px;box-sizing:border-box;padding:var(--s2) var(--s3) var(--s2) 40px;background:var(--field);border:1px solid var(--ln-2);border-radius:var(--rs);cursor:text;transition:border-color .2s,box-shadow .2s}
 .rf-search:hover{border-color:color-mix(in srgb,var(--ac) 60%,var(--ln-2))}
 .rf-search:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
 .rf-search-icon{position:absolute;left:12px;top:11px;display:flex;color:var(--mu);pointer-events:none}
 html.jade .rf-search>input{flex:1 1 48px;width:auto;min-width:48px;height:24px!important;min-height:24px!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;font:400 14px/24px var(--fb);color:var(--tx)}
 .rf-search>input::placeholder{color:var(--mu);opacity:1}
-.rf-chip{display:inline-flex;align-items:center;gap:4px;height:24px;max-width:100%;box-sizing:border-box;padding:0 0 0 8px;border-radius:999px;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);color:var(--tx);font:600 12px/1 var(--fb);white-space:nowrap}
+.rf-chip{display:inline-flex;align-items:center;gap:var(--s1);height:24px;max-width:100%;box-sizing:border-box;padding:0 0 0 var(--s2);border-radius:999px;background:color-mix(in srgb,var(--ac) 14%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);color:var(--tx);font:600 12px/1 var(--fb);white-space:nowrap}
 .rf-chip>span:not(.poke-icon){overflow:hidden;text-overflow:ellipsis}
 .rf-chip.pokemon{padding-left:0}
-.rf-chip .poke-icon{transform:scale(.8);margin:-3px -4px -3px -4px}
+.rf-chip .poke-icon{transform:scale(.8);margin:calc(-1 * var(--s05)) calc(-1 * var(--s1)) calc(-1 * var(--s05)) calc(-1 * var(--s1))}
 /* :not(#_) lifts these above the theme's broad button rule (a long :not() chain with !important). */
 html.jade .rf-chip>button:not(#_){width:20px;min-width:20px;height:20px!important;min-height:20px!important;max-height:20px!important;margin:0 1px 0 0;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none;color:var(--mu);transform:none!important}
 html.jade .rf-chip>button:not(#_):hover{background:var(--hover)!important;color:var(--tx)}
 html.jade .rf-chip>button:not(#_):focus-visible{outline-offset:0}
-html.jade .rf-list{top:calc(100% + 4px);left:0;right:auto;width:100%;min-width:280px;padding:4px!important;border-radius:12px!important;box-sizing:border-box}
+html.jade .rf-list{top:calc(100% + 4px);left:0;right:auto;width:100%;min-width:280px;padding:var(--s1)!important;border-radius:12px!important;box-sizing:border-box}
 html.jade .rf-list:focus{outline:none}
 html.jade .rf-list.up{top:auto;bottom:calc(100% + 4px)}
-html.jade .rf-list li{text-align:left;justify-content:flex-start!important;min-height:40px;padding:4px 12px 4px 0!important;gap:4px;border-radius:8px!important}
+html.jade .rf-list li{text-align:left;justify-content:flex-start!important;min-height:40px;padding:var(--s1) var(--s3) var(--s1) 0!important;gap:var(--s1);border-radius:8px!important}
 html.jade .rf-list li>small{font:500 12px var(--fb);color:var(--mu)}
 html.jade .rf-list li.chosen{color:var(--ac);font-weight:600}
 html.jade .rf-list li.chosen small{color:var(--ac)}
 html.jade .rf-list li>.rf-glyph,.rf-glyph{display:inline-flex;align-items:center;justify-content:center;flex:none!important;width:40px;height:30px;color:var(--mu)}
-html.jade .replays .rf-result{flex:none;margin:0!important;padding:3px;gap:4px;height:40px;box-sizing:border-box}
-html.jade .replays .rf-result>button{height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 16px!important;font-size:13px}
+html.jade .replays .rf-result{flex:none;margin:0!important;padding:var(--s05);gap:var(--s1);height:40px;box-sizing:border-box}
+html.jade .replays .rf-result>button{height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 var(--s4)!important;font-size:13px}
 @media (max-width:720px){
  html.jade .replays .replay-filters.rf{flex-direction:column!important;align-items:stretch!important}
  .rf-find{flex-direction:column;align-items:stretch}
@@ -1733,15 +1731,15 @@ html.jade .replays .rf-result>button{height:32px!important;min-height:32px!impor
 html.jade .team-hub .hub-nav{justify-content:flex-start!important}
 
 /* Plans: lead and matchup cards share one header. */
-html.jade .plan-card header.plan-top{display:flex!important;flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important;gap:8px!important;flex-wrap:nowrap!important;text-align:left!important}
-html.jade .plan-top .plan-head{flex:1;min-width:0;min-height:32px;display:flex;align-items:center;justify-content:flex-start;gap:8px;flex-wrap:wrap}
+html.jade .plan-card header.plan-top{display:flex!important;flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important;gap:var(--s2)!important;flex-wrap:nowrap!important;text-align:left!important}
+html.jade .plan-top .plan-head{flex:1;min-width:0;min-height:32px;display:flex;align-items:center;justify-content:flex-start;gap:var(--s2);flex-wrap:wrap}
 html.jade .plan-top .plan-head h3{min-width:0;overflow-wrap:anywhere}
-html.jade .plan-top .plan-actions{display:flex;align-items:center;gap:4px;flex:none}
+html.jade .plan-top .plan-actions{display:flex;align-items:center;gap:var(--s1);flex:none}
 html.jade .plan-top .plan-actions .compact{height:32px!important;min-height:32px!important;max-height:32px!important}
 @media (hover:none){.plan-actions{opacity:1!important}}
 .plan-copy{display:flow-root;min-width:0}
 .plan-copy>*{margin:0}
-.plan-copy>*+*{margin-top:8px}
+.plan-copy>*+*{margin-top:var(--s2)}
 .plan-more{display:none!important}
 .plan-foot:empty{display:none}
 html.jade .manage .history-list .team-six.mini{justify-content:flex-start}
@@ -1749,16 +1747,16 @@ html.jade .manage .history-list .team-six.mini{justify-content:flex-start}
 html.jade .fb-divider{grid-column:1/-1;height:0;margin:0;background:none;border-top:1px dashed var(--ln)}
 
 /* Manage: export and format, the history, then delete. */
-.manage{display:grid;gap:24px}
+.manage{display:grid;gap:var(--s6)}
 html.jade .manage>*{margin:0!important}
-.manage-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:16px}
-html.jade .manage-tile{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 20px!important;border-radius:var(--r);border:1px solid var(--ln);background:var(--glass)}
-html.jade .manage-tile h3{font:800 20px/1.1 var(--fd)!important;text-transform:uppercase;margin:4px 0 0!important}
-.manage-actions{display:flex;align-items:center;gap:8px}
+.manage-tiles{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:var(--s4)}
+html.jade .manage-tile{display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;border-radius:var(--r);border:1px solid var(--ln);background:var(--glass)}
+html.jade .manage-tile h3{font:800 20px/1.1 var(--fd)!important;text-transform:uppercase;margin:var(--s1) 0 0!important}
+.manage-actions{display:flex;align-items:center;gap:var(--s2)}
 html.jade .manage-actions label{margin:0}
 html.jade .manage-actions :is(button,select){height:40px!important;min-height:40px!important;max-height:40px!important;margin:0!important}
 html.jade .manage-actions select{min-width:220px}
-.manage-history{display:grid;gap:12px}
+.manage-history{display:grid;gap:var(--s3)}
 html.jade .manage-title{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:0!important}
 html.jade .manage .history-list{margin:0!important;border-radius:var(--r);overflow:hidden}
 html.jade .manage .history-list .what{min-width:0;overflow-wrap:anywhere}
@@ -1769,53 +1767,53 @@ html.jade .manage .danger-zone{margin:0!important}
 
 @media (max-width:760px){
  /* Header: tighter, and the four tabs on one row. */
- html.jade .team-hub .back-link{margin:12px 0 4px!important}
- html.jade .team-hub .hub-head{margin:4px 0 12px!important}
- html.jade .team-hub .hub-nav{padding-bottom:12px!important;margin-bottom:16px!important;gap:8px!important}
- html.jade .team-hub .hub-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;width:100%;margin:0!important}
- html.jade .team-hub .hub-tabs a{height:36px!important;padding:0 4px!important;gap:4px!important;justify-content:center;font-size:13px!important;letter-spacing:.04em}
+ html.jade .team-hub .back-link{margin:var(--s3) 0 var(--s1)!important}
+ html.jade .team-hub .hub-head{margin:var(--s1) 0 var(--s3)!important}
+ html.jade .team-hub .hub-nav{padding-bottom:var(--s3)!important;margin-bottom:var(--s4)!important;gap:var(--s2)!important}
+ html.jade .team-hub .hub-tabs{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:var(--s1)!important;width:100%;margin:0!important}
+ html.jade .team-hub .hub-tabs a{height:36px!important;padding:0 var(--s1)!important;gap:var(--s1)!important;justify-content:center;font-size:13px!important;letter-spacing:.04em}
 
  /* The six: one per row, full-width cards. */
- html.jade .team-hub .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+ html.jade .team-hub .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:var(--s4)!important}
 
  /* Strategy write-up and the team row. */
- html.jade .team-hub .strategy-block{padding:12px!important;margin-top:16px!important;margin-bottom:16px!important}
- html.jade .team-hub .strategy-head{padding-bottom:12px;margin-bottom:12px}
+ html.jade .team-hub .strategy-block{margin-top:var(--s4)!important;margin-bottom:var(--s4)!important}
+ html.jade .team-hub .strategy-head{padding-bottom:var(--s3);margin-bottom:var(--s3)}
  html.jade .team-hub .strategy-head h2{font-size:22px}
  html.jade .team-hub .guide-intro .markdown{font-size:15px;line-height:1.6}
- html.jade .team-hub .guide-team{gap:8px;padding-top:12px}
- html.jade .team-hub .guide-six{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
- html.jade .team-hub .guide-six button{padding:8px 4px!important;gap:4px;min-width:0}
+ html.jade .team-hub .guide-team{gap:var(--s2);padding-top:var(--s3)}
+ html.jade .team-hub .guide-six{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s1)}
+ html.jade .team-hub .guide-six button{padding:var(--s2) var(--s1)!important;gap:var(--s1);min-width:0}
  html.jade .team-hub .guide-six .set-art .art{width:56px!important;height:56px!important}
  html.jade .team-hub .guide-six button span:last-child{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- html.jade .team-hub .guide-mon{padding:12px}
+ html.jade .team-hub .guide-mon{padding:var(--s3)}
  html.jade .team-hub .guide-mon-head h3{font-size:18px!important}
 
  /* Panels and plans. */
- html.jade .team-hub .coaching .panel{padding:12px!important}
- html.jade .team-hub .team-detail-grid{gap:16px!important}
- html.jade .team-hub .panel-heading{flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;text-align:left!important;gap:8px;padding-bottom:12px;margin-bottom:12px}
+ html.jade .team-hub .coaching .panel{padding:var(--s3)!important}
+ html.jade .team-hub .team-detail-grid{gap:var(--s4)!important}
+ html.jade .team-hub .panel-heading{flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;text-align:left!important;gap:var(--s2);padding-bottom:var(--s3);margin-bottom:var(--s3)}
  html.jade .team-hub .panel-heading>div{width:auto;min-width:0}
  html.jade .team-hub .panel-heading h2{font-size:22px}
- html.jade .team-hub .plan-list{gap:8px}
- html.jade .team-hub .plan-card{padding:12px!important;gap:8px!important}
+ html.jade .team-hub .plan-list{gap:var(--s2)}
+ html.jade .team-hub .plan-card{gap:var(--s2)!important}
  html.jade .team-hub .plan-head h3{font-size:18px!important}
- html.jade .team-hub .front-back{grid-template-columns:auto minmax(0,1fr);gap:4px 8px}
+ html.jade .team-hub .front-back{grid-template-columns:auto minmax(0,1fr);gap:var(--s1) var(--s2)}
  html.jade .team-hub .fb-label{font-size:10px;letter-spacing:.08em}
- html.jade .team-hub .fb-mons{gap:0 8px}
+ html.jade .team-hub .fb-mons{gap:0 var(--s2)}
  html.jade .team-hub .fb-mon{font-size:13px;gap:0}
  html.jade .team-hub .fb-mon .art.small{width:28px!important;height:28px!important}
- html.jade .team-hub .plan-body{gap:4px;padding-top:8px}
+ html.jade .team-hub .plan-body{gap:var(--s1);padding-top:var(--s2)}
  html.jade .team-hub .plan-body .markdown{font-size:14px;line-height:1.55}
  .plan-body.folded .plan-copy{max-height:88px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
- .plan-more{display:inline-flex!important;justify-self:start;align-items:center;gap:4px;padding:0!important;height:32px!important;min-height:32px!important;color:var(--ac)!important}
+ .plan-more{display:inline-flex!important;justify-self:start;align-items:center;gap:var(--s1);padding:0!important;height:32px!important;min-height:32px!important;color:var(--ac)!important}
  .plan-more .px-icon{transition:transform .2s}
  .plan-more[aria-expanded=true] .px-icon{transform:rotate(180deg)}
 
  /* Manage: full-width tiles and controls, a compact history and a full-width Delete. */
- .manage{gap:16px}
- .manage-tiles{gap:8px}
- html.jade .manage-tile{flex-direction:column;align-items:stretch!important;gap:12px;padding:12px!important}
+ .manage{gap:var(--s4)}
+ .manage-tiles{gap:var(--s2)}
+ html.jade .manage-tile{flex-direction:column;align-items:stretch!important;gap:var(--s3)}
  html.jade .manage-tile h3{font-size:18px!important}
  .manage-actions{width:100%}
  html.jade .manage-actions>button{flex:1}
@@ -1823,20 +1821,20 @@ html.jade .manage .danger-zone{margin:0!important}
  html.jade .format-copy select{min-width:0!important;width:100%}
  html.jade .format-copy>button{flex:none}
  html.jade .manage-title{font-size:20px!important}
- html.jade .manage .history-list li{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"when when" "what what" "six act";gap:4px 8px!important;padding:12px!important}
+ html.jade .manage .history-list li{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"when when" "what what" "six act";gap:var(--s1) var(--s2)!important;padding:var(--s3)!important}
  html.jade .manage .history-list .when{grid-area:when;font-size:12px}
  html.jade .manage .history-list .what{grid-area:what;font-weight:600;font-size:14px;line-height:20px}
  html.jade .manage .history-list .team-six.mini{grid-area:six;order:0;grid-column:auto;gap:0;align-self:center}
  html.jade .manage .history-list .team-six.mini .set-art .art.small{width:28px!important;height:28px!important}
  html.jade .manage .history-list .team-six.mini .mega-orb{display:none}
- html.jade .manage .history-list :is(.button-row,.tag){grid-area:act;align-self:center;justify-self:end;flex-wrap:nowrap;gap:4px}
- html.jade .manage .history-list .button-row .compact{padding:0 8px!important}
- html.jade .manage .danger-zone{flex-direction:column;align-items:stretch!important;text-align:left!important;gap:12px;padding:12px!important}
+ html.jade .manage .history-list :is(.button-row,.tag){grid-area:act;align-self:center;justify-self:end;flex-wrap:nowrap;gap:var(--s1)}
+ html.jade .manage .history-list .button-row .compact{padding:0 var(--s2)!important}
+ html.jade .manage .danger-zone{flex-direction:column;align-items:stretch!important;text-align:left!important;gap:var(--s3)}
  html.jade .manage .danger-zone button.danger{width:100%}
 }
 /* The narrowest phones: plan actions sit above the title. */
 @media (max-width:380px){
- html.jade .plan-card header.plan-top{flex-direction:column-reverse!important;align-items:stretch!important;gap:4px!important}
+ html.jade .plan-card header.plan-top{flex-direction:column-reverse!important;align-items:stretch!important;gap:var(--s1)!important}
  html.jade .plan-top .plan-actions{align-self:flex-end}
  html.jade .team-hub .hub-tabs a .px-icon{display:none}
 }
@@ -1868,20 +1866,20 @@ html.jade .week-tabs>button.selected small{color:var(--ac)}
 
 @media (max-width:720px){
  /* Dialogs: a tighter frame, and the news weeks stack as full-width rows. */
- html.jade .week-tabs{grid-template-columns:minmax(0,1fr)!important;gap:8px}
- html.jade .week-tabs>button{flex-direction:row!important;justify-content:space-between;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0 16px!important}
+ html.jade .week-tabs{grid-template-columns:minmax(0,1fr)!important;gap:var(--s2)}
+ html.jade .week-tabs>button{flex-direction:row!important;justify-content:space-between;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0 var(--s4)!important}
 
  /* Top bar: one 40px row on a 4px grid. Empty grid rows no longer add their gaps, so there is no dead band under it. */
- html.jade .shell>.masthead{grid-template-rows:auto!important;row-gap:0!important;column-gap:8px!important;padding:12px 16px!important;align-items:center}
- html.jade .masthead .brand{height:40px;gap:8px!important;font-size:22px!important;align-items:center}
+ html.jade .shell>.masthead{grid-template-rows:auto!important;row-gap:0!important;column-gap:var(--s2)!important;padding:var(--s3) var(--s4)!important;align-items:center}
+ html.jade .masthead .brand{height:40px;gap:var(--s2)!important;font-size:22px!important;align-items:center}
  html.jade .masthead .brand-logo{width:32px!important;height:32px!important}
  html.jade .masthead :is(.theme-toggle,.menu-toggle,.account-button){width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:0!important;justify-content:center}
  html.jade .masthead .account-menu{width:40px!important;height:40px}
- html.jade .masthead .save-pill{margin-top:8px}
+ html.jade .masthead .save-pill{margin-top:var(--s2)}
  /* The menu: 40px rows with 4px between them, under a hairline. */
- html.jade .masthead-nav{gap:4px!important;padding-top:12px!important;margin-top:12px;border-top:1px solid var(--ln)!important}
- html.jade .masthead-nav .quickbar{gap:4px!important}
- html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news){height:40px!important;min-height:40px!important;padding:0 12px!important}
+ html.jade .masthead-nav{gap:var(--s1)!important;padding-top:var(--s3)!important;margin-top:var(--s3);border-top:1px solid var(--ln)!important}
+ html.jade .masthead-nav .quickbar{gap:var(--s1)!important}
+ html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news){height:40px!important;min-height:40px!important;padding:0 var(--s3)!important}
 }
 @media (prefers-reduced-motion:reduce){html.jade .fx-glitch{animation:none!important}}
 
@@ -1889,13 +1887,13 @@ html.jade .week-tabs>button.selected small{color:var(--ac)}
 html.jade .manage .manage-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media (max-width:1000px){html.jade .manage .manage-tiles{grid-template-columns:minmax(0,1fr)}}
 html.jade .manage .manage-actions{flex-wrap:wrap}
-html.jade .manage .manage-tile{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px}
+html.jade .manage .manage-tile{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:var(--s3)}
 html.jade .manage .manage-tile .manage-actions{justify-content:flex-start}
 html.jade .team-hub .manage .manage-tile.format-tile,html.jade .team-hub .manage .manage-tile.format-tile>div{text-align:left!important;align-items:stretch!important;justify-content:flex-start!important}
 html.jade .team-hub .manage .manage-tile.format-tile .format-copy{justify-content:flex-start!important;margin:0!important}
 /* Manage tiles: a small label over buttons that share the full width. */
-html.jade .team-hub .manage .manage-tile{gap:8px}
-html.jade .team-hub .manage .manage-actions{display:flex;flex-wrap:nowrap;gap:8px;width:100%}
+html.jade .team-hub .manage .manage-tile{gap:var(--s2)}
+html.jade .team-hub .manage .manage-actions{display:flex;flex-wrap:nowrap;gap:var(--s2);width:100%}
 html.jade .team-hub .manage .manage-actions>button{flex:1 1 0;min-width:0;justify-content:center;height:40px}
 html.jade .team-hub .manage .format-copy>label{flex:1.6 1 0;min-width:0}
 html.jade .team-hub .manage .format-copy select{width:100%;height:40px}
@@ -1911,8 +1909,8 @@ html.jade .team-hub .manage .manage-tile:first-child .manage-actions>button{flex
 
 /* ---------- Settings: About you ----------
    One field pattern throughout (label, control, then chips), two columns that align row by row, one column on phones. */
-html.jade .about-you{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 16px;align-items:start;margin-top:16px}
-html.jade .about-you .pref-field{display:flex;flex-direction:column;gap:8px;margin:0!important;min-width:0}
+html.jade .about-you{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s6) var(--s4);align-items:start;margin-top:var(--s4)}
+html.jade .about-you .pref-field{display:flex;flex-direction:column;gap:var(--s2);margin:0!important;min-width:0}
 html.jade .about-you .pref-field.wide{grid-column:1/-1}
 html.jade .about-you .pref-label{font:600 13px/1.2 var(--fb);color:var(--tx);margin:0}
 html.jade .about-you :is(input,select,textarea){width:100%;margin:0!important;box-sizing:border-box}
@@ -1920,11 +1918,11 @@ html.jade .about-you input{height:40px}
 html.jade .about-you .segmented{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);height:40px;margin:0!important}
 html.jade .about-you .segmented button{height:100%!important;min-height:0!important}
 html.jade .about-you .picker,html.jade .about-you .combo{width:100%}
-.pref-chips{display:flex;flex-wrap:wrap;gap:4px}
-html.jade .pref-chips .chip{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 4px 0 10px;font-size:13px}
+.pref-chips{display:flex;flex-wrap:wrap;gap:var(--s1)}
+html.jade .pref-chips .chip{display:inline-flex;align-items:center;gap:var(--s1);height:28px;padding:0 var(--s1) 0 var(--s2);font-size:13px}
 html.jade .pref-chips .chip button:not(#_){display:inline-flex;align-items:center;justify-content:center;width:20px!important;height:20px!important;min-height:0!important;padding:0!important;border:0!important;background:none!important;color:inherit;border-radius:50%!important;box-shadow:none!important}
 html.jade .pref-chips .chip button:not(#_):hover{background:color-mix(in srgb,var(--tx) 12%,transparent)!important}
-@media (max-width:620px){html.jade .about-you{grid-template-columns:minmax(0,1fr);gap:16px}}
+@media (max-width:620px){html.jade .about-you{grid-template-columns:minmax(0,1fr);gap:var(--s4)}}
 
 /* Favourite star on phones: inside the artwork's bottom-right corner instead of hanging off its top-left. */
 @media (max-width:620px){
@@ -1942,7 +1940,7 @@ html.jade .pref-chips .chip button:not(#_):hover{background:color-mix(in srgb,va
 @media (max-width:620px){.consent .consent-actions{grid-template-columns:1fr}}
 
 /* Sign in with Google: the four-colour G on a white disc inside the primary button. */
-.google-button{display:inline-flex!important;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+.google-button{display:inline-flex!important;align-items:center;justify-content:center;gap:var(--s2);white-space:nowrap}
 .google-g-wrap{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(8,32,26,.2);flex:none}
 .google-g{display:block}
 .account-signin{align-items:center;gap:var(--s6)}
@@ -1951,9 +1949,9 @@ html.jade .pref-chips .chip button:not(#_):hover{background:color-mix(in srgb,va
 
 /* AI settings: the explainer and the connector address use the glass radius like every other box. */
 html.jade .ai-explainer,html.jade .copy-line{border-radius:var(--rs)!important;overflow:hidden}
-html.jade .ai-mode{margin-bottom:12px}
+html.jade .ai-mode{margin-bottom:var(--s3)}
 /* Showdown names: label, box and chips spaced like the About you fields. */
-html.jade .settings .examples-field{display:flex;flex-direction:column;gap:8px;margin:12px 0 0}
+html.jade .settings .examples-field{display:flex;flex-direction:column;gap:var(--s2);margin:var(--s3) 0 0}
 html.jade .settings .examples-field>.field-label{margin:0!important;font:600 13px/1.2 var(--fb);color:var(--tx)}
 html.jade .settings .examples-field :is(input){margin:0!important;height:40px}
 
@@ -1961,22 +1959,22 @@ html.jade .settings .examples-field :is(input){margin:0!important;height:40px}
 html.jade .data-pool .stat-table td:not(:has(.art)){white-space:nowrap}
 @media (max-width:620px){
  html.jade .data-pool .stat-table{table-layout:auto}
- html.jade .data-pool .stat-table td{padding:8px 4px!important;font-size:12px}
+ html.jade .data-pool .stat-table td{padding:var(--s2) var(--s1)!important;font-size:12px}
  html.jade .data-pool .stat-table td:has(.art){width:100%;white-space:normal;overflow-wrap:anywhere}
  html.jade .data-pool .stat-table td:first-child{width:1%;color:var(--mu)}
 }
 
 /* Site footer: brand, a few links, and who makes it. */
-html.jade .site-footer{display:grid;grid-template-columns:minmax(0,1fr);justify-items:stretch;align-items:start;width:100%;gap:20px;padding:40px 0 32px;margin-top:var(--s8);border-top:1px solid var(--ln-2)!important;color:var(--mu)}
-html.jade .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:32px}
-html.jade .footer-brand{display:grid;gap:10px;align-content:start}
+html.jade .site-footer{display:grid;grid-template-columns:minmax(0,1fr);justify-items:stretch;align-items:start;width:100%;gap:var(--s6);padding:40px 0 var(--s8);margin-top:var(--s8);border-top:1px solid var(--ln-2)!important;color:var(--mu)}
+html.jade .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:var(--s8)}
+html.jade .footer-brand{display:grid;gap:var(--s2);align-content:start}
 html.jade .footer-word{font:800 22px/1 var(--fd);letter-spacing:.04em;color:var(--tx)}
 html.jade .footer-brand p{margin:0;max-width:26em;font-size:14.5px}
-html.jade .site-footer nav{display:grid;gap:9px;align-content:start}
-html.jade .site-footer nav h4{margin:0 0 4px;font:600 11px var(--fnum);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
+html.jade .site-footer nav{display:grid;gap:var(--s2);align-content:start}
+html.jade .site-footer nav h4{margin:0 0 var(--s1);font:600 11px var(--fnum);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
 html.jade .site-footer nav a{margin:0;color:var(--tx);font-size:15px}
 html.jade .site-footer nav a:hover{color:var(--ac)}
-html.jade .footer-legal{display:grid;gap:6px;padding-top:16px;border-top:1px solid var(--ln);font:400 11px/1.55 var(--fb);color:var(--mu);opacity:.85}
+html.jade .footer-legal{display:grid;gap:var(--s1);padding-top:var(--s4);border-top:1px solid var(--ln);font:400 11px/1.55 var(--fb);color:var(--mu);opacity:.85}
 html.jade .footer-legal p{margin:0;max-width:none;font:inherit;color:inherit}
 html.jade .footer-mail{font:inherit;user-select:all}
 @media (max-width:720px){html.jade .footer-grid{grid-template-columns:1fr 1fr}html.jade .footer-brand{grid-column:1/-1}}
@@ -1988,7 +1986,7 @@ html.jade .footer-mail{font:inherit;user-select:all}
 
 /* phones: the boot screen keeps the 16px gutter; the title wraps instead of running off the edge */
 @media (max-width:620px){
-  .boot{padding:0 16px;box-sizing:border-box}
+  .boot{padding:0 var(--s4);box-sizing:border-box}
   .boot-inner{width:100%;max-width:100%;min-width:0}
   .boot-exe{font-size:clamp(30px,10.5vw,44px);white-space:normal;overflow-wrap:anywhere;line-height:1}
   .boot-lines{max-width:100%;font-size:12.5px;line-height:1.8}
@@ -2002,12 +2000,12 @@ html.jade .footer-mail{font:inherit;user-select:all}
 /* phones: Pokémon art options stack one per row at full size (no squeezing); button groups fill the row, sitting side by
    side only when each still has room and stacking full width otherwise */
 @media (max-width:620px){
-  html.jade .sprite-choice{grid-template-columns:minmax(0,1fr);gap:12px}
-  html.jade .sprite-preview{height:120px;padding-bottom:14px}
+  html.jade .sprite-choice{grid-template-columns:minmax(0,1fr);gap:var(--s3)}
+  html.jade .sprite-preview{height:120px;padding-bottom:var(--s4)}
   html.jade .sprite-preview.sprite-home img{height:100px}
   html.jade .sprite-preview.sprite-gen5 img{height:96px}
   html.jade .sprite-preview.sprite-xy img{max-height:104px}
-  html.jade .sprite-choice button.sprite-option:not(#_){padding:12px 8px 16px!important}
+  html.jade .sprite-choice button.sprite-option:not(#_){padding:var(--s3) var(--s2) var(--s4)!important}
   html.jade :is(.settings-actions,.button-row:not(.dock-controls),.manage-actions,.consent-actions,.lp-ctas){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:var(--s2);width:100%}
   html.jade :is(.settings-actions,.button-row:not(.dock-controls),.manage-actions,.consent-actions,.lp-ctas)>:is(button,a.button,.button,label){width:100%;max-width:none;justify-content:center;text-align:center;margin:0}
 }
@@ -2015,32 +2013,32 @@ html.jade .footer-mail{font:inherit;user-select:all}
 /* phones: the New team paste step is compact (tighter gaps, a paste box that is not a whole screen tall, full-width actions) */
 @media (max-width:620px){
   html.jade .new-team{gap:0}
-  html.jade .new-team .format-choice{margin-bottom:12px!important}
-  html.jade .new-team>.tabs{margin-bottom:12px}
-  html.jade .new-team .paste-source{gap:10px}
+  html.jade .new-team .format-choice{margin-bottom:var(--s3)!important}
+  html.jade .new-team>.tabs{margin-bottom:var(--s3)}
+  html.jade .new-team .paste-source{gap:var(--s2)}
   html.jade .new-team .paste-source>button{justify-self:stretch;width:100%}
-  html.jade .new-team .draft-review{gap:12px;padding-top:12px;margin-top:12px}
+  html.jade .new-team .draft-review{gap:var(--s3);padding-top:var(--s3);margin-top:var(--s3)}
   html.jade .new-team .draft-review textarea[spellcheck=false]{height:200px;min-height:0;resize:vertical}
   html.jade .new-team .draft-review>.primary{justify-self:stretch;align-self:stretch;width:100%;margin-left:0}
-  html.jade .new-team .footnote{margin:12px 0}
+  html.jade .new-team .footnote{margin:var(--s3) 0}
 }
 
 /* phones: plan cards put the role/threat pill on the same line as edit and delete; the title sits underneath */
 @media (max-width:620px){
-  html.jade .plan-card header.plan-top{flex-wrap:wrap!important;align-items:center!important;row-gap:8px!important}
+  html.jade .plan-card header.plan-top{flex-wrap:wrap!important;align-items:center!important;row-gap:var(--s2)!important}
   html.jade .plan-top .plan-head{display:contents}
   html.jade .plan-top .plan-head>:is(.role-pill,.threat){order:1}
   html.jade .plan-top .plan-head>.tag{order:2}
   html.jade .plan-top .plan-actions{order:3;margin-left:auto;align-items:center}
   html.jade .plan-top .plan-head>h3{order:4;flex:1 1 100%;min-width:0}
   /* room between the title and the Pokémon row below it */
-  html.jade .plan-card header.plan-top{margin-bottom:14px!important}
+  html.jade .plan-card header.plan-top{margin-bottom:var(--s4)!important}
   html.jade .plan-card .plan-top+.front-back{margin-top:0}
 }
 
 /* phones: the six Pokémon sit one per row so each card fills the width */
 @media (max-width:620px){
-  html.jade .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:14px}
+  html.jade .six-grid{grid-template-columns:minmax(0,1fr)!important;gap:var(--s4)}
   html.jade .six-grid .mon-card{max-width:none}
 }
 
@@ -2048,38 +2046,37 @@ html.jade .footer-mail{font:inherit;user-select:all}
 
 /* News: one readable column. A briefing block, signal cards, then the articles as a tidy list; nothing runs to the edges. */
 html.jade .news-page>:not(.panel-heading){max-width:860px;margin-inline:auto;width:100%;box-sizing:border-box}
-html.jade .news-page .week-tabs{margin-bottom:20px}
-html.jade .news-page .weekly-digest{display:grid;gap:10px;padding:18px 20px;border-radius:var(--r);background:var(--sunk);border:1px solid var(--ln);border-left:3px solid var(--ac);margin-bottom:24px}
+html.jade .news-page .week-tabs{margin-bottom:var(--s6)}
+html.jade .news-page .weekly-digest{display:grid;gap:var(--s2);border-radius:var(--r);background:var(--sunk);border:1px solid var(--ln);border-left:3px solid var(--ac);margin-bottom:var(--s6)}
 html.jade .news-page .weekly-digest p{margin:0;font-size:16.5px;line-height:1.6;color:var(--tx);max-width:68ch;overflow-wrap:anywhere}
 html.jade .news-page .weekly-digest .eyebrow{margin:0}
-html.jade .news-page .news-h{margin:8px 0 12px;font:700 11px/1.3 var(--fb);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
-html.jade .news-page .news-signal{display:grid;gap:8px;padding:18px 20px!important;margin-block:0 12px;border-radius:var(--r);min-width:0}
+html.jade .news-page .news-h{margin:var(--s2) 0 var(--s3);font:700 11px/1.3 var(--fb);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
+html.jade .news-page .news-signal{display:grid;gap:var(--s2);padding:var(--s4) var(--s6)!important;margin-block:0 var(--s3);border-radius:var(--r);min-width:0}
 html.jade .news-page .news-signal .tag{justify-self:start}
 html.jade .news-page .news-signal h3{margin:0;font:700 18px/1.3 var(--fb);overflow-wrap:anywhere}
 html.jade .news-page .news-signal p{margin:0;line-height:1.6;color:var(--tx);overflow-wrap:anywhere}
-html.jade .news-page .news-signal .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-html.jade .news-page .news-signal .tags a{height:auto;min-height:32px;padding:4px 12px;border-radius:999px;border:1px solid var(--ln-2);overflow-wrap:anywhere}
-html.jade .news-page .articles{display:grid;gap:10px;margin-bottom:20px}
-html.jade .news-page .articles>article{display:grid;grid-template-columns:36px minmax(0,1fr);gap:14px;align-items:start;padding:16px 18px;border-radius:var(--r);background:var(--sunk);border:1px solid var(--ln);min-width:0}
+html.jade .news-page .news-signal .tags{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s1)}
+html.jade .news-page .news-signal .tags a{height:auto;min-height:32px;padding:var(--s1) var(--s3);border-radius:999px;border:1px solid var(--ln-2);overflow-wrap:anywhere}
+html.jade .news-page .articles{display:grid;gap:var(--s2);margin-bottom:var(--s6)}
+html.jade .news-page .articles>article{display:grid;grid-template-columns:36px minmax(0,1fr);gap:var(--s4);align-items:start;padding:var(--s4) var(--s4);border-radius:var(--r);background:var(--sunk);border:1px solid var(--ln);min-width:0}
 html.jade .news-page .article-mark{width:36px;height:36px;display:grid;place-items:center;border-radius:10px}
-html.jade .news-page .articles>article>div{display:grid;gap:6px;min-width:0}
+html.jade .news-page .articles>article>div{display:grid;gap:var(--s1);min-width:0}
 html.jade .news-page .article-meta{font:500 11px/1.4 var(--fnum);letter-spacing:.06em;text-transform:uppercase;color:var(--mu);overflow-wrap:anywhere}
 html.jade .news-page .articles h3{margin:0;font:700 17px/1.35 var(--fb);overflow-wrap:anywhere}
 html.jade .news-page .articles p{margin:0;line-height:1.6;overflow-wrap:anywhere}
 html.jade .news-page .articles .muted{font-size:12.5px;overflow-wrap:anywhere}
-html.jade .news-page .coverage{margin-top:8px;padding:14px 18px;border-radius:var(--r);border:1px dashed var(--ln-2)}
+html.jade .news-page .coverage{margin-top:var(--s2);padding:var(--s4) var(--s4);border-radius:var(--r);border:1px dashed var(--ln-2)}
 html.jade .news-page .coverage summary{cursor:pointer;font-weight:600}
-html.jade .news-page .coverage p,html.jade .news-page .coverage span{display:block;margin:10px 0 0;color:var(--mu);line-height:1.6;overflow-wrap:anywhere}
+html.jade .news-page .coverage p,html.jade .news-page .coverage span{display:block;margin:var(--s2) 0 0;color:var(--mu);line-height:1.6;overflow-wrap:anywhere}
 @media (max-width:620px){
-  html.jade .news-page .weekly-digest{padding:14px 16px}
   html.jade .news-page .weekly-digest p{font-size:15.5px}
-  html.jade .news-page .news-signal{padding:14px 16px!important}
-  html.jade .news-page .articles>article{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 16px}
+  html.jade .news-page .news-signal{padding:var(--s4) var(--s4)!important}
+  html.jade .news-page .articles>article{grid-template-columns:minmax(0,1fr);gap:var(--s2);padding:var(--s4) var(--s4)}
   html.jade .news-page .article-mark{width:28px;height:28px}
 }
 
 /* suggestions a connected assistant left for the team, shown at the top of the dock like the chat's own proposals */
-html.jade .queued{display:grid;gap:10px;padding:12px;margin-bottom:14px;border-radius:var(--r);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 8%,transparent)}
+html.jade .queued{display:grid;gap:var(--s2);padding:var(--s3);margin-bottom:var(--s4);border-radius:var(--r);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 8%,transparent)}
 
 .tile-strategy{font-size:12px;border-top:1px solid var(--ln);padding-top:var(--s2)}.tile-strategy summary{cursor:pointer;color:var(--mu);margin-bottom:var(--s1)}.tile-strategy p,.tile-strategy ul{margin:0 0 var(--s1)}
 
@@ -2089,17 +2086,17 @@ html.jade .pool-team:first-child{padding-top:var(--s2)}html.jade .pool-team:last
 html.jade .pool-team .team-six{display:flex;flex-wrap:wrap;gap:var(--s3);margin-bottom:var(--s2)}
 html.jade .pool-team p{margin:0;font-size:14px;line-height:1.5}
 html.jade .pool-team-who{display:flex;align-items:baseline;gap:var(--s2)}
-html.jade .pool-place{font:700 12px/1 var(--fb);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--ln);border-radius:3px;padding:4px 6px}
+html.jade .pool-place{font:700 12px/1 var(--fb);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--ln);border-radius:3px;padding:var(--s1) var(--s1)}
 html.jade .pool-place.place-1{border-color:var(--ac);color:var(--ac)}
 html.jade .pool-team-event a{overflow-wrap:anywhere}
 html.jade .pool-team-meta{font-size:12px!important}
 html.jade .pair-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--s4)}
-html.jade .pair-card{display:grid;justify-items:center;gap:var(--s2);padding:var(--s4);text-align:center;border:1px solid var(--ln);border-radius:4px;background:var(--glass)}
+html.jade .pair-card{display:grid;justify-items:center;gap:var(--s2);text-align:center;border:1px solid var(--ln);border-radius:4px;background:var(--glass)}
 html.jade .pair-art{display:flex;align-items:center;justify-content:center;gap:var(--s2)}
 html.jade .pair-card h3{margin:0;font:700 15px/1.3 var(--fb);overflow-wrap:anywhere}
 html.jade .pair-card p{margin:0;font-size:13px}
 html.jade .pair-card b{font-family:var(--fd);font-size:18px}
-@media(max-width:620px){html.jade .pair-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}html.jade .pair-card{padding:var(--s3)}}
+@media(max-width:620px){html.jade .pair-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}}
 /* Top-4 teams: every team is a centred block with clear space above and below its divider, at every width. */
 html.jade .data-pool .pool-team{display:grid;justify-items:center;gap:var(--s2);padding:var(--s6) 0!important;text-align:center;border-bottom:1px solid var(--ln)}
 html.jade .data-pool .pool-team:first-of-type{padding-top:var(--s3)!important}
@@ -2119,14 +2116,14 @@ html.jade .waiting-ai p{margin:0}
 html.jade .waiting-ask{font-family:var(--fm,monospace);font-size:13px;color:var(--ac)}
 /* Replays: the summary line and debrief wording edit in place; nothing else about the layout changes. */
 html.jade .summary-edit{display:grid;gap:var(--s2)}html.jade .summary-edit textarea{width:100%;resize:vertical}
-html.jade .game-summary .icon-text{display:inline-flex;vertical-align:middle;padding:2px 4px;margin-left:4px;height:auto;min-height:0;border:0;box-shadow:none;background:transparent;color:var(--mu)}
+html.jade .game-summary .icon-text{display:inline-flex;vertical-align:middle;padding:var(--s05) var(--s1);margin-left:var(--s1);height:auto;min-height:0;border:0;box-shadow:none;background:transparent;color:var(--mu)}
 html.jade .inline-edit input,html.jade .inline-edit textarea{width:100%}html.jade .inline-edit .theme-head input{flex:1;min-width:0}
 html.jade .earlier{margin-top:var(--s2);font-size:13px}
 /* Add replays: one regular panel (same padding and edge as the others); the field grows, the two actions sit beside it, and stack full-width on phones. */
 html.jade .replay-add{margin-top:0}
 html.jade .replay-add.locked{opacity:.45;filter:grayscale(.5)}html.jade .replay-add.locked,html.jade .replay-add.locked *{cursor:not-allowed}
 html.jade .ra-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:start;border:0;margin:0;padding:0;min-width:0}
-html.jade .ra-form textarea{width:100%;min-width:0;min-height:44px;height:44px;margin:0;padding:10px 12px;line-height:1.5;resize:vertical;box-sizing:border-box}
+html.jade .ra-form textarea{width:100%;min-width:0;min-height:44px;height:44px;margin:0;padding:var(--s2) var(--s3);line-height:1.5;resize:vertical;box-sizing:border-box}
 html.jade .ra-actions{display:flex;gap:var(--s2)}
 html.jade .ra-actions>*{height:44px!important;min-height:44px!important;margin:0!important;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);box-sizing:border-box;white-space:nowrap}
 html.jade .ra-file{position:relative}
@@ -2142,7 +2139,7 @@ html.jade .bench-intro{display:flex;gap:var(--s4);align-items:center;justify-con
 html.jade .bench-intro p{margin:0;max-width:64ch}
 html.jade .bench-layout{display:grid;grid-template-columns:minmax(190px,232px) minmax(0,1fr);gap:var(--s4);align-items:start}
 html.jade .bench-team{padding:var(--s3);position:sticky;top:calc(var(--mast-h,64px) + var(--s3))}
-html.jade .bench-team ol{list-style:none;margin:var(--s2) 0 0;padding:0;display:grid;gap:2px}
+html.jade .bench-team ol{list-style:none;margin:var(--s2) 0 0;padding:0;display:grid;gap:var(--s05)}
 html.jade .bench-team a{display:grid;grid-template-columns:auto auto minmax(0,1fr);grid-template-areas:'no art name' '. . item';align-items:center;column-gap:var(--s2);padding:var(--s1) var(--s2);border-radius:8px;color:inherit;text-decoration:none}
 html.jade .bench-team a:hover{background:var(--hover)}
 html.jade .bench-team .slot-no{position:static;grid-area:no;font:600 11px var(--fnum);color:var(--mu)}
@@ -2154,7 +2151,7 @@ html.jade .bench-item{display:flex;flex-direction:column;gap:var(--s3);min-width
 html.jade .bench-item>.mon-card{flex:1}
 html.jade .bench-meta{display:grid;gap:var(--s2)}
 html.jade .bench-meta p,html.jade .bench-meta small{margin:0}
-html.jade .bench-replaces{display:grid;gap:4px;font-size:12px;color:var(--mu)}
+html.jade .bench-replaces{display:grid;gap:var(--s1);font-size:12px;color:var(--mu)}
 html.jade .bench-replaces select{width:100%;font-size:14px}
 html.jade .bench-fit{font-size:13px}html.jade .bench-fit.ok{color:var(--ac)}html.jade .bench-fit.warn{color:var(--hot)}
 html.jade .bench-add{margin-bottom:var(--s4);display:grid;gap:var(--s3)}
@@ -2163,7 +2160,7 @@ html.jade .bench-add textarea{width:100%;box-sizing:border-box;font:13px/1.4 var
 html.jade .bench-add .footnote{margin:var(--s2) 0 0}
 html.jade .bench-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:var(--s3);margin:var(--s3) 0}
 html.jade .bench-compare>div{display:grid;gap:var(--s2);align-content:start}
-html.jade .bench-slot{display:grid;gap:4px;font-size:12px;color:var(--mu)}html.jade .bench-slot select{font-size:14px}
+html.jade .bench-slot{display:grid;gap:var(--s1);font-size:12px;color:var(--mu)}html.jade .bench-slot select{font-size:14px}
 html.jade .bench-problems{margin:0 0 var(--s2);padding-left:var(--s4);color:var(--hot);font-size:13px}
 @media(max-width:860px){
   html.jade .bench-layout{grid-template-columns:minmax(0,1fr)}
@@ -2187,7 +2184,7 @@ html.jade .inbox-section{display:grid;gap:var(--s2)}
 html.jade .inbox-h{display:flex;align-items:center;gap:var(--s2);margin:var(--s2) 0 0;font:700 12px/1.3 var(--fb);letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
 html.jade .inbox-n{font:700 12px var(--fnum);color:var(--mu)}
 html.jade .inbox-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s3)}
-html.jade .inbox-item{display:grid;gap:var(--s3);min-width:0;padding:var(--s4);border:1px solid var(--ln);border-radius:var(--r,4px);background:var(--glass)}
+html.jade .inbox-item{display:grid;gap:var(--s3);min-width:0;border:1px solid var(--ln);border-radius:var(--r,4px);background:var(--glass)}
 html.jade .inbox-item p{margin:0;overflow-wrap:anywhere}
 html.jade .inbox-head{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2)}
 html.jade .inbox-title{min-width:0;overflow-wrap:anywhere}
@@ -2197,7 +2194,6 @@ html.jade .inbox-item .selections{display:flex;flex-wrap:wrap;gap:var(--s4)}
 html.jade .inbox-item .button-row{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center;justify-content:flex-start}
 html.jade .inbox-item a.button{display:inline-flex;align-items:center;gap:var(--s2);text-decoration:none}
 @media(max-width:720px){
-  html.jade .inbox-item{padding:var(--s3)}
   html.jade .inbox-item .button-row>*{flex:1 1 100%;justify-content:center}
   html.jade .inbox-item .button-row>.text-button{flex:0 0 auto;margin:0 auto}
 }
@@ -2216,18 +2212,18 @@ html.jade .bench-chosen small{color:var(--mu);display:block}
 
 /* Ask Frontier Brain: the corner buttons, the expanded (centred) view, past chats. */
 html.jade .dock-head{grid-template-columns:minmax(0,1fr) auto!important}
-html.jade .dock-corner{grid-area:close;display:flex;gap:8px}
+html.jade .dock-corner{grid-area:close;display:flex;gap:var(--s2)}
 html.jade .dock-corner button.icon{width:40px;height:40px;padding:0!important;border-radius:12px}
-html.jade .dock-scrim,html.jade .shell>.dock-scrim{position:fixed!important;inset:0;z-index:90!important;display:grid;place-items:center;padding:24px;background:rgba(4,10,8,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:jFade .18s ease-out}
+html.jade .dock-scrim,html.jade .shell>.dock-scrim{position:fixed!important;inset:0;z-index:90!important;display:grid;place-items:center;padding:var(--s6);background:rgba(4,10,8,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:jFade .18s ease-out}
 @keyframes jFade{from{opacity:0}to{opacity:1}}
 html.jade .dock-scrim>.dock.expanded{position:relative!important;inset:auto!important;top:auto!important;right:auto!important;bottom:auto!important;width:min(960px,100%)!important;height:min(88dvh,900px)!important;max-height:88dvh;animation:none;z-index:1!important;background:var(--bg)!important}
-html.jade .dock.expanded .dock-log{padding:20px 28px!important}
+html.jade .dock.expanded .dock-log{padding:var(--s6) var(--s8)!important}
 html.jade .dock.expanded .dock-log .chat-turn{max-width:760px}
 html.jade .dock.expanded .dock-log .chat-turn.user{margin-left:auto}
 html.jade .dock.expanded .proposals{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))!important}
-html.jade .dock.expanded .dock-input{padding:0 28px 20px}
-html.jade .history-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-html.jade .history-list button{display:grid;gap:4px;width:100%;height:auto!important;padding:14px 16px;text-align:left;justify-items:start;border-radius:var(--r)}
+html.jade .dock.expanded .dock-input{padding:0 var(--s8) var(--s6)}
+html.jade .history-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2)}
+html.jade .history-list button{display:grid;gap:var(--s1);width:100%;height:auto!important;padding:var(--s4) var(--s4);text-align:left;justify-items:start;border-radius:var(--r)}
 html.jade .history-list b{font-weight:700;white-space:normal}
 @media(max-width:620px){html.jade .dock-scrim{padding:0}html.jade .dock-scrim>.dock.expanded{height:100dvh!important;max-height:100dvh;border-radius:0!important}}
 
@@ -2235,63 +2231,63 @@ html.jade .history-list b{font-weight:700;white-space:normal}
 html.jade .inbox-tile{margin:var(--s2) 0}
 html.jade .inbox-tile .set-tile,html.jade .inbox-tile .proposal-card{max-width:560px}
 html.jade .inbox-where{margin:0;font-weight:600;color:var(--ac)}
-html.jade .inbox-games{list-style:none;margin:var(--s2) 0;padding:0;display:grid;gap:10px}
-html.jade .inbox-games li{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-html.jade .inbox-games .six{display:flex;gap:2px}
+html.jade .inbox-games{list-style:none;margin:var(--s2) 0;padding:0;display:grid;gap:var(--s2)}
+html.jade .inbox-games li{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+html.jade .inbox-games .six{display:flex;gap:var(--s05)}
 html.jade .inbox-item .button-row{flex-wrap:wrap}
 @media(max-width:620px){html.jade .inbox-item .button-row>:is(button,.button){width:100%;justify-content:center}}
-html.jade .dock-corner{gap:6px}
+html.jade .dock-corner{gap:var(--s1)}
 html.jade .dock-corner button.icon.selected{border-color:var(--ac)!important;color:var(--ac)}
 @media(max-width:380px){html.jade .dock-head h2{font-size:20px!important}html.jade .dock-corner button.icon{width:36px;height:36px}}
 
 /* Ask Frontier Brain header: title and two corner buttons only; views and "New chat" are a quiet tab row; the model sits by the input. */
-html.jade .dock-head{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"title close"!important;padding-bottom:12px!important}
-html.jade .dock-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:var(--s2)}
+html.jade .dock-head{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"title close"!important;padding-bottom:var(--s3)!important}
+html.jade .dock-meta{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);flex-wrap:wrap;margin-bottom:var(--s2)}
 html.jade .dock-meta .context-chip{margin:0}
 html.jade .dock-meta .model-picker select{height:32px;font-size:12px}
 
-html.jade .dock-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 20px 12px;border-bottom:1px solid var(--ln)}
-html.jade .dock-bar button{height:36px;padding:0 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px;font:600 13px var(--fb);background:transparent;border:1px solid var(--ln);color:var(--tx)}
+html.jade .dock-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);padding:0 var(--s6) var(--s3);border-bottom:1px solid var(--ln)}
+html.jade .dock-bar button{height:36px;padding:0 var(--s4);border-radius:10px;display:inline-flex;align-items:center;gap:var(--s2);font:600 13px var(--fb);background:transparent;border:1px solid var(--ln);color:var(--tx)}
 html.jade .dock-bar button:hover{border-color:var(--ac)}
 html.jade .dock-bar .dock-past.on{border-color:var(--ac);color:var(--ac)}
 html.jade .dock-bar .dock-new{border-color:transparent;color:var(--ac)}
 html.jade .history-list li button .tag{justify-self:start}
 html.jade .history-list button:disabled{opacity:.5}
-html.jade .dock .history-list button{max-height:none!important;width:100%!important;height:auto!important;min-height:60px;display:grid;gap:4px;justify-items:start;align-content:center;padding:12px 14px;text-align:left;white-space:normal;line-height:1.35}
+html.jade .dock .history-list button{max-height:none!important;width:100%!important;height:auto!important;min-height:60px;display:grid;gap:var(--s1);justify-items:start;align-content:center;padding:var(--s3) var(--s4);text-align:left;white-space:normal;line-height:1.35}
 html.jade .dock .history-list li{margin:0}
 
-html.jade .dock-head{padding-bottom:18px!important}
-html.jade .dock-bar{padding-top:6px;padding-bottom:14px;margin-top:2px}
+html.jade .dock-head{padding-bottom:var(--s4)!important}
+html.jade .dock-bar{padding-top:var(--s1);padding-bottom:var(--s4);margin-top:var(--s05)}
 
 /* Inbox tiles: one calm box inside each card, with even padding and spacing between its parts. */
-html.jade .inbox-item{display:grid;gap:12px;padding:18px 20px}
+html.jade .inbox-item{display:grid;gap:var(--s3)}
 html.jade .inbox-item>*{margin:0}
 html.jade .inbox-tile{margin:0}
-html.jade .inbox-tile .proposal-card,html.jade .inbox-tile .set-tile{display:grid;gap:14px;padding:18px 20px;margin:0;background:color-mix(in srgb,var(--bg) 40%,transparent)}
+html.jade .inbox-tile .proposal-card,html.jade .inbox-tile .set-tile{display:grid;gap:var(--s4);padding:var(--s4) var(--s6);margin:0;background:color-mix(in srgb,var(--bg) 40%,transparent)}
 html.jade .inbox-tile .proposal-card>*{margin:0}
 html.jade .inbox-tile .proposal-card h3{font-size:18px;line-height:1.25}
-html.jade .inbox-tile .proposal-card .pair{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-html.jade .inbox-tile .proposal-card .button-row,html.jade .inbox-tile .set-tile .button-row{margin-top:2px}
+html.jade .inbox-tile .proposal-card .pair{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+html.jade .inbox-tile .proposal-card .button-row,html.jade .inbox-tile .set-tile .button-row{margin-top:var(--s05)}
 html.jade .inbox-tile .proposal-card .eyebrow{margin:0}
-@media(max-width:620px){html.jade .inbox-item{padding:16px}html.jade .inbox-tile .proposal-card,html.jade .inbox-tile .set-tile{padding:14px}}
+@media(max-width:620px){html.jade .inbox-tile .proposal-card,html.jade .inbox-tile .set-tile{padding:var(--s4)}}
 
 /* Replay tiles in the Inbox: same six rows as the Replays tab (led = outlined, brought = plain, left behind = faded). */
-html.jade .inbox-games li.game{display:grid;gap:10px;padding:14px 16px;border:1px solid var(--ln);border-radius:var(--r);background:color-mix(in srgb,var(--bg) 40%,transparent)}
-html.jade .inbox-games li.game .selections{display:flex;gap:20px;flex-wrap:wrap}
+html.jade .inbox-games li.game{display:grid;gap:var(--s2);padding:var(--s4) var(--s4);border:1px solid var(--ln);border-radius:var(--r);background:color-mix(in srgb,var(--bg) 40%,transparent)}
+html.jade .inbox-games li.game .selections{display:flex;gap:var(--s6);flex-wrap:wrap}
 html.jade .inbox-item .selections .six .lead{background:color-mix(in srgb,var(--ac) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 45%,transparent)}
 html.jade .inbox-item .selections .six .benched{opacity:.35}
-html.jade .dock .history-list{border:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important;display:grid;gap:10px}
+html.jade .dock .history-list{border:0!important;padding:0!important;background:none!important;box-shadow:none!important;border-radius:0!important;display:grid;gap:var(--s2)}
 html.jade .dock .history-list>li{display:block!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;grid-template-columns:none!important}
 html.jade .dock .history-list>li>button{width:100%!important;box-sizing:border-box}
-html.jade .dock .history-list>li>button{display:flex!important;flex-direction:column;align-items:flex-start;gap:4px;grid-template-columns:none!important;text-align:left}
+html.jade .dock .history-list>li>button{display:flex!important;flex-direction:column;align-items:flex-start;gap:var(--s1);grid-template-columns:none!important;text-align:left}
 html.jade .dock .history-list>li>button>*{margin:0}
 
 /* Ask Frontier Brain, bottom area: one-line input that grows, a compact send button, and the chip and model on one aligned row. */
-html.jade .dock .dock-input{padding:10px 16px 14px!important;display:grid;gap:8px}
-html.jade .dock .chat-input{align-items:flex-end!important;gap:8px!important}
-html.jade .dock .chat-input textarea{min-height:44px!important;max-height:140px;height:44px;padding:10px 12px;line-height:1.4;resize:none;overflow-y:auto}
+html.jade .dock .dock-input{padding:var(--s2) var(--s4) var(--s4)!important;display:grid;gap:var(--s2)}
+html.jade .dock .chat-input{align-items:flex-end!important;gap:var(--s2)!important}
+html.jade .dock .chat-input textarea{min-height:44px!important;max-height:140px;height:44px;padding:var(--s2) var(--s3);line-height:1.4;resize:none;overflow-y:auto}
 html.jade .dock .chat-input button{width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;align-self:flex-end!important}
-html.jade .dock .dock-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0!important;min-height:32px}
+html.jade .dock .dock-meta{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);margin:0!important;min-height:32px}
 html.jade .dock .dock-meta .context-chip{margin:0!important;line-height:32px}
 html.jade .dock .dock-meta .model-picker{margin:0;display:flex;align-items:center}
 html.jade .dock .dock-meta .model-picker select{height:32px;margin:0}
