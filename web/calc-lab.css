@@ -55,7 +55,8 @@ html.jade .combo-list .row-sub small:not(#_){display:block;margin:2px 0 0;paddin
   html.jade .move-picker .combo-list li.active .row-sub:not(#_){display:block;flex-basis:100%;margin:2px 0 0;padding:0 var(--s1) var(--s1);white-space:normal;font-style:normal;font-size:12px;line-height:1.45;color:var(--mu)}
 }
 @media (hover:none),(max-width:620px){
-  html.jade .move-picker .combo-list li:not(#_){align-items:flex-start;flex-wrap:wrap}
+  html.jade .move-picker .combo-list li:not(#_){align-items:flex-start;flex-wrap:nowrap}
+  html.jade .move-picker .combo-list li>small:not(#_){margin-top:var(--s1)}
   html.jade .move-picker .combo-list .row-main:not(#_){display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;white-space:normal;overflow:visible;text-overflow:clip}
   html.jade .combo-list .row-sub:not(#_){display:block;flex-basis:100%;white-space:normal;font-style:normal;font-size:12px;line-height:1.4;color:var(--mu)}
   }
