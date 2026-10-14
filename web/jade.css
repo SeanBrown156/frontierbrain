@@ -143,6 +143,21 @@ main h1{text-shadow:var(--phos-title)}
  :is(button,.button).ghost:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
  :is(button,.button).ghost.icon{color:var(--mu);border-color:transparent}
  :is(button,.button).ghost.icon:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);border-color:transparent}
+ .tabs>button:has(>small){flex-direction:column;gap:var(--s05)}
+ /* tile: a whole card you click (history rows, team pickers, search results); .on / aria-selected marks the chosen one */
+ :is(button,.button).tile{display:grid;justify-items:start;align-content:center;gap:var(--s1);width:100%;height:auto;min-height:0;max-height:none;padding:var(--pad-card);text-align:left;white-space:normal;line-height:1.35;font-weight:400;border-radius:var(--r)}
+ :is(button,.button).tile:is(.on,[aria-selected=true],[aria-pressed=true]){color:var(--tx);background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 16%,transparent),transparent 60%),var(--glass-2);border-color:color-mix(in srgb,var(--ac) 50%,transparent)}
+ /* plain: text that is also a button (a title you click to rename) */
+ :is(button,.button).plain{display:inline-flex;align-items:center;gap:var(--s2);height:auto;min-height:0;max-height:none;padding:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;white-space:normal;background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+ :is(button,.button).plain:hover:not(:disabled){color:var(--ac);background:none;transform:none}
+ /* solid danger: the one irreversible action in a danger zone */
+ :is(button,.button).danger.solid{color:#fff;background:var(--hot);border-color:transparent;box-shadow:0 10px 24px -10px color-mix(in srgb,var(--hot) 80%,transparent)}
+ :is(button,.button).danger.solid:hover:not(:disabled){color:#fff;background:var(--hot);border-color:transparent;filter:brightness(1.08)}
+ /* tabs that share the row equally (calc, new team, news weeks); labels may wrap or carry a second line */
+ .tabs.block{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);width:100%}
+ .tabs.block>button{height:auto;min-height:var(--control-height);max-height:none;padding:var(--s1) var(--s2);white-space:normal;line-height:1.3}
+ .tabs>button>small{display:block;color:var(--mu);font:12px var(--fb)}
+ .tabs>button:is(.selected,[aria-selected=true])>small{color:var(--ac)}
  :is(button,.button).compact{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3)}
  :is(button,.button).icon{width:var(--control-height);min-width:var(--control-height);padding:0}
  label.button{margin:0}
@@ -303,7 +318,6 @@ main h1{text-shadow:var(--phos-title)}
 .tags{display:flex;gap:var(--s1) var(--s3);flex-wrap:wrap}
 .controls{display:flex;gap:var(--s3);margin-bottom:var(--s4);flex-wrap:wrap;align-items:end}
 .controls label{margin:0;flex:1;min-width:120px}
-.week-tabs button{flex:1;border-color:var(--ln)}
 .news-signal h3{font-size:16px}
 .news-signal p{font-size:13px;margin:var(--s2) 0}
 .articles article{display:flex;border-bottom:1px solid var(--ln)}
@@ -481,9 +495,6 @@ a .px-icon,button .px-icon{margin-right:var(--s1)}
 .markdown td{padding:var(--s1) var(--s2)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .team-hub>.text-button{display:inline-flex;margin-top:var(--s4)}
-.title-button{all:unset;cursor:pointer}
-.title-button:hover .px-icon,.title-button:focus-visible .px-icon{opacity:.6}
-.title-button:focus-visible{outline:2px solid var(--ac)}
 .hub-nav{flex-wrap:wrap}
 .version-select select{width:auto}
 .mon-card{color:inherit}
@@ -571,10 +582,9 @@ fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--su
 .mon-card.read-only{opacity:.92}
 .markdown h1,.markdown h2,.markdown h3,.markdown h4,.team-card-title h3,.lab-result h3{font-weight:600;letter-spacing:-.01em}
 .markdown h3,.markdown h4{font-size:16px}
-.plan-card footer button,.week-tabs button,.lab-result button,.objectives li button,.changes button,.history button,.chat-suggestions button{min-height:30px;padding:0 var(--s2);font-size:12px}
+.plan-card footer button,.lab-result button,.objectives li button,.changes button,.chat-suggestions button{min-height:30px;padding:0 var(--s2);font-size:12px}
 .plan-card footer button:not(.primary){border-color:var(--ln);background:transparent}
 .plan-card footer button:not(.primary):hover{border-color:var(--tx);background:var(--hover)}
-.title-button{min-height:0}
 .poke-icon{display:inline-block;width:40px;height:30px;flex:none;background:url(/api/icon-sheet) no-repeat}
 .combo.with-icon>.poke-icon{position:absolute;left:6px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1}
 .combo.with-icon>input,.set-card .combo.with-icon input{padding-left:var(--s12)}
@@ -610,8 +620,7 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .score-strip,.sp-inputs,.stat-row,.tile-stats,.stat-table{font-family:var(--fb);font-variant-numeric:tabular-nums}
 .stat-final,.stat-base,.score-strip b,.pool-counts b,.lab-result h3{font-family:var(--fb)}
 .lab-result h3{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
-.week-tabs button,.plan-card footer button,.lab-result button,.objectives li button,.changes button,.history button,.stat-form button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);font:600 13px/1.2 var(--fb)}
-.title-button{min-height:0;max-height:none;white-space:normal}
+.plan-card footer button,.lab-result button,.objectives li button,.changes button,.stat-form button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);font:600 13px/1.2 var(--fb)}
 .profile-card,.account-pop{background:var(--glass);border:2px solid var(--ln-2);border-radius:4px;box-shadow:2px 2px 0 var(--shade)}
 .teams-landing,.team-hub,.workspace{padding:var(--s8) 0 0}
 .landing-head,.hub-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--s4);margin:0 0 var(--s6)}
@@ -684,15 +693,12 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .stat-row input{height:32px;min-height:32px;max-height:32px;padding:var(--s1);font-family:var(--fb)}
 .stat-bar .sp,.key-sp{background:repeating-linear-gradient(135deg,var(--ac) 0 3px,var(--ac) 3px 6px)}
 .history li{align-items:center;gap:var(--s2);padding:var(--s2) 0}
-.history button{white-space:normal}
 .benchmark-save input{min-width:0}
 .lab fieldset{margin-top:0}
 .sp-inputs{gap:var(--s1)}
 .sp-inputs input{height:40px;font-family:var(--fb)}
 .lab .form-grid{align-items:end}
 .lab-result .text-button{height:auto;min-height:32px;max-height:none;padding:var(--s2);white-space:normal}
-.new-team>.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-.new-team>.tabs button{height:40px;min-height:40px;max-height:40px;padding:0 var(--s2);white-space:normal;font-size:13px}
 .new-team .button-row{margin:var(--s4) 0;align-items:center}
 .model-picker{display:flex;align-items:center;gap:var(--s2);margin:0}
 .model-picker select{height:40px;min-height:40px;padding:0 var(--s2);font:13px var(--fb)}
@@ -707,7 +713,7 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .pool-picker>.form-grid{grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:end}
 .pool-picker .footnote{margin:var(--s4) 0}
 .pool-list{display:grid;gap:var(--s2);max-height:360px;overflow-y:auto;list-style:none}
-button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104px;align-items:center;gap:var(--s3);width:100%;min-height:72px;height:auto;max-height:none;padding:var(--s3);font:14px/1.5 var(--fb);font-weight:400;text-align:left;box-shadow:none}
+.pool-row{grid-template-columns:40px minmax(0,1fr) 240px 104px;align-items:center;gap:var(--s3);min-height:72px;padding:var(--s3);font-size:14px;line-height:1.5}
 .pool-place{min-width:0;text-align:center;font:600 14px var(--fb)}
 .pool-who{display:grid;gap:var(--s1);min-width:0}
 .pool-who b{font-family:var(--fb)}
@@ -746,9 +752,6 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 .source-grid{gap:var(--s4)}
 .source-grid article{padding:var(--s4)}
 .reference-groups>section{margin:var(--s6) 0}
-.week-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2);margin-bottom:var(--s6)}
-.week-tabs button{height:56px;min-height:56px;max-height:56px;flex-direction:column;white-space:normal}
-.week-tabs small{font:12px var(--fb)}
 .weekly-digest{background:var(--sunk);border-left:4px solid var(--ac);text-align:center}
 .weekly-digest p{font-family:var(--fb);font-size:14px;margin:var(--s3) 0 0}
 .news-signal{padding:var(--s6) 0}
@@ -825,8 +828,7 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
  .stat-form .button-row{margin-block:var(--s2)}
  .benchmark-save input{flex-basis:100%}
  .lab .form-grid{grid-template-columns:minmax(0,1fr)}
- .new-team>.tabs{gap:var(--s1);margin-bottom:var(--s4)}
- .new-team>.tabs button{font-size:12px;height:56px;min-height:56px;max-height:56px;padding:var(--s1);line-height:1.4}
+ .new-team>.tabs>button{font-size:12px}
  .paste-source{grid-template-columns:minmax(0,1fr);gap:var(--s2)}
  .paste-source>button{justify-self:center}
  .pool-picker>.form-grid{grid-template-columns:minmax(0,1fr)}
@@ -856,9 +858,6 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
  .data-pool .stat-table:has(td:nth-child(4)) td:nth-child(2){width:46%}
  .data-pool .stat-table:has(td:nth-child(4)) td:nth-child(3),.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(4){width:22%}
  .stat-table td{font-size:12px;padding:var(--s2) var(--s1)}
- .week-tabs{gap:var(--s1);margin-bottom:var(--s4)}
- .week-tabs button{padding:var(--s1)}
- .week-tabs small{font-size:11px}
  .weekly-digest{text-align:left}
  .modal .panel-heading{margin-bottom:var(--s4)}
  .welcome{padding:var(--s6) var(--s4)}
@@ -894,10 +893,8 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 .teams-landing .landing-head h1{text-align:left;margin:0}
 .strategy-block,.digest,.versions,.danger-zone,.profile-card,.sample-offer{max-width:none;width:100%}
 .account-pop{width:320px!important;max-width:calc(100vw - 32px)!important;right:0;left:auto}
-.new-team-slot{height:auto!important;max-height:none!important;min-height:240px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);color:var(--ac)!important;font:400 20px var(--fd)!important;cursor:pointer;white-space:normal}
+.new-team-slot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);align-self:stretch;min-height:240px;margin:0;text-align:center;color:var(--ac);font:400 20px var(--fd)}
 .new-team-slot small{font:13px var(--fb);color:var(--mu)}
-.new-team-slot:hover{background:var(--hover)!important}
-.new-team-slot{align-self:stretch!important;margin:0!important;width:100%}
 @media(max-width:720px){
  .account-pop{position:fixed!important;left:16px!important;right:16px!important;top:72px!important;width:auto!important}
 }
@@ -915,8 +912,8 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 }
 .hub-tabs a{padding:0 var(--s4)!important;gap:var(--s2)!important;justify-content:center}
 button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
-.title-button .px-icon,.title-button svg{opacity:1!important;color:var(--ac);flex:none}
-.title-button:hover .px-icon,.title-button:hover svg{color:var(--emerald-shade)}
+.title-button .px-icon{flex:none;color:var(--mu);transition:color .2s}
+.title-button:is(:hover,:focus-visible) .px-icon{color:var(--ac)}
 .replays>.profile-card,.profile-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto!important;align-items:end!important;text-align:left!important;justify-items:stretch!important}
 .profile-card>div{grid-column:1/-1}
 .profile-card>button{justify-self:start!important;margin:0!important}
@@ -1053,7 +1050,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
  .workspace-grid{grid-template-columns:minmax(0,1fr)}
 }
 .replay-filters{justify-content:flex-start!important}
-.danger-zone button{height:var(--control-height)!important;min-height:var(--control-height)!important;max-height:var(--control-height)!important;flex:none}
 .draft-review>.primary{justify-self:end;align-self:flex-end;margin-left:auto}
 .new-team .button-row{justify-content:flex-start}
 .pool-list{padding:var(--s05);margin:0 calc(-1 * var(--s05))}
@@ -1119,13 +1115,9 @@ html.jade .team-card .art:nth-child(3) img{transition-delay:.06s}
 html.jade .team-card .art:nth-child(4) img{transition-delay:.09s}
 html.jade .team-card .art:nth-child(5) img{transition-delay:.12s}
 html.jade .team-card .art:nth-child(6) img{transition-delay:.15s}
-html.jade .new-team-slot{color:var(--mu)}
-html.jade .new-team-slot:hover{border-style:solid!important;color:var(--ac)}
 
 /* ---------- team hub ---------- */
 html.jade .hub-title h1,html.jade .landing-head h1{font-size:clamp(36px,5vw,58px)}
-html.jade .title-button{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none;padding:0;font:inherit;color:inherit;text-transform:inherit}
-html.jade .title-button:hover{transform:none;color:var(--ac)}
 html.jade .hub-nav{border-bottom:1px solid var(--ln)!important}
 html.jade .hub-tabs{gap:var(--s1)!important;border:0!important;padding:var(--s1);background:var(--sunk);border-radius:14px;margin-bottom:var(--s2)!important}
 html.jade .hub-tabs a{height:38px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--mu)!important;font:700 15px var(--fd)!important;text-transform:uppercase;letter-spacing:.06em;transition:color .2s,background .25s}
@@ -1655,8 +1647,6 @@ html.jade .danger-zone{display:flex;align-items:center;justify-content:space-bet
 html.jade .danger-zone::after{display:none}
 html.jade .danger-zone h3{color:var(--hot);font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em;margin:0 0 var(--s1)}
 html.jade .danger-zone p{color:var(--tx);opacity:.85;margin:0}
-html.jade .danger-zone button.danger{background:var(--hot)!important;color:#fff!important;border-color:transparent!important;height:44px;padding:0 var(--s6)!important;font-weight:700;box-shadow:0 10px 24px -10px color-mix(in srgb,var(--hot) 80%,transparent)!important}
-html.jade .danger-zone button.danger:hover{filter:brightness(1.08)}
 
 /* ---------- favourite star: quiet until you hover; gold only when saved ---------- */
 html.jade .fav{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;background:color-mix(in srgb,var(--bg) 55%,transparent)!important;border:0!important;box-shadow:none!important;color:var(--mu)!important;opacity:.75;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
@@ -1758,9 +1748,6 @@ html.jade .picker .combo-list{min-width:300px;right:auto}
 html.jade .set-fields .moves .picker .combo-list{min-width:320px}
 html.jade .set-fields .moves .form-grid>.picker:nth-child(even) .combo-list{left:auto;right:0}
 /* team title: plain text, no button box */
-html.jade .title-button{background:none!important;border:0!important;box-shadow:none!important;padding:0!important;height:auto!important;display:inline-flex;align-items:center;gap:var(--s2)}
-html.jade .title-button .px-icon{opacity:0;transition:opacity .2s;color:var(--mu)}
-html.jade .title-button:hover .px-icon{opacity:1}
 /* the team intro */
 .team-guide{display:grid;gap:var(--s6)}
 .guide-six{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s2)}
@@ -1794,7 +1781,7 @@ html.jade .lead-record{font-size:12.5px}
 html.jade .format-tile{align-items:center!important}
 html.jade .format-tile h3{font-size:20px!important;margin:var(--s1) 0 0!important}
 html.jade .format-copy{gap:var(--s2)}
-html.jade .format-copy select{min-width:220px;height:40px}
+html.jade .format-copy select{min-width:220px}
 html.jade .format-copy button{height:40px}
 /* team members in prose: no underline, sprite tight to the name */
 html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:var(--s05)}
@@ -1809,9 +1796,7 @@ html.jade input.rename{font:800 clamp(36px,5vw,58px)/1.05 var(--fd)!important;te
 /* strategy: paragraph, then the team, then the chosen Pokémon's notes */
 html.jade .guide-intro .markdown{font-size:17px;line-height:1.7;max-width:72ch}
 .guide-team{display:grid;gap:var(--s3);padding-top:var(--s6);border-top:1px solid var(--ln)}
-html.jade .guide-six button{display:grid;justify-items:center;gap:var(--s1);padding:var(--s3) var(--s1)!important;border-radius:14px!important;color:var(--mu)!important;height:auto!important;transition:background .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
-html.jade .guide-six button:hover{background:var(--hover)!important;color:var(--tx)!important;transform:translateY(-3px)}
-html.jade .guide-six button.on{background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 16%,transparent),transparent 60%),var(--glass-2)!important;border-color:color-mix(in srgb,var(--ac) 50%,transparent)!important;color:var(--tx)!important}
+html.jade .guide-six button{justify-items:center;padding:var(--s3) var(--s1)}
 .guide-six button span:last-child{font:700 13px var(--fd);text-transform:uppercase;letter-spacing:.04em}
 .guide-mon{padding:var(--s6);border-radius:14px;background:var(--sunk);border:1px solid var(--ln);animation:jPop .3s cubic-bezier(.2,.8,.2,1)}
 .guide-mon-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s3)}
@@ -1835,7 +1820,6 @@ html.jade .plan-head h3{font:800 20px/1.15 var(--fd)!important;text-transform:up
 .examples-field{display:grid;gap:var(--s2);margin-bottom:var(--s4)}
 .field-label{font-size:13px;font-weight:600}
 .example-chips{display:flex;flex-wrap:wrap;gap:var(--s2)}
-html.jade .guide-six button{min-height:0!important;max-height:none!important;overflow:visible}
 html.jade .guide-six .set-art .art{width:88px!important;height:88px!important}
 .role-pill.avoid{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 50%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent)}
 /* Mega: rainbow keystone with the white Mega symbol, and the tag beside the name */
@@ -2171,13 +2155,12 @@ html.jade .manage-tile{display:flex;align-items:center;justify-content:space-bet
 html.jade .manage-tile h3{font:800 20px/1.1 var(--fd)!important;text-transform:uppercase;margin:var(--s1) 0 0!important}
 .manage-actions{display:flex;align-items:center;gap:var(--s2)}
 html.jade .manage-actions label{margin:0}
-html.jade .manage-actions :is(button,select){height:40px!important;min-height:40px!important;max-height:40px!important;margin:0!important}
+html.jade .manage-actions :is(button,select){margin:0}
 html.jade .manage-actions select{min-width:220px}
 .manage-history{display:grid;gap:var(--s3)}
 html.jade .manage-title{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:0!important}
 html.jade .manage .history-list{margin:0!important;border-radius:var(--r);overflow:hidden}
 html.jade .manage .history-list .what{min-width:0;overflow-wrap:anywhere}
-html.jade .manage .history-list .button-row .compact{height:32px!important;min-height:32px!important;max-height:32px!important}
 html.jade .manage .danger-zone{margin:0!important}
 @media (max-width:1000px){
  .manage-tiles{grid-template-columns:minmax(0,1fr)}
@@ -2198,7 +2181,7 @@ html.jade .manage .danger-zone{margin:0!important}
  html.jade .team-hub .guide-intro .markdown{font-size:15px;line-height:1.6}
  html.jade .team-hub .guide-team{gap:var(--s2);padding-top:var(--s3)}
  html.jade .team-hub .guide-six{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s1)}
- html.jade .team-hub .guide-six button{padding:var(--s2) var(--s1)!important;gap:var(--s1);min-width:0}
+ html.jade .team-hub .guide-six button{padding:var(--s2) var(--s1);min-width:0}
  html.jade .team-hub .guide-six .set-art .art{width:56px!important;height:56px!important}
  html.jade .team-hub .guide-six button span:last-child{font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  html.jade .team-hub .guide-mon{padding:var(--s3)}
@@ -2241,7 +2224,7 @@ html.jade .manage .danger-zone{margin:0!important}
  html.jade .manage .history-list .team-six.mini .set-art .art.small{width:28px!important;height:28px!important}
  html.jade .manage .history-list .team-six.mini .mega-orb{display:none}
  html.jade .manage .history-list :is(.button-row,.tag){grid-area:act;align-self:center;justify-self:end;flex-wrap:nowrap;gap:var(--s1)}
- html.jade .manage .history-list .button-row .compact{padding:0 var(--s2)!important}
+ html.jade .manage .history-list .button-row .compact{padding:0 var(--s2)}
  html.jade .manage .danger-zone{flex-direction:column;align-items:stretch!important;text-align:left!important;gap:var(--s3)}
  html.jade .manage .danger-zone button.danger{width:100%}
 }
@@ -2260,14 +2243,11 @@ html.jade .fx-glitch{animation:fx-glitch .42s steps(1,end)}
 @keyframes fx-glitch{0%{transform:translateX(-2px) skewX(-8deg);text-shadow:2px 0 var(--ac-2),-2px 0 color-mix(in srgb,var(--gd) 60%,transparent);opacity:.8}14%{transform:translateX(1px);text-shadow:-1px 0 var(--ac-2);opacity:1}28%{transform:none;text-shadow:none;opacity:.35}40%{opacity:1;text-shadow:0 0 12px var(--glow)}58%{transform:translateX(1px);opacity:.65}72%{transform:none;opacity:1;text-shadow:none}}
 /* Selected tabs (dialog tabs, the news weeks). The general Jade button rule used to repaint them as plain glass while
    their old emerald-on-ink text colour stayed, which read as dark, unlabelled buttons in dialogs. */
-html.jade .week-tabs>button.selected{background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 18%,transparent),transparent 70%),var(--glass-2)!important;border-color:color-mix(in srgb,var(--ac) 55%,transparent)!important;color:var(--tx)!important;box-shadow:inset 0 1px 0 var(--hi),0 0 0 1px color-mix(in srgb,var(--ac) 18%,transparent)!important}
-html.jade .week-tabs>button small{color:var(--mu)}
-html.jade .week-tabs>button.selected small{color:var(--ac)}
 /* Dialog header: the close button sits in the row instead of over a long title. */
 @media (max-width:720px){
  /* Dialogs: a tighter frame, and the news weeks stack as full-width rows. */
- html.jade .week-tabs{grid-template-columns:minmax(0,1fr)!important;gap:var(--s2)}
- html.jade .week-tabs>button{flex-direction:row!important;justify-content:space-between;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0 var(--s4)!important}
+ html.jade .week-tabs{grid-auto-flow:row}
+ html.jade .week-tabs>button{flex-direction:row;justify-content:space-between;padding:0 var(--s4)}
  /* Top bar: one 40px row on a 4px grid. Empty grid rows no longer add their gaps, so there is no dead band under it. */
  /* The menu: 40px rows with 4px between them, under a hairline. */
 }
@@ -2287,9 +2267,9 @@ html.jade .team-hub .manage .manage-tile.format-tile .format-copy{justify-conten
 /* Manage tiles: a small label over buttons that share the full width. */
 html.jade .team-hub .manage .manage-tile{gap:var(--s2)}
 html.jade .team-hub .manage .manage-actions{display:flex;flex-wrap:nowrap;gap:var(--s2);width:100%}
-html.jade .team-hub .manage .manage-actions>button{flex:1 1 0;min-width:0;justify-content:center;height:40px}
+html.jade .team-hub .manage .manage-actions>button{flex:1 1 0;min-width:0}
 html.jade .team-hub .manage .format-copy>label{flex:1.6 1 0;min-width:0}
-html.jade .team-hub .manage .format-copy select{width:100%;height:40px}
+html.jade .team-hub .manage .format-copy select{width:100%}
 /* Format tile: the select takes the room, Change keeps its width, and Change drops below when the tile is narrow. */
 html.jade .team-hub .manage .format-copy{flex-wrap:wrap!important}
 html.jade .team-hub .manage .format-copy>label{flex:1 1 200px!important;min-width:0}
@@ -2407,7 +2387,6 @@ html.jade .footer-mail{font:inherit;user-select:all}
 @media (max-width:620px){
  html.jade .new-team{gap:0}
  html.jade .new-team .format-choice{margin-bottom:var(--s3)!important}
- html.jade .new-team>.tabs{margin-bottom:var(--s3)}
  html.jade .new-team .paste-source{gap:var(--s2)}
  html.jade .new-team .paste-source>button{justify-self:stretch;width:100%}
  html.jade .new-team .draft-review{gap:var(--s3);padding-top:var(--s3);margin-top:var(--s3)}

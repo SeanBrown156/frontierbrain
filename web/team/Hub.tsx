@@ -1,6 +1,6 @@
 import {FORMATS,formatLabel} from '../../shared/formats.ts';
 import {useState,useEffect,useRef} from 'react';
-import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge,TYPE_COLOURS} from '../ui.tsx';
+import {api,Art,Panel,Modal,Notice,date,Markdown,type MonRef,TypeBadges,ItemIcon,useDex,useBattleForm,SetArt,MegaBadge,TYPE_COLOURS,Button,LinkButton,Tag,Field} from '../ui.tsx';
 import {Px,Share,Home,Target,Play,ArrowLeft,Pencil,Plus,Eye,Check,WarningDiamond,SettingsCog,Copy,Link,Swap,Users} from '../icons.tsx';
 import Replays from './Replays.tsx';
 import Coaching from './Coaching.tsx';
@@ -40,9 +40,9 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
     catch(e){w?.close();notify((e as Error).message);}finally{setPublishing(false);}};
   const rename=async()=>{setRenaming(false);if(name.trim()&&name.trim()!==team.name)await mutate({type:'team-rename',teamId:team.id,name:name.trim()}).catch(()=>setName(team.name));};
   return <div className="team-hub">
-    <a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a>
+    <LinkButton variant="quiet" className="back-link" href="#teams"><Px icon={ArrowLeft} size={12}/>Teams</LinkButton>
     <div className="hub-head"><div className="hub-title">{renaming?<input className="rename" aria-label="Team name" autoFocus value={name} onChange={e=>setName(e.target.value)} onBlur={()=>void rename()} onKeyDown={e=>{if(e.key==='Enter')void rename();if(e.key==='Escape'){setName(team.name);setRenaming(false);}}}/>
-        :<h1><button className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></button></h1>}</div></div>
+        :<h1><Button variant="plain" className="title-button" title="Rename" onClick={()=>setRenaming(true)}>{team.name}<Px icon={Pencil} size={16}/></Button></h1>}</div></div>
     <div className="hub-nav"><nav className="hub-tabs" role="tablist">{tabs.map(([key,label,icon])=><a key={key} role="tab" aria-selected={tab===key||(key==='strategy'&&tab==='coaching')} className={tab===key||(key==='strategy'&&tab==='coaching')?'selected':''} href={teamHref(team.id,key,versionId)}><Px icon={icon}/>{label}</a>)}</nav></div>
     {tab==='overview'&&<Overview team={team} data={data} version={shown} mutate={mutate}/>}
     {(tab==='strategy'||tab==='coaching')&&<><Strategy key={shown.id} team={team} data={data} version={shown} all={all} mutate={mutate}/><Coaching team={team} data={data} mutate={mutate} notify={notify} versionId={all?undefined:versionId} games={scopedGames}/></>}
@@ -54,7 +54,7 @@ export default function TeamHub({team,data,mutate,notify,load,tab,versionId}:{te
 function Overview({team,data,version,mutate}:{team:any;data:any;version:any;mutate:Mutate}){
   const view=getView(team,data.db,version.id);const active=version.id===team.activeVersionId;const current=team.versions.find((v:any)=>v.id===team.activeVersionId);
   return <div className="hub-overview">
-    {!active&&<div className="notice warn">Viewing {versionName(version)}, an older version (read-only). <a className="button" href={teamHref(team.id,'overview',team.activeVersionId)}>Back to {versionName(current)}</a><button onClick={()=>{if(confirm(`Bring back ${versionName(version)}'s six as a new version (V${team.versions.length+1})? Nothing is deleted.`))void mutate({type:'team-milestone',teamId:team.id,fromVersionId:version.id}).then(r=>{location.hash=teamHref(team.id,'overview',r.result.versionId);}).catch(()=>{});}}>Make it the current team</button></div>}
+    {!active&&<Notice className="warn">Viewing {versionName(version)}, an older version (read-only). <LinkButton href={teamHref(team.id,'overview',team.activeVersionId)}>Back to {versionName(current)}</LinkButton><Button onClick={()=>{if(confirm(`Bring back ${versionName(version)}'s six as a new version (V${team.versions.length+1})? Nothing is deleted.`))void mutate({type:'team-milestone',teamId:team.id,fromVersionId:version.id}).then(r=>{location.hash=teamHref(team.id,'overview',r.result.versionId);}).catch(()=>{});}}>Make it the current team</Button></Notice>}
     {version.source==='observed'&&<p className="footnote">Rebuilt from replays: <b>bold</b> moves were seen in battle; anything tagged “guess” is an assumption.</p>}
     <div className="six-grid">{view.revisions.map(({revision},i)=><MonCard key={i} i={i} revision={revision} href={monHref(team.id,version.id,i)} active={active} art={data.art}/>)}</div>
   </div>;
@@ -93,7 +93,7 @@ function Strategy({team,data,version,all,mutate}:{team:any;data:any;version:any;
     return mutate({type:'version-notes',teamId:team.id,versionId:version.id,notes:text},{quiet:true,before:()=>d.markSaved(text)}).then(()=>setError(''),e=>{d.markFailed();setError((e as Error).message);});};
   useEffect(()=>{if(!d.dirty)return;const t=setTimeout(()=>void save(),1000);return()=>clearTimeout(t);},[d.draft]);
   useEffect(()=>()=>void save(),[]);
-  return <section className="strategy-block"><div className="strategy-head"><h2>Strategy</h2><span className="grow"/>{editing?<button onClick={()=>{void save();setEditing(false);}}><Px icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Px icon={Pencil}/>Edit</button>}</div>
+  return <section className="strategy-block"><div className="strategy-head"><h2>Strategy</h2><span className="grow"/>{editing?<Button onClick={()=>{void save();setEditing(false);}}><Px icon={Check}/>Done</Button>:<Button onClick={()=>setEditing(true)}><Px icon={Pencil}/>Edit</Button>}</div>
     {editing?<textarea aria-label="Strategy" rows={14} value={d.draft} onChange={e=>d.setDraft(e.target.value)} placeholder="What the team is for and how it wins, in a paragraph or two." autoFocus/>:<TeamGuide team={team} data={data} version={version} text={d.draft}/>}
     {error&&<p className="set-pending" role="status"><Px icon={WarningDiamond} size={12}/>Not saved yet: {error}</p>}
   </section>;
@@ -107,8 +107,8 @@ function TeamGuide({team,data,version,text}:{team:any;data:any;version:any;text:
   return <div className="team-guide">
     {text.trim()?<div className="guide-intro"><Markdown text={text}/></div>:<p className="muted">No strategy yet.</p>}
     <div className="guide-team"><span className="eyebrow">The team</span>
-      <div className="guide-six" role="tablist">{view.sets.map((s:any,i:number)=><button key={i} role="tab" aria-selected={open===i} className={open===i?'on':''} onClick={()=>setOpen(open===i?null:i)}><SetArt set={s} art={data.art}/><span>{s.species}</span></button>)}</div>
-      {r&&<div className="guide-mon" role="tabpanel"><div className="guide-mon-head"><h3>{r.revision.set.species}</h3><a className="text-button" href={monHref(team.id,version.id,open!)}>Go to {r.revision.set.species} →</a></div>
+      <div className="guide-six" role="tablist">{view.sets.map((s:any,i:number)=><Button variant="tile" key={i} role="tab" aria-selected={open===i} className={open===i?'on':undefined} onClick={()=>setOpen(open===i?null:i)}><SetArt set={s} art={data.art}/><span>{s.species}</span></Button>)}</div>
+      {r&&<div className="guide-mon" role="tabpanel"><div className="guide-mon-head"><h3>{r.revision.set.species}</h3><LinkButton variant="quiet" href={monHref(team.id,version.id,open!)}>Go to {r.revision.set.species} →</LinkButton></div>
         {mergedNotes(r.revision.notes).trim()?<Markdown text={mergedNotes(r.revision.notes)}/>:<p className="muted">No strategy for {r.revision.set.species} yet. Add it on its page.</p>}</div>}
     </div>
   </div>;
@@ -121,11 +121,11 @@ function VersionPicker({team,tab,versionId,all,games,mutate}:{team:any;tab:strin
   const [busy,setBusy]=useState(false);
   const save=async()=>{setBusy(true);try{const r=await mutate({type:'team-milestone',teamId:team.id,parentConfigurationId:current.currentConfigurationId,label:team.name});location.hash=teamHref(team.id,'overview',r.result.versionId);}catch{}finally{setBusy(false);}};
   const describe=(v:any)=>`V${v.number}${v.label?`: ${v.label}`:''}${v.id===team.activeVersionId?` (current${edits?` · ${edits} edit${edits===1?'':'s'}`:''})`:''}${(r=>r.n?` · ${r.label}`:'')(record(games.filter((x:any)=>x.association?.versionId===v.id)))}`;
-  return <><label className="version-select"><span className="sr-only">Version</span><select value={all?'all':versionId} onChange={e=>{if(e.target.value==='new'){e.target.value=all?'all':versionId;if(!busy)void save();return;}location.hash=teamHref(team.id,tab,e.target.value);}}>
+  return <><Field className="version-select" label={<span className="sr-only">Version</span>}><select value={all?'all':versionId} onChange={e=>{if(e.target.value==='new'){e.target.value=all?'all':versionId;if(!busy)void save();return;}location.hash=teamHref(team.id,tab,e.target.value);}}>
     {team.versions.length>1&&<option value="all">All versions</option>}
     {team.versions.map((v:any)=><option key={v.id} value={team.versions.length>1?v.id:'all'}>{describe(v)}</option>)}
     <option disabled>──────────</option>
-    <option value="new">{busy?`Saving V${next}…`:`Save as new version (V${next})`}</option></select></label></>;
+    <option value="new">{busy?`Saving V${next}…`:`Save as new version (V${next})`}</option></select></Field></>;
 }
 // Every version, newest first, each with its edit log. Older edits can be viewed and restored; nothing is overwritten.
 // History: every saved change, newest first, across the team's whole life. Versions are kept in the data (and older
@@ -140,7 +140,7 @@ function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing,copie
     await mutate({type:'team-configure',teamId:team.id,versionId:active.id,parentConfigurationId:active.currentConfigurationId,slots:e.c.slots,summary:`Restored from ${date(e.c.createdAt)}`}).catch(()=>{});};
   return <div className="versions history manage">
     <div className="manage-tiles">
-      <section className="manage-tile"><span className="eyebrow">Export</span><div className="manage-actions"><button onClick={onExport} className={copied?'copied':''}><Px icon={copied?Check:Share}/>{copied?'Copied':'Showdown'}</button><button onClick={onPokepaste} disabled={publishing}><Px icon={Link}/>{publishing?'Opening…':'PokePaste'}</button></div></section>
+      <section className="manage-tile"><span className="eyebrow">Export</span><div className="manage-actions"><Button onClick={onExport} className={copied?'copied':undefined}><Px icon={copied?Check:Share}/>{copied?'Copied':'Showdown'}</Button><Button onClick={onPokepaste} disabled={publishing}><Px icon={Link}/>{publishing?'Opening…':'PokePaste'}</Button></div></section>
       <FormatTile team={team} mutate={mutate} notify={notify}/>
       <DuplicateTile team={team} mutate={mutate} notify={notify}/>
     </div>
@@ -148,17 +148,17 @@ function Versions({team,data,mutate,notify,onExport,onPokepaste,publishing,copie
     <ol className="history-list">{entries.map((e:any)=>{const now=e.c.id===active.currentConfigurationId;const sets=getView(team,data.db,e.v.id,e.c.id).sets;
       return <li key={e.c.id} className={now?'current':''}><span className="when">{date(e.c.createdAt)}</span><span className="what" title={label(e)}>{label(e)}</span>
         <span className="team-six mini">{sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</span>
-        {now?<span className="tag ok">Current</span>:<span className="button-row"><button className="compact" onClick={()=>setViewing({version:e.v,config:e.c})}><Px icon={Eye} size={14}/>View</button><button className="compact" onClick={()=>void restore(e)}>Restore</button></span>}</li>;})}</ol></section>
+        {now?<Tag tone="ok">Current</Tag>:<span className="button-row"><Button size="compact" onClick={()=>setViewing({version:e.v,config:e.c})}><Px icon={Eye} size={14}/>View</Button><Button size="compact" onClick={()=>void restore(e)}>Restore</Button></span>}</li>;})}</ol></section>
     {viewing&&<Modal title={`Team on ${date(viewing.config.createdAt)}`} onClose={()=>setViewing(null)}><p className="muted">{viewing.config.summary||'Saved'}</p><div className="proposals">{getView(team,data.db,viewing.version.id,viewing.config.id).sets.map((s:any,i:number)=><SetTile key={i} set={s} art={data.art}/>)}</div></Modal>}
     <section className="danger-zone"><div><h3>Delete this team</h3><p className="muted">Deletes the team, its history, strategy, bench, replays and their analysis. Its sets stay in your Pokémon library.</p></div>
-      <button className="danger" onClick={()=>{if(confirm(`Delete “${team.name}” and its replays? This can't be undone.`))void mutate({type:'team-delete',teamId:team.id}).then(()=>{location.hash='#teams';}).catch(()=>{});}}>Delete team</button></section>
+      <Button variant="danger" solid onClick={()=>{if(confirm(`Delete “${team.name}” and its replays? This can't be undone.`))void mutate({type:'team-delete',teamId:team.id}).then(()=>{location.hash='#teams';}).catch(()=>{});}}>Delete team</Button></section>
   </div>;
 }
 
 export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:()=>void;onReview:(r:{jobId:string;proposal:any})=>void;reload?:()=>Promise<void>}){
   return <div className="teams-landing"><div className="landing-head"><h1>Your teams</h1></div>
     <BuildJobs onReview={onReview} art={data.art}/>
-    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</div><div className="card-footer"><span className="tag">{formatLabel(t.format)}</span>{r.n>0&&<span className="card-record">{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<button className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></button></div>
+    <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</div><div className="card-footer"><Tag>{formatLabel(t.format)}</Tag>{r.n>0&&<span className="card-record">{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<Button variant="tile" className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></Button></div>
     <SampleTeams data={data} reload={reload}/>
     </div>;
 }
@@ -169,7 +169,7 @@ function FormatTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:strin
   const [target,setTarget]=useState<string>(team.format),[busy,setBusy]=useState(false);useEffect(()=>setTarget(team.format),[team.format]);
   const change=async()=>{setBusy(true);try{await mutate({type:'team-format',teamId:team.id,format:target});notify(`Now ${formatLabel(target)}. Check the sets against its rules.`);}catch(e){notify((e as Error).message);}finally{setBusy(false);}};
   return <section className="format-tile manage-tile"><span className="eyebrow">Format</span>
-    <div className="format-copy manage-actions"><label><span className="sr-only">Format</span><select value={target} onChange={e=>setTarget(e.target.value)}>{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></label><button disabled={busy||target===team.format} onClick={()=>void change()}><Px icon={Swap}/>{busy?'Changing…':'Change'}</button></div></section>;
+    <div className="format-copy manage-actions"><Field label={<span className="sr-only">Format</span>}><select value={target} onChange={e=>setTarget(e.target.value)}>{FORMATS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></Field><Button disabled={busy||target===team.format} onClick={()=>void change()}><Px icon={Swap}/>{busy?'Changing…':'Change'}</Button></div></section>;
 }
 // A copy of the current six (sets and notes) as a new team in the same format; change its format from its own Manage tab.
 function DuplicateTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:string)=>void}){
@@ -177,7 +177,7 @@ function DuplicateTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:st
   const duplicate=async()=>{setBusy(true);try{const active=team.versions.find((v:any)=>v.id===team.activeVersionId);const {paste}=await api(`/export?team=${team.id}&version=${active.id}&configuration=${active.currentConfigurationId}`);
       const r=await mutate({type:'import',name:`${team.name} (copy)`,paste,format:team.format,notes:active.notes??'',benchFrom:team.id});notify(`Duplicated as ${team.name} (copy).`);location.hash=teamHref(r.result.id,'history');}
     catch(e){notify((e as Error).message);}finally{setBusy(false);}};
-  return <section className="manage-tile"><span className="eyebrow">Duplicate</span><div className="manage-actions"><button disabled={busy} onClick={()=>void duplicate()}><Px icon={Copy}/>{busy?'Duplicating…':'Duplicate team'}</button></div></section>;
+  return <section className="manage-tile"><span className="eyebrow">Duplicate</span><div className="manage-actions"><Button disabled={busy} onClick={()=>void duplicate()}><Px icon={Copy}/>{busy?'Duplicating…':'Duplicate team'}</Button></div></section>;
 }
 // Background team builds: live steps while running, then a draft to review.
 const buildSteps:Record<string,string>={meta_overview:'Read the meta',team_pool_sets:'Pool sets',standard_set:'Typical set',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',usage_data:'Usage data',dex_lookup:'Dex',get_team:'Team',validation:'Rules check'};
@@ -189,7 +189,7 @@ function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>voi
   return <div className="build-jobs">{jobs.map(j=>{const team=j.result?.proposals?.find((p:any)=>p.kind==='team');const last=j.steps.at(-1);return <article key={j.id} className={'build-job '+j.status}><div><span className="eyebrow">{j.status==='running'?'BUILDING…':j.status==='done'?'DRAFT READY':j.status==='failed'?'BUILD FAILED':'INTERRUPTED'}</span><h3>{team?.name??j.title}</h3>
       {j.status==='running'&&<p className="muted">{j.steps.length} research step(s){last?` · ${buildSteps[last.name]??last.name}${last.input?`: ${last.input}`:''}`:' · starting'}</p>}
       {team&&<div className="team-six">{team.sets.map((s:any)=><SetArt key={s.species} set={s} art={art} small/>)}</div>}{j.error&&<p className="error">{j.error}</p>}</div>
-    <div className="button-row">{team&&<button className="primary" onClick={()=>onReview({jobId:j.id,proposal:team})}>Review draft</button>}{j.status!=='running'&&<button onClick={()=>void api('/ai-job-dismiss',{id:j.id}).then(()=>setJobs(jobs.filter(x=>x.id!==j.id)))}>Dismiss</button>}</div></article>;})}</div>;
+    <div className="button-row">{team&&<Button variant="primary" onClick={()=>onReview({jobId:j.id,proposal:team})}>Review draft</Button>}{j.status!=='running'&&<Button onClick={()=>void api('/ai-job-dismiss',{id:j.id}).then(()=>setJobs(jobs.filter(x=>x.id!==j.id)))}>Dismiss</Button>}</div></article>;})}</div>;
 }
 
 // Replays are read from the player's side, so Frontier Brain needs their Showdown name (and any alts).
@@ -199,5 +199,5 @@ function SampleTeams({data,reload}:{data:any;reload?:()=>Promise<void>}){
   const [busy,setBusy]=useState(false),[error,setError]=useState('');
   if(data.teams.length)return null;
   const add=async()=>{setBusy(true);setError('');try{await api('/samples',{});await reload?.();}catch(e){setError((e as Error).message);}finally{setBusy(false);}};
-  return <div className="sample-offer"><p>Want examples to explore? Add the two latest Regional-winning teams as samples. Where a player didn't publish spreads, the most common competitive spread is filled in and labelled.</p><button disabled={busy} onClick={()=>void add()}>{busy?'Adding…':'Add sample teams'}</button>{error&&<p className="error">{error}</p>}</div>;
+  return <div className="sample-offer"><p>Want examples to explore? Add the two latest Regional-winning teams as samples. Where a player didn't publish spreads, the most common competitive spread is filled in and labelled.</p><Button disabled={busy} onClick={()=>void add()}>{busy?'Adding…':'Add sample teams'}</Button>{error&&<p className="error">{error}</p>}</div>;
 }

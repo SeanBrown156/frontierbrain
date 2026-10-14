@@ -84,14 +84,15 @@ export function ModalFooter({children}:{children:ReactNode}){return <div classNa
 // new screen needs no CSS of its own.
 // Buttons keep the native default type (submit inside a form), exactly like a plain <button>; pass type="button" for
 // an action inside a form that must not submit it.
-type Variant='secondary'|'primary'|'danger'|'quiet'|'ghost';
+type Variant='secondary'|'primary'|'danger'|'quiet'|'ghost'|'tile'|'plain';
 const buttonClass=(variant:Variant,size:'regular'|'compact',className?:string)=>[variant==='quiet'?'text-button':variant==='secondary'?'':variant,size==='compact'?'compact':'',className??''].filter(Boolean).join(' ')||undefined;
-type ButtonProps=React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?:Variant;size?:'regular'|'compact';icon?:ReactNode};
-export function Button({variant='secondary',size='regular',icon,className,children,...rest}:ButtonProps){
-  return <button className={buttonClass(variant,size,className)} {...rest}>{icon}{children}</button>;}
+// `solid` fills a danger button (the one irreversible action in a danger zone).
+type ButtonProps=React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?:Variant;size?:'regular'|'compact';icon?:ReactNode;solid?:boolean};
+export function Button({variant='secondary',size='regular',icon,solid=false,className,children,...rest}:ButtonProps){
+  return <button className={buttonClass(variant,size,solid?(className?'solid '+className:'solid'):className)} {...rest}>{icon}{children}</button>;}
 // A link that looks like a button (opens a page or a download, never runs an action).
 export function LinkButton({variant='secondary',size='regular',className,children,...rest}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{variant?:Variant;size?:'regular'|'compact'}){
-  return <a className={'button'+(buttonClass(variant,size,className)?' '+buttonClass(variant,size,className):'')} {...rest}>{children}</a>;}
+  const cls=buttonClass(variant,size,className);return <a className={variant==='quiet'?cls:'button'+(cls?' '+cls:'')} {...rest}>{children}</a>;}
 // Square icon-only button; `label` is its accessible name.
 export function IconButton({label,icon,variant='secondary',className,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode;variant?:'secondary'|'ghost'}){
   return <button className={'icon'+(variant==='ghost'?' ghost':'')+(className?' '+className:'')} aria-label={label} {...rest}>{icon}</button>;}
