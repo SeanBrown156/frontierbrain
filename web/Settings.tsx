@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {api,Panel,ModeSwitch} from './ui.tsx';
+import {api,Panel,ModeSwitch,ChipLabel,IconButton} from './ui.tsx';
 import {MCPMark} from './landing-marks.tsx';
 import {Px,Download,Upload,Sparkles,Check} from './icons.tsx';
 import {supabase,useAccount,hostedSite,GoogleButton} from './auth.tsx';
@@ -45,7 +45,7 @@ function AboutYou(){
       .then(()=>setState('saved'),()=>setState('error'));},700);return()=>clearTimeout(t);},[p&&JSON.stringify(p)]);
   if(!p)return null;const edit=(patch:any)=>{touched.current=true;setState('');setP({...p,...patch});};const set=(k:string)=>(e:any)=>edit({[k]:e.target.value});
   const choice=(k:string,options:[string,string][])=><div className="segmented" role="group">{options.map(([v,l])=><button key={v} type="button" className={p[k]===v?'on':''} aria-pressed={p[k]===v} onClick={()=>edit({[k]:p[k]===v?'':v})}>{l}</button>)}</div>;
-  const chips=(k:string)=>{const list:string[]=p[k]??[];return list.length>0&&<div className="pref-chips">{list.map(v=><span key={v} className="chip on">{v}<button type="button" aria-label={`Remove ${v}`} onClick={()=>edit({[k]:list.filter(x=>x!==v)})}><X size={12} aria-hidden="true"/></button></span>)}</div>;};
+  const chips=(k:string)=>{const list:string[]=p[k]??[];return list.length>0&&<div className="pref-chips">{list.map(v=><ChipLabel key={v} on>{v}<IconButton type="button" className="chip-remove" label={`Remove ${v}`} onClick={()=>edit({[k]:list.filter(x=>x!==v)})} icon={<X size={12} aria-hidden="true"/>}/></ChipLabel>)}</div>;};
   const add=(k:string)=>(v:string)=>{const list:string[]=p[k]??[];if(v&&!list.includes(v))edit({[k]:[...list,v]});};
   const monField=(k:string,label:string)=><div className="pref-field"><span className="pref-label">{label}</span><SpeciesPicker key={(p[k]??[]).length} label={label} placeholder="Add a Pokémon" onPick={add(k)} disabled={p[k]??[]}/>{chips(k)}</div>;
   const styleField=(k:string,label:string)=><div className="pref-field"><span className="pref-label">{label}</span><StylePicker key={(p[k]??[]).length} label={label} placeholder="Add a team style" taken={p[k]??[]} onPick={add(k)}/>{chips(k)}</div>;

@@ -2,8 +2,8 @@ import ShowdownName from './ShowdownName.tsx';
 import {useAccount,canUseAI,requireAccount} from '../auth.tsx';
 import {aiReady} from '../ai/AssistDock.tsx';
 import {useState,useEffect,useLayoutEffect,useRef,useId,useMemo,type RefObject} from 'react';
-import {Search,Tag} from 'lucide-react';
-import {api,Art,Modal,date,downloadOriginal,sentences,useDex,TYPE_COLOURS,PokeIcon} from '../ui.tsx';
+import {Search,Tag as TagIcon} from 'lucide-react';
+import {api,Art,Modal,date,downloadOriginal,sentences,useDex,TYPE_COLOURS,PokeIcon,Button,Tag,Field,Segmented,Notice,ChipLabel,IconButton} from '../ui.tsx';
 import {Px,Upload,Sparkles,ChevronDown,Close,Check,Copy,Pencil} from '../icons.tsx';
 import {speciesOptions} from '../ai/SpeciesPicker.tsx';
 import {AssociationDialog} from '../Coach.tsx';
@@ -35,10 +35,10 @@ export default function Replays({team,data,versionId,load,notify}:{team:any;data
     <AddReplays team={team} versionId={all?team.activeVersionId:versionId} load={load} notify={notify} after={()=>setTimeout(()=>void refresh(),800)} locked={!data.profile?.player}/>
     {games.length>0&&<div className="replay-filters rf">
       <div className="rf-find"><TagSearch games={games} summaries={info.summaries} value={picked} onChange={setPicked}/></div>
-      <div className="segmented rf-result" role="group" aria-label="Result">{[['','All'],['win','Wins'],['loss','Losses']].map(([v,l])=><button key={v} className={result===v?'on':''} aria-pressed={result===v} onClick={()=>setResult(v)}>{l}</button>)}</div>
+      <Segmented className="rf-result" label="Result" value={result} onChange={setResult} options={[{value:'',label:'All'},{value:'win',label:'Wins'},{value:'loss',label:'Losses'}]}/>
     </div>}
     {missing.length>0&&!busy&&keyed===false&&ai&&<WaitingForAssistant n={missing.length} team={team.name} connect={()=>setNeedAI(true)}/>}
-    {missing.length>0&&!busy&&keyed!==false&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <button className="text-button" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</button></p>}
+    {missing.length>0&&!busy&&keyed!==false&&<p className="footnote">{missing.length} game{missing.length===1?' has':'s have'} no summary yet. <Button variant="quiet" onClick={()=>void summarise(missing)}><Px icon={Sparkles} size={12}/>Summarise {missing.length===1?'it':'them'}</Button></p>}
     <div className="replay-list">{shown.map((g:any)=><GameCard key={g.id} g={g} s={info.summaries[g.id]} pending={busy&&!info.summaries[g.id]} waiting={keyed===false&&ai&&!busy&&!info.summaries[g.id]} art={data.art} open={()=>setOpen(g.id)} summarise={()=>void summarise([g.id])}/>)}
       {games.length>0&&!shown.length&&<p className="muted">No games match these filters.</p>}</div>
     {needAI&&<ConnectAI onClose={()=>setNeedAI(false)}/>}
@@ -84,7 +84,7 @@ function TagSearch({games,summaries,value,onChange}:{games:any[];summaries:Recor
   return <div className={'rf-search'+(value.length?' has-chips':'')} onMouseDown={e=>{if(e.target===e.currentTarget){e.preventDefault();input.current?.focus();}}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node))setOpen(false);}}>
     <span className="rf-search-icon"><Px icon={Search}/></span>
     {value.map(t=><span key={tagKey(t)} className={'rf-chip '+t.kind}>{t.kind==='pokemon'&&<PokeIcon n={icons[t.label]}/>}<span>{t.label}</span>
-      <button type="button" aria-label={`Remove ${t.label}`} title={kindLabel[t.kind]??t.kind} onClick={()=>remove(t)}><Px icon={Close} size={12}/></button></span>)}
+      <IconButton type="button" className="chip-remove" label={`Remove ${t.label}`} title={kindLabel[t.kind]??t.kind} onClick={()=>remove(t)} icon={<Px icon={Close} size={12}/>}/></span>)}
     <input ref={input} role="combobox" aria-label="Search opponent's team" aria-expanded={shown} aria-controls={id} aria-autocomplete="list" aria-activedescendant={shown?`${id}-${active}`:undefined}
       placeholder={value.length?'':'Search opponent’s team…'} value={text} autoComplete="off" spellCheck={false}
       onFocus={()=>setOpen(true)} onChange={e=>{setText(e.target.value);setOpen(true);}}
@@ -96,7 +96,7 @@ function TagSearch({games,summaries,value,onChange}:{games:any[];summaries:Recor
         else if(e.key==='Backspace'&&!text&&value.length){e.preventDefault();onChange(value.slice(0,-1));}}}/>
     {shown&&<ul className="combo-list rf-list" role="listbox" id={id} ref={list} aria-label="Suggestions">{rows.map((r,i)=><li key={tagKey(r)} id={`${id}-${i}`} role="option" aria-selected={i===active} className={(i===active?'active ':'')+r.kind}
       onMouseDown={e=>e.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>add(r)}>
-      {r.kind==='pokemon'?<PokeIcon n={icons[r.label]}/>:<span className="rf-glyph"><Px icon={Tag} size={14}/></span>}<span>{r.label}</span><small>{kindLabel[r.kind]??r.kind}</small></li>)}</ul>}
+      {r.kind==='pokemon'?<PokeIcon n={icons[r.label]}/>:<span className="rf-glyph"><Px icon={TagIcon} size={14}/></span>}<span>{r.label}</span><small>{kindLabel[r.kind]??r.kind}</small></li>)}</ul>}
   </div>;
 }
 
@@ -105,19 +105,19 @@ function TagSearch({games,summaries,value,onChange}:{games:any[];summaries:Recor
 // No key in the app: the replays are saved and linked, and your assistant (over MCP) can summarise them.
 function WaitingForAssistant({n,team,connect}:{n:number;team:string;connect:()=>void}){
   const ask=`Summarise my new Frontier Brain replays for ${team}.`;const [copied,setCopied]=useState(false);
-  return <aside className="notice waiting-ai" role="status"><h3><Px icon={Sparkles}/>{n} game{n===1?' is':'s are'} waiting to be summarised</h3>
+  return <Notice as="aside" className="waiting-ai" role="status"><h3><Px icon={Sparkles}/>{n} game{n===1?' is':'s are'} waiting to be summarised</h3>
     <p>They're saved and linked to this team. Ask the assistant you've connected over MCP (Claude or ChatGPT) and it will read each game and save its summary here, then update the team's "what to work on".</p>
     <p className="waiting-ask"><q>{ask}</q></p>
-    <div className="button-row"><button onClick={()=>{void navigator.clipboard.writeText(ask).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request'}</button>
-      <button className="text-button" onClick={connect}>Connect MCP or add an API key</button></div></aside>;
+    <div className="button-row"><Button onClick={()=>{void navigator.clipboard.writeText(ask).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request'}</Button>
+      <Button variant="quiet" onClick={connect}>Connect MCP or add an API key</Button></div></Notice>;
 }
 function ConnectAI({onClose}:{onClose:()=>void}){
   const go=(mode:'key'|'mcp')=>{try{sessionStorage.setItem('frontierbrain.ai-mode',mode);}catch{}onClose();location.hash='#account';};
   return <Modal title="Connect your AI to analyse replays" onClose={onClose}>
     <p>Replay summaries run on your own AI: an API key here, or Claude, ChatGPT or a coding agent connected over MCP.</p>
     <div className="modal-footer">
-      <button onClick={()=>go('mcp')}>Use MCP with Claude or ChatGPT</button>
-      <button className="primary" onClick={()=>go('key')}><Px icon={Sparkles}/>Add an API key</button>
+      <Button onClick={()=>go('mcp')}>Use MCP with Claude or ChatGPT</Button>
+      <Button variant="primary" onClick={()=>go('key')}><Px icon={Sparkles}/>Add an API key</Button>
     </div>
   </Modal>;
 }
@@ -128,7 +128,7 @@ function Digest({team,games,info,busy,refresh,saved,notify,art}:{team:any;games:
   const startEdit=()=>{setThemes(d.themes.map((t:any,i:number)=>({from:i,title:t.title,detail:t.detail})));setStrengths([...(d.strengths??[])]);setEditing(true);};
   const save=async()=>{setSaving(true);try{await api('/replay-digest-edit',{teamId:team.id,themes,strengths:strengths.filter(x=>x.trim())});saved();setEditing(false);}catch(e){notify((e as Error).message,true);}finally{setSaving(false);}};
   return <section className="digest panel"><header className="panel-heading"><div><span className="eyebrow">{r.n?`${r.label} in ${r.n} game${r.n===1?'':'s'}`:'No games yet'}{d?` · ${d.games} summarised · ${date(d.createdAt)}${d.edited?' · edited':''}`:''}</span><h2>Debrief</h2></div>
-      <div className="button-row">{d&&!editing&&<button onClick={startEdit}><Px icon={Pencil}/>Edit</button>}{r.n>=2&&!editing&&<button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Sparkles}/>Refresh</>}</button>}</div></header>
+      <div className="button-row">{d&&!editing&&<Button onClick={startEdit}><Px icon={Pencil}/>Edit</Button>}{r.n>=2&&!editing&&<Button onClick={refresh} disabled={busy}>{busy?<><Px icon={Sparkles}/>Updating…</>:<><Px icon={Sparkles}/>Refresh</>}</Button>}</div></header>
     {!d?<p className="muted">{r.n<2?'Add a couple of replays to get a debrief.':busy?'Summarising your games…':'Summarise your games to get a debrief.'}</p>
       :<div className="debrief">
         {d.note&&<p className="footnote">{d.note}</p>}
@@ -136,9 +136,9 @@ function Digest({team,games,info,busy,refresh,saved,notify,art}:{team:any;games:
           ?<ul className="debrief-good inline-edit">{strengths.map((t,i)=><li key={i}><textarea rows={2} value={t} maxLength={200} aria-label="What's working" onChange={e=>setStrengths(strengths.map((x,j)=>j===i?e.target.value:x))}/></li>)}</ul>
           :<ul className="debrief-good">{d.strengths.map((t:string,i:number)=><li key={i}>{t}</li>)}</ul>}</section>}
         <section><h3>What to work on</h3><ol className="themes">{d.themes.map((t:any,i:number)=>editing
-          ?<li key={i} className="inline-edit"><div className="theme-head"><input value={themes[i]?.title??''} maxLength={90} aria-label="Theme title" onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,title:e.target.value}:x))}/><span className="tag">{t.count} of {t.total} {t.of}</span></div><textarea rows={3} value={themes[i]?.detail??''} maxLength={900} aria-label="Theme detail" onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,detail:e.target.value}:x))}/></li>
-          :<li key={i}><div className="theme-head"><b>{t.title}</b><span className="tag">{t.count} of {t.total} {t.of}</span></div><p>{t.detail}</p></li>)}</ol></section>
-        {editing&&<div className="button-row"><button className="primary" disabled={saving||themes.some(t=>!t.title.trim())} onClick={()=>void save()}>Save</button><button onClick={()=>setEditing(false)}>Cancel</button></div>}
+          ?<li key={i} className="inline-edit"><div className="theme-head"><input value={themes[i]?.title??''} maxLength={90} aria-label="Theme title" onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,title:e.target.value}:x))}/><Tag>{t.count} of {t.total} {t.of}</Tag></div><textarea rows={3} value={themes[i]?.detail??''} maxLength={900} aria-label="Theme detail" onChange={e=>setThemes(themes.map((x,j)=>j===i?{...x,detail:e.target.value}:x))}/></li>
+          :<li key={i}><div className="theme-head"><b>{t.title}</b><Tag>{t.count} of {t.total} {t.of}</Tag></div><p>{t.detail}</p></li>)}</ol></section>
+        {editing&&<div className="button-row"><Button variant="primary" disabled={saving||themes.some(t=>!t.title.trim())} onClick={()=>void save()}>Save</Button><Button onClick={()=>setEditing(false)}>Cancel</Button></div>}
       </div>}
   </section>;
 }
@@ -167,13 +167,13 @@ function AtAGlance({games,info,art}:{games:any[];info:any;art:any}){
 function GameCard({g,s,pending,waiting,art,open,summarise}:{g:any;s:any;pending:boolean;waiting?:boolean;art:any;open:()=>void;summarise:()=>void}){
   const o=other(g);
   return <article className={'game '+g.result} onClick={open} onKeyDown={e=>{if(e.key==='Enter')open();}} tabIndex={0} role="button" aria-label={`${g.result} vs ${g.players[o].name}`}>
-    <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.players[o].name}</span>{s?.stale&&<span className="tag">link changed</span>}</div>
+    <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.players[o].name}</span>{s?.stale&&<Tag>link changed</Tag>}</div>
     <div className="game-teams"><div className="six">{g.preview[o].map((m:string)=><span key={m} className={g.leads[o].includes(m)?'lead':g.revealed[o].includes(m)?'brought':'benched'} title={m}><Art name={m} art={art} small/></span>)}</div></div>
     {s?<><p className="game-summary">{s.summary}</p>{s.workOn.length>0&&<ul className="work-on">{s.workOn.slice(0,2).map((w:any,i:number)=><li key={i}><span className={'cat '+w.category}>{category[w.category]}</span>{w.title}</li>)}</ul>}
-      {s.opponentStyle.length>0&&<div className="chip-row style-tags">{s.opponentStyle.map((t:string)=><span key={t} className="chip small">{t}</span>)}</div>}</>
+      {s.opponentStyle.length>0&&<div className="chip-row style-tags">{s.opponentStyle.map((t:string)=><ChipLabel key={t} small>{t}</ChipLabel>)}</div>}</>
       :pending?<p className="muted">Summarising…</p>
-      :<div className="game-pending"><span className="tag">Not summarised</span>{waiting&&<span className="muted tiny">Your assistant can do this, or add an API key.</span>}
-        <button className="summarise" onClick={e=>{e.stopPropagation();summarise();}} onKeyDown={e=>e.stopPropagation()}><Px icon={Sparkles} size={14}/>Summarise</button></div>}
+      :<div className="game-pending"><Tag>Not summarised</Tag>{waiting&&<span className="muted tiny">Your assistant can do this, or add an API key.</span>}
+        <Button className="summarise" onClick={e=>{e.stopPropagation();summarise();}} onKeyDown={e=>e.stopPropagation()}><Px icon={Sparkles} size={14}/>Summarise</Button></div>}
   </article>;
 }
 
@@ -186,17 +186,17 @@ function GameDrawer({g,s,team,data,load,notify,close,resummarise,saved}:{g:any;s
   const remove=async()=>{if(!confirm('Delete this replay, its summary and its link to the team? This cannot be undone.'))return;try{await api('/replay-delete',{replayId:g.id});close();await load();saved();notify('Replay deleted.');}catch(e){notify((e as Error).message);}};
   const lines=log.split('\n');
   return <Modal title={`${g.result==='win'?'Win':g.result==='loss'?'Loss':g.result} vs ${g.players[o].name}`} onClose={close}><div className="game-drawer">
-    <p className="muted">{g.date?date(g.date):''} · <LinkStatus g={g} team={team} data={data} load={load} notify={notify}/> · <button className="text-button" onClick={()=>setLinking(true)}>Change link</button> · <button className="text-button" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</button> · <button className="text-button danger" onClick={()=>void remove()}>Delete replay</button></p>
+    <p className="muted">{g.date?date(g.date):''} · <LinkStatus g={g} team={team} data={data} load={load} notify={notify}/> · <Button variant="quiet" onClick={()=>setLinking(true)}>Change link</Button> · <Button variant="quiet" onClick={()=>void downloadOriginal(g.id)}>Original replay ↓</Button> · <Button variant="quiet" className="danger" onClick={()=>void remove()}>Delete replay</Button></p>
     <div className="selections">{[[g.ownSide,'You'],[o,'Opponent']].map(([side,label])=><div key={side}><span className="eyebrow">{label}</span><div className="six">{g.preview[side].map((m:string)=><span key={m} className={g.leads[side].includes(m)?'lead':g.revealed[side].includes(m)?'brought':'benched'} title={m}><Art name={m} art={data.art} small/></span>)}</div></div>)}<p className="footnote">Leads are outlined; faded Pokémon weren't seen in battle.</p></div>
     {s?<>{editing
         ?<div className="summary-edit"><textarea autoFocus rows={3} maxLength={900} value={draft} aria-label="Summary" onChange={e=>setDraft(e.target.value)}/>
-          <div className="button-row"><button className="primary" disabled={saving||!draft.trim()} onClick={()=>void saveSummary()}>Save</button><button onClick={()=>setEditing(false)}>Cancel</button></div></div>
-        :<p className="game-summary big">{s.summary} <button className="icon-text" aria-label="Edit summary" title="Edit summary" onClick={()=>{setDraft(s.summary);setEditing(true);}}><Px icon={Pencil} size={12}/></button>{s.edited&&<span className="tag">edited</span>}</p>}
+          <div className="button-row"><Button variant="primary" disabled={saving||!draft.trim()} onClick={()=>void saveSummary()}>Save</Button><Button onClick={()=>setEditing(false)}>Cancel</Button></div></div>
+        :<p className="game-summary big">{s.summary} <Button className="icon-text" aria-label="Edit summary" title="Edit summary" onClick={()=>{setDraft(s.summary);setEditing(true);}}><Px icon={Pencil} size={12}/></Button>{s.edited&&<Tag>edited</Tag>}</p>}
       {s.earlierSummary&&<details className="earlier"><summary>Earlier wording</summary><p className="muted">{s.earlierSummary}</p></details>}
-      {s.workOn.length>0&&<><h3>Work on</h3><ul className="work-on full">{s.workOn.map((w:any,i:number)=><li key={i}><div className="wo-head"><span className={'cat '+w.category}>{category[w.category]}</span><b>{w.title}</b>{w.turn&&<button className="text-button wo-turn" onClick={()=>setTurn(w.turn)}>Turn {w.turn} →</button>}</div><p>{w.detail}</p></li>)}</ul></>}
-      {s.keyMoments.length>0&&<><h3>Key moments</h3><ol className="moments">{s.keyMoments.map((m:any,i:number)=><li key={i}><button className="text-button" onClick={()=>setTurn(m.turn)}>Turn {m.turn}</button> {m.text}</li>)}</ol></>}
-      <p className="model-line">{s.model} · {date(s.createdAt)} · team sets: {s.setsBasis}{s.stale?' · the link changed since':''} · <button className="text-button" onClick={resummarise}><Px icon={Sparkles} size={12}/>Re-summarise</button></p></>
-      :<p className="muted">No summary yet. <button className="text-button" onClick={resummarise}><Px icon={Sparkles} size={12}/>Summarise this game</button></p>}
+      {s.workOn.length>0&&<><h3>Work on</h3><ul className="work-on full">{s.workOn.map((w:any,i:number)=><li key={i}><div className="wo-head"><span className={'cat '+w.category}>{category[w.category]}</span><b>{w.title}</b>{w.turn&&<Button variant="quiet" className="wo-turn" onClick={()=>setTurn(w.turn)}>Turn {w.turn} →</Button>}</div><p>{w.detail}</p></li>)}</ul></>}
+      {s.keyMoments.length>0&&<><h3>Key moments</h3><ol className="moments">{s.keyMoments.map((m:any,i:number)=><li key={i}><Button variant="quiet" onClick={()=>setTurn(m.turn)}>Turn {m.turn}</Button> {m.text}</li>)}</ol></>}
+      <p className="model-line">{s.model} · {date(s.createdAt)} · team sets: {s.setsBasis}{s.stale?' · the link changed since':''} · <Button variant="quiet" onClick={resummarise}><Px icon={Sparkles} size={12}/>Re-summarise</Button></p></>
+      :<p className="muted">No summary yet. <Button variant="quiet" onClick={resummarise}><Px icon={Sparkles} size={12}/>Summarise this game</Button></p>}
     <details open={turn!==null} onToggle={e=>{if(!(e.target as HTMLDetailsElement).open)setTurn(null);}}><summary>Turn by turn</summary><pre ref={box} className="transcript">{lines.map((l,i)=>{const m=/^Turn (\d+):/.exec(l);return <span key={i} data-turn={m?.[1]} className={m&&Number(m[1])===turn?'hl':''}>{l}{'\n'}</span>;})}</pre></details>
   </div>{linking&&<AssociationDialog game={g} data={data} close={()=>setLinking(false)} load={load} notify={notify}/>}</Modal>;
 }
@@ -210,8 +210,8 @@ function AddReplays({team,versionId,load,notify,after,locked=false}:{team:any;ve
   return <section className={'replay-add panel'+(locked?' locked':'')} aria-disabled={locked||undefined} title={locked?'Add your Showdown name above first':undefined}>
     <fieldset className="ra-form" disabled={locked}>
       <textarea rows={links.includes('\n')?3:1} value={links} onChange={e=>setLinks(e.target.value)} placeholder={locked?'Add your Showdown name above to add replays':'Paste Showdown replay links (one per line)'} aria-label="Showdown replay links"/>
-      <div className="ra-actions"><label className="button ra-file"><Px icon={Upload}/>{files.length?`${files.length} file${files.length===1?'':'s'}`:'HTML files'}<input className="file-input" type="file" multiple accept=".html,.htm" onChange={e=>setFiles([...(e.target.files??[])])}/></label>
-        <button className="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</button></div></fieldset>
+      <div className="ra-actions"><Field className="button ra-file" label={<Px icon={Upload}/>}>{files.length?`${files.length} file${files.length===1?'':'s'}`:'HTML files'}<input className="file-input" type="file" multiple accept=".html,.htm" onChange={e=>setFiles([...(e.target.files??[])])}/></Field>
+        <Button variant="primary" disabled={busy||(!links.trim()&&!files.length)} onClick={()=>void submit()}>{busy?'Adding…':'Add replays'}</Button></div></fieldset>
     {results.map((r,i)=><p key={i} className={r.ok?'footnote':'error'}>{r.label.replace('https://replay.pokemonshowdown.com/','')}: {r.ok?(r.certainty==='inbox'?<>not linked: its six doesn't match this team. It's saved in your <a href="#inbox">Inbox</a>, where you can link it to another team or delete it.</>:`linked by team only${r.note?` (${r.note})`:''}`):r.error}</p>)}
   </section>;
 }
@@ -222,7 +222,7 @@ function LinkStatus({g,team,data,load,notify}:{g:any;team:any;data:any;load:()=>
   const a=g.association;if(!a)return <span>not linked</span>;
   const v=team.versions.find((x:any)=>x.id===a.versionId);const c=v?.configurations.find((x:any)=>x.id===a.configurationId);
   const confirm=async()=>{try{await api('/associate',{revision:data.db.revision,replayId:g.id,teamId:team.id,versionId:a.versionId,configurationId:a.configurationId,certainty:'exact',confirm:true});await load();notify('Confirmed as your exact sets.');}catch(e){notify((e as Error).message,true);}};
-  if(a.certainty==='exact'&&a.basis==='auto')return <span>sets matched to your team on {date(c?.createdAt)}{a.note?` (${a.note.toLowerCase()})`:''} · <button className="text-button" onClick={()=>void confirm()}>These were my exact sets</button></span>;
+  if(a.certainty==='exact'&&a.basis==='auto')return <span>sets matched to your team on {date(c?.createdAt)}{a.note?` (${a.note.toLowerCase()})`:''} · <Button variant="quiet" onClick={()=>void confirm()}>These were my exact sets</Button></span>;
   if(a.certainty==='exact')return <span>exact sets confirmed ({date(c?.createdAt)})</span>;
   return <span>same six, sets not matched{a.note?`: ${a.note}`:''}</span>;
 }

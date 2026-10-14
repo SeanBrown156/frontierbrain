@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {api,Modal,Empty,SetArt,Markdown} from '../ui.tsx';
+import {api,Modal,Empty,SetArt,Markdown,Button,LinkButton,Notice,Field,Segmented} from '../ui.tsx';
 import {Px,Plus,Trash,ArrowLeft,Swap} from '../icons.tsx';
 import SpeciesPicker,{type SavedOption} from '../ai/SpeciesPicker.tsx';
 import SetTile from '../ai/SetTile.tsx';
@@ -23,7 +23,7 @@ export default function Bench({team,data,mutate,notify}:{team:any;data:any;mutat
   const remove=async(it:Item)=>{if(!confirm(`Take ${it.revision.set.species} off the ${BENCH_LABEL}? Its set stays in your Pokémon library.`))return;await mutate({type:'bench-remove',teamId:team.id,benchId:it.b.id}).catch(()=>{});};
   return <div className="bench">
     <div className="bench-intro"><p className="muted">Pokémon you are weighing for {team.name}. Promote one to swap it in; the one it replaces moves here.</p>
-      <button className="primary" onClick={()=>setAdding(true)}><Px icon={Plus}/>Add Pokémon</button></div>
+      <Button variant="primary" onClick={()=>setAdding(true)}><Px icon={Plus}/>Add Pokémon</Button></div>
     {adding&&<AddDialog team={team} data={data} mutate={mutate} count={list.length} onClose={()=>setAdding(false)}/>}
     <div className="bench-layout">
       <aside className="bench-team panel" aria-label="On the team"><span className="eyebrow">On the team</span>
@@ -33,12 +33,12 @@ export default function Bench({team,data,mutate,notify}:{team:any;data:any;mutat
           return <div className="bench-item" key={it.b.id}>
             <MonCard i={n} numbered={false} revision={it.revision} href={benchHref(team.id,it.b.id)} active art={data.art}/>
             <div className="bench-meta">
-              <label className="bench-replaces"><span>Could replace</span><select value={it.b.replaces??''} aria-label={`${it.revision.set.species}: could replace`} onChange={e=>void mutate({type:'bench-update',teamId:team.id,benchId:it.b.id,replaces:e.target.value}).catch(()=>{})}>
-                <option value="">Not decided</option>{view.sets.map((s:PokemonSet,i:number)=><option key={i} value={s.species}>{s.species}</option>)}</select></label>
+              <Field className="bench-replaces" label={<span>Could replace</span>}><select value={it.b.replaces??''} aria-label={`${it.revision.set.species}: could replace`} onChange={e=>void mutate({type:'bench-update',teamId:team.id,benchId:it.b.id,replaces:e.target.value}).catch(()=>{})}>
+                <option value="">Not decided</option>{view.sets.map((s:PokemonSet,i:number)=><option key={i} value={s.species}>{s.species}</option>)}</select></Field>
               {problems===null?<p className="bench-fit muted">Pick who it could replace to check it is legal.</p>:problems.length?<p className="bench-fit warn">Not legal in place of {it.b.replaces}: {problems[0]}</p>:<p className="bench-fit ok">Legal in place of {it.b.replaces}.</p>}
               {it.b.source==='assistant'&&<small className="muted">Added by your assistant</small>}
             </div>
-            <div className="button-row"><button onClick={()=>setDialog({item:it,promote:false})}><Px icon={Swap}/>Compare</button><button className="primary" onClick={()=>setDialog({item:it,promote:true})}>Promote</button><button onClick={()=>void remove(it)}><Px icon={Trash}/>Remove</button></div>
+            <div className="button-row"><Button onClick={()=>setDialog({item:it,promote:false})}><Px icon={Swap}/>Compare</Button><Button variant="primary" onClick={()=>setDialog({item:it,promote:true})}>Promote</Button><Button onClick={()=>void remove(it)}><Px icon={Trash}/>Remove</Button></div>
           </div>;})}</div>
         :<Empty>Nothing on the {BENCH_LABEL} yet. Use <b>Add Pokémon</b> to try one in place of a Pokémon on the team, or ask Frontier Brain for ideas.</Empty>}
       </div>
@@ -65,8 +65,8 @@ function AddDialog({team,data,mutate,count,onClose}:{team:any;data:any;mutate:Mu
       onClose();location.hash=benchHref(team.id,r.result.id);}
     catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   return <Modal title={`Add to the ${BENCH_LABEL}`} onClose={onClose}>
-    {full?<p className="notice warn">The {BENCH_LABEL} holds up to {BENCH_LIMIT} Pokémon. Remove one to add another.</p>:<div className="bench-add-modal">
-      <div className="segmented" role="group" aria-label="How to add">{([['pokemon','Pokémon'],['paste','Showdown paste']] as const).map(([v,l])=><button key={v} className={mode===v?'on':''} aria-pressed={mode===v} onClick={()=>{setMode(v);setError('');}}>{l}</button>)}</div>
+    {full?<Notice className="warn">The {BENCH_LABEL} holds up to {BENCH_LIMIT} Pokémon. Remove one to add another.</Notice>:<div className="bench-add-modal">
+      <Segmented label="How to add" value={mode} onChange={v=>{setMode(v);setError('');}} options={[{value:'pokemon' as const,label:'Pokémon'},{value:'paste' as const,label:'Showdown paste'}]}/>
       {mode==='pokemon'?<>
         <SpeciesPicker label="Pokémon" placeholder="Search Pokémon" value="" onPick={sp=>setChoice({species:sp})} onPickSaved={o=>setChoice({species:o.species,saved:o})} saved={saved} autoFocus/>
         {choice?<div className="bench-chosen"><SetArt set={{species:choice.species} as any} art={data.art} small/><div><b>{choice.species}</b><small>{choice.saved?`Your saved set: ${choice.saved.label}`:'Starts from its most common set in the data pool'}</small></div></div>
@@ -77,7 +77,7 @@ function AddDialog({team,data,mutate,count,onClose}:{team:any;data:any;mutate:Mu
       </>}
       {error&&<p className="error" role="alert">{error}</p>}
     </div>}
-    <div className="modal-footer">{!full&&<button className="primary" disabled={busy||!ready} onClick={()=>void add()}><Px icon={Plus}/>{busy?'Adding…':mode==='pokemon'&&choice?`Add ${choice.species}`:`Add to the ${BENCH_LABEL}`}</button>}</div>
+    <div className="modal-footer">{!full&&<Button variant="primary" disabled={busy||!ready} onClick={()=>void add()}><Px icon={Plus}/>{busy?'Adding…':mode==='pokemon'&&choice?`Add ${choice.species}`:`Add to the ${BENCH_LABEL}`}</Button>}</div>
   </Modal>;
 }
 
@@ -89,7 +89,7 @@ function CompareDialog({team,data,mutate,notify,item,promote,onClose}:{team:any;
     try{await mutate({type:'bench-promote',teamId:team.id,benchId:item.b.id,slot,baseRevisionId:view.slots[slot].revisionId});notify(`${cand.species} is in slot ${slot+1}. ${current.species} is on the ${BENCH_LABEL}.`);onClose();location.hash=benchHref(team.id);}
     catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   return <Modal title={promote?`Promote ${cand.species}`:`Compare ${cand.species}`} onClose={onClose}>
-    <label className="bench-slot"><span>Takes the place of</span><select value={slot} onChange={e=>setSlot(Number(e.target.value))}>{view.sets.map((s:PokemonSet,i:number)=><option key={i} value={i}>{`${String(i+1).padStart(2,'0')} · ${s.species}`}</option>)}</select></label>
+    <Field className="bench-slot" label={<span>Takes the place of</span>}><select value={slot} onChange={e=>setSlot(Number(e.target.value))}>{view.sets.map((s:PokemonSet,i:number)=><option key={i} value={i}>{`${String(i+1).padStart(2,'0')} · ${s.species}`}</option>)}</select></Field>
     <div className="bench-compare">
       <div><span className="eyebrow">On the team</span><SetTile set={current} art={data.art}/></div>
       <div><span className="eyebrow">Candidate</span><SetTile set={cand} current={current} art={data.art}/></div>
@@ -98,7 +98,7 @@ function CompareDialog({team,data,mutate,notify,item,promote,onClose}:{team:any;
     {problems.length?<ul className="bench-problems" role="alert">{problems.map(p=><li key={p}>{p}</li>)}</ul>:<p className="bench-fit ok">Legal in slot {slot+1}.</p>}
     <p className="footnote">Saved as a new step in History, which you can restore. {current.species} goes onto the {BENCH_LABEL}; {cand.species}’s benchmarks and strategy come with it.</p>
     {error&&<p className="error" role="alert">{error}</p>}
-    <div className="modal-footer"><button className="primary" disabled={busy||problems.length>0} onClick={()=>void go()}>{busy?'Promoting…':`Promote ${cand.species}`}</button></div>
+    <div className="modal-footer"><Button variant="primary" disabled={busy||problems.length>0} onClick={()=>void go()}>{busy?'Promoting…':`Promote ${cand.species}`}</Button></div>
   </Modal>;
 }
 
@@ -108,7 +108,7 @@ export function BenchWorkspace({team,data,mutate,notify,benchId}:{team:any;data:
   if(!it)return <Empty>That candidate is no longer on the {BENCH_LABEL}. <a href={benchHref(team.id)}>Back to the {BENCH_LABEL}.</a></Empty>;
   const slot=slotFor(view.sets,it.b.replaces);const others=slot>=0?view.sets.filter((_:PokemonSet,i:number)=>i!==slot):[];
   return <div className="workspace bench-workspace">
-    <div className="hub-head"><a href={benchHref(team.id)} className="text-button back-link"><Px icon={ArrowLeft} size={14}/>{team.name} · {BENCH_LABEL}</a></div>
+    <div className="hub-head"><LinkButton variant="quiet" className="back-link" href={benchHref(team.id)}><Px icon={ArrowLeft} size={14}/>{team.name} · {BENCH_LABEL}</LinkButton></div>
     <nav className="mon-switcher" aria-label={`${BENCH_LABEL} candidates`}>{list.map(x=><a key={x.b.id} href={benchHref(team.id,x.b.id)} className={x.b.id===benchId?'selected':''} aria-current={x.b.id===benchId?'page':undefined}><SetArt set={x.revision.set} art={data.art} small/><span className="slot-name">{x.revision.set.species}</span></a>)}</nav>
     <SetWorkspace key={benchId} team={team} data={data} mutate={mutate} view={view} slot={-1} candidate={{id:benchId,entry:it.entry,revision:it.revision,others}}/>
   </div>;

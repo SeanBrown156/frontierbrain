@@ -143,6 +143,10 @@ main h1{text-shadow:var(--phos-title)}
  :is(button,.button).ghost:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
  :is(button,.button).ghost.icon{color:var(--mu);border-color:transparent}
  :is(button,.button).ghost.icon:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);border-color:transparent}
+ /* a chip that only shows a value, smaller; and the x that removes a chip */
+ .chip.small{height:26px;min-height:26px;max-height:26px;padding:0 var(--s2);font-size:12px;cursor:default}
+ :is(button,.button).chip-remove{width:20px;min-width:20px;height:20px;min-height:20px;max-height:20px;padding:0;color:inherit;background:transparent;border:0;border-radius:50%;box-shadow:none}
+ :is(button,.button).chip-remove:hover:not(:disabled){color:var(--tx);background:color-mix(in srgb,var(--tx) 12%,transparent);transform:none}
  :is(button,.button).icon.compact{width:var(--compact-height);min-width:var(--compact-height)}
  .tabs>button:has(>small){flex-direction:column;gap:var(--s05)}
  /* tile: a whole card you click (history rows, team pickers, search results); .on / aria-selected marks the chosen one */
@@ -544,7 +548,6 @@ input.nickname{margin-top:var(--s1);font-size:13px}
 .themes .tag{margin-left:var(--s1)}
 .strengths{margin:var(--s2) 0 0;font-size:14px}
 .common{margin-top:var(--s2)}
-.chip.small{padding:var(--s1) var(--s2);font-size:11.5px;cursor:default}
 .replay-list{display:grid}
 .game{border:1px solid var(--ln);border-left:4px solid var(--ln);background:var(--glass);cursor:pointer;transition:border-color .12s}
 .game:hover,.game:focus-visible{border-color:var(--tx)}
@@ -1667,9 +1670,7 @@ html.jade .file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-e
 html.jade .replay-filters{display:flex!important;flex-direction:row!important;align-items:center!important;gap:var(--s3)!important;flex-wrap:wrap;margin:var(--s6) 0 var(--s4)!important}
 html.jade .replay-filters>.chip-row{margin:0!important;align-items:center}
 html.jade .replay-filters .segmented{height:auto;margin:0}
-html.jade .replay-filters .segmented>button{height:30px}
 /* chips: the same quiet pills as the calc toggles, never heavy outlines */
-html.jade .style-tags .chip{height:26px;font-size:12px!important;cursor:default}
 /* default buttons: lighter glass and a softer edge so they sit in the panels rather than on top of them */
 html.jade .digest .threat,html.jade .digest .tag{font-family:var(--fb)!important}
 html.jade .common{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
@@ -2076,9 +2077,6 @@ html.jade .rf-search>input{flex:1 1 48px;width:auto;min-width:48px;height:24px!i
 .rf-chip.pokemon{padding-left:0}
 .rf-chip .poke-icon{transform:scale(.8);margin:calc(-1 * var(--s05)) calc(-1 * var(--s1)) calc(-1 * var(--s05)) calc(-1 * var(--s1))}
 /* :not(#_) lifts these above the theme's broad button rule (a long :not() chain with !important). */
-html.jade .rf-chip>button:not(#_){width:20px;min-width:20px;height:20px!important;min-height:20px!important;max-height:20px!important;margin:0 1px 0 0;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none;color:var(--mu);transform:none!important}
-html.jade .rf-chip>button:not(#_):hover{background:var(--hover)!important;color:var(--tx)}
-html.jade .rf-chip>button:not(#_):focus-visible{outline-offset:0}
 html.jade .rf-list{top:calc(100% + 4px);left:0;right:auto;width:100%;min-width:280px;padding:var(--s1)!important;border-radius:12px!important;box-sizing:border-box}
 html.jade .rf-list:focus{outline:none}
 html.jade .rf-list.up{top:auto;bottom:calc(100% + 4px)}
@@ -2088,7 +2086,6 @@ html.jade .rf-list li.chosen{color:var(--ac);font-weight:600}
 html.jade .rf-list li.chosen small{color:var(--ac)}
 html.jade .rf-list li>.rf-glyph,.rf-glyph{display:inline-flex;align-items:center;justify-content:center;flex:none!important;width:40px;height:30px;color:var(--mu)}
 html.jade .replays .rf-result{flex:none;margin:0!important;padding:var(--s05);gap:var(--s1);height:40px;box-sizing:border-box}
-html.jade .replays .rf-result>button{height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 var(--s4)!important;font-size:13px}
 @media (max-width:720px){
  html.jade .replays .replay-filters.rf{flex-direction:column!important;align-items:stretch!important}
  .rf-find{flex-direction:column;align-items:stretch}
@@ -2266,8 +2263,6 @@ html.jade .about-you .segmented button{height:100%!important;min-height:0!import
 html.jade .about-you .picker,html.jade .about-you .combo{width:100%}
 .pref-chips{display:flex;flex-wrap:wrap;gap:var(--s1)}
 html.jade .pref-chips .chip{display:inline-flex;align-items:center;gap:var(--s1);height:28px;padding:0 var(--s1) 0 var(--s2);font-size:13px}
-html.jade .pref-chips .chip button:not(#_){display:inline-flex;align-items:center;justify-content:center;width:20px!important;height:20px!important;min-height:0!important;padding:0!important;border:0!important;background:none!important;color:inherit;border-radius:50%!important;box-shadow:none!important}
-html.jade .pref-chips .chip button:not(#_):hover{background:color-mix(in srgb,var(--tx) 12%,transparent)!important}
 @media (max-width:620px){
  html.jade .about-you{grid-template-columns:minmax(0,1fr);gap:var(--s4)}
 }

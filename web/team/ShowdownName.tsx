@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {api} from '../ui.tsx';
+import {api,Button,Chip} from '../ui.tsx';
 
 // Showdown names as chips: type a name and press Enter (or a comma) to add it; × removes it. The first name is the main
 // one, the rest are alternates (up to 10); every change saves straight away. Used in Settings and on the Replays tab.
@@ -13,7 +13,7 @@ export function ShowdownNamesField({profile,reload,onError}:{profile?:any;reload
   return <div className="examples-field"><label className="field-label" htmlFor="showdown-name">Add Showdown names</label>
     {names.length<11&&<input id="showdown-name" value={draft} disabled={busy} placeholder="Type a name and press Enter" onChange={e=>setDraft(e.target.value)}
       onKeyDown={e=>{if(e.key==='Enter'||e.key===','){e.preventDefault();add();}else if(e.key==='Backspace'&&!draft&&names.length)void save(names.slice(0,-1));}} onBlur={add}/>}
-    {names.length>0&&<div className="example-chips">{names.map((n,i)=><button type="button" key={n} className="chip on" disabled={busy} title={i===0?'Main name':'Other name'} aria-label={`Remove ${n}`} onClick={()=>void save(names.filter(x=>x!==n))}>{n} ×</button>)}</div>}
+    {names.length>0&&<div className="example-chips">{names.map((n,i)=><Chip on type="button" key={n} disabled={busy} title={i===0?'Main name':'Other name'} aria-label={`Remove ${n}`} onClick={()=>void save(names.filter(x=>x!==n))}>{n} ×</Chip>)}</div>}
   </div>;
 }
 
