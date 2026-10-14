@@ -4,7 +4,8 @@ import {createServer} from 'node:http';
 import {mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve} from 'node:path';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync,statSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StreamableHTTPClientTransport} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import {withData,fileBackend,CODE,save} from '../io.ts';
@@ -64,4 +65,17 @@ test('focus and assistant calcs: stored outside the workspace, stale after 10 mi
     for(let i=0;i<CALC_LIMIT+3;i++)await text('calc_damage',{...input,move:i%2?'Shadow Ball':'Make It Rain'});
     assert.equal((await get('/api/assistant-calcs')).length,CALC_LIMIT,'oldest are dropped past the cap');
   }finally{await client.close();server.close();}
+});
+
+test('local focus and assistant calcs are written under the data directory (APP_DATA), never the checkout',async()=>{
+  const data=await mkdtemp(resolve(tmpdir(),'fb-focus-data-'));
+  const repoCalcs=resolve(CODE,'.cache/assistant-calcs.json'),repoFocus=resolve(CODE,'.cache/focus.json');
+  const before=(f:string)=>existsSync(f)?statSync(f).mtimeMs:null;const calcsBefore=before(repoCalcs),focusBefore=before(repoFocus);
+  // A fresh process, so io.ts reads APP_DATA at import the way the local server does.
+  const script=`const f=await import(${JSON.stringify(resolve(CODE,'tools/focus.ts'))});await f.writeFocus({page:'teams',tab:'t1'});await f.addCalc('speed',{a:{species:'Gengar'},b:{species:'Incineroar'}},{first:'a'},'chat');console.log((await f.listCalcs()).length);`;
+  const out=execFileSync(process.execPath,['--input-type=module','-e',script],{env:{...process.env,APP_DATA:data},encoding:'utf8'});
+  assert.equal(out.trim(),'1','the calc reads back from the data directory');
+  assert.ok(existsSync(resolve(data,'.cache/assistant-calcs.json'))&&existsSync(resolve(data,'.cache/focus.json')),'both files land in APP_DATA');
+  assert.equal(before(repoCalcs),calcsBefore,'nothing written to the checkout .cache (calcs)');
+  assert.equal(before(repoFocus),focusBefore,'nothing written to the checkout .cache (focus)');
 });

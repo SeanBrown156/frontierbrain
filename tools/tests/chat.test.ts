@@ -5,20 +5,25 @@ import {damage} from '../mechanics.ts';
 import {readStore,emptyStore,makeTeam,applyAction} from '../workbench-store.ts';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {ROOT} from '../io.ts';
+import {ROOT,CODE,withData,fileBackend} from '../io.ts';
+import {mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+// Chats record the calcs they run (tools/focus.ts); run them against a throwaway data directory, never the checkout.
+const TEMP_DATA=mkdtempSync(resolve(tmpdir(),'fb-chat-'));
+const inTempData=<T>(fn:()=>Promise<T>)=>withData({user:fileBackend(TEMP_DATA),shared:fileBackend(TEMP_DATA,CODE)},fn);
 // A scripted model: first asks for a damage calc, then answers using the returned numbers.
 function scriptedModel(log:any[]){let turn=0;return (async(_url:string,init:any)=>{const body=JSON.parse(init.body);log.push(body);turn++;
   const output=turn===1?[{type:'function_call',call_id:'c1',name:'calc_damage',arguments:JSON.stringify({attacker:{species:'Gengar',nature:'Modest',statPoints:{spa:32,spe:32,hp:2}},defender:{species:'Incineroar',nature:'Careful',ability:'Intimidate',statPoints:{hp:32,def:2,spd:32}},move:'Shadow Ball'})}]
     :[{type:'message',content:[{type:'output_text',text:'Shadow Ball does the range reported by the tool.'}]}];
   const sse=`event: response.created\ndata: {"type":"response.created"}\n\nevent: response.completed\ndata: ${JSON.stringify({type:'response.completed',response:{output}})}\n\n`;
   return new Response(sse,{status:200,headers:{'Content-Type':'text/event-stream'}});}) as typeof fetch;}
-test('Chat runs model tool calls through the local engine and returns exactly the engine result',async()=>{
+test('Chat runs model tool calls through the local engine and returns exactly the engine result',()=>inTempData(async()=>{
   const log:any[]=[],events:any[]=[];const result=await chat([{role:'user',content:'How much does Shadow Ball do to a typical Incineroar?'}],{},(e,d)=>events.push([e,d]),{apiKey:'test',fetchImpl:scriptedModel(log),keepTranscript:false});
   const expected=damage({attacker:{species:'Gengar',nature:'Modest',statPoints:{spa:32,spe:32,hp:2}},defender:{species:'Incineroar',nature:'Careful',ability:'Intimidate',statPoints:{hp:32,def:2,spd:32}},move:'Shadow Ball'});
   assert.deepEqual(result.tools[0].output.range,expected.range);assert.equal(events[0][0],'tool');assert.equal(events.at(-1)[0],'message');
   const followUp=log[1].input.find((i:any)=>i.type==='function_call_output');assert.equal(JSON.parse(followUp.output).range[0],expected.range[0]);
   assert.match(log[0].instructions,/MUST come from a tool result/);assert.equal(log[0].store,false);assert.equal(log[0].stream,true);assert.ok(log[0].tools.some((t:any)=>t.name==='standard_set'));
-});
+}));
 test('Chat refuses without a key and surfaces engine rejections instead of approximating',async()=>{
   const saved=process.env.OPENAI_API_KEY;delete process.env.OPENAI_API_KEY;
   try{await assert.rejects(chat([{role:'user',content:'hi'}],{},()=>{},{keepTranscript:false,root:'/nonexistent-poke-coach'}),/OPENAI_API_KEY is not set/);}finally{if(saved)process.env.OPENAI_API_KEY=saved;}
@@ -55,7 +60,7 @@ function scriptedClaude(log:any[]){let turn=0;return (async(url:string,init:any)
   const content=turn===1?[{type:'text',text:'Checking.'},{type:'tool_use',id:'tu1',name:'calc_damage',input:{attacker:{species:'Gengar',nature:'Modest',statPoints:{spa:32,spe:32,hp:2}},defender:{species:'Incineroar',nature:'Careful',ability:'Intimidate',statPoints:{hp:32,def:2,spd:32}},move:'Shadow Ball'}}]
     :[{type:'text',text:'Shadow Ball does the range reported by the tool.'}];
   return new Response(JSON.stringify({content,stop_reason:turn===1?'tool_use':'end_turn'}),{status:200,headers:{'Content-Type':'application/json'}});}) as typeof fetch;}
-test('Anthropic keys run the same tool loop through the Messages API',async()=>{
+test('Anthropic keys run the same tool loop through the Messages API',()=>inTempData(async()=>{
   const log:any[]=[];const result=await chat([{role:'user',content:'Shadow Ball on Incineroar?'}],{},()=>{},{apiKey:'sk-ant-test',provider:'anthropic',fetchImpl:scriptedClaude(log),keepTranscript:false});
   assert.equal(result.text,'Shadow Ball does the range reported by the tool.');assert.equal(log[0].headers['x-api-key'],'sk-ant-test');assert.equal(log[0].body.model,'claude-haiku-4-5');
   assert.match(log[0].body.system,/MUST come from a tool result/);assert.ok(log[0].body.tools.some((t:any)=>t.name==='calc_damage'&&t.input_schema));
@@ -63,7 +68,7 @@ test('Anthropic keys run the same tool loop through the Messages API',async()=>{
   assert.deepEqual(JSON.parse(reply.content[0].content).range,result.tools[0].output.range);
   // The repair turn keeps the tools defined but forbids calling them.
   const fixed=await result.repair('Reply as JSON.');assert.equal(log[2].body.tool_choice.type,'none');assert.equal(typeof fixed,'string');
-});
+}));
 
 test('calc_speed_order returns the engine order for four Pokémon, ties and flags included',async()=>{
   const db=emptyStore();

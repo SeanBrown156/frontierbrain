@@ -3,11 +3,21 @@
 // a calc never bumps the workspace revision or causes a stale-edit conflict. Latest record only, no history, and
 // nothing the player is typing: ids, a page name, a slot, and calc inputs.
 import {randomUUID} from 'node:crypto';
-import {optionalJSON,save} from './io.ts';
+import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {optionalJSON,save,hosted,ROOT,CODE} from './io.ts';
 import {currentTeam} from './workbench-store.ts';
 import type {Workbench} from '../shared/workbench.ts';
 
+// Paths are data paths: they resolve under the data directory (APP_DATA) like every other record, never the checkout.
 export const FOCUS_FILE='.cache/focus.json',CALCS_FILE='.cache/assistant-calcs.json';
+// Older local builds could leave these in the checkout's .cache. Read that copy once if the data directory has none;
+// writes always go to the data directory. Hosted mode never looks at local files.
+async function readData<T>(path:string,fallback:T):Promise<T>{
+  const v=await optionalJSON<T|undefined>(path,undefined);if(v!==undefined)return v;
+  if(hosted()||ROOT===CODE)return fallback;
+  try{return JSON.parse(await readFile(resolve(CODE,path),'utf8')) as T;}catch{return fallback;}
+}
 export const FOCUS_STALE_MS=10*60_000,CALC_LIMIT=20,CALC_TTL_MS=24*3600_000;
 export const PAGES=['welcome','teams','overview','strategy','replays','versions','slot','news','data','references','account','inbox'] as const;
 export interface FocusCalc {kind:'damage'|'speed';input:any}
@@ -25,7 +35,7 @@ export function cleanFocus(input:any,now=new Date()):Focus{
   const c=input.calc,calc=c&&(c.kind==='damage'||c.kind==='speed')&&c.input&&typeof c.input==='object'&&small(c.input)?{kind:c.kind as 'damage'|'speed',input:clean(c.input)}:undefined;
   return {page,teamId:idLike(input.teamId),versionId:idLike(input.versionId),slot,replayId:idLike(input.replayId),...calc?{calc}:{},at:now.toISOString(),tab:idLike(input.tab)??'unknown'};
 }
-export const readFocus=()=>optionalJSON<Focus|null>(FOCUS_FILE,null);
+export const readFocus=()=>readData<Focus|null>(FOCUS_FILE,null);
 export async function writeFocus(input:any){const f=cleanFocus(input);await save(FOCUS_FILE,f);return f;}
 
 // "Viewing Perish Drum › Pokémon › Mawile (slot 2)": what the focus points at, resolved against the workspace.
@@ -56,7 +66,7 @@ export async function getFocus(db:Workbench,now=Date.now()){
 let chain:Promise<unknown>=Promise.resolve();
 const serial=<T>(fn:()=>Promise<T>)=>{const next=chain.then(fn,fn);chain=next.catch(()=>{});return next;};
 const live=(list:AssistantCalc[],now=Date.now())=>list.filter(c=>now-Date.parse(c.at)<CALC_TTL_MS).slice(0,CALC_LIMIT);
-export const listCalcs=async()=>live(await optionalJSON<AssistantCalc[]>(CALCS_FILE,[]));
+export const listCalcs=async()=>live(await readData<AssistantCalc[]>(CALCS_FILE,[]));
 const labelOf=(kind:string,i:any)=>kind==='speed'?`${i.a?.species} vs ${i.b?.species} (speed)`:`${i.attacker?.species} → ${i.defender?.species}${i.move?` · ${i.move}`:''}`;
 export function addCalc(kind:'damage'|'speed',input:any,result:any,from?:'chat'){
   return serial(async()=>{const entry:AssistantCalc={id:randomUUID().slice(0,8),kind,input:clean(input),result,label:labelOf(kind,input??{}),at:new Date().toISOString(),...from?{from}:{}};
