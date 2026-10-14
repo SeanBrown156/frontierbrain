@@ -23,20 +23,34 @@ One set of components for every control, dialog and panel. Build new screens fro
 
 | Component | Class | React |
 |---|---|---|
-| Button | `button` / `.button` (secondary), `.primary`, `.danger` (`.solid` fills it), `.text-button` (quiet), `.ghost` (no fill until hovered: header, icon toggles), `.tile` (a whole clickable card; `.on` / `aria-selected` marks the chosen one), `.plain` (text that is a button), `.compact`, `.icon` (square; `.icon.compact` is 32px) | `Button` (`variant`, `size`, `solid`), `IconButton` (`variant`, `size`), `LinkButton` (a link that looks like one) |
+| Button | `button` / `.button` (secondary), `.primary`, `.danger` (`.solid` fills it), `.text-button` (quiet; `.danger` makes it a red link), `.ghost` (no fill until hovered: header, icon toggles), `.tile` (a whole clickable card; `.on` / `aria-selected` marks the chosen one), `.plain` (text that is a button), `.google` (primary with the Google G; full width on phones). Sizes: `.compact` 32px, regular 40px (44 on phones), `.large` 48px, `.hero` 68px (60 on phones) | `Button` (`variant`, `size`, `solid`), `LinkButton` (a link that looks like one), `GoogleButton` |
+| Icon button | `.icon` (square; `.icon.compact` is 32px), `.icon.ghost`, `.icon.star` (save to My sets: gold and filled when `.on` / `aria-pressed`; 44px touch area on phones) | `IconButton` (`variant`: secondary, ghost, star; `size`) |
 | Toolbar | `.button-row` | |
-| Field | `label` > control; `label.radio` (checkbox beside its text); `fieldset` + `legend` | `Field`, `Checkbox` |
-| Input, select, textarea | element styles; selects draw their own chevron | |
+| Field | `label` > control; `label.radio` (checkbox beside its text); `label.switch` (checkbox drawn as a sliding switch); `fieldset` + `legend` | `Field`, `Checkbox`, `Switch` |
+| Input, select, textarea | element styles; selects draw their own chevron; `.compact` is 32px; `input.num` centres tabular numbers (stat points, boosts) | |
 | Panel / Card | `.panel` (a page section, `.panel-heading` on top), `.card` (inside a panel) | `Panel`, `Card` |
 | Dialog | `dialog.modal` > `header` (title, X) · body · `.modal-footer` | `Modal` (`footer` prop), `ModalFooter` |
-| Tabs / Segmented | `.tabs`, `.segmented` (one sunk track; the chosen option lifts out); `.block` shares the row equally; a tab may carry a second line | `Tabs` (`block`, options with `sub`), `Segmented` (`block`) |
-| Toggle / Chip | `.toggle` (control height), `.chip` (`.small`), `.chip-row`, `.choose` (a checkbox chip), `.chip-remove` (the × in a chip) | `Toggle`, `Chip`, `ChipLabel`, `ChoiceChip` |
+| Tabs / Segmented | `.tabs`, `.segmented` (one sunk track; the chosen option lifts out); `.block` shares the row equally; a tab may carry a second line; `.tabs.nav` is the large uppercase page navigation (team hub), items may be links | `Tabs` (`block`, options with `sub`), `TabLinks` (`nav`), `Segmented` (`block`) |
+| Toggle / Chip | `.toggle` (control height), `.toggle.mega` (the Mega switch: dashed pill off, rainbow pill on; 44px touch area on phones), `.chip` (`.small`), `.chip-row`, `.choose` (a checkbox chip), `.chip-remove` (the × in a chip) | `Toggle` (`variant="mega"`), `Chip`, `ChipLabel`, `ChoiceChip` |
 | Switch | `.mode-switch` | `ModeSwitch` |
 | Tag, Badge with count | `.tag` (`.ok`, `.warn`), `.count-badge` | `Tag`, `CountBadge` |
 | Notice, Empty, Toast | `.notice` (a paragraph, or an aside callout with a heading and actions), `.empty`, `.toast` (`.error`) | `Notice` (`as`), `Empty`, `Toast` |
 | Text roles | `.eyebrow`, `.muted`, `.footnote`, `.error` | |
 
 `Button` and `IconButton` keep the native button type (submit inside a form), like a plain `<button>`.
+
+### States
+
+Every control defines these in `@layer components`; `#design-system` shows each one side by side. In the specimens, `data-state="hover|focus|active"` forces the state without interaction (the component selectors match it alongside the real pseudo-class).
+
+| State | How it shows |
+|---|---|
+| Default | the component's rest look |
+| Hover | emerald edge and a faint fill; buttons lift 1px; ghost and quiet controls gain colour only; the star and Mega switch turn gold |
+| Focus | a 2px emerald ring outside the control (`:focus-visible`); fields get an emerald border and a soft emerald halo |
+| Active | pressed down 1px |
+| Disabled | 55% opacity, not-allowed cursor, no hover; a link button uses `aria-disabled` |
+| Selected | `.on`, `.selected`, `aria-pressed` or `aria-selected`: toggles and chips fill with emerald, tabs lift out as glass, tiles get an emerald edge and wash, the star fills gold, the Mega switch shows the rainbow pill, ghost controls stay filled while their menu is open (`aria-expanded`) |
 
 ### Rules
 
@@ -46,7 +60,7 @@ One set of components for every control, dialog and panel. Build new screens fro
 - **Art.** `.art` 95px, `.art.small` 48px (HOME renders, Showdown sprites by setting). Box icons 40×30, item icons 24×24, in pickers and lists only.
 - **Phones (≤620px).** One column. Controls are 44px; chips, quiet buttons, segments, the save star and the Mega switch get a 44px touch area. Open pickers become full-screen sheets.
 - **Copy.** Labels and short sentences. No hint paragraphs explaining how to use a control.
-- **Page rules** may place and size a control (grid, order, width, height, padding for density) but not restyle it (colour, background, border, shadow, radius, type). Exceptions that are their own small controls: the Mega badge switch, the save star, the Google sign-in button, the dock's Past chats toggle, the calc stat inputs and the art-directed controls on the welcome page (`landing.css`).
+- **Page rules** may place and size a control (grid, order, width, height, padding for density) but not restyle it (colour, background, border, shadow, radius, type). `landing.css` keeps only the welcome page's layout and marketing art; its controls are Buttons, LinkButtons, tiles and a Switch.
 
 ### Spacing
 
