@@ -18,13 +18,13 @@ export default function PartnerCard({side,set,setSet,saved,art,mega,megaOn,setMe
   const pickSaved=(o:SavedOption)=>{setSet({...structuredClone(o.value)});setNote(`My sets · ${o.label}`);};
   const label=role==='target'?'Second target':side==='mine'?'Your partner':'Opponent partner';const upd=(p:any)=>setSet({...set,...p});
   const status=new Set<string>(dex?.statusMoves??[]);const itemId=String(set?.item??'').toLowerCase();
-  const moveChips=(set?.moves??[]).filter(Boolean).map((m:string)=><button type="button" key={m} className={'toggle'+(set?.move===m?' on':'')} aria-pressed={set?.move===m} onClick={()=>upd({move:m})}>{m}</button>);
+  const moveChips=(set?.moves??[]).filter(Boolean).map((m:string)=><Toggle key={m} on={set?.move===m} onChange={()=>upd({move:m})}>{m}</Toggle>);
   const morePicker=<div className="move-input"><MovePicker label="Another move" dex={dex} value={(set?.moves??[]).includes(set?.move)?'':set?.move??''} onChange={(v:string)=>upd({move:v||undefined})}/></div>;const shown=mega&&megaOn?mega.name:set?.species;
   return <section className={'partner is-'+side} aria-label={label}>
     <div className="partner-art">{set?<Art name={shown} fallback={set.species} art={art}/>:<span className="partner-empty" aria-hidden="true">+</span>}</div>
     <div className="partner-main"><span className="eyebrow">{label}</span>
       <div className="name-row"><SpeciesPicker label={`${label} species`} placeholder="Choose a Pokémon" value={set?.species??''} saved={saved} onPick={sp=>void load(sp)} onPickSaved={pickSaved}/>
-        {mega&&set&&<button type="button" className={'mega-switch mega-badge mega-toggle'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}`:`Switch on to battle as ${formName(mega.name)}`}><MegaOrb size={14}/>Mega</button>}</div>
+        {mega&&set&&<Button type="button" className={'mega-switch mega-badge mega-toggle'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}`:`Switch on to battle as ${formName(mega.name)}`}><MegaOrb size={14}/>Mega</Button>}</div>
       {set&&<TypeBadges species={shown}/>}
       {loading&&<p className="footnote" role="status">Loading its set…</p>}
       {set&&<>

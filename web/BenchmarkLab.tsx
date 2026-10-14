@@ -1,7 +1,7 @@
 import {useRolling} from './fx.ts';
 import {useState,useEffect,useLayoutEffect,useRef,type ReactNode} from 'react';
 import type {BankEntry,SetRevision,PokemonSet} from '../shared/workbench.ts';
-import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,MegaOrb,type MegaForm,Button,Field,Toggle} from './ui.tsx';
+import {api,Tabs,Notice,Art,TypeBadges,ItemIcon,useDex,MegaOrb,type MegaForm,Button,Field,Toggle,Checkbox} from './ui.tsx';
 import SpeciesPicker,{type SavedOption} from './ai/SpeciesPicker.tsx';
 import {ItemPicker,MovePicker} from './ai/Pickers.tsx';
 import {offer,useOffers} from './save-state.ts';
@@ -203,7 +203,7 @@ function Combatant({side,cardRef,role,set,art,mega,megaOn,setMega,species,picker
   const shown=mega&&megaOn?mega.name:set.species;
   return <section ref={cardRef} className={'combatant is-'+side+(role.includes('attacking')?' attacking':role.includes('defending')?' defending':'')}>
     <div className="combatant-art"><Art name={shown} fallback={set.species} art={art}/></div>
-    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span><span className="name-row">{species??<h3>{formName(shown)}</h3>}{mega&&<button type="button" className={'mega-switch mega-badge mega-toggle'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}: switch off to use ${set.species}`:`Switch on to battle as ${formName(mega.name)}`}><MegaOrb size={14}/>Mega</button>}</span><TypeBadges species={shown}/></div>
+    <div className="combatant-main"><div className="combatant-head"><span className="eyebrow">{role}</span><span className="name-row">{species??<h3>{formName(shown)}</h3>}{mega&&<Button type="button" className={'mega-switch mega-badge mega-toggle'+(megaOn?' on':'')} aria-pressed={megaOn} onClick={()=>setMega(!megaOn)} title={megaOn?`Battling as ${formName(mega.name)}: switch off to use ${set.species}`:`Switch on to battle as ${formName(mega.name)}`}><MegaOrb size={14}/>Mega</Button>}</span><TypeBadges species={shown}/></div>
       {picker}
       <p className="combatant-sum"><ItemIcon item={set.item}/><span>{set.item||'No item'}</span><span>{mega&&megaOn?mega.ability:set.ability||'—'}</span><span>{set.nature}</span><span className="mono">{spLine(set)}</span></p>
       {note&&<p className="footnote">{note}</p>}
@@ -294,5 +294,5 @@ function MoveContext({move,dex,options,setOptions}:{move:string;dex:any;options:
   const setCtx=(v:any)=>setOptions((o:any)=>({...o,context:v===undefined?undefined:{[ctx.field]:v}}));const value=options.context?.[ctx?.field];
   return <div className="move-context">{hits&&<Field label="Hits"><select value={options.hits??''} onChange={e=>setOptions((o:any)=>({...o,hits:e.target.value?Number(e.target.value):undefined}))}><option value="">Usual (3; 5 with Skill Link)</option>{Array.from({length:hits[1]-hits[0]+1},(_,i)=>hits[0]+i).map(n=><option key={n} value={n}>{n}</option>)}</select></Field>}
     {ctx&&(ctx.max!==undefined?<Field label={ctx.label}><input type="number" min="0" max={ctx.max} value={value??''} placeholder="0" onChange={e=>setCtx(e.target.value===''?undefined:Number(e.target.value))}/></Field>
-      :<label className="radio"><input type="checkbox" checked={!!value} onChange={e=>setCtx(e.target.checked||undefined)}/>{ctx.label}</label>)}</div>;
+      :<Checkbox checked={!!value} onChange={e=>setCtx(e.target.checked||undefined)}>{ctx.label}</Checkbox>)}</div>;
 }

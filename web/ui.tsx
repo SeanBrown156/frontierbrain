@@ -96,6 +96,8 @@ export function LinkButton({variant='secondary',size='regular',className,childre
 // Square icon-only button; `label` is its accessible name.
 export function IconButton({label,icon,variant='secondary',size='regular',className,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode;variant?:'secondary'|'ghost';size?:'regular'|'compact'}){
   return <button className={'icon'+(variant==='ghost'?' ghost':'')+(size==='compact'?' compact':'')+(className?' '+className:'')} aria-label={label} {...rest}>{icon}</button>;}
+// A checkbox with its label beside it.
+export function Checkbox({children,className,...rest}:Omit<React.InputHTMLAttributes<HTMLInputElement>,'type'|'children'>&{children:ReactNode}){return <label className={'radio'+(className?' '+className:'')}><input type="checkbox" {...rest}/>{children}</label>;}
 export function Field({label,children,className,...rest}:Omit<React.LabelHTMLAttributes<HTMLLabelElement>,'children'>&{label:ReactNode;children:ReactNode}){return <label className={className} {...rest}>{label}{children}</label>;}
 export function Tag({tone,className,children,...rest}:React.HTMLAttributes<HTMLSpanElement>&{tone?:'ok'|'warn'}){return <span className={'tag'+(tone?' '+tone:'')+(className?' '+className:'')} {...rest}>{children}</span>;}
 export function CountBadge({count}:{count:number}){return count>0?<span className="count-badge" aria-hidden="true">{count>9?'9+':count}</span>:null;}

@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {Button,IconButton,Field,Tag,CountBadge,Toggle,Segmented,Card,Panel,Notice,Empty,Tabs,ModeSwitch,ModalFooter,Chip,ChipLabel,ChoiceChip,Toast,LinkButton} from './ui.tsx';
+import {Button,IconButton,Field,Tag,CountBadge,Toggle,Segmented,Card,Panel,Notice,Empty,Tabs,ModeSwitch,ModalFooter,Chip,ChipLabel,ChoiceChip,Toast,LinkButton,Checkbox} from './ui.tsx';
 import {Px,Plus,Pencil,Trash,Close,Check,Sparkles} from './icons.tsx';
 
 // #design-system: every component in both themes, side by side (stacked on phones). Built only from ui.tsx components
@@ -20,7 +20,7 @@ function Sheet(){
       <div className="form-grid ds-fields"><Field label="Team name"><input placeholder="e.g. Rain blitz"/></Field>
         <Field label="Format"><select defaultValue="mc"><option value="mc">Champions VGC · Reg M-C</option></select></Field></div>
       <Field label="Notes"><textarea rows={2} placeholder="Lead, key move, what wins it."/></Field>
-      <label className="radio"><input type="checkbox" defaultChecked/>Show inferred fields</label>
+      <Checkbox defaultChecked>Show inferred fields</Checkbox>
       <fieldset><legend>Back ({back.length}/2)</legend><div className="choose-row">{['Incineroar','Gholdengo','Rillaboom'].map(m=><ChoiceChip key={m} checked={back.includes(m)} disabled={!back.includes(m)&&back.length>=2} onChange={c=>setBack(c?[...back,m]:back.filter(x=>x!==m))}>{m}</ChoiceChip>)}</div></fieldset>
     </Panel>
     <Panel title="Choices" kicker="Segmented · Tabs · Toggle · Chip · Switch">
@@ -42,7 +42,7 @@ function Sheet(){
       <div className="ds-toast"><Toast onDismiss={()=>{}}>Saved</Toast></div>
     </Panel>
     <Panel title="Dialog" kicker="Modal · ModalFooter">
-      <div className="modal ds-dialog"><header><h2>Lead plan</h2><button className="icon dialog-close" aria-label="Close dialog"><Px icon={Close} size={18}/></button></header>
+      <div className="modal ds-dialog"><header><h2>Lead plan</h2><IconButton className="dialog-close" label="Close dialog" icon={<Px icon={Close} size={18}/>}/></header>
         <Field label="Title"><input placeholder="e.g. Rain blitz"/></Field>
         <ModalFooter><Button>Use MCP</Button><Button variant="primary">Save lead plan</Button></ModalFooter></div>
     </Panel>
