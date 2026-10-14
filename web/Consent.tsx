@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {Button,LinkButton} from './ui.tsx';
 import {supabase,useAccount,GoogleButton} from './auth.tsx';
 import BrainBackdrop from './brain/BrainBackdrop.tsx';
 
@@ -17,9 +18,9 @@ export default function Consent(){
   // The welcome page's brain sits behind the card here too (it renders outside the app shell).
   return <main className="welcome consent-page"><BrainBackdrop route="welcome"/><div className="welcome-card consent">
     <img src="/brand/icon-64.png" alt="" width={48} height={48}/>
-    {!id?<><h1>Nothing to approve</h1><p>This page opens when Claude, ChatGPT or another app asks to connect to Frontier Brain.</p><a className="button" href="/">Open Frontier Brain</a></>
+    {!id?<><h1>Nothing to approve</h1><p>This page opens when Claude, ChatGPT or another app asks to connect to Frontier Brain.</p><LinkButton href="/">Open Frontier Brain</LinkButton></>
     :account.kind!=='account'?<><h1>Connect to Frontier Brain</h1><p>Sign in with Google to let this app use your teams and tools. Connectors need a free account.</p><GoogleButton/></>
-    :error?<><h1>Couldn't connect</h1><p className="error">{error}</p><a className="button" href="/">Open Frontier Brain</a></>
+    :error?<><h1>Couldn't connect</h1><p className="error">{error}</p><LinkButton href="/">Open Frontier Brain</LinkButton></>
     :!details?<p className="muted">Checking the request…</p>
     :<><h1>Allow {name} to use Frontier Brain?</h1>
       <p>Signed in as <b>{account.email}</b>. {name} will be able to:</p>
@@ -29,6 +30,6 @@ export default function Consent(){
         <li>create new teams and propose plans, which wait in the app for you to accept</li>
       </ul>
       <p className="footnote">It runs on your {name} subscription; Frontier Brain never sees your password or payment details. You can disconnect any time from {name}.</p>
-      <div className="consent-actions"><button className="primary" disabled={busy} onClick={()=>void decide(true)}>Allow</button><button disabled={busy} onClick={()=>void decide(false)}>Deny</button></div></>}
+      <div className="consent-actions"><Button variant="primary" disabled={busy} onClick={()=>void decide(true)}>Allow</Button><Button disabled={busy} onClick={()=>void decide(false)}>Deny</Button></div></>}
   </div></main>;
 }

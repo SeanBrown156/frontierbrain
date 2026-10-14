@@ -138,6 +138,11 @@ main h1{text-shadow:var(--phos-title)}
  .text-button{display:inline-flex;align-items:center;justify-content:start;gap:var(--gap-inline);height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s2);
   font:600 var(--t-md)/1.2 var(--fb);white-space:normal;color:var(--ac);background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
  .text-button:hover:not(:disabled){color:var(--ac-2);background:none;transform:none}
+ /* ghost: no fill or edge until pointed at (header links, icon toggles); an icon ghost is muted until hovered */
+ :is(button,.button).ghost{color:var(--tx);background:transparent;border-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+ :is(button,.button).ghost:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
+ :is(button,.button).ghost.icon{color:var(--mu);border-color:transparent}
+ :is(button,.button).ghost.icon:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);border-color:transparent}
  :is(button,.button).compact{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3)}
  :is(button,.button).icon{width:var(--control-height);min-width:var(--control-height);padding:0}
  label.button{margin:0}
@@ -279,12 +284,8 @@ main h1{text-shadow:var(--phos-title)}
 /* ---------- base ----------
    Element defaults and component layout that the Jade layer builds on (folded in from the old style.css).
    Selectors here are unscoped and sit first, so every html.jade rule below still wins where both apply. */
-.brand,.masthead nav,.footer>span:first-child,.mono,.score-strip{font-family:var(--fd);font-weight:400}
+.footer>span:first-child,.mono,.score-strip{font-family:var(--fd);font-weight:400}
 .shell{margin:auto}
-.brand{display:flex;align-items:center}
-.masthead nav{display:flex;gap:var(--s6);margin-left:auto;font-size:12px}
-.masthead nav a{padding:var(--s4) 0;position:relative;line-height:1.6;white-space:nowrap}
-.masthead nav a.active:after{content:'';height:3px;background:var(--hot);position:absolute;left:0;right:0;bottom:0}
 .team-list{display:grid;grid-template-columns:minmax(0,1fr)}
 .team-six{display:flex;justify-content:space-between;align-items:center;gap:var(--s1);min-width:0}
 .team-six .art{flex:1 1 0;min-width:0;max-width:calc((100% - 15px)/6)}
@@ -369,12 +370,9 @@ main h1{text-shadow:var(--phos-title)}
 .lab-result button{margin:var(--s1) var(--s2) 0 0}
 .lab pre{max-height:350px;overflow:auto}
 @media(max-width:1100px){
- .masthead nav{gap:var(--s4);font-size:11px}
  .source-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:760px){
- .masthead nav{width:100%;justify-content:space-between;margin:var(--s2) 0 0;font-size:10px;gap:var(--s2)}
- .masthead nav a{padding:var(--s2) 0}
  .form-grid{grid-template-columns:minmax(0,1fr)}
  .source-grid{grid-template-columns:minmax(0,1fr)}
  .sp-inputs input{padding:var(--s2) var(--s1)}
@@ -382,18 +380,7 @@ main h1{text-shadow:var(--phos-title)}
  .timeline>div{grid-template-columns:30px 65px minmax(0,1fr)}
 }
 .timeline .cited-event{background:var(--tint);outline:1px solid var(--gd);padding:var(--s2)}
-.ticker{display:flex;align-items:center;gap:0;margin:0;padding:0 var(--s3) 0 0;border-radius:0 0 3px 3px;overflow:hidden;white-space:nowrap}
-.ticker{cursor:pointer}
-.ticker-copy{display:inline-flex;gap:var(--s8)}
-.ticker-label{padding:var(--s1) var(--s2);margin-right:var(--s3);flex:none}
-.ticker-track{overflow:hidden;flex:1;mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent)}
-.ticker-run{display:inline-flex;gap:var(--s8);animation:ticker 90s linear infinite;padding-left:var(--s4)}
-.ticker:hover .ticker-run{animation-play-state:paused}
-.ticker-run b{margin-right:var(--s1)}
 @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.quickbar{display:flex;flex-wrap:wrap;align-items:center;font-size:12px;border-bottom:2px solid var(--tx)}
-.quickbar>a{display:inline-flex;align-items:center;gap:var(--s1);padding:var(--s1) 0;white-space:nowrap}
-.quickbar img{border-radius:3px}
 .landing-head,.hub-head{justify-content:space-between;flex-wrap:wrap}
 .landing-head p:last-child{color:var(--mu);margin:0}
 .hub-tabs a.selected:after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;background:var(--hot)}
@@ -423,26 +410,13 @@ i.inferred{font-size:11px;margin-left:var(--s1)}
 .objectives{list-style:none;padding:0}
 .objectives li{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ln)}
 .objectives li.done label{text-decoration:line-through;color:var(--mu)}
-@media(prefers-reduced-motion:reduce){
- .ticker-run{animation:none}
-}
 .hub-head>.text-button:first-child{flex-basis:100%}
-.quickbar{gap:var(--s1);padding:var(--s2) 0}
-.quickbar-group{position:relative}
-.quickbar-menu{position:absolute;left:0;z-index:30;display:grid}
-.quickbar-menu a{display:flex;gap:var(--s2);border-radius:3px}
-.quickbar-menu a img{margin-top:var(--s1)}
-.quickbar-menu a span{display:grid}
-.quickbar-menu small{color:var(--mu);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ticker-label{letter-spacing:.08em}
 .move-list li.known{color:var(--tx)}
 .move-list li.known:before{content:'●';font-size:8px;margin-right:var(--s1);color:var(--hot)}
 .new-team textarea{width:100%}
 .draft-review{border-top:1px solid var(--ln)}
-a .px-icon,button .px-icon,.ticker-label .px-icon{margin-right:var(--s1)}
-.hub-tabs a,.quickbar-group>button,.quickbar-all,.ticker-label{display:inline-flex;align-items:center}
-.brand-logo{image-rendering:pixelated}
-.quickbar-menu a img{image-rendering:auto;object-fit:contain}
+a .px-icon,button .px-icon{margin-right:var(--s1)}
+.hub-tabs a{display:inline-flex;align-items:center}
 .pool-counts{display:grid;margin:var(--s2) 0}
 .pool-counts>div{display:grid}
 .pool-counts span{color:var(--mu)}
@@ -484,8 +458,8 @@ a .px-icon,button .px-icon,.ticker-label .px-icon{margin-right:var(--s1)}
 .source-card a{display:flex;gap:var(--s2);align-items:center}
 .source-card p{font-size:12px}
 .team-card-title h3,.lab-result h3{font-family:var(--fd);font-size:16px;line-height:1.4}
-.hub-tabs,.ticker-run b{font-size:16px}
-.eyebrow,.tag,.status,.result,.sp-inputs label,.ticker-label,.threat,.score-strip span,.reference-groups h3,.art-fallback{font-family:var(--fb)}
+.hub-tabs{font-size:16px}
+.eyebrow,.tag,.status,.result,.sp-inputs label,.threat,.score-strip span,.reference-groups h3,.art-fallback{font-family:var(--fb)}
 .sp-inputs input,.tile-stats b,.tile-stats small,.score-strip b{font-variant-numeric:tabular-nums}
 .sp-inputs input{font-size:14px}
 .markdown strong{font-weight:600}
@@ -505,11 +479,6 @@ a .px-icon,button .px-icon,.ticker-label .px-icon{margin-right:var(--s1)}
 .markdown table{min-width:0;width:auto;font-size:13.5px}
 .markdown th{font-weight:600;padding:var(--s1) var(--s2);white-space:nowrap}
 .markdown td{padding:var(--s1) var(--s2)}
-.save-pill{gap:var(--s1);border:1px solid var(--ln);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.save-pill.ok{color:var(--ac)}
-.save-pill.dirty{border-color:var(--gd);background:var(--tint)}
-.save-pill.dirty i{width:8px;height:8px;border-radius:50%;background:var(--gd);flex-shrink:0}
-.save-pill.error{color:var(--hot);border-color:var(--hot)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .team-hub>.text-button{display:inline-flex;margin-top:var(--s4)}
 .title-button{all:unset;cursor:pointer}
@@ -559,9 +528,6 @@ input.nickname{margin-top:var(--s1);font-size:13px}
 .mon-card-head h3{overflow:hidden;text-overflow:ellipsis}
 .mon-card-head span,.mon-card-head p{overflow-wrap:anywhere}
 @media(max-width:760px){
- .masthead .quickbar{grid-column:1/-1;grid-row:2;overflow-x:auto}
-}
-@media(max-width:760px){
  .version-select{max-width:100%}
 }
 @media(max-width:760px){
@@ -603,15 +569,12 @@ fieldset.plain{border:0;padding:0;margin:0;min-width:0}
 fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--sunk);color:var(--tx)}
 .milestone{display:flex;align-items:center;flex-wrap:wrap}
 .mon-card.read-only{opacity:.92}
-.brand,.markdown h1,.markdown h2,.markdown h3,.markdown h4,.team-card-title h3,.lab-result h3{font-weight:600;letter-spacing:-.01em}
+.markdown h1,.markdown h2,.markdown h3,.markdown h4,.team-card-title h3,.lab-result h3{font-weight:600;letter-spacing:-.01em}
 .markdown h3,.markdown h4{font-size:16px}
 .plan-card footer button,.week-tabs button,.lab-result button,.objectives li button,.changes button,.history button,.chat-suggestions button{min-height:30px;padding:0 var(--s2);font-size:12px}
 .plan-card footer button:not(.primary){border-color:var(--ln);background:transparent}
 .plan-card footer button:not(.primary):hover{border-color:var(--tx);background:var(--hover)}
 .title-button{min-height:0}
-.quickbar-group>button,.masthead .quickbar-group>button{border:1px solid transparent;background:transparent;box-shadow:none;padding:0 var(--s2);font-weight:600}
-.quickbar-group>button:hover,.quickbar-group.open>button{border-color:var(--ln);background:var(--hover)}
-.ticker-run b{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 .poke-icon{display:inline-block;width:40px;height:30px;flex:none;background:url(/api/icon-sheet) no-repeat}
 .combo.with-icon>.poke-icon{position:absolute;left:6px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1}
 .combo.with-icon>input,.set-card .combo.with-icon input{padding-left:var(--s12)}
@@ -642,28 +605,14 @@ fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--su
 .profile-card p{margin:0}
 .shell{margin-inline:auto;padding:0 var(--s8) var(--s8)}
 main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s4)}
-.brand,.team-card-title h3,.mon-card-head h3,.status,.result,.hub-tabs{font-family:var(--fd);letter-spacing:0}
+.team-card-title h3,.mon-card-head h3,.status,.result,.hub-tabs{font-family:var(--fd);letter-spacing:0}
 .markdown h1,.markdown h2,.markdown h3,.markdown h4,.news-signal h3,.articles h3,.plan-card h3,.set-tile h3{font-family:var(--fb)}
 .score-strip,.sp-inputs,.stat-row,.tile-stats,.stat-table{font-family:var(--fb);font-variant-numeric:tabular-nums}
 .stat-final,.stat-base,.score-strip b,.pool-counts b,.lab-result h3{font-family:var(--fb)}
 .lab-result h3{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
-.masthead .quickbar-group>button{height:var(--control-height);min-height:var(--control-height);max-height:var(--control-height);padding:0 var(--s4);border:1px solid var(--ln-2);border-radius:2px;box-shadow:0 2px 0 var(--shade);display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);flex:none;align-self:center;white-space:nowrap}
 .week-tabs button,.plan-card footer button,.lab-result button,.objectives li button,.changes button,.history button,.stat-form button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);font:600 13px/1.2 var(--fb)}
 .title-button{min-height:0;max-height:none;white-space:normal}
-.profile-card,.account-pop,.quickbar-menu{background:var(--glass);border:2px solid var(--ln-2);border-radius:4px;box-shadow:2px 2px 0 var(--shade)}
-.masthead{flex-wrap:wrap}
-.brand{white-space:nowrap}
-.masthead .quickbar{margin:0;padding:0;border:0;flex-wrap:wrap;width:auto;font:600 13px var(--fb)}
-.masthead .quickbar-group>button{min-height:var(--control-height)}
-.quickbar-all{font:600 13px var(--fb);color:var(--on);padding:0 var(--s2);margin:0}
-.masthead a:hover{color:var(--on)}
-.save-pill{height:var(--compact-height);padding:0 var(--s3);display:inline-flex;align-items:center;border-radius:2px;max-width:100%;background:var(--glass);color:var(--ac);border-color:var(--ln);font:12px var(--fb)}
-.quickbar-menu{font-family:var(--fb);padding:var(--s2);top:calc(100% + 8px)}
-.quickbar-menu a{position:relative;color:var(--tx)}
-.quickbar-menu a:hover{color:var(--tx)}
-.quickbar-menu small{font:12px/1.5 var(--fb)}
-.ticker{height:32px;font:12px var(--fb)}
-.ticker-run b{color:var(--on);font-family:var(--fb)}
+.profile-card,.account-pop{background:var(--glass);border:2px solid var(--ln-2);border-radius:4px;box-shadow:2px 2px 0 var(--shade)}
 .teams-landing,.team-hub,.workspace{padding:var(--s8) 0 0}
 .landing-head,.hub-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--s4);margin:0 0 var(--s6)}
 .landing-head .eyebrow{margin:0 0 var(--s2)}
@@ -819,9 +768,6 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 .welcome-card{width:min(480px,100%);padding:var(--s8);gap:var(--s6);justify-items:center;text-align:center}
 .welcome-card h1{font:600 32px var(--fd)}
 .welcome-card .footnote{margin:0}
-.account-menu{flex:none;max-width:100%}
-.account-menu>.compact{height:40px;min-height:40px;max-height:40px;max-width:220px;overflow:hidden;text-overflow:ellipsis;background:var(--glass);color:var(--tx)}
-.account-menu>.primary{background:var(--glass);color:var(--ac);border-color:var(--glass)}
 .account-pop{display:grid;color:var(--tx)}
 .account-pop p{margin:0;overflow-wrap:anywhere}
 .account-pop .text-button{justify-self:center}
@@ -833,19 +779,12 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 .sample-offer{display:flex;flex-direction:column;align-items:center}
 .sample-offer p{max-width:640px;margin:0 auto}
 @media(max-width:1100px){
- .masthead .quickbar{order:3;flex-basis:100%}
  .set-card{max-width:640px;width:100%;margin:auto}
  .set-fields .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
  .set-fields label:last-child{grid-column:auto}
 }
 @media(max-width:760px){
  .shell{padding:0 var(--s4) var(--s8)}
- .brand{white-space:nowrap}
- .masthead .quickbar{order:0}
- .save-pill{max-width:100%}
- .account-menu{width:100%;display:flex;justify-content:center}
- .account-menu>.compact{max-width:100%;width:auto}
- .quickbar-menu{position:fixed;left:16px;right:16px;top:160px}
  .hub-title h1{font-size:28px}
  .landing-head,.hub-head{gap:var(--s4)}
  .milestone{width:100%;flex-direction:column;gap:var(--s2)}
@@ -928,31 +867,9 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
  .sample-offer p{max-width:100%}
  .footer{flex-direction:column;text-align:center;gap:var(--s3);margin-top:var(--s6);padding-bottom:96px}
 }
-@media(prefers-reduced-motion:reduce){
- .ticker-copy{display:none}
-}
-@media(min-width:761px){
- .masthead .brand{justify-self:start}
- .masthead .quickbar{grid-column:1/-1;grid-row:2;order:0}
- .masthead:has(.account-menu){grid-template-columns:minmax(0,1fr) auto auto}
- .masthead:has(.account-menu) .save-pill{grid-column:3}
-}
 @media(max-width:760px){
- .masthead .quickbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
- .masthead .quickbar-group>button{width:100%;justify-content:center}
  .dock-toggle{left:16px;right:16px;width:calc(100vw - 32px);justify-content:center}
 }
-.masthead .quickbar{justify-content:flex-start!important;gap:var(--s2)!important}
-.masthead .quickbar-group>button,.masthead .quickbar-all{height:var(--control-height);display:inline-flex;align-items:center;gap:var(--s2);padding:0 var(--s3)!important;background:transparent!important;color:var(--on)!important;border:1px solid #fffdf3b3!important;border-radius:2px;box-shadow:1px 2px 0 #00000033!important}
-.masthead .quickbar-group>button:hover,.masthead .quickbar-group.open>button,.masthead .quickbar-all:hover{background:var(--emerald-shade)!important;border-color:var(--ac-2)!important}
-@media(min-width:721px){
- .masthead{flex-wrap:wrap}
- .masthead .quickbar{order:3;flex-basis:100%;width:100%}
-}
-.account-menu{position:relative;margin:0}
-.account-button{height:var(--control-height);min-height:var(--control-height);display:inline-flex;align-items:center;gap:var(--s2);background:transparent;color:var(--on)}
-.account-button:hover{background:var(--emerald-shade);color:var(--on);border-color:var(--ac-2)}
-.avatar{display:inline-grid;place-items:center}
 .account-pop{position:absolute;top:calc(100% + 8px);z-index:40;text-align:left}
 .account-pop button{width:100%}
 .signin-dialog{width:min(460px,95vw)}
@@ -975,68 +892,17 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 .replays>.profile-card{width:100%;max-width:none;margin:0}
 .teams-landing .landing-head{display:block;text-align:left;margin:var(--s8) 0 var(--s6)}
 .teams-landing .landing-head h1{text-align:left;margin:0}
-.masthead-nav .quickbar{flex:1;min-width:0;order:0!important;flex-basis:auto!important;width:auto!important}
 .strategy-block,.digest,.versions,.danger-zone,.profile-card,.sample-offer{max-width:none;width:100%}
-.account-button{border-radius:2px;border:1px solid #fffdf3b3;padding:0 var(--s3) 0 var(--s1);box-shadow:1px 2px 0 #00000033;font:400 15px/1 var(--fd)}
-.account-button[aria-label]{padding:0 var(--s3) 0 var(--s1)}
-.avatar{width:30px;height:30px;border-radius:0;box-shadow:inset -2px -2px 0 #0000001f;font:400 16px/1 var(--fd);image-rendering:pixelated}
-.avatar.guest{background:var(--glass);color:var(--ac)}
 .account-pop{width:320px!important;max-width:calc(100vw - 32px)!important;right:0;left:auto}
-.masthead-nav .account-menu{margin-left:auto}
-@media(max-width:720px){
- .masthead-nav .account-menu{margin:0;width:100%;display:flex;justify-content:center}
-}
 .new-team-slot{height:auto!important;max-height:none!important;min-height:240px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);color:var(--ac)!important;font:400 20px var(--fd)!important;cursor:pointer;white-space:normal}
 .new-team-slot small{font:13px var(--fb);color:var(--mu)}
 .new-team-slot:hover{background:var(--hover)!important}
 .new-team-slot{align-self:stretch!important;margin:0!important;width:100%}
 @media(max-width:720px){
- .masthead .quickbar-all{display:inline-flex!important;box-sizing:border-box}
-}
-.masthead .quickbar-all{margin:0!important}
-@media(max-width:720px){
- .masthead-nav .account-button{width:100%;justify-content:center}
-}
-.masthead{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"brand save" "nav account";align-items:center;gap:var(--s3) var(--s4)!important;flex-direction:unset!important}
-.masthead .brand{grid-area:brand;margin:0}
-.masthead .save-pill{grid-area:save;justify-self:end}
-.masthead .account-menu{grid-area:account;justify-self:end;margin:0!important;width:auto!important}
-.masthead-nav{grid-area:nav;display:flex;align-items:center;gap:var(--s2);min-width:0;flex-basis:auto;order:0}
-.masthead-nav .quickbar{display:flex!important;flex-wrap:wrap;justify-content:flex-start!important}
-.menu-toggle,.drawer-news{display:none!important}
-@media(max-width:720px){
- .ticker{display:none!important}
- .masthead{grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:"brand account toggle" "save save save" "nav nav nav";gap:var(--s2) var(--s2)!important}
- .masthead .brand{font-size:20px}
- .masthead .brand-logo{width:28px;height:28px}
- .masthead .save-pill{justify-self:start}
- .masthead .account-button>span:not(.avatar){display:none}
- .menu-toggle{grid-area:toggle;display:inline-flex!important;width:var(--control-height);padding:0!important}
- .masthead-nav{display:none;flex-direction:column;align-items:stretch;padding-top:var(--s3);border-top:1px solid #fffdf355}
- .menu-open .masthead-nav{display:flex}
- .masthead-nav .quickbar{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:var(--s2)!important;width:100%!important}
- .masthead .quickbar-group>button,.masthead .quickbar-all,.drawer-news{width:100%;justify-content:flex-start!important}
- .masthead .quickbar-group>button .px-icon:last-child{margin-left:auto}
- .drawer-news{display:inline-flex!important;height:var(--control-height);align-items:center;padding:0 var(--s3)!important;background:transparent!important;color:var(--on)!important;border:1px solid #fffdf3b3!important;box-shadow:1px 2px 0 #00000033!important}
- .masthead .quickbar-menu{position:static!important;width:100%!important;max-height:none!important;margin-top:var(--s2);left:auto;right:auto;top:auto}
  .account-pop{position:fixed!important;left:16px!important;right:16px!important;top:72px!important;width:auto!important}
-}
-@media(max-width:720px){
- .masthead{position:sticky!important;margin:0 calc(-1 * var(--s4)) var(--s2)!important}
- .menu-open .masthead-nav{max-height:calc(100dvh - 72px);overflow-y:auto;overscroll-behavior:contain}
-}
-@media(min-width:721px){
- .ticker{margin-bottom:0!important}
- .ticker+.masthead{margin-top:0!important;border-top-width:0!important}
 }
 .team-card-title{justify-content:space-between!important;text-align:left!important}
 .team-card-title h3{text-align:left!important;margin:0}
-.quickbar-menu{width:min(440px,calc(100vw - 32px))!important;max-height:min(70vh,560px);overflow-y:auto!important;overflow-x:hidden}
-.quickbar-menu a{white-space:normal!important;height:auto!important;align-items:flex-start!important;padding:var(--s3) var(--s4)!important}
-.quickbar-menu a span,.quickbar-menu a small{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;min-width:0}
-.quickbar-menu a small{display:block;line-height:1.45}
-.ticker .ticker-label{height:auto!important;min-height:0!important;max-height:none!important;align-self:stretch!important;border-radius:0!important;background:var(--hot)!important;color:var(--on)!important;cursor:pointer;flex:none;white-space:nowrap}
-.ticker .ticker-track{flex:1;min-width:0}
 .hub-title>.muted{margin-right:var(--s4)}
 .team-hub .hub-head{display:block!important;text-align:left!important;margin:var(--s4) 0 var(--s4)!important}
 .team-hub .hub-title{display:block!important;text-align:left!important}
@@ -1048,7 +914,7 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
  .team-hub .hub-tabs{display:grid!important;grid-template-columns:1fr 1fr;gap:var(--s2)}
 }
 .hub-tabs a{padding:0 var(--s4)!important;gap:var(--s2)!important;justify-content:center}
-button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-all .px-icon,.drawer-news .px-icon,.ticker-label .px-icon{margin-right:0!important}
+button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
 .title-button .px-icon,.title-button svg{opacity:1!important;color:var(--ac);flex:none}
 .title-button:hover .px-icon,.title-button:hover svg{color:var(--emerald-shade)}
 .replays>.profile-card,.profile-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto!important;align-items:end!important;text-align:left!important;justify-items:stretch!important}
@@ -1131,7 +997,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-all .px-icon,.dr
 .privacy-points{margin:0;padding-left:var(--s6);display:grid;gap:var(--s2)}
 .privacy-points li{line-height:1.5}
 .key-saved{display:flex;align-items:center;gap:var(--s2);color:var(--ac);font-weight:600;margin:0 0 var(--s2)}
-a.account-button{text-decoration:none}
 @media(max-width:720px){
  .settings-form{grid-template-columns:minmax(0,1fr)}
 }
@@ -1198,7 +1063,6 @@ a.account-button{text-decoration:none}
  .strategy-head h2{width:auto!important}
  .danger-zone{text-align:left!important;align-items:flex-start!important}
  .workspace .hub-head{align-items:flex-start!important}
- .masthead .account-button{width:var(--control-height)!important;height:var(--control-height)!important;min-height:var(--control-height);justify-content:center}
 }
 .form-grid+.form-grid,.form-grid+label{margin-top:var(--s4)}
 .replays>.footnote{margin:calc(-1 * var(--s2)) 0 calc(-1 * var(--s3))}
@@ -1225,7 +1089,6 @@ a.account-button{text-decoration:none}
 }
 
 /* ---------- page ---------- */
-html.jade .brand{font-family:var(--fd);font-weight:700;letter-spacing:.01em}
 html.jade .status,html.jade .result{font-family:var(--fm);letter-spacing:.12em;text-transform:uppercase;font-weight:600}
 html.jade .muted{color:var(--mu)}
 
@@ -1243,25 +1106,7 @@ html.jade .dock-toggle{background:linear-gradient(180deg,var(--ac-2),var(--ac));
 
 /* ---------- masthead ---------- */
 html.jade .shell{max-width:1320px}
-html.jade .masthead{position:sticky;top:10px;z-index:30;margin-top:var(--s2);background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r);padding:var(--s2) var(--s4)!important;-webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);box-shadow:inset 0 1px 0 var(--hi),0 16px 40px -30px var(--shade);color:var(--tx)!important;min-height:0!important}
-html.jade .brand{color:var(--tx)!important;font-size:22px!important;text-transform:uppercase;letter-spacing:.04em;gap:var(--s2)!important}
-html.jade .brand-logo{width:34px;height:34px;filter:drop-shadow(0 4px 10px var(--glow));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-html.jade .brand:hover .brand-logo{transform:rotate(-8deg) scale(1.06)}
-html.jade .brand:hover{color:var(--tx)!important}
-html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news,.account-button){background:transparent!important;border:1px solid transparent!important;color:var(--tx)!important;box-shadow:none!important;backdrop-filter:none;border-radius:var(--rs)!important;height:36px}
-html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news,.account-button):hover,html.jade .masthead .quickbar-group.open>button{background:var(--hover)!important;border-color:var(--ln)!important;color:var(--tx)!important}
-html.jade .quickbar-menu{background:var(--bg)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:0 30px 60px -20px var(--shade)!important;color:var(--tx)}
-html.jade .quickbar-menu a:hover{background:var(--hover)}
-html.jade .avatar{background:linear-gradient(140deg,var(--ac-2),var(--ac))!important;color:var(--on)!important;border:0!important}
-html.jade .theme-toggle{width:36px;height:36px;padding:0;border-radius:50%;background:transparent;border-color:var(--ln);box-shadow:none}
-html.jade .theme-toggle svg{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-html.jade .theme-toggle:hover svg{transform:rotate(40deg)}
 /* the news strip stays quiet: a single line under glass, no red, no scoreboard energy */
-html.jade .ticker{background:transparent!important;color:var(--mu)!important;border:0!important;font-family:var(--fm);font-size:11.5px;margin-top:var(--s2)!important}
-html.jade .ticker-label{background:transparent!important;color:var(--ac)!important;font-family:var(--fm)!important;letter-spacing:.12em}
-html.jade .ticker b{color:var(--gd)!important;font-weight:600}
-html.jade .ticker a:hover{color:var(--tx)}
-html.jade .ticker-track{-webkit-mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 
 /* ---------- landing / teams ---------- */
 html.jade .team-card h3{font:800 24px/1.1 var(--fd);text-transform:uppercase;letter-spacing:.02em}
@@ -1364,17 +1209,7 @@ html.jade .markdown code,html.jade .markdown pre{background:var(--sunk)!importan
 @keyframes jPulse{0%,100%{opacity:1}50%{opacity:.35}}
 
 /* ---------- header layout: one glass row on desktop ---------- */
-@media (min-width:1101px){
- html.jade .masthead{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand nav save theme account"!important;gap:0 var(--s2)!important;align-items:center}
- html.jade .masthead-nav{justify-content:center}
- html.jade .masthead .quickbar{flex-wrap:nowrap}
-}
-@media (max-width:1100px) and (min-width:761px){
- html.jade .masthead{grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:"brand theme save" "nav nav account"!important}
-}
-html.jade .theme-toggle{grid-area:theme;justify-self:end}
 @media (max-width:760px){
- html.jade .masthead{grid-template-columns:minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand theme account toggle" "save save save save" "nav nav nav nav"!important;top:6px}
  html.jade .mon-card-head .art{width:112px!important;height:112px!important}
 }
 /* six as 3 × 2 on desktop, 2 × 3 on tablets, one column on phones */
@@ -1385,8 +1220,6 @@ html.jade .six-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 @media (max-width:620px){
  html.jade .six-grid{grid-template-columns:minmax(0,1fr)!important}
 }
-html.jade .menu-toggle{color:var(--tx)!important;background:transparent!important;border:0!important;box-shadow:none!important}
-html.jade .menu-toggle[aria-expanded=true]{background:var(--hover)!important}
 /* teams page: the six stand on a lit glass shelf */
 html.jade .team-card .team-six{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s05);min-height:0!important;padding:var(--s2) var(--s1) var(--s4)!important;margin:var(--s3) 0!important;border:0!important;border-radius:12px;position:relative;background:radial-gradient(80% 60% at 50% 100%,var(--floor),transparent 70%),var(--sunk)!important}
 html.jade .team-card .art.small{width:100%!important;max-width:none!important;height:auto!important;display:block;aspect-ratio:1}
@@ -1577,8 +1410,8 @@ html.jade .sp-edit{margin:var(--s2) 0 var(--s3)}
  html.jade label.stat-row{grid-template-columns:36px minmax(0,1fr) 52px 48px 40px!important;gap:var(--s2)!important}
 }
 /* round buttons stay round */
-html.jade :is(.theme-toggle,.fav){flex:none!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px;padding:0!important;aspect-ratio:1;border-radius:50%!important;display:inline-grid!important;place-items:center;line-height:0}
-html.jade :is(.theme-toggle,.fav) svg{width:18px;height:18px;flex:none;margin:0!important}
+html.jade .fav{flex:none!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px;padding:0!important;aspect-ratio:1;border-radius:50%!important;display:inline-grid!important;place-items:center;line-height:0}
+html.jade .fav svg{width:18px;height:18px;flex:none;margin:0!important}
 html.jade .set-card-head .fav{top:-4px!important;left:-4px!important;right:auto!important}
 html.jade .fav-pop{top:44px;left:0}
 /* the attack direction gets its own row between the two sides */
@@ -1754,17 +1587,11 @@ html.jade .stat-final{font-size:22px!important}
 html.jade .mon-slot{font-size:30px!important;font-weight:800!important}
 html.jade .hp-head span{font-size:17px!important}
 html.jade .sp-bar .v{font-size:13px!important}
-html.jade :is(.status,.result,.ctx-label,.verdict,.type-badge,.lane-stat em,.rolls-label,.hp-scale,.stat-name,.sp-bar .k,th,.direction small,.work-on .cat,.mega-switch,.ticker,.ticker-label,.mono,.combatant-sum .mono,.stat-base,.lab-big span){font-family:var(--fb)!important}
+html.jade :is(.status,.result,.ctx-label,.verdict,.type-badge,.lane-stat em,.rolls-label,.hp-scale,.stat-name,.sp-bar .k,th,.direction small,.work-on .cat,.mega-switch,.mono,.combatant-sum .mono,.stat-base,.lab-big span){font-family:var(--fb)!important}
 html.jade .ctx-label{letter-spacing:.1em;font-weight:700}
 html.jade label.stat-row input{font-family:var(--fb)!important}
 
 /* ---------- header: Account like the other links; a quiet theme switch ---------- */
-html.jade .masthead .account-button{display:inline-flex!important;align-items:center;gap:var(--s2);padding:0 var(--s3) 0 var(--s1)!important;font:600 13px var(--fb)!important;text-transform:none!important;letter-spacing:0!important}
-html.jade .masthead .avatar{width:26px!important;height:26px!important;min-width:26px;border-radius:50%!important;display:inline-grid!important;place-items:center;font:700 12px var(--fb)!important;box-shadow:none!important;outline:0!important;border:0!important;padding:0!important}
-html.jade .masthead .avatar svg{width:14px;height:14px}
-html.jade .masthead .account-button:hover .avatar{box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)!important}
-html.jade .theme-toggle{border:0!important;background:transparent!important;box-shadow:none!important;color:var(--mu)!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;border-radius:10px!important}
-html.jade .theme-toggle:hover{background:var(--hover)!important;color:var(--tx)!important;transform:none!important}
 /* items side by side in a grid never pick up the stacked-panel spacing */
 html.jade :is(.team-detail-grid,.workspace-grid,.six-grid,.set-extras,.team-list)>*{margin-top:0!important}
 html.jade .team-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:var(--s6)!important;align-items:start}
@@ -1788,7 +1615,7 @@ html.jade .threat.low{color:var(--mu)!important}
 /* icons: Lucide line icons, one size and alignment everywhere */
 html.jade .px-icon{image-rendering:auto!important;vertical-align:-3px;flex:none}
 html.jade :is(button,.button,a) .px-icon{margin-right:0!important}
-html.jade :is(.hub-tabs a,.quickbar-group>button,.quickbar-all,.drawer-news){gap:var(--s2)}
+html.jade .hub-tabs a{gap:var(--s2)}
 /* reference-link icons: rounded tile, monogram until the icon arrives, then a quick fade */
 .site-icon{position:relative;display:inline-grid;place-items:center;flex:none;border-radius:6px;overflow:hidden;background:var(--sunk);box-shadow:inset 0 0 0 1px var(--ln)}
 .site-icon .mono-tile{font:700 11px/1 var(--fb);color:var(--mu);transition:opacity .2s}
@@ -1854,13 +1681,11 @@ html.jade .format-copy label{margin:0}
 html.jade .format-choice{margin-bottom:var(--s6)!important}
 html.jade .format-choice select{max-width:360px}
 /* header controls sit directly on the frosted bar: no second blur behind icons */
-html.jade .masthead :is(button,.button,a){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-html.jade :is(.theme-toggle,.fav,.direction){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.jade :is(.fav,.direction){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 /* the save star sits off the render, top-left, in a soft round chip */
 html.jade .set-card-head .fav{top:-14px!important;left:-14px!important;border-radius:50%!important;background:var(--glass-2)!important;box-shadow:inset 0 0 0 1px var(--ln),0 4px 12px -6px var(--shade)!important;opacity:1}
 html.jade .set-card-head .fav.on{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gd) 50%,transparent),0 4px 12px -6px var(--shade)!important}
 /* the live 3D mark on the welcome page */
-html.jade .brand-logo{width:38px!important;height:38px!important;object-fit:contain;filter:drop-shadow(0 4px 10px var(--glow))}
 html.jade .dock-mark{object-fit:contain}
 /* the 3D brain sits beside the headline rather than above it */
 /* hero: copy on the left, the brain in its network on the right */
@@ -1975,11 +1800,9 @@ html.jade .format-copy button{height:40px}
 html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:var(--s05)}
 html.jade .mon-chip:hover{color:var(--ac)!important}
 .brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
-html.jade .brand-logo{width:34px!important;height:34px!important;filter:drop-shadow(0 3px 8px var(--glow))}
 html.jade .plan-actions button.icon{box-shadow:none!important}
 .brain-backdrop{z-index:0!important}
 html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle):not(.boot):not(.screen-sweep){position:relative;z-index:1}
-html.jade .shell>.masthead{z-index:30}
 /* dialogs: title flush with the content's left edge */
 /* renaming a team keeps the big title size */
 html.jade input.rename{font:800 clamp(36px,5vw,58px)/1.05 var(--fd)!important;text-transform:uppercase;letter-spacing:.005em;height:auto!important;padding:var(--s05) var(--s2)!important;max-width:100%!important;width:min(900px,100%);background:transparent!important;border:1px dashed var(--ln-2)!important}
@@ -2052,16 +1875,11 @@ html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggl
 .brain-backdrop.hero{opacity:.9}
 html.jade nav.mon-switcher{background:color-mix(in srgb,var(--bg) 70%,transparent)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 /* things that sit straight on the page (tab bar, header pills, team switcher, chips row) get the same solid backing */
-html.jade :is(.hub-tabs,.ticker,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
+html.jade :is(.hub-tabs,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
 html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
 
 /* ---------- top of page: news and nav run edge to edge as one bar, and the nav stays full width when you scroll ---------- */
-html.jade .shell>.ticker{width:100vw;margin:0 0 0 calc(50% - 50vw)!important;padding:0 var(--edge)!important;height:34px;border-radius:0!important;background:color-mix(in srgb,var(--bg) 88%,transparent)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--ln)!important}
-html.jade .shell>.masthead{width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw)!important;top:0!important;border-radius:0!important;border-width:0 0 1px!important;padding:var(--s2) var(--edge)!important;background:color-mix(in srgb,var(--bg) 82%,transparent)!important;box-shadow:none!important}
-html.jade .shell>.masthead+*{margin-top:var(--s2)}
 /* news label: quiet hover, no red block */
-html.jade .ticker .ticker-label{border:0!important;box-shadow:none!important;padding:0 var(--s3) 0 0!important;height:100%}
-html.jade .ticker .ticker-label:hover{background:transparent!important;color:var(--ac-2)!important;text-decoration:underline;text-underline-offset:4px}
 /* the brain sits further back */
 .brain-backdrop{opacity:.35!important}
 .brain-backdrop.hero{opacity:.7!important}
@@ -2437,7 +2255,6 @@ html.jade .team-hub .guide-intro .markdown>:last-child{margin-bottom:0}
 
 /* ---------- shell (nav, modals, text fx) ---------- */
 /* The wordmark trims to its cap height so it centres optically against the logo and the 40px controls. */
-html.jade .wordmark{display:inline-block;white-space:nowrap;text-box:trim-both cap alphabetic}
 /* Its rare flicker: a few frames of jitter with the glow split emerald and gold, then still again. */
 html.jade .fx-glitch{animation:fx-glitch .42s steps(1,end)}
 @keyframes fx-glitch{0%{transform:translateX(-2px) skewX(-8deg);text-shadow:2px 0 var(--ac-2),-2px 0 color-mix(in srgb,var(--gd) 60%,transparent);opacity:.8}14%{transform:translateX(1px);text-shadow:-1px 0 var(--ac-2);opacity:1}28%{transform:none;text-shadow:none;opacity:.35}40%{opacity:1;text-shadow:0 0 12px var(--glow)}58%{transform:translateX(1px);opacity:.65}72%{transform:none;opacity:1;text-shadow:none}}
@@ -2452,16 +2269,7 @@ html.jade .week-tabs>button.selected small{color:var(--ac)}
  html.jade .week-tabs{grid-template-columns:minmax(0,1fr)!important;gap:var(--s2)}
  html.jade .week-tabs>button{flex-direction:row!important;justify-content:space-between;height:48px!important;min-height:48px!important;max-height:48px!important;padding:0 var(--s4)!important}
  /* Top bar: one 40px row on a 4px grid. Empty grid rows no longer add their gaps, so there is no dead band under it. */
- html.jade .shell>.masthead{grid-template-rows:auto!important;row-gap:0!important;column-gap:var(--s2)!important;padding:var(--s3) var(--s4)!important;align-items:center}
- html.jade .masthead .brand{height:40px;gap:var(--s2)!important;font-size:22px!important;align-items:center}
- html.jade .masthead .brand-logo{width:32px!important;height:32px!important}
- html.jade .masthead :is(.theme-toggle,.menu-toggle,.account-button){width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:0!important;justify-content:center}
- html.jade .masthead .account-menu{width:40px!important;height:40px}
- html.jade .masthead .save-pill{margin-top:var(--s2)}
  /* The menu: 40px rows with 4px between them, under a hairline. */
- html.jade .masthead-nav{gap:var(--s1)!important;padding-top:var(--s3)!important;margin-top:var(--s3);border-top:1px solid var(--ln)!important}
- html.jade .masthead-nav .quickbar{gap:var(--s1)!important}
- html.jade .masthead :is(.quickbar-group>button,.quickbar-all,.drawer-news){height:40px!important;min-height:40px!important;padding:0 var(--s3)!important}
 }
 @media (prefers-reduced-motion:reduce){
  html.jade .fx-glitch{animation:none!important}
@@ -2571,9 +2379,6 @@ html.jade .footer-mail{font:inherit;user-select:all}
 }
 /* two-way toggle switch (API key / MCP): a dark pill, a tinted thumb that slides to the chosen side with its label inside */
 /* phones: the logo stands alone in the nav, no wordmark */
-@media (max-width:620px){
- html.jade .masthead .brand .wordmark{display:none}
-}
 /* phones: the boot screen keeps the 16px gutter; the title wraps instead of running off the edge */
 @media (max-width:620px){
  .boot{padding:0 var(--s4);box-sizing:border-box}
@@ -2774,10 +2579,6 @@ html.jade .bench-problems{margin:0 0 var(--s2);padding-left:var(--s4);color:var(
  html.jade .bench-grid.six-grid{grid-template-columns:minmax(0,1fr)!important}
 }
 /* Inbox: the header entry with its count, and the page that lists what is waiting on the player. */
-html.jade .account-menu{display:flex;align-items:center;gap:var(--s2)}
-html.jade a.inbox-button{position:relative;display:inline-grid;place-items:center;flex:none;width:40px;height:40px;padding:0;border:0;border-radius:10px;background:transparent;color:var(--mu);text-decoration:none;line-height:0;transition:background .15s,color .15s}
-html.jade a.inbox-button:hover{background:var(--hover);color:var(--tx)}
-html.jade a.inbox-button svg{width:18px;height:18px}
 /* the number of things waiting on you, as a red bubble on the corner */
 html.jade .inbox-page{display:grid;gap:var(--s4)}
 html.jade .inbox-section{display:grid;gap:var(--s2)}
@@ -2936,4 +2737,73 @@ html.jade .dock-wrap,html.jade .shell>.dock-wrap{display:contents}
  html.jade .combo.open>.picker-icon{left:calc(var(--s4) + var(--s2))}
 }
 
-
+/* ---------- header: the news strip, then one bar (brand, links, theme, inbox, account); on phones a menu ----------
+   Every control here is a ghost Button/LinkButton/IconButton; these rules only place them. */
+.shell>.ticker{display:flex;align-items:center;width:100vw;height:34px;margin:0 0 0 calc(50% - 50vw);padding:0 var(--edge);overflow:hidden;white-space:nowrap;cursor:pointer;color:var(--mu);font:11.5px var(--fb);background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--ln)}
+.ticker-label{flex:none;align-self:stretch;height:auto;min-height:0;max-height:none;margin-right:var(--s3);padding:0 var(--s3) 0 0;letter-spacing:.12em;white-space:nowrap}
+.ticker-label:hover:not(:disabled){text-decoration:underline;text-underline-offset:4px}
+.ticker-track{flex:1;min-width:0;overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.ticker-run{display:inline-flex;gap:var(--s8);padding-left:var(--s4);animation:ticker 90s linear infinite}
+.ticker:hover .ticker-run{animation-play-state:paused}
+.ticker-copy{display:inline-flex;gap:var(--s8)}
+.ticker b{margin-right:var(--s1);color:var(--gd);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.ticker a:hover{color:var(--tx)}
+.shell>.masthead{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;grid-template-areas:"brand nav save theme account";align-items:center;gap:0 var(--s2);width:100vw;max-width:none;margin:0 0 0 calc(50% - 50vw);padding:var(--s2) var(--edge);color:var(--tx);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--ln);-webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%)}
+.shell>.masthead+*{margin-top:var(--s2)}
+.brand{grid-area:brand;justify-self:start;display:flex;align-items:center;gap:var(--s2);margin:0;white-space:nowrap;color:var(--tx);font:700 22px var(--fd);letter-spacing:.04em;text-transform:uppercase}
+.brand:hover{color:var(--tx)}
+.brand-logo{width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 3px 8px var(--glow));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.brand:hover .brand-logo{transform:rotate(-8deg) scale(1.06)}
+.wordmark{display:inline-block;white-space:nowrap;text-box:trim-both cap alphabetic}
+.masthead-nav{grid-area:nav;display:flex;align-items:center;justify-content:center;gap:var(--s2);min-width:0}
+.quickbar{display:flex;flex:1;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:var(--s2);min-width:0;margin:0;font:600 13px var(--fb)}
+.quickbar-group{position:relative}
+.quickbar-group>button,.quickbar-all{padding:0 var(--s3)}
+.quickbar-menu img{border-radius:var(--s05)}
+.quickbar-menu{position:absolute;left:0;top:calc(100% + var(--s2));z-index:30;display:grid;width:min(440px,calc(100vw - 32px));max-height:min(70vh,560px);overflow:hidden auto;padding:var(--s2);color:var(--tx);font-family:var(--fb);background:var(--bg);border:1px solid var(--ln);border-radius:14px;box-shadow:0 30px 60px -20px var(--shade)}
+.quickbar-menu a{position:relative;display:flex;align-items:flex-start;gap:var(--s2);padding:var(--s3) var(--s4);line-height:1.6;color:var(--tx);border-radius:var(--s05)}
+.quickbar-menu a:hover{color:var(--tx);background:var(--hover)}
+.quickbar-menu a img{margin-top:var(--s1);object-fit:contain}
+.quickbar-menu a span{display:grid;min-width:0}
+.quickbar-menu small{display:block;color:var(--mu);font:12px/1.45 var(--fb)}
+.save-pill{grid-area:save;justify-self:end;display:inline-flex;align-items:center;gap:var(--s1);max-width:100%;height:var(--compact-height);padding:0 var(--s3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--hot);font:12px var(--fb);background:var(--glass);border:1px solid var(--hot);border-radius:var(--r-pill)}
+.theme-toggle{grid-area:theme;justify-self:end}
+.theme-toggle svg{width:18px;height:18px;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.theme-toggle:hover svg{transform:rotate(40deg)}
+.account-menu{grid-area:account;justify-self:end;position:relative;display:flex;flex:none;align-items:center;gap:var(--s2);max-width:100%;margin:0}
+.account-button{padding:0 var(--s3) 0 var(--s1)}
+.avatar{display:inline-grid;place-items:center;width:26px;height:26px;min-width:26px;border-radius:50%;color:var(--on);font:700 12px var(--fb);background:linear-gradient(140deg,var(--ac-2),var(--ac))}
+.avatar svg{width:14px;height:14px}
+.account-button:hover .avatar{box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)}
+.inbox-button{position:relative}
+.inbox-button svg{width:18px;height:18px}
+.menu-toggle{grid-area:toggle;display:none}
+.drawer-news{display:none}
+@media (prefers-reduced-motion:reduce){.ticker-run{animation:none}.ticker-copy{display:none}}
+@media (max-width:1100px){
+ .shell>.masthead{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"brand theme save" "nav nav account";gap:var(--s3) var(--s4)}
+ .masthead-nav{justify-content:flex-start}
+ .quickbar{flex-wrap:wrap}
+}
+@media (max-width:760px){
+ .shell>.masthead{grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"brand theme account toggle" "save save save save" "nav nav nav nav"}
+ .quickbar-menu{position:fixed;left:16px;right:16px;top:160px}
+}
+@media (max-width:720px){
+ .shell>.ticker{display:none}
+ .shell>.masthead{row-gap:0;column-gap:var(--s2);padding:var(--s3) var(--s4)}
+ .brand{height:40px}
+ .brand-logo{width:32px;height:32px}
+ .save-pill{justify-self:start;margin-top:var(--s2)}
+ .account-button{width:var(--control-height);padding:0;justify-content:center}
+ .account-button>span:not(.avatar){display:none}
+ .menu-toggle{display:inline-flex}
+ .masthead-nav{display:none;flex-direction:column;align-items:stretch;gap:var(--s1);margin-top:var(--s3);padding-top:var(--s3);border-top:1px solid var(--ln)}
+ .menu-open .masthead-nav{display:flex;max-height:calc(100dvh - 72px);overflow-y:auto;overscroll-behavior:contain}
+ .masthead-nav .quickbar{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s1);width:100%}
+ .quickbar-group>button,.quickbar-all,.drawer-news{width:100%;justify-content:flex-start;padding:0 var(--s3)}
+ .quickbar-group>button .px-icon:last-child{margin-left:auto}
+ .drawer-news{display:inline-flex}
+ .quickbar-menu{position:static;width:100%;max-height:none;margin-top:var(--s2)}
+}
+@media (max-width:620px){.brand .wordmark{display:none}}

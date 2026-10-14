@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {api} from './ui.tsx';
+import {api,Button} from './ui.tsx';
 
 // Says so when the regulation the app is built around is about to end, has ended, was just switched (14 days), or its
 // legality data is not verified yet. Quiet otherwise.
@@ -25,6 +25,6 @@ export default function RegulationBanner(){
       ?<><b>Now on Regulation {r.id}.</b> It started on {day(r.startsAt)}; your teams, replays and saved data are unchanged.{unverified}</>
       :<><b>Legality data for {r.id} is not verified yet.</b> Legality checks and calcs here still come from the previous regulation's engine; check the official eligible list.</>}
       {r.source&&<> <a href={r.source} target="_blank" rel="noreferrer">Official announcement ↗</a></>}</p>
-    <button className="text-button" onClick={dismiss}>Dismiss</button>
+    <Button variant="quiet" onClick={dismiss}>Dismiss</Button>
   </aside>;
 }

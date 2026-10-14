@@ -1,4 +1,5 @@
 import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 'react';
+import {Button,IconButton} from './ui.tsx';
 import {createClient,type Session} from '@supabase/supabase-js';
 import {Sparkles} from './icons.tsx';
 import {X} from 'lucide-react';
@@ -81,7 +82,7 @@ export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
     if(!session.user.is_anonymous){const pending=takePending();if(pending)setDialog({step:'done',email:session.user.email??pending.email});}
     void bringGuestWork(session).then(m=>{if(m){setNote(m);setTimeout(()=>location.reload(),1500);}});},[session]);
   if(!supabase)return <AccountContext.Provider value={{kind:'local'}}>{children({kind:'local'})}</AccountContext.Provider>;
-  if(error)return <main className="welcome"><div className="welcome-card"><h1>Frontier Brain</h1><p className="error">Couldn't start a session: {error}</p><button className="primary" onClick={()=>location.reload()}>Try again</button></div></main>;
+  if(error)return <main className="welcome"><div className="welcome-card"><h1>Frontier Brain</h1><p className="error">Couldn't start a session: {error}</p><Button variant="primary" onClick={()=>location.reload()}>Try again</Button></div></main>;
   if(!session)return <Splash/>;
   const account:Account=session.user.is_anonymous?{kind:'guest'}:{kind:'account',email:session.user.email??''};
   return <AccountContext.Provider value={account}>{children(account)}
@@ -97,11 +98,11 @@ function SignInDialog({step,email,error:failure,onClose}:{step:Step;email?:strin
   const ref=useRef<HTMLDialogElement>(null);
   useEffect(()=>{const d=ref.current!;d.showModal();return()=>d.close();},[]);
   return <dialog ref={ref} className="modal signin-dialog" aria-labelledby="signin-title" onCancel={onClose}>
-    <header><h2 id="signin-title">{step==='done'?"You're all set":"Sign-in didn't finish"}</h2><button className="icon dialog-close" aria-label="Close" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>
+    <header><h2 id="signin-title">{step==='done'?"You're all set":"Sign-in didn't finish"}</h2><IconButton label="Close" icon={<X width={18} height={18} strokeWidth={2} aria-hidden="true"/>} className="dialog-close" onClick={onClose}/></header>
     <div className="signin-body">
       {step==='done'?<>
         <p>{email?<>Signed in as <b>{email}</b>. </>:null}Your teams are saved to your account and follow you to any device. AI features are unlocked.</p>
-        <div className="modal-footer"><button className="primary" onClick={onClose}>Done</button></div>
+        <div className="modal-footer"><Button variant="primary" onClick={onClose}>Done</Button></div>
       </>:<>
         <p>{failure??'Google didn\'t complete the sign-in.'} Your guest work is still here.</p>
         <div className="modal-footer"><GoogleButton label="Try again with Google"/></div>

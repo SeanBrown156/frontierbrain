@@ -1,6 +1,6 @@
 import {useState,useEffect,useCallback} from 'react';
 import {Inbox as InboxIcon} from 'lucide-react';
-import {api,Art,Panel,Empty,CountBadge,date} from './ui.tsx';
+import {api,Art,Panel,Empty,CountBadge,LinkButton,date} from './ui.tsx';
 import {Px,Sparkles,Check,Copy,ArrowLeft,WarningDiamond} from './icons.tsx';
 import {hostedSite} from './auth.tsx';
 import {AssociationDialog} from './Coach.tsx';
@@ -23,7 +23,7 @@ export function useInbox(rev:unknown){
 }
 // The header entry beside the account button: just the tray icon, with a red number when something needs an action (9+ past nine).
 export function InboxLink({count}:{count:number}){
-  return <a className="inbox-button" href="#inbox" aria-label={count>0?`${count} waiting on you`:'Nothing waiting on you'} title={count>0?`${count} waiting on you`:'Nothing waiting'}><Px icon={InboxIcon}/><CountBadge count={count}/></a>;
+  return <LinkButton variant="ghost" className="icon inbox-button" href="#inbox" aria-label={count>0?`${count} waiting on you`:'Nothing waiting on you'} title={count>0?`${count} waiting on you`:'Nothing waiting'}><Px icon={InboxIcon}/><CountBadge count={count}/></LinkButton>;
 }
 
 // Pending decisions grouped by what they are about.

@@ -82,16 +82,25 @@ export function ModalFooter({children}:{children:ReactNode}){return <div classNa
 
 // The design system's controls (docs/DESIGN.md, live at #design-system). Each renders the component's class, so a
 // new screen needs no CSS of its own.
-type ButtonProps=React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?:'secondary'|'primary'|'danger'|'quiet';size?:'regular'|'compact';icon?:ReactNode};
-export function Button({variant='secondary',size='regular',icon,className,children,type='button',...rest}:ButtonProps){
-  const cls=[variant==='quiet'?'text-button':variant==='secondary'?'':variant,size==='compact'?'compact':'',className??''].filter(Boolean).join(' ');
-  return <button type={type} className={cls||undefined} {...rest}>{icon}{children}</button>;}
-export function IconButton({label,icon,className,type='button',...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode}){
-  return <button type={type} className={'icon'+(className?' '+className:'')} aria-label={label} title={label} {...rest}>{icon}</button>;}
+// Buttons keep the native default type (submit inside a form), exactly like a plain <button>; pass type="button" for
+// an action inside a form that must not submit it.
+type Variant='secondary'|'primary'|'danger'|'quiet'|'ghost';
+const buttonClass=(variant:Variant,size:'regular'|'compact',className?:string)=>[variant==='quiet'?'text-button':variant==='secondary'?'':variant,size==='compact'?'compact':'',className??''].filter(Boolean).join(' ')||undefined;
+type ButtonProps=React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?:Variant;size?:'regular'|'compact';icon?:ReactNode};
+export function Button({variant='secondary',size='regular',icon,className,children,...rest}:ButtonProps){
+  return <button className={buttonClass(variant,size,className)} {...rest}>{icon}{children}</button>;}
+// A link that looks like a button (opens a page or a download, never runs an action).
+export function LinkButton({variant='secondary',size='regular',className,children,...rest}:React.AnchorHTMLAttributes<HTMLAnchorElement>&{variant?:Variant;size?:'regular'|'compact'}){
+  return <a className={'button'+(buttonClass(variant,size,className)?' '+buttonClass(variant,size,className):'')} {...rest}>{children}</a>;}
+// Square icon-only button; `label` is its accessible name.
+export function IconButton({label,icon,variant='secondary',className,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode;variant?:'secondary'|'ghost'}){
+  return <button className={'icon'+(variant==='ghost'?' ghost':'')+(className?' '+className:'')} aria-label={label} {...rest}>{icon}</button>;}
 export function Field({label,children,className}:{label:ReactNode;children:ReactNode;className?:string}){return <label className={className}>{label}{children}</label>;}
-export function Tag({tone,children}:{tone?:'ok'|'warn';children:ReactNode}){return <span className={'tag'+(tone?' '+tone:'')}>{children}</span>;}
+export function Tag({tone,className,children,...rest}:React.HTMLAttributes<HTMLSpanElement>&{tone?:'ok'|'warn'}){return <span className={'tag'+(tone?' '+tone:'')+(className?' '+className:'')} {...rest}>{children}</span>;}
 export function CountBadge({count}:{count:number}){return count>0?<span className="count-badge" aria-hidden="true">{count>9?'9+':count}</span>:null;}
-export function Toggle({on,onChange,children}:{on:boolean;onChange:(on:boolean)=>void;children:ReactNode}){return <button type="button" className={'toggle'+(on?' on':'')} aria-pressed={on} onClick={()=>onChange(!on)}>{children}</button>;}
+// Pills that switch something on and off (Toggle, calc effects) or pick and filter (Chip). Both show `.on`.
+export function Toggle({on,onChange,className,children,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'onChange'>&{on:boolean;onChange:(on:boolean)=>void}){return <button type="button" className={'toggle'+(on?' on':'')+(className?' '+className:'')} aria-pressed={on} onClick={()=>onChange(!on)} {...rest}>{children}</button>;}
+export function Chip({on,className,children,...rest}:React.ButtonHTMLAttributes<HTMLButtonElement>&{on?:boolean}){return <button className={'chip'+(on?' on':'')+(className?' '+className:'')} {...rest}>{children}</button>;}
 export function Segmented<T extends string>({label,options,value,onChange}:{label:string;options:{value:T;label:ReactNode}[];value:T;onChange:(v:T)=>void}){
   return <div className="segmented" role="group" aria-label={label}>{options.map(o=><button key={o.value} type="button" aria-pressed={o.value===value} className={o.value===value?'on':undefined} onClick={()=>onChange(o.value)}>{o.label}</button>)}</div>;}
 export function Card({children,className}:{children:ReactNode;className?:string}){return <div className={'card'+(className?' '+className:'')}>{children}</div>;}
@@ -106,9 +115,14 @@ function withMons(children:ReactNode,mons:MonRef[],art:any):ReactNode{
 }
 export function Markdown({text,mons=[],art}:{text:string;mons?:MonRef[];art?:any}){const deco=(Tag:any)=>({children}:{children?:ReactNode})=><Tag>{withMons(children,mons,art)}</Tag>;
   return <div className="markdown"><ReactMarkdown skipHtml remarkPlugins={[remarkGfm]} components={{table:({children})=><div className="table-scroll"><table>{children}</table></div>,...mons.length?{p:deco('p'),li:deco('li'),td:deco('td'),strong:deco('strong')}:{},a:({href,children})=>{if(href?.startsWith('http://')||href?.startsWith('https://'))return <a href={href} target="_blank" rel="noreferrer">{children} ↗</a>;return <span>{children}</span>;}}}>{text}</ReactMarkdown></div>;}
-export function Empty({children}:{children:ReactNode}){return <div className="empty">{children}</div>;}
-export function Tabs({tabs,value,onChange,icons={}}:{tabs:string[];value:string;onChange:(s:string)=>void;icons?:Record<string,ReactNode>}){return <div className="tabs" role="tablist">{tabs.map(t=><button key={t} role="tab" aria-selected={t===value} className={value===t?'selected':''} onClick={()=>onChange(t)}>{icons[t]}{t}</button>)}</div>;}
-export function Notice({children}:{children:ReactNode}){return <p className="notice">{children}</p>;}
+export function Empty({children,className}:{children:ReactNode;className?:string}){return <div className={'empty'+(className?' '+className:'')}>{children}</div>;}
+// Tabs: the segmented track. `block` stretches the options across the row; an option can carry a second line (`sub`).
+type TabOption=string|{value:string;label:ReactNode;sub?:ReactNode};
+export function Tabs({tabs,value,onChange,icons={},block=false,className}:{tabs:TabOption[];value:string;onChange:(s:string)=>void;icons?:Record<string,ReactNode>;block?:boolean;className?:string}){
+  return <div className={'tabs'+(block?' block':'')+(className?' '+className:'')} role="tablist">{tabs.map(t=>{const o=typeof t==='string'?{value:t,label:t}:t;return <button key={o.value} role="tab" aria-selected={o.value===value} className={value===o.value?'selected':''} onClick={()=>onChange(o.value)}>{icons[o.value]}{o.label}{'sub' in o&&o.sub!=null&&<small>{o.sub}</small>}</button>;})}</div>;}
+export function Notice({children,className,...rest}:React.HTMLAttributes<HTMLParagraphElement>){return <p className={'notice'+(className?' '+className:'')} {...rest}>{children}</p>;}
+// The status line at the top of the page: a message and a close button.
+export function Toast({error=false,children,onDismiss}:{error?:boolean;children:ReactNode;onDismiss?:()=>void}){return <div className={'toast'+(error?' error':'')} role={error?'alert':'status'}>{children}{onDismiss&&<button className="icon" aria-label="Dismiss notification" onClick={onDismiss}><X width={16} height={16} strokeWidth={1.75} aria-hidden="true" className="px-icon"/></button>}</div>;}
 export function JobStatus({jobs,kinds}:{jobs:any;kinds:string[]}){return <div className="context-jobs" aria-live="polite">{jobs?.current.filter((j:any)=>kinds.includes(j.kind)).slice(0,2).map((j:any)=><div className="job" key={j.id}><span className={'status '+j.status}>{j.status}</span><span>{j.phase}</span>{j.error&&<p role="alert">{j.error}</p>}</div>)}</div>;}
 
 // A two-way toggle switch: one pill, a thumb that slides to the chosen side with that label inside it; the other label is
