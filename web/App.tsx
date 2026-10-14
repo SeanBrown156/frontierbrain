@@ -13,6 +13,7 @@ import AccountMenu from './AccountMenu.tsx';
 import Settings from './Settings.tsx';
 import InboxPage,{useInbox} from './Inbox.tsx';
 import Welcome,{WELCOMED,REPO} from './Welcome.tsx';
+import DesignSystem from './DesignSystem.tsx';
 import {GitHubMark} from './landing-marks.tsx';
 import BrainBackdrop from './brain/BrainBackdrop.tsx';
 import Boot,{shouldBoot} from './Boot.tsx';
@@ -129,11 +130,12 @@ export default function App(){
       {route==='news'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><News weeks={data.news} jobs={jobs} run={run}/></>}
       {route==='data'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><DataPool art={data.art}/></>}
       {route==='references'&&<><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a><Panel title="References"><p>Where Frontier Brain's teams, sets and results come from, plus the best sites to follow. <a href="#data">See the combined data</a>.</p><ReferenceGroups sources={data.sources}/><details><summary>Background research</summary><p>Monthly Smogon snapshots are Showdown ladder data, not the Champions in-game ladder. Tournament samples retain their event and stage. Neither is presented as a combined meta percentage.</p><button onClick={()=>void run('usage')}>Refresh research sources</button><button onClick={()=>void openReport('reports/metagame/2026-10-08-analysis.md')}>Saved research briefing</button><JobStatus jobs={jobs} kinds={['usage']}/></details></Panel></>}
+      {route==='design-system'&&<DesignSystem/>}
       {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
     </>}</main><footer className="footer site-footer"><div className="footer-grid">
       <div className="footer-brand"><span className="footer-word">FRONTIER BRAIN</span><p>The open-source brain for Pokémon VGC. Teams, calcs and replay analysis, with the AI you already use.</p></div>
       <nav aria-label="Frontier Brain"><h4>App</h4><a href="#teams">Teams</a><a href="#data">Data pool</a><a href="#welcome">About</a></nav>
-      <nav aria-label="Open source"><h4>Open source</h4><a href="https://github.com/SeanBrown156/frontierbrain" target="_blank" rel="noreferrer">View source</a><a href="https://github.com/SeanBrown156/frontierbrain/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT license</a><a href="mailto:seanwritesanddesigns@gmail.com">Contact</a></nav>
+      <nav aria-label="Open source"><h4>Open source</h4><a href="https://github.com/SeanBrown156/frontierbrain" target="_blank" rel="noreferrer">View source</a><a href="https://github.com/SeanBrown156/frontierbrain/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT license</a><a href="#design-system">Design system</a><a href="mailto:seanwritesanddesigns@gmail.com">Contact</a></nav>
     </div>
     <div className="footer-legal">
       <p>Frontier Brain is an unofficial fan project, not affiliated with or endorsed by Nintendo, The Pokémon Company, Game Freak or Creatures. Pokémon and Pokémon character names are trademarks of Nintendo. Pokémon images © Pokémon / Nintendo / Creatures / GAME FREAK: HOME renders and item icons via PokéAPI and Pokémon Showdown. Pokémon Showdown is a separate fan project; its name, logo and a replay screenshot are shown for illustration.</p>

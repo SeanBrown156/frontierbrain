@@ -74,8 +74,27 @@ export function SiteIcon({url,icon,size=20}:{url:string;icon?:string;size?:numbe
 // Box icon from the locally cached Showdown sheet (12 columns of 40×30); blank cell when unknown.
 export function PokeIcon({n}:{n?:number}){return <span className="poke-icon" aria-hidden="true" style={n?{backgroundPosition:`-${(n%12)*40}px -${Math.floor(n/12)*30}px`}:{backgroundImage:'none'}}/>;}
 export function Panel({title,kicker,children,className='',action}:{title:ReactNode;kicker?:string;children:ReactNode;className?:string;action?:ReactNode}){return <section className={'panel '+className}><header className="panel-heading"><div>{kicker&&<span className="eyebrow">{kicker}</span>}<h2>{title}</h2></div>{action}</header>{children}</section>;}
-export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);// Rendered at the end of <body>, so styles scoped to the page section that opened it never reach the dialog.
-  return createPortal(<dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button className="icon dialog-close" aria-label="Close dialog" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>{children}</dialog>,document.body);}
+// Dialog: the title and a close (X) button on one row, the body, then `footer` holding only the actions (primary last).
+// A form dialog puts <ModalFooter> as the form's last child instead, so its submit button stays inside the form.
+export function Modal({title,children,onClose,footer}:{title:string;children:ReactNode;onClose:()=>void;footer?:ReactNode}){const ref=useRef<HTMLDialogElement>(null);const titleId=useId();useEffect(()=>{const dialog=ref.current!;dialog.showModal();dialog.focus();return()=>dialog.close();},[]);// Rendered at the end of <body>, so styles scoped to the page section that opened it never reach the dialog.
+  return createPortal(<dialog ref={ref} tabIndex={-1} aria-labelledby={titleId} onCancel={onClose} className="modal"><header><h2 id={titleId}>{title}</h2><button className="icon dialog-close" aria-label="Close dialog" onClick={onClose}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button></header>{children}{footer&&<ModalFooter>{footer}</ModalFooter>}</dialog>,document.body);}
+export function ModalFooter({children}:{children:ReactNode}){return <div className="modal-footer">{children}</div>;}
+
+// The design system's controls (docs/DESIGN.md, live at #design-system). Each renders the component's class, so a
+// new screen needs no CSS of its own.
+type ButtonProps=React.ButtonHTMLAttributes<HTMLButtonElement>&{variant?:'secondary'|'primary'|'danger'|'quiet';size?:'regular'|'compact';icon?:ReactNode};
+export function Button({variant='secondary',size='regular',icon,className,children,type='button',...rest}:ButtonProps){
+  const cls=[variant==='quiet'?'text-button':variant==='secondary'?'':variant,size==='compact'?'compact':'',className??''].filter(Boolean).join(' ');
+  return <button type={type} className={cls||undefined} {...rest}>{icon}{children}</button>;}
+export function IconButton({label,icon,className,type='button',...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode}){
+  return <button type={type} className={'icon'+(className?' '+className:'')} aria-label={label} title={label} {...rest}>{icon}</button>;}
+export function Field({label,children,className}:{label:ReactNode;children:ReactNode;className?:string}){return <label className={className}>{label}{children}</label>;}
+export function Tag({tone,children}:{tone?:'ok'|'warn';children:ReactNode}){return <span className={'tag'+(tone?' '+tone:'')}>{children}</span>;}
+export function CountBadge({count}:{count:number}){return count>0?<span className="count-badge" aria-hidden="true">{count>9?'9+':count}</span>:null;}
+export function Toggle({on,onChange,children}:{on:boolean;onChange:(on:boolean)=>void;children:ReactNode}){return <button type="button" className={'toggle'+(on?' on':'')} aria-pressed={on} onClick={()=>onChange(!on)}>{children}</button>;}
+export function Segmented<T extends string>({label,options,value,onChange}:{label:string;options:{value:T;label:ReactNode}[];value:T;onChange:(v:T)=>void}){
+  return <div className="segmented" role="group" aria-label={label}>{options.map(o=><button key={o.value} type="button" aria-pressed={o.value===value} className={o.value===value?'on':undefined} onClick={()=>onChange(o.value)}>{o.label}</button>)}</div>;}
+export function Card({children,className}:{children:ReactNode;className?:string}){return <div className={'card'+(className?' '+className:'')}>{children}</div>;}
 // Team members named in the text appear as small linked sprites beside their name (Mega names included).
 export type MonRef={name:string;set:{species:string;item?:string};href:string};
 function withMons(children:ReactNode,mons:MonRef[],art:any):ReactNode{

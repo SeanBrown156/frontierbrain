@@ -101,10 +101,10 @@ function SignInDialog({step,email,error:failure,onClose}:{step:Step;email?:strin
     <div className="signin-body">
       {step==='done'?<>
         <p>{email?<>Signed in as <b>{email}</b>. </>:null}Your teams are saved to your account and follow you to any device. AI features are unlocked.</p>
-        <div className="button-row"><button className="primary" onClick={onClose}>Done</button></div>
+        <div className="modal-footer"><button className="primary" onClick={onClose}>Done</button></div>
       </>:<>
         <p>{failure??'Google didn\'t complete the sign-in.'} Your guest work is still here.</p>
-        <div className="button-row"><GoogleButton label="Try again with Google"/><button onClick={onClose}>Close</button></div>
+        <div className="modal-footer"><GoogleButton label="Try again with Google"/></div>
       </>}
     </div>
   </dialog>;

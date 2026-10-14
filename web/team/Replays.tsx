@@ -114,12 +114,11 @@ function WaitingForAssistant({n,team,connect}:{n:number;team:string;connect:()=>
 function ConnectAI({onClose}:{onClose:()=>void}){
   const go=(mode:'key'|'mcp')=>{try{sessionStorage.setItem('frontierbrain.ai-mode',mode);}catch{}onClose();location.hash='#account';};
   return <Modal title="Connect your AI to analyse replays" onClose={onClose}>
-    <p>Replay analysis runs on your own AI, so nobody else pays for it and your replays stay yours. Connect one of these:</p>
-    <div className="connect-ai-options">
-      <button className="primary" onClick={()=>go('key')}><Px icon={Sparkles}/>Add an API key</button>
+    <p>Replay summaries run on your own AI: an API key here, or Claude, ChatGPT or a coding agent connected over MCP.</p>
+    <div className="modal-footer">
       <button onClick={()=>go('mcp')}>Use MCP with Claude or ChatGPT</button>
+      <button className="primary" onClick={()=>go('key')}><Px icon={Sparkles}/>Add an API key</button>
     </div>
-    <p className="footnote">An API key lets Frontier Brain summarise replays here. With MCP you connect Claude, ChatGPT or your coding agent and ask it to analyse your replays; it can read them through the connector.</p>
   </Modal>;
 }
 function Digest({team,games,info,busy,refresh,saved,notify,art}:{team:any;games:any[];info:any;busy:boolean;refresh:()=>void;saved:()=>void;notify:(s:string,e?:boolean)=>void;art:any}){
