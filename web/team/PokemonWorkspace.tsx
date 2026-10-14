@@ -161,7 +161,7 @@ function SetStrategy({species,text,readOnly,onChange}:{species:string;text:strin
   const [editing,setEditing]=useState(false);
   return <section className="panel set-notes"><header className="panel-heading"><h2>Strategy</h2>{!readOnly&&(editing?<button onClick={()=>setEditing(false)}><Icon icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Icon icon={Pencil}/>Edit</button>)}</header>
     {editing?<label className="set-notes-edit"><span className="sr-only">Strategy for {species} (Markdown)</span><textarea autoFocus rows={Math.max(8,text.split('\n').length+2)} placeholder={POKEMON_STRATEGY_TEMPLATE} value={text} onChange={e=>onChange(e.target.value)}/></label>
-      :text.trim()?<div className="set-guide"><Markdown text={text}/></div>:<p className="muted">No strategy yet. {readOnly?'':'Use Edit to write how this Pokémon plays: its role, how to play it and what to watch out for.'}</p>}</section>;
+      :text.trim()?<div className="set-guide"><Markdown text={text}/></div>:<p className="muted">No strategy yet.</p>}</section>;
 }
 const mergeNotes=setStrategyText;
 export function checkSet(set:PokemonSet,others:PokemonSet[]){

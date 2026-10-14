@@ -10,6 +10,7 @@
     "vgc": "node tools/cli.ts",
     "test": "node --test tools/tests/*.test.ts",
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.web.json",
+    "check:phone": "node tools/check-phone.mjs",
     "daily": "node tools/cli.ts daily",
     "weekly": "node tools/cli.ts weekly",
     "dev": "node tools/dev.mjs",

@@ -1,4 +1,5 @@
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
+import {X} from 'lucide-react';
 import {TYPE_COLOURS} from '../ui.tsx';
 import {TEAM_STYLES} from '../../shared/team-styles.ts';
 
@@ -7,18 +8,21 @@ import {TEAM_STYLES} from '../../shared/team-styles.ts';
 interface Row {value:string;label:ReactNode;hint?:ReactNode;group?:string;off?:boolean;note?:ReactNode}
 // `resolve` makes the field strict: text that is not one of the listed values (case aside) snaps back instead of being kept.
 function Combo({value,onChange,rows,placeholder,label,icon,className='',resolve,title,after}:{value:string;onChange:(v:string)=>void;rows:(q:string)=>Row[];placeholder?:string;label:string;icon?:ReactNode;className?:string;resolve?:(text:string)=>string|null;title?:string;after?:ReactNode}){
-  const [text,setText]=useState(value),[open,setOpen]=useState(false),[active,setActive]=useState(0);const id=useId();const list=useRef<HTMLUListElement>(null);
+  const [text,setText]=useState(value),[open,setOpen]=useState(false),[active,setActive]=useState(0);const id=useId();const list=useRef<HTMLUListElement>(null);const input=useRef<HTMLInputElement>(null);
+  // The close button only shows on phones, where the open list is a full-screen sheet. Same as Escape, then the field lets go.
+  const close=()=>{setOpen(false);setText(value);requestAnimationFrame(()=>input.current?.blur());};
   useEffect(()=>setText(value),[value]);
   const q=open&&text!==value?text.trim().toLowerCase():'';const shown=open?rows(q).slice(0,60):[];
   useEffect(()=>{setActive(0);},[q,open]);
   useEffect(()=>{list.current?.querySelector('.active')?.scrollIntoView({block:'nearest'});},[active]);
   const pick=(v:string)=>{onChange(v);setText(v);setOpen(false);};
-  return <div className={'combo picker '+className}>{icon&&<span className="picker-icon">{icon}</span>}
-    <input role="combobox" aria-label={label} aria-expanded={open} aria-controls={id} aria-autocomplete="list" placeholder={placeholder} value={text} title={title}
+  return <div className={'combo picker '+className+(open?' open':'')}>{icon&&<span className="picker-icon">{icon}</span>}
+    <input ref={input} role="combobox" aria-label={label} aria-expanded={open} aria-controls={id} aria-autocomplete="list" placeholder={placeholder} value={text} title={title}
       onFocus={e=>{setOpen(true);e.target.select();}} onChange={e=>{setText(e.target.value);setOpen(true);}}
       onBlur={()=>setTimeout(()=>{setOpen(false);if(text.trim()&&text!==value){const v=resolve?resolve(text.trim()):text.trim();if(v)onChange(v);else setText(value);}if(!text.trim())setText(value);},120)}
       onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();setOpen(true);setActive(a=>Math.min(a+1,shown.length-1));}else if(e.key==='ArrowUp'){e.preventDefault();setActive(a=>Math.max(a-1,0));}
         else if(e.key==='Enter'&&open&&shown[active]&&!shown[active].off){e.preventDefault();pick(shown[active].value);}else if(e.key==='Escape'){setOpen(false);setText(value);}}}/>
+    {open&&<button type="button" className="icon combo-close" aria-label="Close list" onMouseDown={e=>e.preventDefault()} onClick={close}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button>}
     {open&&shown.length>0&&<ul className="combo-list" id={id} role="listbox" ref={list}>{shown.map((r,i)=><li key={r.value} role="option" aria-selected={i===active} aria-disabled={r.off} className={(i===active?'active ':'')+(r.off?'off ':'')+(r.group&&(i===0||shown[i-1].group!==r.group)?'group-start':'')} data-group={r.group&&(i===0||shown[i-1].group!==r.group)?r.group:undefined}
       onMouseDown={e=>{e.preventDefault();if(!r.off)pick(r.value);}} onMouseEnter={()=>setActive(i)}><span className="row-main">{r.label}</span>{r.hint&&<small>{r.hint}</small>}</li>)}{shown[active]?.note&&<li role="presentation" className="combo-note">{shown[active].note}</li>}</ul>}
     {after}

@@ -1,4 +1,5 @@
 import {useState,useEffect,useId,useRef} from 'react';
+import {X} from 'lucide-react';
 import {api,PokeIcon} from '../ui.tsx';
 // Species combobox: type to filter (data pool's most used first), arrows to move, Enter or click to choose.
 // It never commits while typing. Choosing a species (even the current one) loads its most common set; the player's starred
@@ -22,12 +23,13 @@ export default function SpeciesPicker({value='',placeholder,onPick,onPickSaved,d
   const choose=(i:number)=>{const r=rows[i];if(!r||(r.kind==='species'&&r.off))return;setOpen(false);setText(value);if(r.kind==='saved')onPickSaved?.(r.o);else onPick(r.o.name);};
   const iconOf=(name:string)=>options.find(o=>o.name===name)?.icon;const showing=open&&text?options.find(o=>o.name.toLowerCase()===text.trim().toLowerCase()):null;
   const icon=showing?showing.icon:iconOf(value);
-  return <div className={'combo'+(icon?' with-icon':'')} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node)){setOpen(false);setText(value);}}}>
+  return <div className={'combo'+(icon?' with-icon':'')+(open?' open':'')} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node)){setOpen(false);setText(value);}}}>
     {icon?<PokeIcon n={icon}/>:null}
     <input ref={input} role="combobox" aria-label={label??placeholder??'Pokémon'} aria-expanded={open} aria-controls={id} aria-activedescendant={open&&rows[active]?`${id}-${active}`:undefined} value={text} placeholder={value||placeholder}
       onFocus={e=>{e.currentTarget.select();setText('');setOpen(true);setActive(0);}} onChange={e=>{setText(e.target.value);setOpen(true);setActive(0);}}
       onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();setOpen(true);setActive(Math.min(active+1,rows.length-1));}else if(e.key==='ArrowUp'){e.preventDefault();setActive(Math.max(active-1,0));}
         else if(e.key==='Enter'){e.preventDefault();const exact=rows.findIndex(r=>r.kind==='species'&&r.o.name.toLowerCase()===q);choose(exact>=0?exact:active);}else if(e.key==='Escape'){if(open){e.stopPropagation();setOpen(false);setText(value);}}}}/>
+    {open&&<button type="button" className="icon combo-close" aria-label="Close list" onMouseDown={e=>e.preventDefault()} onClick={()=>{setOpen(false);setText(value);requestAnimationFrame(()=>input.current?.blur());}}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button>}
     {open&&rows.length>0&&<ul className="combo-list" role="listbox" id={id}>{rows.map((r,i)=><li key={r.key} id={`${id}-${i}`} role="option" aria-selected={i===active} aria-disabled={r.kind==='species'&&r.off} className={(i===active?'active ':'')+(r.kind==='species'&&r.off?'off ':'')+r.kind}
       onMouseDown={e=>e.preventDefault()} onMouseEnter={()=>setActive(i)} onClick={()=>choose(i)}>
       {r.kind==='saved'?<><PokeIcon n={iconOf(r.o.species)}/><span>★ {r.o.label}</span><small>My set</small></>:<><PokeIcon n={r.o.icon}/><span>{r.o.name}{r.o.name===value?' · most common set':''}</span><small>{r.off?'on the team':r.o.usage?`${r.o.usage}% of teams`:''}</small></>}</li>)}</ul>}
