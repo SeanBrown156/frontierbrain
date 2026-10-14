@@ -40,7 +40,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 **Entry points**
 - `cli.ts`: `npm run vgc -- <command>` (see `npm run vgc -- help` and `tools/README.md`).
 - `dev.mjs`: `npm run dev` (local) and `npm run dev:hosted`.
-- `check-phone.mjs`: `npm run check:phone`, every page at 360/390/430px in both themes, fails on sideways scroll (needs the app running and Playwright installed).
+- `check-phone.mjs`: `npm run check:phone`, every page at 360/390/430px in both themes, fails on sideways scroll (needs the app running; fetches Playwright through npx when it is not installed).
 - `workbench-server.ts`: the local API behind the UI (`/api/*`).
 - `hosted.ts`, `vercel-entry.ts`, `keep-alive.ts`: the hosted (Supabase + Vercel) API.
 - `mcp.ts`: the MCP connector for Claude, ChatGPT and CLI agents.

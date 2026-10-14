@@ -6,7 +6,7 @@ One set of components for every control, dialog and panel. Build new screens fro
 
 - **Where.** `web/jade.css` in four parts: tokens (`:root`), `@layer base` (element defaults), `@layer components`, then page rules, unlayered. Page rules beat the layers without `!important`. React wrappers are in `web/ui.tsx`. **`#design-system`** (footer › Design system, `web/DesignSystem.tsx`) shows every component in dark and light side by side.
 - **Themes.** Light tokens on `:root`, dark from the system or `data-theme="dark"`. Any element can carry `data-theme` to show the other theme inside it. Tokens built from other tokens (depth) are declared again per theme.
-- **Phones.** `npm run check:phone` (with the app running and Playwright installed) opens every page at 360, 390 and 430px in both themes and fails on sideways scroll.
+- **Phones.** `npm run check:phone` (with the app running) opens every page at 360, 390 and 430px in both themes and fails on sideways scroll. Without Playwright installed it runs itself through `npx` and downloads Chromium once.
 
 ### Tokens
 
@@ -23,18 +23,20 @@ One set of components for every control, dialog and panel. Build new screens fro
 
 | Component | Class | React |
 |---|---|---|
-| Button | `button` / `.button` (secondary), `.primary`, `.danger`, `.text-button` (quiet), `.compact`, `.icon` (square) | `Button`, `IconButton` |
+| Button | `button` / `.button` (secondary), `.primary`, `.danger` (`.solid` fills it), `.text-button` (quiet), `.ghost` (no fill until hovered: header, icon toggles), `.tile` (a whole clickable card; `.on` / `aria-selected` marks the chosen one), `.plain` (text that is a button), `.compact`, `.icon` (square; `.icon.compact` is 32px) | `Button` (`variant`, `size`, `solid`), `IconButton` (`variant`, `size`), `LinkButton` (a link that looks like one) |
 | Toolbar | `.button-row` | |
-| Field | `label` > control; `label.radio`; `fieldset` + `legend` | `Field` |
+| Field | `label` > control; `label.radio` (checkbox beside its text); `fieldset` + `legend` | `Field`, `Checkbox` |
 | Input, select, textarea | element styles; selects draw their own chevron | |
 | Panel / Card | `.panel` (a page section, `.panel-heading` on top), `.card` (inside a panel) | `Panel`, `Card` |
 | Dialog | `dialog.modal` > `header` (title, X) · body · `.modal-footer` | `Modal` (`footer` prop), `ModalFooter` |
-| Tabs / Segmented | `.tabs`, `.segmented` (one sunk track; the chosen option lifts out) | `Tabs`, `Segmented` |
-| Toggle / Chip | `.toggle` (control height), `.chip`, `.chip-row`, `.choose` | `Toggle` |
+| Tabs / Segmented | `.tabs`, `.segmented` (one sunk track; the chosen option lifts out); `.block` shares the row equally; a tab may carry a second line | `Tabs` (`block`, options with `sub`), `Segmented` (`block`) |
+| Toggle / Chip | `.toggle` (control height), `.chip` (`.small`), `.chip-row`, `.choose` (a checkbox chip), `.chip-remove` (the × in a chip) | `Toggle`, `Chip`, `ChipLabel`, `ChoiceChip` |
 | Switch | `.mode-switch` | `ModeSwitch` |
 | Tag, Badge with count | `.tag` (`.ok`, `.warn`), `.count-badge` | `Tag`, `CountBadge` |
-| Notice, Empty, Toast | `.notice`, `.empty`, `.toast` (`.error`) | `Notice`, `Empty` |
+| Notice, Empty, Toast | `.notice` (a paragraph, or an aside callout with a heading and actions), `.empty`, `.toast` (`.error`) | `Notice` (`as`), `Empty`, `Toast` |
 | Text roles | `.eyebrow`, `.muted`, `.footnote`, `.error` | |
+
+`Button` and `IconButton` keep the native button type (submit inside a form), like a plain `<button>`.
 
 ### Rules
 
@@ -44,6 +46,7 @@ One set of components for every control, dialog and panel. Build new screens fro
 - **Art.** `.art` 95px, `.art.small` 48px (HOME renders, Showdown sprites by setting). Box icons 40×30, item icons 24×24, in pickers and lists only.
 - **Phones (≤620px).** One column. Controls are 44px; chips, quiet buttons, segments, the save star and the Mega switch get a 44px touch area. Open pickers become full-screen sheets.
 - **Copy.** Labels and short sentences. No hint paragraphs explaining how to use a control.
+- **Page rules** may place and size a control (grid, order, width, height, padding for density) but not restyle it (colour, background, border, shadow, radius, type). Exceptions that are their own small controls: the Mega badge switch, the save star, the Google sign-in button, the dock's Past chats toggle, the calc stat inputs and the art-directed controls on the welcome page (`landing.css`).
 
 ### Spacing
 

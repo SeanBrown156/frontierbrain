@@ -1,12 +1,25 @@
 // `npm run check:phone`: opens every page of a running app (npm run dev) at 360, 390 and 430px wide, in both themes,
 // and fails if any page scrolls sideways. Team pages are checked for the first team in the workspace.
-// Needs Playwright, which is not a dependency: `npm i --no-save playwright && npx playwright install chromium`.
+// Playwright is not a dependency: if it can't be imported, the script runs itself again through
+// `npx -p playwright@1.56.1` (downloaded once into the npx cache) and installs its Chromium first.
 // WEB_PORT picks the app (default 5173); WIDTHS="390" narrows the run; CHROME_PATH uses a browser you already have.
+import {spawnSync} from 'node:child_process';
+import {existsSync} from 'node:fs';
+import {join} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+const PLAYWRIGHT='playwright@1.56.1';
 const port=Number(process.env.WEB_PORT??5173),base=`http://127.0.0.1:${port}`;
 const widths=(process.env.WIDTHS??'360,390,430').split(',').map(Number);
+// Under npx the package is on PATH (…/node_modules/.bin), not beside this script.
+const fromPath=()=>{for(const dir of (process.env.PATH??'').split(':')){const pkg=join(dir,'..','playwright','index.mjs');if(dir.endsWith(join('node_modules','.bin'))&&existsSync(pkg))return pathToFileURL(pkg).href;}return null;};
 let chromium;
 try{({chromium}=await import('playwright'));}
-catch{console.error('Playwright is not installed. Run: npm i --no-save playwright && npx playwright install chromium');process.exit(2);}
+catch{const viaPath=fromPath();
+  if(viaPath)({chromium}=await import(viaPath));
+  else if(process.env.FB_CHECK_PHONE_NPX){console.error(`Couldn't load ${PLAYWRIGHT} through npx.`);process.exit(2);}
+  else{const self=fileURLToPath(import.meta.url);const install=process.env.CHROME_PATH?'':'playwright install chromium && ';
+    const r=spawnSync('npx',['--yes','-p',PLAYWRIGHT,'-c',`${install}node "${self}"`],{stdio:'inherit',env:{...process.env,FB_CHECK_PHONE_NPX:'1'}});
+    process.exit(r.status??1);}}
 const routes=['teams','inbox','account','news','data','references','welcome','design-system'];
 try{const r=await fetch(`${base}/api/dashboard`);const d=await r.json();const t=d.teams?.[0];
   if(t){const v=t.view?.version?.id??'all';routes.push(...['overview','strategy','bench','replays','history'].map(tab=>`team/${t.id}/${tab}/all`),`team/${t.id}/mon/${v}/0`);}}
