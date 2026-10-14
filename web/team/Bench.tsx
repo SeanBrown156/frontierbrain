@@ -66,7 +66,7 @@ function AddDialog({team,data,mutate,count,onClose}:{team:any;data:any;mutate:Mu
     catch(e){setError((e as Error).message);}finally{setBusy(false);}};
   return <Modal title={`Add to the ${BENCH_LABEL}`} onClose={onClose}>
     {full?<Notice className="warn">The {BENCH_LABEL} holds up to {BENCH_LIMIT} Pokémon. Remove one to add another.</Notice>:<div className="bench-add-modal">
-      <Segmented label="How to add" value={mode} onChange={v=>{setMode(v);setError('');}} options={[{value:'pokemon' as const,label:'Pokémon'},{value:'paste' as const,label:'Showdown paste'}]}/>
+      <Segmented block label="How to add" value={mode} onChange={v=>{setMode(v);setError('');}} options={[{value:'pokemon' as const,label:'Pokémon'},{value:'paste' as const,label:'Showdown paste'}]}/>
       {mode==='pokemon'?<>
         <SpeciesPicker label="Pokémon" placeholder="Search Pokémon" value="" onPick={sp=>setChoice({species:sp})} onPickSaved={o=>setChoice({species:o.species,saved:o})} saved={saved} autoFocus/>
         {choice?<div className="bench-chosen"><SetArt set={{species:choice.species} as any} art={data.art} small/><div><b>{choice.species}</b><small>{choice.saved?`Your saved set: ${choice.saved.label}`:'Starts from its most common set in the data pool'}</small></div></div>

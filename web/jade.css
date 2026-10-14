@@ -138,6 +138,8 @@ main h1{text-shadow:var(--phos-title)}
  .text-button{display:inline-flex;align-items:center;justify-content:start;gap:var(--gap-inline);height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s2);
   font:600 var(--t-md)/1.2 var(--fb);white-space:normal;color:var(--ac);background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
  .text-button:hover:not(:disabled){color:var(--ac-2);background:none;transform:none}
+ .text-button.danger{color:var(--hot);background:none;border:0;box-shadow:none}
+ .text-button.danger:hover:not(:disabled){color:var(--hot);background:none;text-decoration:underline;text-underline-offset:3px}
  /* ghost: no fill or edge until pointed at (header links, icon toggles); an icon ghost is muted until hovered */
  :is(button,.button).ghost{color:var(--tx);background:transparent;border-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
  :is(button,.button).ghost:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
