@@ -2640,6 +2640,8 @@ html.jade .dock-wrap,html.jade .shell>.dock-wrap{display:contents}
  html.jade :has(.combo.open){-webkit-backdrop-filter:none!important;backdrop-filter:none!important;transform:none!important;filter:none!important;contain:none!important;container-type:normal!important;will-change:auto!important;z-index:auto!important;isolation:auto!important}
  html.jade .combo.open{position:fixed;inset:0;z-index:120;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr);gap:var(--s2);max-width:none;margin:0;padding:var(--s4);background:var(--bg)}
  html.jade .combo.open>input{grid-column:1}
+ /* the sheet's search box has the same plain edges as the list under it: no focus halo, same corner */
+ html.jade .combo.open>input:not(#_),html.jade .combo.open>input:not(#_):focus,html.jade .combo.open>input:not(#_):focus-visible{border-radius:14px;border-color:var(--ln-2);box-shadow:none;outline:none}
  html.jade .combo.open>.combo-close{display:inline-flex;grid-column:2;grid-row:1}
  html.jade .combo.open>.combo-list{grid-column:1/-1;grid-row:2;position:static;min-width:0;max-height:none;margin:0;overflow-y:auto}
  html.jade .combo.open>:is(.poke-icon,.picker-icon){top:calc(var(--s4) + var(--control-height) / 2)}

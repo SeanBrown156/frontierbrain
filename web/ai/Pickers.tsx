@@ -5,7 +5,7 @@ import {TEAM_STYLES} from '../../shared/team-styles.ts';
 
 // A searchable list that opens under its field, like the species picker: type to filter, arrows to move, Enter or
 // click to choose, Escape to close. Free text is kept on blur, so an unlisted item or move can still be entered.
-interface Row {value:string;label:ReactNode;hint?:ReactNode;group?:string;off?:boolean;note?:ReactNode}
+interface Row {value:string;label:ReactNode;hint?:ReactNode;group?:string;off?:boolean}
 // `resolve` makes the field strict: text that is not one of the listed values (case aside) snaps back instead of being kept.
 function Combo({value,onChange,rows,placeholder,label,icon,className='',resolve,title,after}:{value:string;onChange:(v:string)=>void;rows:(q:string)=>Row[];placeholder?:string;label:string;icon?:ReactNode;className?:string;resolve?:(text:string)=>string|null;title?:string;after?:ReactNode}){
   const [text,setText]=useState(value),[open,setOpen]=useState(false),[active,setActive]=useState(0);const id=useId();const list=useRef<HTMLUListElement>(null);const input=useRef<HTMLInputElement>(null);
@@ -24,7 +24,7 @@ function Combo({value,onChange,rows,placeholder,label,icon,className='',resolve,
         else if(e.key==='Enter'&&open&&shown[active]&&!shown[active].off){e.preventDefault();pick(shown[active].value);}else if(e.key==='Escape'){setOpen(false);setText(value);}}}/>
     {open&&<IconButton label="Close list" icon={<X width={18} height={18} strokeWidth={2} aria-hidden="true"/>} className="combo-close" type="button" onMouseDown={e=>e.preventDefault()} onClick={close}/>}
     {open&&shown.length>0&&<ul className="combo-list" id={id} role="listbox" ref={list}>{shown.map((r,i)=><li key={r.value} role="option" aria-selected={i===active} aria-disabled={r.off} className={(i===active?'active ':'')+(r.off?'off ':'')+(r.group&&(i===0||shown[i-1].group!==r.group)?'group-start':'')} data-group={r.group&&(i===0||shown[i-1].group!==r.group)?r.group:undefined}
-      onMouseDown={e=>{e.preventDefault();if(!r.off)pick(r.value);}} onMouseEnter={()=>setActive(i)}><span className="row-main">{r.label}</span>{r.hint&&<small>{r.hint}</small>}</li>)}{shown[active]?.note&&<li role="presentation" className="combo-note">{shown[active].note}</li>}</ul>}
+      onMouseDown={e=>{e.preventDefault();if(!r.off)pick(r.value);}} onMouseEnter={()=>setActive(i)}><span className="row-main">{r.label}</span>{r.hint&&<small>{r.hint}</small>}</li>)}</ul>}
     {after}
   </div>;
 }
@@ -41,7 +41,7 @@ const typePill=(t:string)=><span className="type-badge mini" style={{'--type':TY
 const cat=(c:string)=><span className={'move-cat '+c.toLowerCase()} title={c}>{c==='Physical'?'Phys':c==='Special'?'Spec':'Status'}</span>;
 // Moves with type, category and power. Only moves the species can learn that are legal in the format are listed (a move
 // it cannot learn is never offered, and typed text that is not one of them snaps back). With no learnset to go on the
-// whole format list is used. On desktop the highlighted move shows what it does under the list and the chosen move
+// whole format list is used. On desktop the highlighted move's row opens in place with what it does and the chosen move
 // has a tooltip. On touch there is no hover: tapping a chosen move first opens its details as a panel attached under
 // the field, and a second tap opens the picker.
 type MoveInfo=[string,string,number,string?,(number|boolean)?,number?];
@@ -60,8 +60,7 @@ export function MovePicker({value,onChange,dex,label,exclude=[]}:{value:string;o
       <Combo label={label} value={value} onChange={onChange} placeholder="Search moves" className="move-picker" icon={m?typePill(m[0]):undefined} title={touchLike()?undefined:text}
         resolve={t=>byLower.get(t.toLowerCase())??null}
         rows={q=>{const match=(n:string)=>!q||n.toLowerCase().includes(q)||info[n]?.[0].toLowerCase()===q;
-          return pool.filter(match).map(n=>({value:n,label:<>{info[n]&&typePill(info[n][0])}<span>{n}</span>{info[n]?.[3]&&<em className="row-sub">{info[n][3]}</em>}</>,hint:info[n]?<>{cat(info[n][1])}{info[n][2]?<b>{info[n][2]}</b>:null}</>:undefined,off:exclude.includes(n)&&n!==value,
-            note:info[n]?.[3]?<><b>{n}</b> {info[n][3]} <small>{moveLine(info[n])}</small></>:undefined}));}}/>
+          return pool.filter(match).map(n=>({value:n,label:<>{info[n]&&typePill(info[n][0])}<span>{n}</span>{info[n]&&<em className="row-sub">{info[n][3]||'No description.'}<small>{moveLine(info[n])}</small></em>}</>,hint:info[n]?<>{cat(info[n][1])}{info[n][2]?<b>{info[n][2]}</b>:null}</>:undefined,off:exclude.includes(n)&&n!==value}));}}/>
     </div>
     {m&&open&&<div className="move-desc" role="note" onClick={()=>{setOpen(false);field.current?.querySelector('input')?.focus();}}><p>{m[3]||'No description.'}</p><small>{moveLine(m)}</small></div>}</div>;
 }

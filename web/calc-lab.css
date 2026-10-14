@@ -38,19 +38,24 @@ html.jade .partner-art .art{width:72px!important;height:72px!important}
 .doubles .toggles{margin:0}
 .doubles .partners{grid-template-columns:minmax(0,1fr)}
 
-/* Move picker: what the highlighted move does (desktop, under the list) and the details panel attached under a tapped move (touch) */
+/* Move picker: the highlighted move's row opens in place with what it does (desktop) and the details panel attached under a tapped move (touch) */
 .move-field{position:relative;min-width:0}
 .move-field .move-picker{position:relative}
-.combo-list li.combo-note{position:sticky;bottom:0;display:block;padding:8px 10px;margin-top:4px;font-size:12.5px;line-height:1.45;color:var(--mu);background:var(--bg);border-top:1px solid var(--ln);cursor:default}
-.combo-list li.combo-note b{color:var(--tx)}.combo-list li.combo-note small{display:block;margin-top:2px}
 .move-desc{margin:-1px 0 0;padding:10px 12px;font-size:12.5px;line-height:1.5;color:var(--mu);background:var(--sunk);border:1px solid var(--ln-2);border-top:1px dashed var(--ln-2);border-radius:0 0 var(--rs) var(--rs);cursor:pointer}
 .move-desc p{margin:0;color:var(--tx)}.move-desc small{display:block;margin-top:4px;color:var(--mu)}
 .move-field.details .combo input{border-bottom-left-radius:0;border-bottom-right-radius:0}
 /* Touch: there is no hover, so each move in the list carries its one-line description */
 .combo-list .row-sub{display:none}
+html.jade .combo-list .row-sub small:not(#_){display:block;margin:2px 0 0;padding:0;color:var(--mu);opacity:.8;font-size:inherit}
+/* Desktop: the highlighted row expands in its own cell: type and name, category and power, then the description and numbers beneath */
+@media (hover:hover) and (min-width:621px){
+  html.jade .move-picker .combo-list li.active:not(#_){align-items:flex-start;flex-wrap:nowrap}
+  html.jade .move-picker .combo-list li.active>small:not(#_){margin-top:var(--s1)}
+  html.jade .move-picker .combo-list li.active .row-main:not(#_){display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;white-space:normal;overflow:visible;text-overflow:clip}
+  html.jade .move-picker .combo-list li.active .row-sub:not(#_){display:block;flex-basis:100%;margin:2px 0 0;padding:0 var(--s1) var(--s1);white-space:normal;font-style:normal;font-size:12px;line-height:1.45;color:var(--mu)}
+}
 @media (hover:none),(max-width:620px){
   html.jade .move-picker .combo-list li:not(#_){align-items:flex-start;flex-wrap:wrap}
   html.jade .move-picker .combo-list .row-main:not(#_){display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;white-space:normal;overflow:visible;text-overflow:clip}
   html.jade .combo-list .row-sub:not(#_){display:block;flex-basis:100%;white-space:normal;font-style:normal;font-size:12px;line-height:1.4;color:var(--mu)}
-  html.jade .combo-list li.combo-note:not(#_){display:none!important}
-}
+  }
