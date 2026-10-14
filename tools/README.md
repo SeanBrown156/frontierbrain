@@ -21,7 +21,7 @@ npm test
 npm run check
 ```
 
-`stats` accepts `{species,nature,statPoints}`. `calc` accepts `{attacker,defender,move,field,moveOptions}` using the calculator's native field/side options (see its types); doubles is default. `secondMove` plus optional `secondAttacker` calculates a conditional combined-roll distribution against the same original target. It assumes both attacks connect, no order effects, item triggers, defensive changes, or intervening healing; don't use it for sequencing guarantees. Native dynamic moves (Weather Ball, Gyro Ball, weight-based moves, HP-based moves and boosted-stat moves) derive power from supplied state; do not supply already-doubled power. Untracked contextual moves such as Rage Fist/Last Respects require explicit `moveOptions.basePower` and recorded justification. Multi-hit and Payback sequencing are rejected.
+`stats` accepts `{species,nature,statPoints}`. `calc` accepts `{attacker,defender,move,field,moveOptions}` using the calculator's native field/side options (see its types); doubles is default. Native dynamic moves (Weather Ball, Gyro Ball, weight-based moves, HP-based moves and boosted-stat moves) derive power from supplied state; do not supply already-doubled power. Untracked contextual moves such as Rage Fist/Last Respects require explicit `moveOptions.basePower` and recorded justification. Multi-hit and Payback sequencing are rejected.
 
 `speed` accepts two set objects with optional `stage`, `tailwind`, `paralyzed`, `multiplier`, `priority`, plus `trickRoom`. This tool computes the explicitly supplied modifiers; priority-changing abilities and fractional item/ability combinations need Showdown verification.
 

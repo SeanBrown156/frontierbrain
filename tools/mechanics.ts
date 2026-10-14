@@ -56,7 +56,7 @@ export function pokemon(set: SetInput) {
   return exact(result);
 }
 
-export interface CalcInput {attacker:SetInput;defender:SetInput;move:string;field?:Record<string,any>;moveOptions?:Record<string,any>;secondMove?:string;secondAttacker?:SetInput;secondMoveOptions?:Record<string,any>;secondAttackerSide?:Record<string,boolean>;secondDefender?:SetInput;secondDefenderSide?:Record<string,boolean>;}
+export interface CalcInput {attacker:SetInput;defender:SetInput;move:string;field?:Record<string,any>;moveOptions?:Record<string,any>;secondDefender?:SetInput;secondDefenderSide?:Record<string,boolean>;}
 const SPREAD_TARGETS=['allAdjacent','allAdjacentFoes'];
 // Held items that act between two hits in a turn (berries, Focus Sash, Weakness Policy, Air Balloon, Red Card…): a combined
 // two-attack calc would need battle sequencing, so those are reported as unsupported instead of approximated.
@@ -136,7 +136,6 @@ export function damage(input: CalcInput) {
   const slim=(r:any)=>({defender:r.input.defender,defenderStats:r.defenderStats,rolls:r.rolls,range:r.range,percentOfMaxHP:r.percentOfMaxHP,koChanceOnHit:r.koChanceOnHit,hits:r.hits,perHit:r.perHit,description:r.description,defaults:r.defaults,assumptions:r.assumptions});
   if(input.secondDefender){
     // Second target: the same spread move on the other opposing Pokémon, each target rolling independently.
-    if(input.secondMove)throw new Error('Unsupported: a second target and a second attacker in one calc. Run the second attack as its own calc.');
     if(!spreadMove)throw new Error(`${m.name} hits one target; a second target only applies to spread moves`);
     if(!doubles)throw new Error('A second target needs Doubles');
     if(spread===false)throw new Error('“Hits one target” and a second target contradict each other');
@@ -145,15 +144,6 @@ export function damage(input: CalcInput) {
     const second=damage({...input,defender:input.secondDefender,field:f,secondDefender:undefined,secondDefenderSide:undefined});
     out.secondTarget=slim(second);
     out.secondTarget.assumptions=[input.secondDefenderSide?'Second target uses the supplied secondDefenderSide.':`Second target uses the same side-wide conditions (screens, Tailwind); per-Pokémon ones (${PER_POKEMON_SIDE.join(', ')}) are not carried over unless given in secondDefenderSide.`,...second.assumptions.slice(0,-1)];
-  }
-  if(input.secondMove){
-    const defensiveAbility=input.defender.ability??species(input.defender.species).abilities[0];
-    if(midTurnItem(input.defender.item))throw new Error(`Unsupported: ${input.defender.item} can activate between the two attacks, which needs battle sequencing. Calculate each attack separately, or use the item-used state if it is already gone.`);
-    if(['Stamina','Weak Armor','Water Compaction','Tera Shell','Multiscale','Shadow Shield','Disguise','Ice Face','Color Change','Anger Shell','Berserk','Emergency Exit','Wimp Out','Sand Spit','Seed Sower'].includes(defensiveAbility))throw new Error(`Unsupported: ${defensiveAbility} can change between the two attacks, which needs battle sequencing`);
-    const second=damage({...input,attacker:input.secondAttacker??input.attacker,move:input.secondMove,moveOptions:input.secondMoveOptions,field:{...input.field,...input.secondAttackerSide?{attackerSide:input.secondAttackerSide}:{}},secondMove:undefined,secondAttacker:undefined,secondAttackerSide:undefined,secondMoveOptions:undefined});
-    const both=convolve(total,second.distribution as Dist);const values=[...both.keys()];
-    out.second=slim(second);
-    out.combined={range:[Math.min(...values),Math.max(...values)],percentOfMaxHP:[Math.min(...values)/defender.maxHP()*100,Math.max(...values)/defender.maxHP()*100],koChanceOnBothHits:chanceAtLeast(both,hp),assumptions:`Independent rolls, both attacks connect${input.secondAttackerSide?'; the second attack uses its own attacker-side conditions (Helping Hand, Battery, Power Spot…)':'; the second attack shares the first attack\'s attacker-side conditions'}; no intervening state changes or triggers. Not a sequencing or win probability.`};
   }
   Object.defineProperty(out,'distribution',{value:total,enumerable:false});
   return out;

@@ -30,13 +30,8 @@ test('Benchmarks are saved with an automatic title and side, and can be deleted'
   applyAction(db,{type:'benchmark-delete',benchmarkId:b.id} as any);assert.equal(db.benchmarks!.length,0);
 });
 
-test('Benchmarks with two attackers are judged on the combined damage and say so in the title',()=>{
+test('Benchmarks judge the first target and show the other target beside it',()=>{
   const attacker={species:'Rillaboom',nature:'Adamant',statPoints:{atk:32},ability:'Grassy Surge'},defender={species:'Farigiraf',nature:'Serious',ability:'Armor Tail'};
-  const input={attacker,defender,move:'Rock Slide',moveOptions:{spread:false},secondMove:'Wood Hammer',secondAttacker:attacker};
-  const r=damage(input);const o=outcome('damage',r);
-  // Rock Slide (one target) 62-73 plus Wood Hammer: both together are far past Farigiraf's 195 HP, a guaranteed OHKO, while the first hit alone is not.
-  assert.equal(o.low,r.combined!.percentOfMaxHP[0]);assert.equal(o.guaranteed,1);assert.ok(outcome('damage',{percentOfMaxHP:r.percentOfMaxHP}).guaranteed!>1);
-  assert.match(labelText(benchmarkLabel({kind:'damage',side:'attacker',input})),/^Damage to Farigiraf · Rock Slide .*one target.*with Rillaboom's Wood Hammer$/);
   const two=damage({attacker,defender,move:'Rock Slide',secondDefender:{species:'Incineroar',nature:'Serious',ability:'Intimidate'}});
   // Incineroar takes 76-90 of 170 HP (derivation in mechanics.test.ts): 44.7-52.9%.
   assert.match(outcome('damage',two).text,/other target 44\.7–52\.9%/);
@@ -84,11 +79,9 @@ test('A spread move saves one damage benchmark per target, each judged on its ow
   const recheck=(b:any,defender:any)=>holds('damage','attacker',outcome('damage',b.result),outcome('damage',damage({...b.input,defender})));
   assert.equal(recheck(saved[0],saved[0].input.defender),true);
   assert.equal(recheck(saved[1],{...t2,statPoints:{hp:32,def:32}}),false);
-  // Composite saves are refused with a reason; two attackers into one target is still one combined benchmark.
+  // Composite saves are refused with a reason.
   assert.throws(()=>applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:rev.id,kind:'damage',input} as any),/one damage benchmark per target/);
   assert.throws(()=>applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:rev.id,kind:'speed',input:{pokemon:[{species:'Incineroar'},{species:'Rillaboom'}]}} as any),/one speed benchmark per pair/);
-  const combo:any=applyAction(db,{type:'benchmark-save',bankId:entry.id,revisionId:rev.id,kind:'damage',side:'attacker',input:{attacker,defender:t1,move:'Rock Slide',moveOptions:{spread:false},secondMove:'Wood Hammer',secondAttacker:attacker}} as any);
-  assert.ok(combo.result.combined&&combo.input.secondMove==='Wood Hammer');
   // Incoming: the second target is another of the player's Pokémon, so it is listed but belongs on that Pokémon's page.
   assert.deepEqual(targetRows(input,{outgoing:false}).map(r=>r.savable),[true,false]);
 });

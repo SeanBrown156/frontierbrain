@@ -20,8 +20,8 @@ const hitsTo=(pct:number)=>pct>0?Math.ceil(100/pct-1e-9):Infinity;
 const ko=(n:number)=>!isFinite(n)?'no KO':n===1?'OHKO':`${n}HKO`;
 export function outcome(kind:string,result:any):Outcome{
   if(kind==='speed')return {first:result?.first,text:result?.first==='tie'?'speed tie':result?.first==='a'?'moves first':'moves second'};
-  // Two attackers into one target: judged on the combined damage. A second target is shown beside it (the first target decides).
-  const [low,high]=(result?.combined?.percentOfMaxHP??result?.percentOfMaxHP)??[0,0];const second=result?.secondTarget?.percentOfMaxHP;const guaranteed=hitsTo(low),possible=hitsTo(high);
+  // A second target is shown beside the result (the first target decides).
+  const [low,high]=result?.percentOfMaxHP??[0,0];const second=result?.secondTarget?.percentOfMaxHP;const guaranteed=hitsTo(low),possible=hitsTo(high);
   return {low,high,guaranteed,possible,text:`${low.toFixed(1)}–${high.toFixed(1)}% · ${guaranteed===possible?`guaranteed ${ko(guaranteed)}`:`possible ${ko(possible)}`}${second?` · other target ${second.map((v:number)=>v.toFixed(1)).join('–')}%`:''}`};
 }
 // Does the benchmark still hold? Attacking: it must KO at least as fast. Defending: it must take at least as many
@@ -74,7 +74,7 @@ export function benchmarkLabel(b:{kind:string;side?:Side;input:any;result?:any;l
     ...sideFlags(f.attackerSide,attacks),...sideFlags(f.defenderSide,!attacks),
     ...i.secondDefender?['both targets']:i.moveOptions?.spread===false?['one target']:[],...i.moveOptions?.isCrit?['critical hit']:[],...i.moveOptions?.hits?[`${i.moveOptions.hits} hits`]:[],
     ...bits(i.attacker,attacks?'your':'their'),...bits(i.defender,attacks?'their':'your'),
-    ...i.secondMove?[`with ${displayName(i.secondAttacker?.species??i.attacker?.species)}'s ${i.secondMove}`]:[],...origin?[origin]:[]].filter(Boolean) as string[];
+    ...origin?[origin]:[]].filter(Boolean) as string[];
   return {role:attacks?'Damage to':'Damage from',opponent:displayName(other?.species),opponentSpecies:other?.species??'',detail};
 }
 export const labelText=(l:BenchmarkLabel)=>`${l.role} ${l.opponent}${l.detail.length?` · ${l.detail.join(' · ')}`:''}`;

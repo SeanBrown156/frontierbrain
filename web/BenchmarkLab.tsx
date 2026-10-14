@@ -51,8 +51,8 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const [field,setField]=useState<any>({gameType:'Doubles'}),[flags,setFlags]=useState<Record<Side,Record<string,boolean>>>({mine:{},foe:{}}),[megaOn,setMegaOn]=useState<Record<Side,boolean>>({mine:true,foe:true});
   // Four-way speed order: each side's second Pokémon, whether each is shown as its Mega, and Tailwind per side.
   const [four,setFour]=useState(false),[partner,setPartner]=useState<Record<Side,any>>({mine:null,foe:null}),[pMega,setPMega]=useState<Record<Side,boolean>>({mine:true,foe:true}),[sideTw,setSideTw]=useState<Record<Side,boolean>>({mine:false,foe:false});
-  // Doubles damage: a spread move hitting one target instead of both, a second attacker or a second target (never both).
-  const [spreadOne,setSpreadOne]=useState(false),[secondAtk,setSecondAtk]=useState(false),[secondTgt,setSecondTgt]=useState(false),[secondFlags,setSecondFlags]=useState<Record<string,boolean>>({});
+  // Doubles damage: a spread move hitting one target instead of both, or a second target for the same spread move.
+  const [spreadOne,setSpreadOne]=useState(false),[secondTgt,setSecondTgt]=useState(false);
   const pickSpread=(m:any,i:number)=>{const s=m.spreads[i];if(!s)return;const nature=s.nature??m.natures[0]?.name??'Serious';
     setOther((o:any)=>({...o,species:m.species,nature,statPoints:s.statPoints,ability:m.abilities[0]?.name,item:m.items[0]?.name,moves:(m.moves??[]).slice(0,4).map((x:any)=>x.name),boosts:undefined}));setFoe({kind:'spread',index:i});setMegaOn(x=>({...x,foe:true}));
     setTargetLabel(`${sourceNames[m.source]} · ${m.species} ${nature} ${Object.values(s.statPoints).join('/')} · spread ${s.percent}%${s.nature?'':`, nature ${m.natures[0]?.percent??'?'}%`} · ${m.items[0]?.name??'no item'} · ${m.period}`);};
@@ -81,11 +81,9 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   // Expanding Force only hits both foes in Psychic Terrain; that one cannot be calculated as hitting a single target.
   const expandingSpread=move==='Expanding Force'&&field.terrain==='Psychic';
   const isSpread=!!dex?.spreadMoves?.includes(move)||expandingSpread;
-  const secAtk=tab==='Damage'&&outgoing&&secondAtk&&partnerC(attackerSide)?.move?partnerC(attackerSide):null;
-  const secTgt=tab==='Damage'&&outgoing&&secondTgt&&isSpread&&!spreadOne&&!secAtk?partnerC(defenderSide):null;
-  const secondSpread=!!secAtk&&spreadOne&&!!dex?.spreadMoves?.includes(secAtk.move);
+  const secTgt=tab==='Damage'&&outgoing&&secondTgt&&isSpread&&!spreadOne?partnerC(defenderSide):null;
   const damageInput={attacker:outgoing?ownC:otherC,defender:outgoing?otherC:ownC,move,field:fieldInput,moveOptions:{...options,...isSpread&&spreadOne?{spread:false}:{}},
-    ...secTgt?{secondDefender:secTgt}:{},...secAtk?{secondMove:secAtk.move,secondAttacker:secAtk,...Object.values(secondFlags).some(Boolean)?{secondAttackerSide:onlyTrue(secondFlags)}:{},...secondSpread?{secondMoveOptions:{spread:false}}:{}}:{}};
+    ...secTgt?{secondDefender:secTgt}:{}};
   const speedField={weather:field.weather,terrain:field.terrain};
   const fourWay=tab==='Speed'&&four;
   const roster=[{...ownC,side:'mine'},partnerC('mine')&&{...partnerC('mine'),side:'mine'},{...otherC,side:'foe'},partnerC('foe')&&{...partnerC('foe'),side:'foe'}].filter(Boolean) as any[];
@@ -111,9 +109,8 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
     else{const out=isMine(input.attacker);if(!out&&!isMine(input.defender)){setError(`Ask's calc didn't involve ${draftSet.species}, so it isn't shown here.`);return true;}
       takeSet(out?input.attacker:input.defender,'mine');takeSet(out?input.defender:input.attacker,'foe');setDirection(out?'outgoing':'incoming');setMove(input.move);const {spread,...opts}=input.moveOptions??{};setOptions(opts);setSpreadOne(spread===false);
       const attS:Side=out?'mine':'foe',defS:Side=out?'foe':'mine';const asPartner=(x:any,s:Side,extra?:any)=>{const mega=megaName(x.species);const {b:bb,set:ss}=splitBattle(x);setPartner(p=>({...p,[s]:{...ss,species:baseName(ss.species),...bb,...extra}}));setPMega(m=>({...m,[s]:mega}));};
-      setSecondAtk(false);setSecondTgt(false);setSecondFlags({});
-      if(input.secondMove&&input.secondAttacker){asPartner(input.secondAttacker,attS,{move:input.secondMove});setSecondFlags(input.secondAttackerSide??{});setSecondAtk(true);}
-      else if(input.secondDefender){asPartner(input.secondDefender,defS);setSecondTgt(true);}
+      setSecondTgt(false);
+      if(input.secondDefender){asPartner(input.secondDefender,defS);setSecondTgt(true);}
       const {attackerSide:aS={},defenderSide:dS={},...global}=input.field??{};setField({gameType:'Doubles',...global});
       setFlags({mine:out?aS:dS,foe:out?dS:aS});setTab('Damage');}
     const foeSet=p.kind==='speed'?(isMine(input.a)?input.b:input.a):(isMine(input.attacker)?input.defender:input.attacker);
@@ -180,20 +177,15 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const body=<div className="lab"><Tabs tabs={['Damage','Speed']} value={tab} onChange={setTab}/>
     {fromAsk&&<p className="from-ask" role="status"><img src="/brand/icon-64.png" alt="" width={18} height={18}/>{fromAsk}</p>}
     <div className="matchup">{sideCard(order[0])}{axis}{sideCard(order[1])}</div>
-    {tab==='Damage'&&outgoing&&<div className="doubles"><div className="toggles"><Toggle on={secondAtk} label="+ Second attacker" set={v=>{setSecondAtk(v);if(v)setSecondTgt(false);}}/>
-      <button type="button" className={'toggle'+(secondTgt?' on':'')} aria-pressed={secondTgt} disabled={!isSpread} title={isSpread?undefined:'Only spread moves hit a second target: Rock Slide, Heat Wave, or Expanding Force in Psychic Terrain'} onClick={()=>{setSecondTgt(!secondTgt);if(!secondTgt)setSecondAtk(false);}}>+ Second target</button></div>
+    {tab==='Damage'&&outgoing&&<div className="doubles"><div className="toggles">
+      <button type="button" className={'toggle'+(secondTgt?' on':'')} aria-pressed={secondTgt} disabled={!isSpread} title={isSpread?undefined:'Only spread moves hit a second target: Rock Slide, Heat Wave, or Expanding Force in Psychic Terrain'} onClick={()=>setSecondTgt(!secondTgt)}>+ Second target</button></div>
       {secondTgt&&spreadOne&&<p className="footnote">The move hits one target, so no second target is hit. Switch to “Hits both targets” to see it.</p>}
-      {(secondAtk||secondTgt)&&<div className="partners">{secondAtk?<PartnerCard key={'atk'+attackerSide} role="attacker" side={attackerSide} set={partner[attackerSide]} setSet={v=>setPartner(p=>({...p,[attackerSide]:v}))} saved={starred} art={data.art} mega={partnerMega(attackerSide)} megaOn={pMega[attackerSide]} setMega={v=>setPMega(m=>({...m,[attackerSide]:v}))} formName={formName} dex={dex}
-          editor={partner[attackerSide]&&<SetFields set={partner[attackerSide]} update={(x:any)=>setPartner(p=>({...p,[attackerSide]:x}))} dex={dex} form={partnerC(attackerSide)?.species??partner[attackerSide].species}/>}
-          extra={<><span className="ctx-label">Boosting this attack</span><div className="toggles">{ATTACK_SIDE.map(([k,l])=><Toggle key={k} on={!!secondFlags[k]} label={l} set={v=>setSecondFlags(f=>({...f,[k]:v}))}/>)}</div></>}/>
-        :<PartnerCard key={'tgt'+defenderSide} role="target" side={defenderSide} set={partner[defenderSide]} setSet={v=>setPartner(p=>({...p,[defenderSide]:v}))} saved={starred} art={data.art} mega={partnerMega(defenderSide)} megaOn={pMega[defenderSide]} setMega={v=>setPMega(m=>({...m,[defenderSide]:v}))} formName={formName} dex={dex}
-          editor={partner[defenderSide]&&<SetFields set={partner[defenderSide]} update={(x:any)=>setPartner(p=>({...p,[defenderSide]:x}))} dex={dex} form={partnerC(defenderSide)?.species??partner[defenderSide].species}/>}/>}</div>}</div>}
+      {secondTgt&&<div className="partners"><PartnerCard key={'tgt'+defenderSide} role="target" side={defenderSide} set={partner[defenderSide]} setSet={v=>setPartner(p=>({...p,[defenderSide]:v}))} saved={starred} art={data.art} mega={partnerMega(defenderSide)} megaOn={pMega[defenderSide]} setMega={v=>setPMega(m=>({...m,[defenderSide]:v}))} formName={formName} dex={dex}
+          editor={partner[defenderSide]&&<SetFields set={partner[defenderSide]} update={(x:any)=>setPartner(p=>({...p,[defenderSide]:x}))} dex={dex} form={partnerC(defenderSide)?.species??partner[defenderSide].species}/>}/></div>}</div>}
     {fourWay&&<div className="partners">{(['mine','foe'] as Side[]).map(s=><PartnerCard key={s} side={s} set={partner[s]} setSet={v=>setPartner(p=>({...p,[s]:v}))} saved={starred} art={data.art} mega={partnerMega(s)} megaOn={pMega[s]} setMega={v=>setPMega(m=>({...m,[s]:v}))} formName={formName} dex={dex}/>)}</div>}
     {error&&<p role="alert" className="error">{error}</p>}
     {result?.kind==='Damage'&&tab==='Damage'&&<div className={'lab-result'+(calculating?' busy':'')}><DamageViz result={result} name={formName((outgoing?otherC:ownC).species)} attackerName={formName((outgoing?ownC:otherC).species)} defender={(outgoing?otherC:ownC).species} fallback={(outgoing?other:own).species} art={data.art} move={move} attacker={(outgoing?ownC:otherC).species}/>
       {alt&&<p className="crit-alt"><span className="ctx-label">{options.isCrit?'Without a crit':'If it crits'}</span><b>{alt.percentOfMaxHP.map((v:number)=>v.toFixed(1)).join('–')}%</b><span className="muted">{alt.range.join('–')} HP{alt.koChanceOnHit>0?` · ${(alt.koChanceOnHit*100).toFixed(1)}% to KO`:''}</span></p>}{result.secondTarget&&secTgt&&<DamageViz result={result.secondTarget} name={formName(secTgt.species)} attackerName={formName((outgoing?ownC:otherC).species)} defender={secTgt.species} fallback={baseName(secTgt.species)} art={data.art} move={move}/>}
-      {result.combined&&secAtk&&<p className="crit-alt"><span className="ctx-label">Then {formName(secAtk.species)} · {secAtk.move}</span><b>{result.second.percentOfMaxHP.map((v:number)=>v.toFixed(1)).join('–')}%</b><span className="muted">{result.second.range.join('–')} HP</span></p>}
-      {result.combined&&<p className="crit-alt"><span className="ctx-label">Both attacks</span><b>{result.combined.percentOfMaxHP.map((v:number)=>v.toFixed(1)).join('–')}%</b><span className="muted">{result.combined.range.join('–')} HP · {(result.combined.koChanceOnBothHits*100).toFixed(1)}% to KO{result.combined.koChanceOnBothHits>=1?' (guaranteed)':''}</span></p>}
       <details><summary>Rolls, description and assumptions</summary><p className="lab-desc">{result.description}</p>{result.perHit&&<p className="muted">Per hit: {result.perHit.map((h:number[])=>`${h[0]}–${h.at(-1)}`).join(' + ')}</p>}<p className="mono">{result.rolls.join(', ')}</p>{result.assumptions.map((a:string,i:number)=><p key={i}>{a}</p>)}{result.secondTarget?.assumptions?.map((a:string,i:number)=><p key={'t'+i}>{a}</p>)}{result.combined&&<p>{result.combined.assumptions}</p>}<pre>{JSON.stringify(result.versions,null,2)}</pre></details>{saved&&<Notice>{saved}</Notice>}{footer}</div>}
     {result?.kind==='Speed'&&tab==='Speed'&&result.order&&<div className={'lab-result'+(calculating?' busy':'')}><SpeedRace trickRoom={trickRoom} art={data.art} watch={result.watch} ties={result.ties}
       runners={result.order.map((o:any)=>{const m=roster[o.index]??{species:o.species};return {name:m.species,fallback:baseName(m.species),speed:o.speed,side:o.side,move:o.move,priority:o.priority,rank:o.rank,tied:o.tied,decidedBy:o.decidedBy};})}/>

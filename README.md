@@ -11,7 +11,7 @@ Built for Pokémon Champions doubles (Regulation M-C). Free and open source. AI 
 ## What it does
 
 - **Team builder.** Start from real tournament teams, paste a Showdown or PokePaste team, or ask the AI to build one. Every team has its own strategy: overall plan, leads and matchup plans.
-- **Calcs in the Pokémon page.** Damage and speed on Champions mechanics, next to the set you're editing. Calc against the sets that win events, and save benchmarks. Doubles-aware: spread moves, a second attacker or target, and the four-way speed order.
+- **Calcs in the Pokémon page.** Damage and speed on Champions mechanics, next to the set you're editing. Calc against the sets that win events, and save benchmarks. Doubles-aware: spread moves on one or both targets, and the four-way speed order.
 - **Bench.** A scratchboard per team for Pokémon you might bring in. Tune them, write how they'd replace someone, then promote.
 - **Replay analysis.** Paste Showdown replays: they link to the team that played them, show who you beat and who beats you, and get AI summaries judged from what was known at each turn.
 - **Inbox.** One place for what's waiting on you: suggestions from your assistant, calcs, unlinked replays and rule notices. Accept or dismiss in place.

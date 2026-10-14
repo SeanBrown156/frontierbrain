@@ -105,7 +105,7 @@ test('Four-way speed order: priority, brackets, Tailwind, paralysis, Trick Room 
   const pair=speedOrder({pokemon:[rilla,mega]});assert.equal(pair.order[0].species,speed({a:rilla,b:mega}).first==='a'?'Rillaboom':'Salamence-Mega');
 });
 
-test('Doubles spread: both targets vs one target, the second target, and two attackers into one target',()=>{
+test('Doubles spread: both targets vs one target, and the second target',()=>{
   // Level 50. Rillaboom Adamant 32 Atk: (125+32+20)*1.1 = 194. Farigiraf Serious 0 SP: Def 70+20 = 90, HP 120+75 = 195.
   // Rock Slide: BP 75, no STAB, neutral. baseDamage = floor(floor(22*75*194/90)/50)+2 = floor(3556/50)+2 = 73.
   // Hitting one target: rolls floor(73*r/100), r = 85..100 -> 62..73.
@@ -127,22 +127,11 @@ test('Doubles spread: both targets vs one target, the second target, and two att
   assert.ok(screens.secondTarget.range[1]<90);assert.match(screens.secondTarget.assumptions[0],/not carried over/);
   const guarded=damage({attacker,defender,move:'Rock Slide',secondDefender:{species:'Incineroar',nature:'Serious',ability:'Intimidate'},secondDefenderSide:{isFriendGuard:true}});
   assert.ok(guarded.secondTarget.range[1]<90);
-  // Rejections are explicit: single-target moves can't be spread, contradictions, second target with second attacker.
+  // Rejections are explicit: single-target moves can't be spread, contradictions.
   assert.throws(()=>damage({attacker,defender,move:'Wood Hammer',moveOptions:{spread:true}}),/hits one target/);
   assert.throws(()=>damage({attacker,defender,move:'Wood Hammer',secondDefender:defender}),/only applies to spread moves/);
   assert.throws(()=>damage({attacker,defender,move:'Rock Slide',moveOptions:{spread:false},secondDefender:defender}),/contradict/);
-  assert.throws(()=>damage({attacker,defender,move:'Rock Slide',secondDefender:defender,secondMove:'Wood Hammer'}),/Unsupported/);
   assert.throws(()=>damage({attacker,defender,move:'Rock Slide',secondDefender:defender,field:{gameType:'Singles'}}),/Doubles/);
-  // Two attackers into one target: the combined range is the sum of both ranges, and Helping Hand applies only to the
-  // second attacker when given as its own side. Sitrus Berry would activate between the hits: unsupported, not guessed.
-  const first=damage({attacker,defender,move:'Rock Slide',moveOptions:{spread:false}});
-  const hhSecond=damage({attacker,defender,move:'Wood Hammer',field:{attackerSide:{isHelpingHand:true}}}),plain=damage({attacker,defender,move:'Wood Hammer'});
-  const combo=damage({attacker,defender,move:'Rock Slide',moveOptions:{spread:false},secondMove:'Wood Hammer',secondAttackerSide:{isHelpingHand:true}});
-  assert.deepEqual(combo.second.range,hhSecond.range);assert.ok(hhSecond.range[1]>plain.range[1]);
-  assert.deepEqual(combo.combined.range,[first.range[0]+hhSecond.range[0],first.range[1]+hhSecond.range[1]]);
-  assert.equal(combo.combined.koChanceOnBothHits,1);assert.ok(combo.combined.percentOfMaxHP[1]>100);
-  assert.throws(()=>damage({attacker,defender:{...defender,item:'Sitrus Berry'},move:'Rock Slide',secondMove:'Wood Hammer'}),/Unsupported: Sitrus Berry/);
-  assert.ok(damage({attacker,defender:{...defender,item:'Leftovers'},move:'Rock Slide',secondMove:'Wood Hammer'}).combined);
 });
 
 test('Minimum SP search supports infeasible and damage constraints',()=>{
