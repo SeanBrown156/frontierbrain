@@ -1,6 +1,6 @@
 import {useState,useEffect,useCallback} from 'react';
 import {Inbox as InboxIcon} from 'lucide-react';
-import {api,Art,Panel,Empty,CountBadge,LinkButton,date} from './ui.tsx';
+import {api,Art,Panel,Empty,CountBadge,LinkButton,date,Button,Tag} from './ui.tsx';
 import {Px,Sparkles,Check,Copy,ArrowLeft,WarningDiamond} from './icons.tsx';
 import {hostedSite} from './auth.tsx';
 import {AssociationDialog} from './Coach.tsx';
@@ -54,9 +54,9 @@ export default function InboxPage({inbox,data,load,reload,notify,mutate,dataRef}
           :i.kind==='suggestion'?<Suggestion i={i} data={data} mutate={mutate} dataRef={dataRef} notify={notify}/>
           :i.kind==='summaries'?<Summaries i={i} art={data.art} notify={notify} refresh={refresh}/>
           :i.kind==='calc'?<CalcItem i={i} art={data.art} data={data} mutate={mutate} notify={notify} dismiss={()=>void act.dismissCalc(i)}/>
-          :<><div className="inbox-head"><span className={'tag'+(i.level==='warning'?' warn':'')}>{i.level==='warning'?<><Px icon={WarningDiamond} size={12}/>Warning</>:'Info'}</span><b className="inbox-title">{i.title}</b></div>
+          :<><div className="inbox-head"><Tag tone={i.level==='warning'?'warn':undefined}>{i.level==='warning'?<><Px icon={WarningDiamond} size={12}/>Warning</>:'Info'}</Tag><b className="inbox-title">{i.title}</b></div>
               <p>{i.detail}</p><p className="muted tiny">{date(i.at)}</p>
-              <div className="button-row"><button className="primary" onClick={()=>void act.dismissNotice(i)}><Px icon={Check}/>Dismiss</button>{i.url&&<a className="button" href={i.url} target="_blank" rel="noreferrer">Read more ↗</a>}</div></>}</li>)}</ul></section>;})}
+              <div className="button-row"><Button variant="primary" onClick={()=>void act.dismissNotice(i)}><Px icon={Check}/>Dismiss</Button>{i.url&&<LinkButton href={i.url} target="_blank" rel="noreferrer">Read more ↗</LinkButton>}</div></>}</li>)}</ul></section>;})}
     {linking&&<AssociationDialog game={linking} data={data} close={()=>setLinking(null)} load={refresh} notify={notify}/>}
   </Panel></>;
 }
@@ -64,7 +64,7 @@ export default function InboxPage({inbox,data,load,reload,notify,mutate,dataRef}
 function SixRow({list,leads,brought,art}:{list:string[];leads?:string[];brought?:string[];art:any}){
   return <div className="six">{list.map((m:string)=><span key={m} className={leads?.includes(m)?'lead':brought?.includes(m)?'brought':'benched'} title={m}><Art name={m} art={art} small/></span>)}</div>;
 }
-const Back=()=><a href="#teams" className="text-button back-link"><Px icon={ArrowLeft} size={12}/>Teams</a>;
+const Back=()=><LinkButton variant="quiet" className="back-link" href="#teams"><Px icon={ArrowLeft} size={12}/>Teams</LinkButton>;
 
 // One suggestion, as the same tile the chat shows (what changes, highlighted), accepted or dismissed right here.
 function Suggestion({i,data,mutate,dataRef,notify}:{i:any;data:any;mutate:(a:any,o?:any)=>Promise<any>;dataRef:{current:any};notify:(s:string,e?:boolean)=>void}){
@@ -81,7 +81,7 @@ function Suggestion({i,data,mutate,dataRef,notify}:{i:any;data:any;mutate:(a:any
   const kind=item.proposal.kind;
   const where=kind==='bench'?`Goes on the ${BENCH_LABEL}. Your six does not change.`:kind==='promote'?`Moves ${item.proposal.species} from the ${BENCH_LABEL} into slot ${item.proposal.slot+1}.`:kind==='set'?`Changes slot ${item.proposal.slot+1} of the six.`:kind==='team'?'Saved as a new version; the active one stays.':'';
   return <>
-    <div className="inbox-head"><span className="tag">{KIND_LABEL[kind]??'Suggestion'}</span><b className="inbox-title">{i.title}</b></div>
+    <div className="inbox-head"><Tag>{KIND_LABEL[kind]??'Suggestion'}</Tag><b className="inbox-title">{i.title}</b></div>
     <p className="muted">For <a href={i.href}>{i.teamName}</a>{i.at?` · ${date(i.at)}`:''} · {i.source==='chat'?'From Ask Frontier Brain':'From your assistant'}{i.detail?` · ${i.detail}`:''}</p>
     {where&&<p className="inbox-where">{where}</p>}
     <div className="inbox-tile"><ProposalCard p={p} art={data.art} current={slot=>view.sets[slot]} decide={yes=>void decide(yes)} rejectLabel="Dismiss" compact/></div></>;
@@ -110,11 +110,11 @@ function CalcItem({i,art,data,mutate,notify,dismiss}:{i:any;art:any;data:any;mut
     try{await mutate({type:'benchmark-save',bankId:pick.target.bankId,revisionId:pick.target.revisionId,kind:i.calcKind,input:pick.input,side:pick.side,context:'Calc from your assistant',origin:'Your assistant'});
       await api('/assistant-calcs/remove',{id:i.calcId});notify(`Saved as a benchmark for ${pick.target.name}.`);}
     catch(e){notify((e as Error).message,true);}finally{setSaving(false);}};
-  return <><div className="inbox-head"><span className="tag">{i.calcKind==='speed'?'Speed':'Damage'}</span><b className="inbox-title">{i.title}</b></div>
+  return <><div className="inbox-head"><Tag>{i.calcKind==='speed'?'Speed':'Damage'}</Tag><b className="inbox-title">{i.title}</b></div>
     <p className="muted">{i.teamName?`${i.teamName} · `:''}{i.source==='chat'?'From Ask Frontier Brain':'From your assistant'}{i.at?` · ${date(i.at)}`:''}</p>
     {visual&&<div className="inbox-tile">{visual}</div>}
     {!pick&&<p className="muted">Neither Pokémon is on one of your teams or Benches, so there is nothing to attach a benchmark to.</p>}
-    <div className="button-row">{pick&&<button className="primary" disabled={saving} onClick={()=>void saveBenchmark()}>{saving?'Saving…':`Add as benchmark for ${pick.target.name}`}</button>}{i.href&&<a className="button" href={i.href} onClick={()=>leaveOffer(`calc:${i.teamId}:${i.benchId?`bench-${i.benchId}`:i.slot}`,{kind:i.calcKind,input:i.input,from:'Your assistant'})}>Open in calc</a>}<button className="text-button" onClick={dismiss}>Dismiss</button></div></>;
+    <div className="button-row">{pick&&<Button variant="primary" disabled={saving} onClick={()=>void saveBenchmark()}>{saving?'Saving…':`Add as benchmark for ${pick.target.name}`}</Button>}{i.href&&<LinkButton href={i.href} onClick={()=>leaveOffer(`calc:${i.teamId}:${i.benchId?`bench-${i.benchId}`:i.slot}`,{kind:i.calcKind,input:i.input,from:'Your assistant'})}>Open in calc</LinkButton>}<Button variant="quiet" onClick={dismiss}>Dismiss</Button></div></>;
 }
 
 // Games linked to a team with no summary yet: who each was against and both sixes, with the way to get them summarised.
@@ -123,15 +123,15 @@ function Summaries({i,art,notify,refresh}:{i:any;art:any;notify:(s:string,e?:boo
   const six=(list:string[])=><div className="six">{list.map((m:string)=><span key={m} title={m}><Art name={m} art={art} small/></span>)}</div>;
   const go=async()=>{setBusy(true);try{if(!(await aiReady())){notify('No AI key is connected here. Add one in Settings, or ask your assistant over MCP (copy the request below).',true);return;}
     await api('/replay-summarise',{teamId:i.teamId,gameIds:i.replayIds});await refresh();notify('Summarised.');}catch(e){notify((e as Error).message,true);}finally{setBusy(false);}};
-  return <><div className="inbox-head"><span className="tag">{i.count}</span><b className="inbox-title">{i.teamName}</b></div>
+  return <><div className="inbox-head"><Tag>{i.count}</Tag><b className="inbox-title">{i.teamName}</b></div>
     <p className="muted">{i.title}.</p>
     {(i.games??[]).length>0&&<ul className="inbox-games">{i.games.map((g:any)=><li key={g.id} className={'game '+g.result}>
       <div className="game-top"><span className={'result '+g.result}>{g.result}</span><span className="muted">{g.date?date(g.date):''} · vs {g.opponent}</span></div>
       <div className="selections"><div><span className="eyebrow">You</span><SixRow list={g.yours} leads={g.yoursLeads} brought={g.yoursBrought} art={art}/></div><div><span className="eyebrow">Opponent</span><SixRow list={g.theirs} leads={g.theirsLeads} brought={g.theirsBrought} art={art}/></div></div></li>)}
       {i.count>i.games.length&&<li className="muted">and {i.count-i.games.length} more</li>}</ul>}
     <p className="footnote">Outlined: led with. Faded: not brought.</p>
-    <div className="button-row"><button className="primary" disabled={busy} onClick={()=>void go()}><Px icon={Sparkles}/>{busy?'Summarising…':`Summarise ${i.count}`}</button><a className="button" href={i.href}>Open Replays</a>
-      <button onClick={()=>{void navigator.clipboard.writeText(i.request).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request for your assistant'}</button></div></>;
+    <div className="button-row"><Button variant="primary" disabled={busy} onClick={()=>void go()}><Px icon={Sparkles}/>{busy?'Summarising…':`Summarise ${i.count}`}</Button><LinkButton href={i.href}>Open Replays</LinkButton>
+      <Button onClick={()=>{void navigator.clipboard.writeText(i.request).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});}}><Px icon={copied?Check:Copy}/>{copied?'Copied':'Copy request for your assistant'}</Button></div></>;
 }
 
 // One unlinked game: who it was against, both sixes, why it did not link (from the link logic) and what to do.
@@ -143,7 +143,7 @@ function Unlinked({i,art,teams,link,choose,remove}:{i:any;art:any;teams:any[];li
     <div className="selections">{six('You',i.yours,i.yoursLeads??[],i.yoursBrought??[])}{six('Opponent',i.theirs,i.theirsLeads??[],i.theirsBrought??[])}</div>
     <p className="inbox-why">{i.why}</p>
     {i.reason==='no-match'&&i.closest.length>0&&<ul className="inbox-diff">{i.closest.slice(0,2).map((c:any)=><li key={c.teamId}><b>{c.name}</b>: {c.missing.length?`the game had ${c.missing.join(', ')}`:'every Pokémon in the game is on it'}{c.extra.length?`; it has ${c.extra.join(', ')} instead`:''}.</li>)}</ul>}
-    <div className="button-row">{one?<><button className="primary" onClick={()=>link(i,one.id,one.name)}>Link to {one.name}</button><button onClick={choose}>Choose another team</button></>
-      :<button className="primary" onClick={choose}>Link to a team</button>}
-      <button className="text-button danger" onClick={remove}>Delete replay</button></div></>;
+    <div className="button-row">{one?<><Button variant="primary" onClick={()=>link(i,one.id,one.name)}>Link to {one.name}</Button><Button onClick={choose}>Choose another team</Button></>
+      :<Button variant="primary" onClick={choose}>Link to a team</Button>}
+      <Button variant="quiet" className="danger" onClick={remove}>Delete replay</Button></div></>;
 }

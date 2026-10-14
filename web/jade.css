@@ -143,6 +143,9 @@ main h1{text-shadow:var(--phos-title)}
  :is(button,.button).ghost:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
  :is(button,.button).ghost.icon{color:var(--mu);border-color:transparent}
  :is(button,.button).ghost.icon:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);border-color:transparent}
+ .chip:has(>.chip-remove){gap:var(--s1);padding:0 var(--s1) 0 var(--s3)}
+ .segmented.block{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);width:100%}
+ .segmented.block>button{height:auto;min-height:var(--control-height);max-height:none;white-space:normal}
  /* a chip that only shows a value, smaller; and the x that removes a chip */
  .chip.small{height:26px;min-height:26px;max-height:26px;padding:0 var(--s2);font-size:12px;cursor:default}
  :is(button,.button).chip-remove{width:20px;min-width:20px;height:20px;min-height:20px;max-height:20px;padding:0;color:inherit;background:transparent;border:0;border-radius:50%;box-shadow:none}
@@ -990,8 +993,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
 .copy-line{display:flex;align-items:center;gap:var(--s2);margin:var(--s2) 0;padding:var(--s2) var(--s2) var(--s2) var(--s3);border:1px solid var(--ln);background:var(--field)}
 .copy-line code{flex:1;min-width:0;font:13px var(--fb);overflow-x:auto;white-space:nowrap}
 .copy-line button{flex:none}
-.client-tabs{display:flex!important;flex-wrap:wrap;width:100%;gap:0}
-.client-tabs button{height:var(--compact-height)!important;min-height:var(--compact-height)!important;font-size:13px!important}
 .steps{margin:0;padding-left:var(--s6);display:grid;gap:var(--s3)}
 .steps li{line-height:1.55}
 .steps code{font:13px var(--fb);background:var(--sunk);padding:0 var(--s1)}
@@ -1045,7 +1046,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
 .form-grid+.form-grid,.form-grid+label{margin-top:var(--s4)}
 .replays>.footnote{margin:calc(-1 * var(--s2)) 0 calc(-1 * var(--s3))}
 .replays>.replay-filters{margin:0}
-.client-tabs button{flex:1 1 0!important;min-width:max-content}
 .copy-line code,.steps .copy-line code{background:none;padding:0}
 .steps{font-size:14px}
 @media(max-width:720px){
@@ -1060,8 +1060,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
 .about-you textarea,.about-you label:last-child{grid-column:1/-1}
 .about-you .field{display:grid;gap:var(--s1)}
 .about-you .field>span{font-size:13px}
-.about-you .segmented{margin:0;display:flex}
-.about-you .segmented button{flex:1}
 @media(max-width:720px){
  .settings-form.about-you{grid-template-columns:minmax(0,1fr)}
 }
@@ -1409,7 +1407,7 @@ html.jade .set-extras .set-notes-edit{display:block!important;width:100%}
 html.jade .set-extras .set-notes-edit textarea{width:100%;display:block}
 html.jade .benchmarks li.broken{border-color:color-mix(in srgb,var(--hot) 45%,transparent)!important;background:color-mix(in srgb,var(--hot) 8%,transparent)!important}
 /* a button beside labelled fields lines up with the fields, not the labels */
-html.jade :is(form,.settings-form,.settings-row,.form-grid,.button-row)>label~:is(button,.button){align-self:flex-end;height:40px;margin-bottom:var(--s4)}
+html.jade :is(form,.settings-form,.settings-row,.form-grid,.button-row)>label~:is(button,.button){align-self:flex-end;margin-bottom:var(--s4)}
 html.jade .settings-form{align-items:flex-end;gap:0 var(--s3)}
 /* =====================================================================================================
    Calc round 3: attacker over defender, effects where they belong, Mega switch, HP drain, speed race
@@ -1966,8 +1964,7 @@ html.jade .brain-backdrop{transition:opacity 1.6s ease}
 .art.sprite img{object-fit:contain}
 .art.sprite-gen5 img{image-rendering:pixelated}
 .sprite-choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s3)}
-html.jade .sprite-choice button.sprite-option:not(#_){max-height:none!important;display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;gap:var(--s1);height:auto!important;min-height:0!important;padding:var(--s3) var(--s2) var(--s4)!important;text-align:center;white-space:normal;border-radius:var(--r)!important}
-html.jade .sprite-choice button.sprite-option.on:not(#_){border-color:var(--ac)!important;box-shadow:0 0 0 1px var(--ac),0 0 18px -6px var(--glow)!important;background:color-mix(in srgb,var(--ac) 10%,transparent)!important}
+.sprite-option{justify-items:center;align-content:start;gap:var(--s1);padding:var(--s3) var(--s2) var(--s4);text-align:center}
 .sprite-preview{display:flex;align-items:flex-end;justify-content:center;width:100%;height:120px;padding-bottom:var(--s4);box-sizing:border-box;margin-bottom:var(--s2);border-radius:var(--rs);background:radial-gradient(42% 16% at 50% 84%,var(--floor),transparent 100%)}
 .sprite-preview img{max-width:100%;max-height:100%;object-fit:contain}
 .sprite-preview.sprite-home img{height:100px}
@@ -1981,7 +1978,7 @@ html.jade .sprite-choice button.sprite-option.on:not(#_){border-color:var(--ac)!
  .sprite-preview.sprite-home img{height:76px}
  .sprite-preview.sprite-gen5 img{height:68px}
  .sprite-preview.sprite-xy img{max-height:76px}
- html.jade .sprite-choice button.sprite-option:not(#_){padding:var(--s2) var(--s1) var(--s3)!important}
+ .sprite-option{padding:var(--s2) var(--s1) var(--s3)}
 }
 @media (prefers-reduced-motion:reduce){
  .calc-run i,.calc-run b,.shell.power-on>*,.screen-sweep,.boot-exe .caret,.boot-lines div{animation:none!important}
@@ -2257,12 +2254,8 @@ html.jade .about-you .pref-field{display:flex;flex-direction:column;gap:var(--s2
 html.jade .about-you .pref-field.wide{grid-column:1/-1}
 html.jade .about-you .pref-label{font:600 13px/1.2 var(--fb);color:var(--tx);margin:0}
 html.jade .about-you :is(input,select,textarea){width:100%;margin:0!important;box-sizing:border-box}
-html.jade .about-you input{height:40px}
-html.jade .about-you .segmented{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);height:40px;margin:0!important}
-html.jade .about-you .segmented button{height:100%!important;min-height:0!important}
 html.jade .about-you .picker,html.jade .about-you .combo{width:100%}
 .pref-chips{display:flex;flex-wrap:wrap;gap:var(--s1)}
-html.jade .pref-chips .chip{display:inline-flex;align-items:center;gap:var(--s1);height:28px;padding:0 var(--s1) 0 var(--s2);font-size:13px}
 @media (max-width:620px){
  html.jade .about-you{grid-template-columns:minmax(0,1fr);gap:var(--s4)}
 }
@@ -2345,7 +2338,7 @@ html.jade .footer-mail{font:inherit;user-select:all}
  html.jade .sprite-preview.sprite-home img{height:100px}
  html.jade .sprite-preview.sprite-gen5 img{height:96px}
  html.jade .sprite-preview.sprite-xy img{max-height:104px}
- html.jade .sprite-choice button.sprite-option:not(#_){padding:var(--s3) var(--s2) var(--s4)!important}
+ .sprite-option{padding:var(--s3) var(--s2) var(--s4)}
  html.jade :is(.settings-actions,.manage-actions,.consent-actions,.lp-ctas){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:var(--s2);width:100%}
  html.jade :is(.settings-actions,.manage-actions,.consent-actions,.lp-ctas)>:is(button,a.button,.button,label){width:100%;max-width:none;justify-content:center;text-align:center;margin:0}
 }
@@ -2538,7 +2531,6 @@ html.jade .inbox-why{font-size:14px}
 html.jade .inbox-diff{list-style:none;margin:0;padding:0;display:grid;gap:var(--s1);font-size:13px;color:var(--mu)}
 html.jade .inbox-item .selections{display:flex;flex-wrap:wrap;gap:var(--s4)}
 html.jade .inbox-item .button-row{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center;justify-content:flex-start}
-html.jade .inbox-item a.button{display:inline-flex;align-items:center;gap:var(--s2);text-decoration:none}
 @media(max-width:720px){
  html.jade .inbox-item .button-row>*{flex:1 1 100%;justify-content:center}
  html.jade .inbox-item .button-row>.text-button{flex:0 0 auto;margin:0 auto}
@@ -2652,7 +2644,7 @@ html.jade .dock-wrap,html.jade .shell>.dock-wrap{display:contents}
 .ds-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:var(--gap-inline);margin:0 0 var(--s3)}
 .ds-badge-host{position:relative;display:inline-flex}
 .ds-dialog{width:auto;max-height:none;margin:0;animation:none}
-.ds-toast{position:static}
+.ds-toast>.toast{position:static;margin-top:0}
 .ds-space{display:grid;gap:var(--s2)}
 .ds-space div{display:flex;align-items:center;gap:var(--s3);font:12px var(--fnum)}
 .ds-space i{height:12px;border-radius:var(--s05);background:var(--ac)}

@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import './landing.css';
-import {Art,TypeBadges,ModeSwitch} from './ui.tsx';
+import {Art,TypeBadges,ModeSwitch,Button,LinkButton,Tag,Segmented} from './ui.tsx';
 import {PlanCard} from './team/Coaching.tsx';
 import {RolePill} from './team/Coaching.tsx';
 import {MonCard} from './team/Hub.tsx';
@@ -90,8 +90,8 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
       <div className="lp-copy">
         <h1 className="lp-title">The open&#8209;source <em>brain</em> for Pokémon VGC.</h1>
         <p className="lp-sub">Build teams, run calcs and learn from your replays, with the AI you already use.</p>
-        <div className="lp-ctas"><button className="primary lp-go" onClick={onOpen}>Open the app<span aria-hidden="true">→</span></button>
-          <a className="button lp-gh" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</a></div>
+        <div className="lp-ctas"><Button variant="primary" className="lp-go" onClick={onOpen}>Open the app<span aria-hidden="true">→</span></Button>
+          <LinkButton className="lp-gh" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</LinkButton></div>
       </div>
       <div className="lp-vis"><div className="lp-stage" ref={stage}>
         <span className="lp-floor" aria-hidden="true"/>
@@ -117,7 +117,7 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
             meta={<div className="front-back"><span className="fb-label">Front</span><span className="fb-mons"><span className="fb-mon"><Art name="Alakazam-Mega" fallback="Alakazam" art={art} small/>Alakazam-Mega</span><span className="fb-mon"><Art name="Incineroar" art={art} small/>Incineroar</span></span>
               <span className="fb-divider"/><span className="fb-label">Back</span><span className="fb-mons"><span className="fb-mon"><Art name="Sneasler" art={art} small/>Sneasler</span><span className="fb-mon"><Art name="Gholdengo" art={art} small/>Gholdengo</span></span></div>}
             summary="Into Mega Salamence leads, with Trick Room less likely." body={planText}
-            foot={<span className="tag">V2</span>}
+            foot={<Tag>V2</Tag>}
             edit={redraft} remove={()=>setPlanText(PLAN)}/>
         </Tilt>
       </div></div>
@@ -132,7 +132,7 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
       <div className="lp-vis lp-rv"><div className="lp-calcs" ref={calcs}>
         <Tilt className="lp-dmg" base={{y:-8,x:2,z:-1}}><section className="panel lab-inline lp-panel">
           <header className="panel-heading"><div><span className="eyebrow">Incineroar · Careful 32/2/32 · PokéBase M-C tournaments, 22.4% of spreads</span><h2>Damage</h2></div></header>
-          <div className="segmented lp-moves" role="group" aria-label="Move">{MOVES.map((m,i)=><button key={m.n} className={i===move?'on':''} aria-pressed={i===move} onClick={()=>setMove(i)}>{m.n}</button>)}</div>
+          <Segmented className="lp-moves" label="Move" value={String(move)} onChange={v=>setMove(Number(v))} options={MOVES.map((m,i)=>({value:String(i),label:m.n}))}/>
           <DamageViz key={move+':'+calcSeen} result={MOVES[move].r} name="Incineroar" attackerName="Mega Alakazam" defender="Incineroar" fallback="Incineroar" move={MOVES[move].n} art={art}/>
         </section></Tilt>
         <Tilt className="lp-race" base={{y:7,x:2,z:1}}><section className="panel lab-inline lp-panel">
@@ -147,14 +147,14 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
     <section className="lp-zz lp-flip" id="replays">
       <div className="lp-vis lp-rv"><div className="lp-rstack">
         <Tilt className="lp-r-shot" base={{y:10,x:3,z:-1.5}}><section className="panel lp-panel">
-          <header className="lp-shot-head"><span className="lp-sd"><img src="/landing/logos/showdown.png" alt="" width={24} height={24}/>Pokémon Showdown replay</span><span className="tag">Turn 2</span></header>
+          <header className="lp-shot-head"><span className="lp-sd"><img src="/landing/logos/showdown.png" alt="" width={24} height={24}/>Pokémon Showdown replay</span><Tag>Turn 2</Tag></header>
           <div className="lp-shot"><img src="/landing/replay.jpg" alt="A Pokémon Showdown replay at turn 2: Swampert uses Wave Crash on Sableye in rain" width={875} height={720}/>
             <span className={'lp-hot'+(hot===0?' on':'')} style={{left:'2.5%',top:'11.5%',width:'60%',height:'18%'}}/><span className={'lp-hot'+(hot===1?' on':'')} style={{left:'55.5%',top:'23%',width:'14%',height:'7.5%'}}/><span className={'lp-hot'+(hot===2?' on':'')} style={{left:'37%',top:'1%',width:'44%',height:'9%'}}/></div>
         </section></Tilt>
         <Tilt className="lp-r-debrief lp-more" base={{y:-9,x:2,z:2}}><section className="digest panel lp-panel"><header className="panel-heading"><div><span className="eyebrow">Example · 6 games</span><h2>Debrief</h2></div></header>
           <div className="debrief">
             <section><h3>What's working</h3><ul className="debrief-good"><li>Rain up on turn 2, and Wave Crash takes Sableye to 26%.</li><li>Leads that outspeed the opposing pair.</li></ul></section>
-            <section><h3>What to work on</h3><ol className="themes"><li><div className="theme-head"><b>Switching into Fake Out</b><span className="tag">3 of 6 games</span></div><p>Back-to-back Protect turns leave the second slot exposed.</p></li></ol></section>
+            <section><h3>What to work on</h3><ol className="themes"><li><div className="theme-head"><b>Switching into Fake Out</b><Tag>3 of 6 games</Tag></div><p>Back-to-back Protect turns leave the second slot exposed.</p></li></ol></section>
           </div></section></Tilt>
         <Tilt className="lp-r-glance lp-more" base={{y:6,x:-2,z:-2}}><section className="glance panel lp-panel"><header className="panel-heading"><div><span className="eyebrow">Example · 6 games</span><h2>Who gives you trouble</h2></div></header>
           <div className="glance-grid lp-glance">
@@ -165,7 +165,7 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
       <div className="lp-copy lp-rv"><span className="eyebrow">Replay analysis</span><h2 className="lp-title">Analyse replays.</h2>
         <p className="lp-sub">See who you're beating, who you're losing to and how to build and play better.</p>
         <div className="lp-soon lp-more"><span className="lp-soon-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10-6.5a1 1 0 0 0 0-1.72l-10-6.5A1 1 0 0 0 8 5.5z"/></svg></span>
-          <div><b>Video replay analysis</b><span>Review the recording, not just the log.</span></div><span className="tag lp-tag-gold">Coming soon</span></div></div>
+          <div><b>Video replay analysis</b><span>Review the recording, not just the log.</span></div><Tag className="lp-tag-gold">Coming soon</Tag></div></div>
     </section>
 
     {/* data: copy left, floating source logos right */}
@@ -186,16 +186,16 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
             <ul className="lp-points lp-more"><li><b>Stays in this browser.</b> Your key is kept on this device only, not in your account or our database.</li><li><b>Used only for your requests.</b> It passes to the provider for that one request and is discarded. Never logged or stored.</li><li><b>You're in control.</b> Remove it any time, or set a spending limit with your provider.</li></ul></div>
           <div className="lp-side">
             <div className="lp-grid c2" role="group" aria-label="Provider">
-              <button className={prov==='openai'?'on':''} aria-pressed={prov==='openai'} onClick={()=>setProv('openai')}><OpenAIMark/><span>OpenAI</span></button>
-              <button className={prov==='anthropic'?'on':''} aria-pressed={prov==='anthropic'} onClick={()=>setProv('anthropic')}><AnthropicMark style={{color:'#D97757'}}/><span>Anthropic</span></button></div>
+              <Button className={prov==='openai'?'on':undefined} aria-pressed={prov==='openai'} onClick={()=>setProv('openai')}><OpenAIMark/><span>OpenAI</span></Button>
+              <Button className={prov==='anthropic'?'on':undefined} aria-pressed={prov==='anthropic'} onClick={()=>setProv('anthropic')}><AnthropicMark style={{color:'#D97757'}}/><span>Anthropic</span></Button></div>
             <div className="lp-cmd"><code><b>{prov==='openai'?'OPENAI_API_KEY':'ANTHROPIC_API_KEY'}</b>={prov==='openai'?'sk-…':'sk-ant-…'}</code></div>
             <p className="lp-fine">Check for yourself. Frontier Brain is open source, so you can read exactly how keys are handled.</p></div>
         </div>:<div className="lp-pane" role="tabpanel">
           <div><p className="lp-lead"><b>Use Frontier Brain from Claude, ChatGPT or your coding agent.</b> Add it as a connector and your assistant can read your teams, run exact calcs, look up the data pool, create teams and propose plans. It runs on your own subscription, with no API key needed.</p>
             <ul className="lp-points lp-more"><li><b>You approve access.</b> Connecting opens Frontier Brain so you can sign in and click Allow.</li><li><b>Only your workspace.</b> The connector sees your teams and replays, nobody else's.</li><li><b>Changes wait for you.</b> New plans arrive as proposals; nothing about an existing team changes until you accept it.</li></ul></div>
           <div className="lp-side">
-            <div className="lp-grid c3" role="group" aria-label="Client">{CLIENTS.map((c,i)=><button key={c.n} className={i===client?'on':''} aria-pressed={i===client} onClick={()=>setClient(i)}>{c.icon}<span>{c.n}</span></button>)}</div>
-            <div className="lp-cmd"><code>{cur.snip}</code><button className="compact" onClick={()=>copy(cur.snip)}>{copied?'Copied':'Copy'}</button></div>
+            <div className="lp-grid c3" role="group" aria-label="Client">{CLIENTS.map((c,i)=><Button key={c.n} className={i===client?'on':undefined} aria-pressed={i===client} onClick={()=>setClient(i)}>{c.icon}<span>{c.n}</span></Button>)}</div>
+            <div className="lp-cmd"><code>{cur.snip}</code><Button size="compact" onClick={()=>copy(cur.snip)}>{copied?'Copied':'Copy'}</Button></div>
             <p className="lp-fine">{cur.hint}</p></div>
         </div>}
       </div>
@@ -204,7 +204,7 @@ export default function Welcome({data,onOpen}:{data:any;onOpen:()=>void}){
     {/* closing */}
     <section className="lp-close lp-rv">
       <h2 className="lp-title">The brain every VGC player can build on.</h2>
-      <a className="button primary lp-xl" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</a>
+      <LinkButton variant="primary" className="lp-xl" href={REPO} target="_blank" rel="noreferrer"><GitHubMark/>View source</LinkButton>
       <p>Open source and free for anyone to tinker with. Fork it, extend it, bring your own AI, and help make the best community tools.</p>
     </section>
   </div>;

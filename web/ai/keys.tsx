@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {Button,Field} from '../ui.tsx';
 // The user's own AI key lives only in this browser (localStorage) and is sent with each request over HTTPS.
 // The server uses it for that request and never stores it. Nobody else's usage is ever billed to it.
 export type AIKey={provider:'openai'|'anthropic';key:string};
@@ -11,13 +12,13 @@ export function AIKeySettings({onChange}:{onChange?:()=>void}){
   const saved=aiKey();const [provider,setProvider]=useState<AIKey['provider']>(saved?.provider??'openai'),[key,setKey]=useState(''),[open,setOpen]=useState(false);
   const save=()=>{if(!key.trim())return;setAIKey({provider,key:key.trim()});setKey('');setOpen(false);onChange?.();};
   return <div className="ai-key">
-    <button className="compact" onClick={()=>setOpen(!open)} title="Use your own OpenAI or Anthropic key">{saved?`${saved.provider==='openai'?'OpenAI':'Claude'} key ✓`:'Add AI key'}</button>
+    <Button size="compact" onClick={()=>setOpen(!open)} title="Use your own OpenAI or Anthropic key">{saved?`${saved.provider==='openai'?'OpenAI':'Claude'} key ✓`:'Add AI key'}</Button>
     {open&&<div className="account-pop" role="dialog" aria-label="AI key">
       <p>Ask Frontier Brain runs on <b>your own</b> key. It stays in this browser and is only sent with your requests; it's never stored on the server.</p>
-      <label>Provider<select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label>
-      <label>API key<input type="password" autoComplete="off" placeholder={provider==='openai'?'sk-…':'sk-ant-…'} value={key} onChange={e=>setKey(e.target.value)}/></label>
+      <Field label="Provider"><select value={provider} onChange={e=>setProvider(e.target.value as AIKey['provider'])}><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></Field>
+      <Field label="API key"><input type="password" autoComplete="off" placeholder={provider==='openai'?'sk-…':'sk-ant-…'} value={key} onChange={e=>setKey(e.target.value)}/></Field>
       <p className="footnote">Get one at {provider==='openai'?<a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">platform.openai.com</a>:<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">console.anthropic.com</a>}. You pay the provider directly for what you use.</p>
-      <div className="button-row"><button className="primary" disabled={!key.trim()} onClick={save}>Save key</button>{saved&&<button onClick={()=>{setAIKey(null);setOpen(false);onChange?.();}}>Remove key</button>}</div>
+      <div className="button-row"><Button variant="primary" disabled={!key.trim()} onClick={save}>Save key</Button>{saved&&<Button onClick={()=>{setAIKey(null);setOpen(false);onChange?.();}}>Remove key</Button>}</div>
     </div>}
   </div>;
 }

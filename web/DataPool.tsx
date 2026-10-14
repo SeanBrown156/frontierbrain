@@ -1,5 +1,5 @@
 import {useState,useEffect,useLayoutEffect,useRef} from 'react';
-import {api,Panel,Notice,Art,date} from './ui.tsx';
+import {api,Panel,Notice,Art,date,Button} from './ui.tsx';
 import {Px,Reload} from './icons.tsx';
 import {hostedSite} from './auth.tsx';
 const laneNames:Record<string,string>={official:'Official events (Limitless)',online:'Online tournaments (Limitless)',shared:'Shared pastes (VGCPastes, unmatched)'};
@@ -19,7 +19,7 @@ export default function DataPool({art}:{art:any}){
       const p=panel.getBoundingClientRect(),t=table.getBoundingClientRect();const chrome=(t.top-p.top)+parseFloat(getComputedStyle(panel).paddingBottom||'0');
       setRows(Math.max(5,Math.min(o.usage.length,Math.floor((p.height-chrome)/rowH))));};
     fit();const ro=new ResizeObserver(fit);ro.observe(g);return()=>ro.disconnect();},[o,fill]);
-  return <div className="data-pool"><Panel title="Data pool" kicker="ONE DEDUPLICATED SET OF TEAMS" action={hostedSite?undefined:<button onClick={()=>void refresh()} disabled={data?.refreshing}><Px icon={Reload}/>{data?.refreshing?'Refreshing…':'Refresh now'}</button>}>
+  return <div className="data-pool"><Panel title="Data pool" kicker="ONE DEDUPLICATED SET OF TEAMS" action={hostedSite?undefined:<Button onClick={()=>void refresh()} disabled={data?.refreshing}><Px icon={Reload}/>{data?.refreshing?'Refreshing…':'Refresh now'}</Button>}>
     {error&&<p className="error">{error}</p>}{!s?<Notice>The pool hasn't been built yet. Refresh to collect teams.</Notice>:<>
     <div className="pool-counts">{(['official','online','shared'] as const).map(l=><div key={l}><b>{s.counts[l==='shared'?'shared':l]}</b><span>{laneNames[l]}</span></div>)}<div><b>{s.counts.mergedSpreads}</b><span>pastes matched to a tournament team (spreads attached)</span></div><div><b>{s.counts.total}</b><span>teams in the pool · {s.counts.withSpreads} with exact spreads</span></div></div>
     <p className="footnote">Refreshed {date(s.refreshedAt)} {new Date(s.refreshedAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}. {hostedSite?'Updates weekly':'Updates every 12 hours while the app runs'}; finished events and pastes are cached for good. Online events need ≥{s.minPlayers} players. {s.excluded}</p>

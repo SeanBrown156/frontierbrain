@@ -106,8 +106,8 @@ export function ChoiceChip({checked,disabled,onChange,children}:{checked:boolean
 // A chip that only shows a value (a team style on a replay).
 export function ChipLabel({small=false,on=false,className,children}:{small?:boolean;on?:boolean;className?:string;children:ReactNode}){return <span className={'chip'+(on?' on':'')+(small?' small':'')+(className?' '+className:'')}>{children}</span>;}
 export function Chip({on,className,children,...rest}:React.ButtonHTMLAttributes<HTMLButtonElement>&{on?:boolean}){return <button className={'chip'+(on?' on':'')+(className?' '+className:'')} {...rest}>{children}</button>;}
-export function Segmented<T extends string>({label,options,value,onChange,className}:{label:string;options:{value:T;label:ReactNode}[];value:T;onChange:(v:T)=>void;className?:string}){
-  return <div className={'segmented'+(className?' '+className:'')} role="group" aria-label={label}>{options.map(o=><button key={o.value} type="button" aria-pressed={o.value===value} className={o.value===value?'on':undefined} onClick={()=>onChange(o.value)}>{o.label}</button>)}</div>;}
+export function Segmented<T extends string>({label,options,value,onChange,className,block=false}:{label?:string;options:{value:T;label:ReactNode}[];value:T;onChange:(v:T)=>void;className?:string;block?:boolean}){
+  return <div className={'segmented'+(block?' block':'')+(className?' '+className:'')} role="group" aria-label={label}>{options.map(o=><button key={o.value} type="button" aria-pressed={o.value===value} className={o.value===value?'on':undefined} onClick={()=>onChange(o.value)}>{o.label}</button>)}</div>;}
 export function Card({children,className}:{children:ReactNode;className?:string}){return <div className={'card'+(className?' '+className:'')}>{children}</div>;}
 // Team members named in the text appear as small linked sprites beside their name (Mega names included).
 export type MonRef={name:string;set:{species:string;item?:string};href:string};

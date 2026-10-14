@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {Button,IconButton,Field,Tag,CountBadge,Toggle,Segmented,Card,Panel,Notice,Empty,Tabs,ModeSwitch,ModalFooter} from './ui.tsx';
+import {Button,IconButton,Field,Tag,CountBadge,Toggle,Segmented,Card,Panel,Notice,Empty,Tabs,ModeSwitch,ModalFooter,Chip,ChipLabel,ChoiceChip,Toast,LinkButton} from './ui.tsx';
 import {Px,Plus,Pencil,Trash,Close,Check,Sparkles} from './icons.tsx';
 
 // #design-system: every component in both themes, side by side (stacked on phones). Built only from ui.tsx components
@@ -8,25 +8,27 @@ const SPACE=[['s1',4],['s2',8],['s3',12],['s4',16],['s6',24],['s8',32],['s12',48
 const COLOURS=['bg','glass','sunk','tx','mu','ln','ac','gd','hot'];
 
 function Sheet(){
-  const [seg,setSeg]=useState('all'),[tab,setTab]=useState('Damage'),[on,setOn]=useState(true),[mode,setMode]=useState<'key'|'mcp'>('key');
+  const [seg,setSeg]=useState('all'),[tab,setTab]=useState('Damage'),[week,setWeek]=useState('0'),[back,setBack]=useState<string[]>(['Incineroar']),[on,setOn]=useState(true),[mode,setMode]=useState<'key'|'mcp'>('key');
   return <div className="ds-sheet">
     <Panel title="Buttons" kicker="Button · IconButton">
-      <div className="button-row ds-row"><Button variant="primary" icon={<Px icon={Check}/>}>Save</Button><Button>Secondary</Button><Button variant="danger" icon={<Px icon={Trash}/>}>Delete</Button><Button variant="quiet">Quiet</Button></div>
+      <div className="button-row ds-row"><Button variant="primary" icon={<Px icon={Check}/>}>Save</Button><Button>Secondary</Button><Button variant="danger" icon={<Px icon={Trash}/>}>Delete</Button><Button variant="quiet">Quiet</Button><Button variant="ghost">Ghost</Button><LinkButton href="#design-system">Link</LinkButton></div>
+      <div className="button-row ds-row"><Button variant="danger" solid>Delete team</Button><Button variant="plain">Plain title <Px icon={Pencil} size={14}/></Button></div>
       <div className="button-row ds-row"><Button size="compact">Compact</Button><Button variant="primary" size="compact">Compact primary</Button><Button disabled>Disabled</Button>
-        <IconButton label="Edit" icon={<Px icon={Pencil}/>}/><span className="ds-badge-host"><IconButton label="Inbox, 3 waiting" icon={<Px icon={Plus}/>}/><CountBadge count={3}/></span></div>
+        <IconButton label="Edit" icon={<Px icon={Pencil}/>}/><IconButton variant="ghost" label="Edit" icon={<Px icon={Pencil}/>}/><IconButton variant="ghost" size="compact" label="Delete" icon={<Px icon={Trash} size={16}/>}/><span className="ds-badge-host"><IconButton label="Inbox, 3 waiting" icon={<Px icon={Plus}/>}/><CountBadge count={3}/></span></div>
     </Panel>
     <Panel title="Fields" kicker="Field · Select · Textarea">
       <div className="form-grid ds-fields"><Field label="Team name"><input placeholder="e.g. Rain blitz"/></Field>
         <Field label="Format"><select defaultValue="mc"><option value="mc">Champions VGC · Reg M-C</option></select></Field></div>
       <Field label="Notes"><textarea rows={2} placeholder="Lead, key move, what wins it."/></Field>
       <label className="radio"><input type="checkbox" defaultChecked/>Show inferred fields</label>
-      <fieldset><legend>Back (1/2)</legend><div className="choose-row"><label className="choose on"><input type="checkbox" defaultChecked/>Incineroar</label><label className="choose"><input type="checkbox"/>Gholdengo</label></div></fieldset>
+      <fieldset><legend>Back ({back.length}/2)</legend><div className="choose-row">{['Incineroar','Gholdengo','Rillaboom'].map(m=><ChoiceChip key={m} checked={back.includes(m)} disabled={!back.includes(m)&&back.length>=2} onChange={c=>setBack(c?[...back,m]:back.filter(x=>x!==m))}>{m}</ChoiceChip>)}</div></fieldset>
     </Panel>
     <Panel title="Choices" kicker="Segmented · Tabs · Toggle · Chip · Switch">
       <div className="ds-row"><Segmented label="Result" value={seg} onChange={setSeg} options={[{value:'all',label:'All'},{value:'win',label:'Wins'},{value:'loss',label:'Losses'}]}/></div>
-      <Tabs tabs={['Damage','Speed']} value={tab} onChange={setTab}/>
+      <Tabs block tabs={['Damage','Speed']} value={tab} onChange={setTab}/>
+      <Tabs block tabs={[{value:'0',label:'This week',sub:'In progress'},{value:'1',label:'Oct 5',sub:'Weekly digest'}]} value={week} onChange={setWeek}/>
       <div className="toggles ds-row"><Toggle on={on} onChange={setOn}>Helping Hand</Toggle><Toggle on={!on} onChange={v=>setOn(!v)}>Critical hit</Toggle></div>
-      <div className="chip-row ds-row"><button className="chip on">Rain</button><button className="chip">Trick Room</button></div>
+      <div className="chip-row ds-row"><Chip on>Rain</Chip><Chip>Trick Room</Chip><ChipLabel small>Balance</ChipLabel><ChipLabel on>Gengar<IconButton className="chip-remove" label="Remove Gengar" icon={<Px icon={Close} size={12}/>}/></ChipLabel></div>
       <ModeSwitch label="Connect your AI" value={mode} onChange={setMode} options={[{value:'key',label:'API key',icon:<Px icon={Sparkles}/>},{value:'mcp',label:'MCP'}]}/>
     </Panel>
     <Panel title="Labels" kicker="Tag · Eyebrow · Footnote">
@@ -37,7 +39,7 @@ function Sheet(){
       <Card><h3>Gholdengo</h3><p className="muted">Good as Gold · Timid</p></Card>
       <Notice>Regulation M-C ends on 1 December.</Notice>
       <Empty>Nothing here yet.</Empty>
-      <div className="toast ds-toast" role="status">Saved<button className="icon" aria-label="Dismiss notification"><Px icon={Close} size={16}/></button></div>
+      <div className="ds-toast"><Toast onDismiss={()=>{}}>Saved</Toast></div>
     </Panel>
     <Panel title="Dialog" kicker="Modal · ModalFooter">
       <div className="modal ds-dialog"><header><h2>Lead plan</h2><button className="icon dialog-close" aria-label="Close dialog"><Px icon={Close} size={18}/></button></header>
