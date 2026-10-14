@@ -96,7 +96,7 @@ export function LinkButton({variant='secondary',size='regular',className,childre
 // Square icon-only button; `label` is its accessible name.
 export function IconButton({label,icon,variant='secondary',size='regular',className,...rest}:Omit<React.ButtonHTMLAttributes<HTMLButtonElement>,'children'>&{label:string;icon:ReactNode;variant?:'secondary'|'ghost';size?:'regular'|'compact'}){
   return <button className={'icon'+(variant==='ghost'?' ghost':'')+(size==='compact'?' compact':'')+(className?' '+className:'')} aria-label={label} {...rest}>{icon}</button>;}
-export function Field({label,children,className}:{label:ReactNode;children:ReactNode;className?:string}){return <label className={className}>{label}{children}</label>;}
+export function Field({label,children,className,...rest}:Omit<React.LabelHTMLAttributes<HTMLLabelElement>,'children'>&{label:ReactNode;children:ReactNode}){return <label className={className} {...rest}>{label}{children}</label>;}
 export function Tag({tone,className,children,...rest}:React.HTMLAttributes<HTMLSpanElement>&{tone?:'ok'|'warn'}){return <span className={'tag'+(tone?' '+tone:'')+(className?' '+className:'')} {...rest}>{children}</span>;}
 export function CountBadge({count}:{count:number}){return count>0?<span className="count-badge" aria-hidden="true">{count>9?'9+':count}</span>:null;}
 // Pills that switch something on and off (Toggle, calc effects) or pick and filter (Chip). Both show `.on`.
@@ -104,8 +104,8 @@ export function Toggle({on,onChange,className,children,...rest}:Omit<React.Butto
 // A chip that is a checkbox (pick up to N): the label is the pill, the box itself is hidden.
 export function ChoiceChip({checked,disabled,onChange,children}:{checked:boolean;disabled?:boolean;onChange:(checked:boolean)=>void;children:ReactNode}){return <label className={'choose'+(checked?' on':'')}><input type="checkbox" checked={checked} disabled={disabled} onChange={e=>onChange(e.target.checked)}/>{children}</label>;}
 export function Chip({on,className,children,...rest}:React.ButtonHTMLAttributes<HTMLButtonElement>&{on?:boolean}){return <button className={'chip'+(on?' on':'')+(className?' '+className:'')} {...rest}>{children}</button>;}
-export function Segmented<T extends string>({label,options,value,onChange}:{label:string;options:{value:T;label:ReactNode}[];value:T;onChange:(v:T)=>void}){
-  return <div className="segmented" role="group" aria-label={label}>{options.map(o=><button key={o.value} type="button" aria-pressed={o.value===value} className={o.value===value?'on':undefined} onClick={()=>onChange(o.value)}>{o.label}</button>)}</div>;}
+export function Segmented<T extends string>({label,options,value,onChange,className}:{label:string;options:{value:T;label:ReactNode}[];value:T;onChange:(v:T)=>void;className?:string}){
+  return <div className={'segmented'+(className?' '+className:'')} role="group" aria-label={label}>{options.map(o=><button key={o.value} type="button" aria-pressed={o.value===value} className={o.value===value?'on':undefined} onClick={()=>onChange(o.value)}>{o.label}</button>)}</div>;}
 export function Card({children,className}:{children:ReactNode;className?:string}){return <div className={'card'+(className?' '+className:'')}>{children}</div>;}
 // Team members named in the text appear as small linked sprites beside their name (Mega names included).
 export type MonRef={name:string;set:{species:string;item?:string};href:string};

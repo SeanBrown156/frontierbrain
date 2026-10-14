@@ -575,7 +575,7 @@ fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--su
 .mon-card.read-only{opacity:.92}
 .markdown h1,.markdown h2,.markdown h3,.markdown h4,.team-card-title h3,.lab-result h3{font-weight:600;letter-spacing:-.01em}
 .markdown h3,.markdown h4{font-size:16px}
-.lab-result button,.chat-suggestions button{min-height:30px;padding:0 var(--s2);font-size:12px}
+.chat-suggestions button{min-height:30px;padding:0 var(--s2);font-size:12px}
 .poke-icon{display:inline-block;width:40px;height:30px;flex:none;background:url(/api/icon-sheet) no-repeat}
 .combo.with-icon>.poke-icon{position:absolute;left:6px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1}
 .combo.with-icon>input,.set-card .combo.with-icon input{padding-left:var(--s12)}
@@ -611,7 +611,6 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .score-strip,.sp-inputs,.stat-row,.tile-stats,.stat-table{font-family:var(--fb);font-variant-numeric:tabular-nums}
 .stat-final,.stat-base,.score-strip b,.pool-counts b,.lab-result h3{font-family:var(--fb)}
 .lab-result h3{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
-.lab-result button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);font:600 13px/1.2 var(--fb)}
 .profile-card,.account-pop{background:var(--glass);border:2px solid var(--ln-2);border-radius:4px;box-shadow:2px 2px 0 var(--shade)}
 .teams-landing,.team-hub,.workspace{padding:var(--s8) 0 0}
 .landing-head,.hub-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--s4);margin:0 0 var(--s6)}
@@ -930,8 +929,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
 .new-team>*{width:100%;max-width:none;margin-inline:0;box-sizing:border-box}
 .new-team .signin-for-ai{margin:0}
 .new-team .draft-review label,.new-team .paste-source{width:100%}
-.lab>.tabs{display:grid!important;grid-template-columns:1fr 1fr;gap:var(--s2)!important;width:100%}
-.lab>.tabs button{width:100%;height:var(--control-height)!important;min-height:var(--control-height)!important;max-height:none!important;font-size:14px!important}
 .dock-body{position:relative;display:flex;flex-direction:column;flex:1;min-height:0}
 .dock-body .dock-log{flex:1}
 .dock-rest{display:flex;flex-direction:column}
@@ -944,7 +941,6 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon{margin-right:0!important}
 .benchmarks .what{display:grid;min-width:0}
 .benchmarks .what b{font-size:13.5px;overflow-wrap:anywhere}
 .benchmarks .what small{color:var(--mu);font-size:12.5px}
-.benchmarks li button.icon{width:32px;min-width:32px;height:32px;min-height:32px}
 .set-notes-edit textarea{width:100%}
 .benchmark-save{justify-content:flex-start}
 .dock{display:flex;flex-direction:column}
@@ -1285,9 +1281,7 @@ html.jade .game .chip-row{margin-top:auto;padding-top:var(--s1)}
 
 /* ---------- the calc: one matchup, two sides ---------- */
 html.jade .lab{display:grid;gap:var(--s6)}
-html.jade .lab>.tabs{margin:0!important;display:inline-flex;gap:var(--s1);padding:var(--s1);border-radius:12px;background:var(--sunk);border:1px solid var(--ln);justify-self:start}
-html.jade .lab>.tabs button{border:0!important;background:transparent!important;box-shadow:none!important;color:var(--mu)!important;min-width:96px;height:36px;border-radius:9px!important;backdrop-filter:none}
-html.jade .lab>.tabs button.selected{background:var(--glass-2)!important;color:var(--tx)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--shade)!important}
+html.jade .lab>.tabs{margin:0}
 .matchup{display:grid;border:1px solid var(--ln);border-radius:var(--r);background:var(--sunk);overflow:hidden}
 .combatant{display:grid;grid-template-columns:112px minmax(0,1fr);gap:var(--s6);padding:var(--s6);align-items:start}
 .combatant-art{position:relative;width:112px;height:112px}
@@ -1861,7 +1855,6 @@ html.jade .set-history li.current{background:color-mix(in srgb,var(--ac) 10%,tra
 .h-date{color:var(--mu)}
 .h-set{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .h-sp{font:700 13px var(--fd);color:var(--mu)}
-html.jade .set-history .compact{height:28px;padding:0 var(--s2)!important;font-size:12px!important}
 html.jade .set-history legend b{font:800 13px var(--fd);color:var(--tx);margin-left:var(--s1)}
 html.jade .h-more{margin-top:var(--s2);padding:0!important;height:auto!important}
 html.jade .set-column>.set-notes{display:block!important}

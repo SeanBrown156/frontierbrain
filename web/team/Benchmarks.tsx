@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react';
 import type {BankEntry,Benchmark,PokemonSet} from '../../shared/workbench.ts';
 import {ownSide,withSet,outcome,holds,benchmarkLabel,labelText} from '../../shared/benchmarks.ts';
-import {api,Art} from '../ui.tsx';
+import {api,Art,IconButton} from '../ui.tsx';
 import '../calc-lab.css';
 import {Px,Trash} from '../icons.tsx';
 
@@ -19,5 +19,5 @@ export default function Benchmarks({entry,set,data,mutate}:{entry:BankEntry;set:
         {label.detail.length>0&&<small className="bm-detail">{label.detail.join(' · ')}</small>}
         <small>{current?current.text:saved.text}{current&&current.text!==saved.text?` · was ${saved.text}`:''}</small>
         {note&&<small className="bm-note">{note}</small>}</span>
-      <button className="icon" aria-label={`Delete benchmark ${auto}`} title="Delete" onClick={()=>{if(confirm(`Delete “${auto}”?`))void mutate({type:'benchmark-delete',benchmarkId:b.id}).catch(()=>{});}}><Px icon={Trash} size={14}/></button></li>;})}</ul></section>;
+      <IconButton size="compact" label={`Delete benchmark ${auto}`} title="Delete" onClick={()=>{if(confirm(`Delete “${auto}”?`))void mutate({type:'benchmark-delete',benchmarkId:b.id}).catch(()=>{});}} icon={<Px icon={Trash} size={14}/>}/></li>;})}</ul></section>;
 }

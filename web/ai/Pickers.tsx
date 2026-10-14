@@ -1,6 +1,6 @@
 import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
 import {X} from 'lucide-react';
-import {TYPE_COLOURS} from '../ui.tsx';
+import {TYPE_COLOURS,IconButton} from '../ui.tsx';
 import {TEAM_STYLES} from '../../shared/team-styles.ts';
 
 // A searchable list that opens under its field, like the species picker: type to filter, arrows to move, Enter or
@@ -22,7 +22,7 @@ function Combo({value,onChange,rows,placeholder,label,icon,className='',resolve,
       onBlur={()=>setTimeout(()=>{setOpen(false);if(text.trim()&&text!==value){const v=resolve?resolve(text.trim()):text.trim();if(v)onChange(v);else setText(value);}if(!text.trim())setText(value);},120)}
       onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();setOpen(true);setActive(a=>Math.min(a+1,shown.length-1));}else if(e.key==='ArrowUp'){e.preventDefault();setActive(a=>Math.max(a-1,0));}
         else if(e.key==='Enter'&&open&&shown[active]&&!shown[active].off){e.preventDefault();pick(shown[active].value);}else if(e.key==='Escape'){setOpen(false);setText(value);}}}/>
-    {open&&<button type="button" className="icon combo-close" aria-label="Close list" onMouseDown={e=>e.preventDefault()} onClick={close}><X width={18} height={18} strokeWidth={2} aria-hidden="true"/></button>}
+    {open&&<IconButton label="Close list" icon={<X width={18} height={18} strokeWidth={2} aria-hidden="true"/>} className="combo-close" type="button" onMouseDown={e=>e.preventDefault()} onClick={close}/>}
     {open&&shown.length>0&&<ul className="combo-list" id={id} role="listbox" ref={list}>{shown.map((r,i)=><li key={r.value} role="option" aria-selected={i===active} aria-disabled={r.off} className={(i===active?'active ':'')+(r.off?'off ':'')+(r.group&&(i===0||shown[i-1].group!==r.group)?'group-start':'')} data-group={r.group&&(i===0||shown[i-1].group!==r.group)?r.group:undefined}
       onMouseDown={e=>{e.preventDefault();if(!r.off)pick(r.value);}} onMouseEnter={()=>setActive(i)}><span className="row-main">{r.label}</span>{r.hint&&<small>{r.hint}</small>}</li>)}{shown[active]?.note&&<li role="presentation" className="combo-note">{shown[active].note}</li>}</ul>}
     {after}

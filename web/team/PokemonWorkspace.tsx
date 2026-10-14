@@ -1,7 +1,7 @@
 import {useState,useEffect,useRef,type ReactNode} from 'react';
 import {setStrategyText,POKEMON_STRATEGY_TEMPLATE} from '../../shared/workbench.ts';
 import type {SetRevision,SetNotes,PokemonSet,BankEntry} from '../../shared/workbench.ts';
-import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown,SetArt,MegaBadge} from '../ui.tsx';
+import {api,Art,Notice,Empty,date,TypeBadges,ItemIcon,useDex,Markdown,SetArt,MegaBadge,Button,LinkButton,Field,Tag,Segmented} from '../ui.tsx';
 import {Px as Icon,Pencil,Check} from '../icons.tsx';
 import {Px,ArrowLeft,WarningDiamond} from '../icons.tsx';
 import BenchmarkLab from '../BenchmarkLab.tsx';
@@ -23,7 +23,7 @@ export default function PokemonWorkspace({team,data,mutate,versionId,slot,swap}:
   const view=getView(team,data.db,versionId);const current=view.revisions[slot];
   if(!current?.revision)return <Empty>That Pokémon slot doesn't exist. <a href={teamHref(team.id,'overview',versionId)}>Back to the team.</a></Empty>;
   return <div className="workspace">
-    <div className="hub-head"><a href={teamHref(team.id,'overview',view.version.id)} className="text-button back-link"><Px icon={ArrowLeft} size={14}/>{team.name}</a></div>
+    <div className="hub-head"><LinkButton variant="quiet" className="back-link" href={teamHref(team.id,'overview',view.version.id)}><Px icon={ArrowLeft} size={14}/>{team.name}</LinkButton></div>
     <nav className="mon-switcher" aria-label="Team members">{view.revisions.map((r,i)=><a key={i} href={monHref(team.id,view.version.id,i)} className={i===slot?'selected':''} aria-current={i===slot?'page':undefined}><span className="slot-no">{String(i+1).padStart(2,'0')}</span><SetArt set={r.revision.set} art={data.art} small/><span className="slot-name">{r.revision.set.species}</span></a>)}</nav>
     <SetWorkspace key={`${view.version.id}-${slot}`} team={team} data={data} mutate={mutate} view={view} slot={slot} swap={swap}/>
   </div>;
@@ -79,13 +79,13 @@ export function SetWorkspace({team,data,mutate,view,slot,swap,candidate}:{team:a
   return <><div className="workspace-grid">
     <div className="set-column">
     <section className={'set-card panel'+(readOnly?' read-only':'')} aria-label={`${set.species} set`}>
-      {readOnly&&<div className="notice warn">This is {versionName(view.version)}, an older version (read-only). <a href={monHref(team.id,team.activeVersionId,slot)}>Edit the current team →</a></div>}
+      {readOnly&&<Notice className="warn">This is {versionName(view.version)}, an older version (read-only). <a href={monHref(team.id,team.activeVersionId,slot)}>Edit the current team →</a></Notice>}
       <fieldset className="plain" disabled={readOnly}>
-      {d.changedElsewhere&&<div className="notice warn">This Pokémon was changed elsewhere (e.g. accepted from Ask Frontier Brain). <span className="button-row"><button onClick={d.loadLatest}>Load latest</button><button onClick={d.keepMine}>Keep my edits</button></span></div>}
+      {d.changedElsewhere&&<Notice className="warn">This Pokémon was changed elsewhere (e.g. accepted from Ask Frontier Brain). <span className="button-row"><Button onClick={d.loadLatest}>Load latest</Button><Button onClick={d.keepMine}>Keep my edits</Button></span></Notice>}
       <div className="set-card-head"><div className="art-wrap"><Art name={megaForm?.name??set.species} fallback={set.species} art={data.art}/>
         {!readOnly&&<button type="button" className={'fav'+(isStarred?' on':'')} aria-pressed={isStarred} aria-label={isStarred?`In My sets as “${revision.starred!.label}”. Remove from My sets`:'Save to My sets'} title={isStarred?`In My sets: ${revision.starred!.label} (click to remove)`:'Save to My sets'}
           onClick={()=>{if(isStarred)void mutate({type:'set-unstar',bankId:entry.id,revisionId:revision.id}).catch(()=>{});else setStarring(!starring);}}><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></svg></button>}
-        {starring&&!isStarred&&<div className="fav-pop" role="dialog" aria-label="Save to My sets"><label>Name for My sets<input autoFocus placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/></label><div className="button-row"><button className="primary" onClick={()=>void star()} disabled={problems.length>0||!starLabel.trim()}>Save</button><button onClick={()=>setStarring(false)}>Cancel</button></div>{problems.length>0&&<p className="footnote">Finish the set first: {problems[0]}</p>}</div>}</div><div className="grow">
+        {starring&&!isStarred&&<div className="fav-pop" role="dialog" aria-label="Save to My sets"><Field label="Name for My sets"><input autoFocus placeholder={`e.g. Bulky TR ${set.species}`} value={starLabel} onChange={e=>setStarLabel(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void star();if(e.key==='Escape')setStarring(false);}}/></Field><div className="button-row"><Button variant="primary" onClick={()=>void star()} disabled={problems.length>0||!starLabel.trim()}>Save</Button><Button onClick={()=>setStarring(false)}>Cancel</Button></div>{problems.length>0&&<p className="footnote">Finish the set first: {problems[0]}</p>}</div>}</div><div className="grow">
         <SpeciesPicker label="Species" value={set.species} onPick={sp=>void pickSpecies(sp)} onPickSaved={o=>replace(o.value.set,{reuse:true,basis:[`Reusing your saved set: ${o.label}.`]})} disabled={others.map((s:any)=>s.species)} saved={savedSets} autoFocus={swap}/>
         <div className="set-types"><TypeBadges species={megaForm?.name??set.species}/>{megaForm&&<MegaBadge title={`Battles as Mega ${set.species}`}/>}{isStarred&&<span className="fav-label">★ {revision.starred!.label}</span>}</div>
         {loading&&<p className="muted">Loading the most common {loading} set…</p>}
@@ -120,14 +120,14 @@ function SetFields({set,update,inferred,others}:{set:PokemonSet;update:(p:Partia
   const taken=new Set(others.map(o=>o.item).filter(Boolean));
   return <div className="set-fields">
     <div className="form-grid">
-      <label className="item-field">Item {guess('item')}<ItemPicker value={set.item??''} onChange={v=>update({item:v})} dex={dex} taken={[...taken].filter(Boolean) as string[]}/></label>
-      <label>Ability {guess('ability')}<select value={set.ability??''} onChange={e=>update({ability:e.target.value})}>{abilities.map(a=><option key={a}>{a}</option>)}</select></label>
-      <label>Nature {guess('nature')}<select value={set.nature??'Serious'} onChange={e=>update({nature:e.target.value})}>{(dex?.natures??[set.nature]).map((n:string)=><option key={n}>{n}</option>)}</select></label>
+      <Field className="item-field" label="Item ">{guess('item')}<ItemPicker value={set.item??''} onChange={v=>update({item:v})} dex={dex} taken={[...taken].filter(Boolean) as string[]}/></Field>
+      <Field label="Ability ">{guess('ability')}<select value={set.ability??''} onChange={e=>update({ability:e.target.value})}>{abilities.map(a=><option key={a}>{a}</option>)}</select></Field>
+      <Field label="Nature ">{guess('nature')}<select value={set.nature??'Serious'} onChange={e=>update({nature:e.target.value})}>{(dex?.natures??[set.nature]).map((n:string)=><option key={n}>{n}</option>)}</select></Field>
     </div>
     <fieldset className="moves"><legend>Moves {guess('moves')}</legend><div className="form-grid">{[0,1,2,3].map(i=><MovePicker key={i} label={`Move ${i+1}`} dex={dex} value={set.moves?.[i]??''} exclude={(set.moves??[]).filter(Boolean) as string[]} onChange={v=>{const moves=[...(set.moves??[])];while(moves.length<4)moves.push('');moves[i]=v;update({moves});}}/>)}</div></fieldset>
     <fieldset className="stat-points"><legend>Stat points <b className={total>66?'error':''}>{total} / 66</b> {guess('statPoints')}</legend>
       <StatBars base={shown?.baseStats} final={final} points={set.statPoints??{}} setPoint={(k,v)=>update({statPoints:{...set.statPoints,[k]:v}})}
-        head={mega?<div className="segmented stat-form" role="group" aria-label="Stats for">{[['mega',mega.name.replace(/^(.*)-Mega(-[XYZ])?$/,(_:string,b:string,x?:string)=>`Mega ${b}${x?' '+x.slice(1):''}`)],['base',set.species]].map(([v,l])=><button key={v} type="button" className={form===v?'on':''} aria-pressed={form===v} onClick={()=>setForm(v as any)}>{l}</button>)}</div>:null}/></fieldset>
+        head={mega?<Segmented className="stat-form" label="Stats for" value={form} onChange={v=>setForm(v as any)} options={[{value:'mega',label:mega.name.replace(/^(.*)-Mega(-[XYZ])?$/,(_:string,b:string,x?:string)=>`Mega ${b}${x?' '+x.slice(1):''}`)},{value:'base',label:set.species}]}/>:null}/></fieldset>
     <datalist id="set-items">{dex?.items.map((m:string)=><option key={m} value={m}/>)}</datalist><datalist id="set-moves">{dex?.moves.map((m:string)=><option key={m} value={m}/>)}</datalist>
   </div>;
 }
@@ -140,11 +140,11 @@ function StatBars({base,final,points,setPoint,head}:{base?:Record<string,number>
   return <div className="stat-bars">
     <div className="stat-bars-head">{head}<span className="muted">{bst?`Base total ${bst}`:''}</span><span className="stat-key"><i className="key-base"/>Base <i className="key-sp"/>Stat points</span></div>
     {stats.map(k=>{const b=base?.[k]??0,sp=points[k]??0,f=final?.[k];const nat=k==='hp'||f==null||!base?0:Math.sign(f-(b+sp+20));
-      return <label key={k} className="stat-row"><span className="stat-name">{statLabel[k]}{nat>0?<b className="nat up" title="Nature +10%">↑</b>:nat<0?<b className="nat down" title="Nature −10%">↓</b>:null}</span>
+      return <Field key={k} className="stat-row" label={<span className="stat-name">{statLabel[k]}{nat>0?<b className="nat up" title="Nature +10%">↑</b>:nat<0?<b className="nat down" title="Nature −10%">↓</b>:null}</span>}>
         <span className="stat-bar" title={base?`Base ${b} + ${sp} stat points${nat?`, nature ${nat>0?'+':'−'}10%`:''} = ${f??'…'}`:''}><span className="base" style={{width:barWidth(b),background:baseColour(b)}}/><span className="sp" style={{width:barWidth(sp)}}/></span>
         <span className="stat-base">{base?b:'—'}{sp>0&&<b className="stat-plus">+{sp}</b>}</span>
         <input type="number" min="0" max="32" aria-label={`${statLabel[k]} stat points`} value={sp} onChange={e=>setPoint(k,Math.max(0,Math.min(32,Number(e.target.value)||0)))}/>
-        <output className={'stat-final'+(nat>0?' up':nat<0?' down':'')}>{f??'—'}</output></label>;})}
+        <output className={'stat-final'+(nat>0?' up':nat<0?' down':'')}>{f??'—'}</output></Field>;})}
   </div>;
 }
 
@@ -152,15 +152,15 @@ function History({entry,revision,load}:{entry:BankEntry;revision:SetRevision;loa
   const [all,setAll]=useState(false);if(entry.revisions.length<2)return null;const list=[...entry.revisions].reverse();const shown=all?list:list.slice(0,3);
   return <fieldset className="set-history"><legend>History <b>{list.length}</b></legend><ol>{shown.map(r=><li key={r.id} className={r.id===revision.id?'current':''}>
       <span className="h-date">{date(r.createdAt)}</span><span className="h-set">{r.set.item||'No item'} · {r.set.nature}</span><span className="h-sp">{stats.map(k=>r.set.statPoints?.[k]??0).join('/')}</span>
-      {r.id===revision.id?<span className="tag ok">Now</span>:<button type="button" className="compact" onClick={()=>load(r)}>Restore</button>}</li>)}</ol>
-    {list.length>3&&<button type="button" className="text-button h-more" onClick={()=>setAll(!all)}>{all?'Show less':`Show all ${list.length}`}</button>}</fieldset>;
+      {r.id===revision.id?<Tag tone="ok">Now</Tag>:<Button size="compact" type="button" onClick={()=>load(r)}>Restore</Button>}</li>)}</ol>
+    {list.length>3&&<Button variant="quiet" className="h-more" type="button" onClick={()=>setAll(!all)}>{all?'Show less':`Show all ${list.length}`}</Button>}</fieldset>;
 }
 
 // The Pokémon's strategy: Markdown that reads as a short guide, with Edit to change it (it saves with the set).
 function SetStrategy({species,text,readOnly,onChange}:{species:string;text:string;readOnly:boolean;onChange:(t:string)=>void}){
   const [editing,setEditing]=useState(false);
-  return <section className="panel set-notes"><header className="panel-heading"><h2>Strategy</h2>{!readOnly&&(editing?<button onClick={()=>setEditing(false)}><Icon icon={Check}/>Done</button>:<button onClick={()=>setEditing(true)}><Icon icon={Pencil}/>Edit</button>)}</header>
-    {editing?<label className="set-notes-edit"><span className="sr-only">Strategy for {species} (Markdown)</span><textarea autoFocus rows={Math.max(8,text.split('\n').length+2)} placeholder={POKEMON_STRATEGY_TEMPLATE} value={text} onChange={e=>onChange(e.target.value)}/></label>
+  return <section className="panel set-notes"><header className="panel-heading"><h2>Strategy</h2>{!readOnly&&(editing?<Button onClick={()=>setEditing(false)}><Icon icon={Check}/>Done</Button>:<Button onClick={()=>setEditing(true)}><Icon icon={Pencil}/>Edit</Button>)}</header>
+    {editing?<Field className="set-notes-edit" label={<span className="sr-only">Strategy for {species} (Markdown)</span>}><textarea autoFocus rows={Math.max(8,text.split('\n').length+2)} placeholder={POKEMON_STRATEGY_TEMPLATE} value={text} onChange={e=>onChange(e.target.value)}/></Field>
       :text.trim()?<div className="set-guide"><Markdown text={text}/></div>:<p className="muted">No strategy yet.</p>}</section>;
 }
 const mergeNotes=setStrategyText;
