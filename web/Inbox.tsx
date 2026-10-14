@@ -23,7 +23,7 @@ export function useInbox(rev:unknown){
 }
 // The header entry beside the account button: just the tray icon, with a red number when something needs an action (9+ past nine).
 export function InboxLink({count}:{count:number}){
-  return <a className="inbox-button" href="#inbox" aria-label={count>0?`${count} waiting on you`:'Nothing waiting on you'} title={count>0?`${count} waiting on you`:'Nothing waiting'}><Px icon={InboxIcon}/>{count>0&&<span className="inbox-count" aria-hidden="true">{count>9?'9+':count}</span>}</a>;
+  return <a className="inbox-button" href="#inbox" aria-label={count>0?`${count} waiting on you`:'Nothing waiting on you'} title={count>0?`${count} waiting on you`:'Nothing waiting'}><Px icon={InboxIcon}/>{count>0&&<span className="count-badge" aria-hidden="true">{count>9?'9+':count}</span>}</a>;
 }
 
 // Pending decisions grouped by what they are about.

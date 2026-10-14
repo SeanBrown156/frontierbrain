@@ -17,7 +17,7 @@ html.jade .lp-title em{font-style:normal;background:linear-gradient(180deg,var(-
 @keyframes lpSheen{0%,100%{background-position:0 100%}50%{background-position:0 0}}
 html.jade .lp-sub{font-size:19px;line-height:1.55;color:var(--mu);max-width:32em;margin:0}
 html.jade .lp-ctas{display:flex;gap:12px;flex-wrap:wrap}
-html.jade .lp-go,html.jade .lp-gh{min-height:48px;padding:0 22px;display:inline-flex;align-items:center;gap:10px;font-size:15px}
+html.jade .lp-go,html.jade .lp-gh{min-height:48px;padding:0 22px;display:inline-flex;align-items:center;font-size:15px}
 html.jade :is(.lp-gh,.lp-xl,.lp-nav-src) svg{width:20px;height:20px;flex:none}
 html.jade .lp-vis{min-width:0}
 
@@ -128,7 +128,6 @@ html.jade .lp-soon-ico svg{width:20px;height:20px}
 html.jade .lp-soon>div{display:grid;min-width:0;flex:1}
 html.jade .lp-soon b{font:700 15px var(--fb)}
 html.jade .lp-soon>div span{color:var(--mu);font-size:13.5px}
-html.jade .lp-tag-gold{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 55%,transparent)}
 
 /* sources: logos floating in 3D */
 html.jade .lp-cloud{position:relative;height:500px;perspective:900px}
@@ -159,9 +158,9 @@ html.jade .lp-side{display:flex;flex-direction:column;gap:12px;min-width:0}
 html.jade .lp-grid{display:grid;gap:8px;width:100%}
 html.jade .lp-grid.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
 html.jade .lp-grid.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
-html.jade .lp-grid button{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 12px;border-radius:12px;border:1px solid var(--ln);background:var(--field);color:var(--mu);font:700 14.5px/1.2 var(--fb);box-shadow:none}
+html.jade .lp-grid button{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 12px;border-radius:12px;border:1px solid var(--ln);font:700 14.5px/1.2 var(--fb)}
 html.jade .lp-grid button:hover{color:var(--tx);border-color:var(--ln-2)}
-html.jade .lp-grid button.on{background:color-mix(in srgb,var(--ac) 20%,transparent);border-color:color-mix(in srgb,var(--ac) 60%,transparent);color:var(--tx)}
+html.jade .lp-grid button.on{color:var(--tx)}
 html.jade .lp-grid svg{width:22px;height:22px;flex:none}
 html.jade .lp-cmd{display:flex;align-items:center;gap:12px;padding:12px 14px;min-height:56px;border-radius:10px;background:var(--field);border:1px solid var(--ln)}
 html.jade .lp-cmd code{flex:1;min-width:0;font:500 13px/1.6 var(--fnum);color:var(--tx);overflow-wrap:anywhere;background:none;padding:0}
@@ -172,7 +171,7 @@ html.jade .lp-fine{font:400 12.5px/1.6 var(--fnum);color:var(--mu);margin:0}
 html.jade .lp-close{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding-block:36px 56px}
 html.jade .lp-close .lp-title{font-size:clamp(30px,4vw,52px);max-width:16em}
 html.jade .lp-close p{color:var(--tx);font-size:18px;max-width:36em;margin:0}
-html.jade .lp-xl{min-height:68px;padding:0 46px;border-radius:16px;font-size:20px;display:inline-flex;align-items:center;gap:12px}
+html.jade .lp-xl{min-height:68px;padding:0 46px;border-radius:16px;font-size:20px;display:inline-flex;align-items:center}
 
 @media (max-width:1200px){
   html.jade .lp-fan{height:auto;display:grid;gap:18px;perspective:none}
