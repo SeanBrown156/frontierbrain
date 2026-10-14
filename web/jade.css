@@ -48,8 +48,7 @@ h1,h2,.brand,.masthead nav,.eyebrow,.tag,.footer>span:first-child,.mono,.score-s
 .six-grid{display:grid}.mon-card{display:flex;flex-direction:column}.mon-card-head p{margin:0;color:var(--mu)}.mon-card .card-footer{margin-top:auto}
 .move-list li.known{font-weight:600}.move-list li.inferred,i.inferred{color:var(--mu);font-style:italic}i.inferred{font-size:11px;margin-left:var(--s1)}
 .workspace-grid{display:grid}.mon-switcher{display:flex}.chat-turn.user{justify-self:end;max-width:85%}.chat-turn.user p{margin:0}.chat-turn .markdown p:last-child{margin-bottom:0}.chat-suggestions{flex-wrap:wrap}.chat-input textarea{resize:vertical;border:1px solid var(--tx);border-radius:3px}.plan-card.proposed{border-style:dashed;border-color:var(--gd)}.plan-card .pair{display:flex;align-items:center;flex-wrap:wrap}.plan-card .pair h3{margin:0 var(--s1) 0 0}.plan-card footer{justify-content:flex-end}.plan-card footer .muted{margin-right:auto;font-size:11px}
-.threat{color:var(--glass)}
-.subhead{font-size:13px;font-weight:400;margin:var(--s4) 0 var(--s1);color:var(--mu)}.stat-table{width:100%;border-collapse:collapse}.stat-table th,.stat-table td{text-align:left;border-bottom:1px solid var(--ln)}.stat-table td .art.small{vertical-align:middle}
+.threat{color:var(--glass)}.stat-table{width:100%;border-collapse:collapse}.stat-table th,.stat-table td{text-align:left;border-bottom:1px solid var(--ln)}.stat-table td .art.small{vertical-align:middle}
 .objectives{list-style:none;padding:0}.objectives li{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ln)}.objectives li.done label{text-decoration:line-through;color:var(--mu)}
 @media(prefers-reduced-motion:reduce){.ticker-run{animation:none}}
 .hub-head>.text-button:first-child{flex-basis:100%}
@@ -59,7 +58,7 @@ h1,h2,.brand,.masthead nav,.eyebrow,.tag,.footer>span:first-child,.mono,.score-s
 .choose-row{display:flex;flex-wrap:wrap;gap:var(--s1)}.choose{border:1px solid var(--ln);border-radius:3px;padding:var(--s1) var(--s2);cursor:pointer;font-size:12px}.choose input{display:none}
 .build-jobs{display:grid;gap:var(--s2);margin-bottom:var(--s3)}.build-job{display:flex;justify-content:space-between;gap:var(--s3);align-items:center;padding:var(--s3) var(--s3)}.build-job.failed,.build-job.interrupted{border-color:var(--hot)}.build-job h3{margin:var(--s1) 0}
 .source-card{padding:var(--s2)}.source-card a{display:flex;gap:var(--s2);align-items:center}.source-card p{font-size:12px;margin:var(--s1) 0}h3,.team-card-title h3,.lab-result h3{font-family:var(--fd);font-size:16px;line-height:1.4}.hub-tabs,.ticker-run b{font-size:16px}
-button,.button,.eyebrow,.tag,.status,.result,legend,.sp-inputs label,.text-button,.ticker-label,.subhead,.threat,.score-strip span,.reference-groups h3,.art-fallback{font-family:var(--fb)}.footnote,small{font-size:12.5px}
+button,.button,.eyebrow,.tag,.status,.result,legend,.sp-inputs label,.text-button,.ticker-label,.threat,.score-strip span,.reference-groups h3,.art-fallback{font-family:var(--fb)}.footnote,small{font-size:12.5px}
 .sp-inputs input,.tile-stats b,.tile-stats small,td,.score-strip b{font-variant-numeric:tabular-nums}.sp-inputs input{font-size:14px}
 b,strong,.markdown strong{font-weight:600}em,.markdown em{font-style:italic}
 pre,code,.paste,.mono{font-family:var(--fb)}.paste,.modal pre{font-size:12.5px}.markdown h1,.markdown h2,.markdown h3,.markdown h4{font-size:16px;line-height:1.4;margin:var(--s4) 0 var(--s1)}.markdown h1{font-size:24px}.markdown p{margin:var(--s1) 0 var(--s2)}.markdown ul,.markdown ol{padding-left:var(--s6);margin:var(--s1) 0 var(--s2)}
@@ -92,7 +91,7 @@ input.nickname{margin-top:var(--s1);font-size:13px;padding:var(--s1) var(--s2);b
 @media(max-width:760px){.hub-nav .hub-tabs{min-width:0;max-width:100%}}.model-picker select{width:auto;border-color:var(--ln);background:var(--glass)}
 .replays{display:grid}.digest{padding:var(--s4) var(--s4)}
 .themes{margin:var(--s1) 0 0;padding-left:var(--s6)}.themes p{margin:var(--s1) 0 0}.themes .tag{margin-left:var(--s1)}.strengths{margin:var(--s2) 0 0;font-size:14px}
-.common{margin-top:var(--s2)}.file-button{white-space:nowrap}.add-replays .exact{margin:var(--s2) 0 0;font-size:13px}.opponent-filter{flex-wrap:wrap}.opponent-filter .combo{width:220px}.chip.small{padding:var(--s1) var(--s2);font-size:11.5px;cursor:default}.segmented button{border-radius:0;border-color:var(--ln)}.segmented button:first-child{border-radius:3px 0 0 3px}.segmented button:last-child{border-radius:0 3px 3px 0}
+.common{margin-top:var(--s2)}.chip.small{padding:var(--s1) var(--s2);font-size:11.5px;cursor:default}.segmented button{border-radius:0;border-color:var(--ln)}.segmented button:first-child{border-radius:3px 0 0 3px}.segmented button:last-child{border-radius:0 3px 3px 0}
 .replay-list{display:grid}
 .game{border:1px solid var(--ln);border-left:4px solid var(--ln);background:var(--glass);cursor:pointer;transition:border-color .12s}.game:hover,.game:focus-visible{border-color:var(--tx)}
 .game-top{font-size:13px;flex-wrap:wrap}.six{display:flex;gap:var(--s1);flex-wrap:wrap}.six span{border-radius:4px;border:2px solid transparent}.six .lead{border-color:var(--gd)}.six .benched{opacity:.35}.six .art.small{width:44px;height:44px}
@@ -100,7 +99,7 @@ input.nickname{margin-top:var(--s1);font-size:13px;padding:var(--s1) var(--s2);b
 .cat{margin-right:var(--s1);background:var(--sunk)}
 .game-drawer h3{margin:var(--s4) 0 var(--s1)}.selections{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin:var(--s1) 0 var(--s2)}.selections .footnote{grid-column:1/-1;margin:0}.moments{padding-left:var(--s4)}.moments li{margin-bottom:var(--s1)}
 .transcript{max-height:420px;overflow:auto;background:var(--sunk);padding:var(--s2) var(--s3);font-size:12.5px;line-height:1.5;white-space:pre-wrap}.transcript .hl{background:var(--tint);font-weight:600}
-@media(max-width:760px){.add-row{flex-wrap:wrap}.selections{grid-template-columns:1fr}}
+@media(max-width:760px){.selections{grid-template-columns:1fr}}
 fieldset.plain{border:0;padding:0;margin:0;min-width:0}fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--sunk);color:var(--tx)}
 .milestone{display:flex;align-items:center;flex-wrap:wrap}
 .mon-card.read-only{opacity:.92}
@@ -124,16 +123,13 @@ button,.button{flex-direction:row}
 .welcome{min-height:100vh;display:grid;place-items:center}
 .welcome-card{display:grid}
 .welcome-card h1{margin:0}
-.welcome-actions{display:grid}
-.welcome-form{display:grid}
-.welcome-form label{display:grid;gap:var(--s1)}
 .account-pop p{line-height:1.45}
 .ai-key{position:relative}
 .ai-key .account-pop label{display:grid;gap:var(--s1)}
 .profile-card h3{margin:0 0 var(--s1)}.profile-card p{margin:0}.profile-card label{display:grid;gap:var(--s1)}
 .shell{margin-inline:auto;padding:0 var(--s8) var(--s8)}
 main{min-width:0}main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s4)}
-h1,h2,.brand,.team-card-title h3,.mon-card-head h3,.eyebrow,.tag,.status,.result,.hub-tabs,.subhead{font-family:var(--fd);letter-spacing:0}
+h1,h2,.brand,.team-card-title h3,.mon-card-head h3,.eyebrow,.tag,.status,.result,.hub-tabs{font-family:var(--fd);letter-spacing:0}
 h1{margin:0}h3{font-size:18px}.eyebrow{line-height:1.5}
 .markdown h1,.markdown h2,.markdown h3,.markdown h4,.news-signal h3,.articles h3,.plan-card h3,.set-tile h3{font-family:var(--fb)}
 .score-strip,.sp-inputs,.stat-row,.tile-stats,.stat-table,td,th{font-family:var(--fb);font-variant-numeric:tabular-nums}
@@ -174,7 +170,7 @@ input,select{height:var(--control-height)}legend{font:600 13px var(--fb)}.form-g
 .version-select{margin:0;align-self:center}.version-select select{max-width:260px}.six-grid{margin-top:0}.mon-card-head{min-height:96px}.mon-card-head h3{font:600 20px var(--fd);white-space:normal}.mon-card-head span,.mon-card-head p{font-family:var(--fb);font-size:13px}.mon-card .move-list li{font:14px/1.6 var(--fb)}.move-list li span{color:var(--ac)}
 .strategy-block{margin:0 auto var(--s6)}.strategy-head,.plan-card header{align-items:center;gap:var(--s4);flex-wrap:wrap}.strategy-head h2{font-size:24px}
 .plan-card{margin-bottom:var(--s4)}.plan-card footer{align-items:center;margin-top:var(--s4)}.plan-card footer .muted{flex:1;min-width:120px}.plan-card .pair{gap:var(--s2)}.plan-card .pair h3{font-family:var(--fb)}.team-detail-grid{gap:var(--s6)}.objectives li{gap:var(--s3);padding:var(--s2) 0}.objectives label{margin:0}
-.replays{gap:var(--s6)}.digest{margin-inline:auto}.themes li{margin-bottom:var(--s4)}.themes p{color:var(--tx)}.add-replays .exact{margin-top:var(--s3)}.chip-row{justify-content:center}.segmented{margin:0}.segmented button{height:32px;min-height:32px}
+.replays{gap:var(--s6)}.digest{margin-inline:auto}.themes li{margin-bottom:var(--s4)}.themes p{color:var(--tx)}.chip-row{justify-content:center}.segmented{margin:0}.segmented button{height:32px;min-height:32px}
 .replay-list{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--s4);align-items:stretch}.game{display:flex;flex-direction:column;padding:var(--s4);border-color:var(--ln)}.game-summary{margin:var(--s3) 0}.game .chip-row{justify-content:flex-start}.game.win{border-left-color:var(--ac)}.game.loss{border-left-color:var(--hot)}
 .result.win,.cat.play{background:var(--sunk);color:var(--ac)}.cat.building,.cat.variance{background:var(--sunk);color:var(--tx)}.threat.low{background:var(--ac)}.threat.medium{background:var(--gd)}
 .versions{margin:auto;gap:var(--s6)}
@@ -203,19 +199,19 @@ button.pool-row{display:grid;grid-template-columns:40px minmax(0,1fr) 240px 104p
 .week-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s2);margin-bottom:var(--s6)}.week-tabs button{height:56px;min-height:56px;max-height:56px;flex-direction:column;gap:var(--s1);white-space:normal}.week-tabs small{font:12px var(--fb)}.weekly-digest{background:var(--sunk);border-left:4px solid var(--ac);padding:var(--s4);text-align:center}.weekly-digest p{font-family:var(--fb);font-size:14px;margin:var(--s3) 0 0}.news-signal{padding:var(--s6) 0}.news-signal h3{margin:var(--s3) 0}.articles article{padding:var(--s4) 0;gap:var(--s3)}.article-mark{background:var(--sunk);color:var(--tx)}.article-mark.report{color:var(--ac)}.article-mark.community{background:var(--danger-tint);color:var(--hot)}
 .modal .panel{border:0;padding:0;box-shadow:none}.modal .panel-heading{justify-content:center;text-align:center}.modal .panel-heading>div{width:100%}.modal .panel:before{display:none}
 .notice,.upload-box{background:var(--sunk);padding:var(--s3) var(--s4);border-left-color:var(--ac)}.empty{padding:var(--s6);text-align:center}.footer{margin-top:var(--s8);padding:var(--s6) 0 var(--s12);gap:var(--s4);align-items:center;font:12px var(--fb)}.footer>span:first-child{font:13px var(--fd)}
-.welcome{padding:var(--s8) var(--s4)}.welcome-card{width:min(480px,100%);padding:var(--s8);gap:var(--s6);justify-items:center;text-align:center}.welcome-card h1{font:600 32px var(--fd)}.welcome-actions{gap:var(--s3);width:100%;justify-items:center}.welcome-actions button{width:100%}.welcome-card .footnote{margin:0}.welcome-form{gap:var(--s4);width:100%;text-align:left}.welcome-form label{margin:0}.welcome-form .button-row{justify-content:center;margin:0;gap:var(--s2)}
+.welcome{padding:var(--s8) var(--s4)}.welcome-card{width:min(480px,100%);padding:var(--s8);gap:var(--s6);justify-items:center;text-align:center}.welcome-card h1{font:600 32px var(--fd)}.welcome-card .footnote{margin:0}
 .account-menu{flex:none;max-width:100%}.account-menu>.compact{height:40px;min-height:40px;max-height:40px;max-width:220px;overflow:hidden;text-overflow:ellipsis;background:var(--glass);color:var(--tx)}.account-menu>.primary{background:var(--glass);color:var(--ac);border-color:var(--glass)}
-.account-pop{display:grid;color:var(--tx)}.account-pop p{margin:0;overflow-wrap:anywhere}.account-pop .welcome-actions{gap:var(--s2)}.account-pop .text-button{justify-self:center}.account-pop .welcome-form{gap:var(--s4)}.account-pop .button-row{flex-wrap:wrap}.account-pop .button-row .primary{flex:1}
+.account-pop{display:grid;color:var(--tx)}.account-pop p{margin:0;overflow-wrap:anywhere}.account-pop .text-button{justify-self:center}.account-pop .button-row{flex-wrap:wrap}.account-pop .button-row .primary{flex:1}
 .profile-card,.sample-offer{margin:0 auto var(--s6);padding:var(--s6);gap:var(--s4);text-align:center}.profile-card{border-color:var(--ln-2)}.profile-card label{text-align:left;margin:0}.sample-offer{display:flex;flex-direction:column;align-items:center}.sample-offer p{max-width:640px;margin:0 auto}
 @media(max-width:1100px){.masthead .quickbar{order:3;flex-basis:100%}.set-card{max-width:640px;width:100%;margin:auto}.set-fields .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.set-fields label:last-child{grid-column:auto}}
 @media(max-width:760px){
  .shell{padding:0 var(--s4) var(--s8)}.brand{white-space:nowrap}.masthead .quickbar{order:0}.save-pill{max-width:100%}.account-menu{width:100%;display:flex;justify-content:center}.account-menu>.compact{max-width:100%;width:auto}.quickbar-menu{position:fixed;left:16px;right:16px;top:160px}h1,.hub-title h1{font-size:28px}.landing-head,.hub-head{gap:var(--s4)}.milestone{width:100%;flex-direction:column;gap:var(--s2)}.hub-nav{flex-direction:column}.hub-nav .hub-tabs{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);overflow:visible}.hub-tabs a{white-space:nowrap}.version-select{width:100%}.version-select select{width:100%;max-width:100%}.teams-landing .team-list,.six-grid{grid-template-columns:minmax(0,1fr);gap:var(--s4)}.team-card-title{min-height:64px}.team-card-title h3{font-size:21px}.mon-card-head h3{font-size:20px}
- .panel,.strategy-block,.plan-card,.set-card,.profile-card,.sample-offer{padding:var(--s4)}.panel h2{font-size:22px}.panel-heading{flex-wrap:wrap;text-align:center}.panel-heading>div{width:100%}.strategy-head{justify-content:center;text-align:center}.strategy-head .grow{display:none}.strategy-head h2{width:100%}.plan-card header{flex-direction:column;text-align:center}.plan-card footer{justify-content:center}.plan-card footer .muted{flex-basis:100%;text-align:center;margin:0}.plan-card .pair{justify-content:center}.objectives li{gap:var(--s2)}.add-row{grid-template-columns:repeat(2,minmax(0,1fr))}.add-row textarea{grid-column:1/-1;width:100%}.add-row button,.add-row .file-button{width:100%;padding:0 var(--s2)}.opponent-filter .combo{width:100%}.segmented{justify-content:center}.replay-list{grid-template-columns:minmax(0,1fr)}.game{padding:var(--s4)}.changes li{grid-template-columns:minmax(0,1fr);gap:var(--s2)}.changes .button-row{justify-content:flex-start}.danger-zone{flex-direction:column;text-align:center}
+ .panel,.strategy-block,.plan-card,.set-card,.profile-card,.sample-offer{padding:var(--s4)}.panel h2{font-size:22px}.panel-heading{flex-wrap:wrap;text-align:center}.panel-heading>div{width:100%}.strategy-head{justify-content:center;text-align:center}.strategy-head .grow{display:none}.strategy-head h2{width:100%}.plan-card header{flex-direction:column;text-align:center}.plan-card footer{justify-content:center}.plan-card footer .muted{flex-basis:100%;text-align:center;margin:0}.plan-card .pair{justify-content:center}.objectives li{gap:var(--s2)}.segmented{justify-content:center}.replay-list{grid-template-columns:minmax(0,1fr)}.game{padding:var(--s4)}.changes li{grid-template-columns:minmax(0,1fr);gap:var(--s2)}.changes .button-row{justify-content:flex-start}.danger-zone{flex-direction:column;text-align:center}
  .workspace .hub-head{flex-direction:column;gap:var(--s4)}.mon-switcher{flex-wrap:nowrap}.mon-switcher a{width:48px;height:48px}.set-card{max-width:100%}.set-card .combo input{font-size:20px}.set-fields .form-grid{grid-template-columns:minmax(0,1fr)}.stat-row{grid-template-columns:36px minmax(0,1fr) 24px 44px 32px;gap:var(--s1)}.stat-bars-head{justify-content:center}.stat-bars-head .muted{margin-left:0}.stat-form .button-row{margin-block:var(--s2)}.benchmark-save input{flex-basis:100%}.lab .form-grid{grid-template-columns:minmax(0,1fr)}
  .modal{width:calc(100vw - 32px);max-height:calc(100dvh - 32px)}.new-team>.tabs{gap:var(--s1);margin-bottom:var(--s4)}.new-team>.tabs button{font-size:12px;height:56px;min-height:56px;max-height:56px;padding:var(--s1);line-height:1.4}.paste-source{grid-template-columns:minmax(0,1fr);gap:var(--s2)}.paste-source>button{justify-self:center}.pool-picker>.form-grid{grid-template-columns:minmax(0,1fr)}.new-team .button-row{gap:var(--s2);flex-wrap:wrap}.model-picker select{max-width:160px}.pool-list{max-height:320px}.pool-row .pool-six{display:flex;justify-content:flex-start;grid-column:2;grid-row:2}.pool-row .pool-six .poke-icon{transform:scale(.85);transform-origin:left center;margin-right:-6px}.pool-list button.pool-row{grid-template-columns:32px minmax(0,1fr);gap:var(--s2);padding:var(--s3);min-height:112px}.pool-row>.pool-place{grid-column:1;grid-row:1/3;align-self:start}.pool-row>.pool-who{grid-column:2;grid-row:1}.pool-row>.tag{grid-column:2;justify-self:start}.pool-who small{white-space:normal;overflow:visible;text-overflow:clip}.pool-row .pool-who b{overflow-wrap:anywhere}.picked-team{flex-direction:column;gap:var(--s2);padding:var(--s3)}.slot-basis li{grid-template-columns:minmax(0,1fr) auto;gap:var(--s2)}.slot-basis li>.muted{grid-column:1/-1;line-height:1.5}
  .dock{height:100dvh;max-height:100dvh}.dock-toggle{bottom:16px}
  .pool-counts{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}.pool-counts>div{padding:var(--s3)}.pool-counts>div:last-child{grid-column:1/-1}.pool-counts span{font-size:12px}.data-pool .stat-table{min-width:0;table-layout:fixed}.data-pool .stat-table td{overflow-wrap:anywhere}.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(1){width:10%}.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(2){width:46%}.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(3),.data-pool .stat-table:has(td:nth-child(4)) td:nth-child(4){width:22%}.stat-table td{font-size:12px;padding:var(--s2) var(--s1)}.week-tabs{gap:var(--s1);margin-bottom:var(--s4)}.week-tabs button{padding:var(--s1);font-size:12px}.week-tabs small{font-size:11px}.weekly-digest{text-align:left}.modal .panel-heading{margin-bottom:var(--s4)}
- .welcome{padding:var(--s6) var(--s4)}.welcome-card{padding:var(--s6);gap:var(--s4)}.welcome-card h1{font-size:28px}.welcome-form .button-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.welcome-form .button-row button{width:100%;padding:0 var(--s2)}.welcome-form .button-row .text-button{grid-column:1/-1}.account-pop .welcome-form .button-row{grid-template-columns:minmax(0,1fr)}.sample-offer p{max-width:100%}.footer{flex-direction:column;text-align:center;gap:var(--s3);margin-top:var(--s6);padding-bottom:96px}
+ .welcome{padding:var(--s6) var(--s4)}.welcome-card{padding:var(--s6);gap:var(--s4)}.welcome-card h1{font-size:28px}.sample-offer p{max-width:100%}.footer{flex-direction:column;text-align:center;gap:var(--s3);margin-top:var(--s6);padding-bottom:96px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.ticker-copy{display:none}}
 @media(min-width:761px){
@@ -246,7 +242,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .account-pop button{width:100%}
 .signin-dialog{width:min(460px,95vw)}
 .signin-body{display:grid;gap:var(--s4)}.signin-body p{margin:0;line-height:1.55}
-.signin-body .welcome-actions{display:grid;gap:var(--s2)}.signin-body .welcome-actions button{width:100%}
 .signin-body .text-button{justify-self:center}
 .signin-for-ai{display:grid;gap:var(--s3);justify-items:center;text-align:center;margin:var(--s4);padding:var(--s4);border:1px dashed var(--ln-2);background:var(--tint)}
 .signin-for-ai p{margin:0}
@@ -312,9 +307,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .ticker .ticker-label{height:auto!important;min-height:0!important;max-height:none!important;align-self:stretch!important;border-radius:0!important;background:var(--hot)!important;color:var(--on)!important;cursor:pointer;flex:none;white-space:nowrap}
 .ticker .ticker-track{flex:1;min-width:0}
 .hub-title>.muted{margin-right:var(--s4)}
-.version-bar{display:flex;align-items:center;gap:var(--s2);margin-left:auto}
-.version-bar .version-select{margin:0}.version-bar select{max-width:340px!important}
-@media(max-width:720px){.version-bar{width:100%;margin:0}.version-bar .version-select{flex:1}.version-bar select{width:100%;max-width:none!important}}
 .team-hub .hub-head{display:block!important;text-align:left!important;margin:var(--s4) 0 var(--s4)!important}
 .team-hub .hub-title{display:block!important;text-align:left!important}
 .team-hub .hub-title h1,.team-hub .title-button{justify-content:flex-start!important;text-align:left!important}
@@ -326,22 +318,16 @@ button .px-icon,.button .px-icon,.hub-tabs a .px-icon,.quickbar-all .px-icon,.dr
 
 .title-button .px-icon,.title-button svg{opacity:1!important;color:var(--ac);flex:none}
 .title-button:hover .px-icon,.title-button:hover svg{color:var(--emerald-shade)}
-.version-bar .version-select select{height:var(--control-height)!important;font:14px var(--fb)!important;padding:0 var(--s6) 0 var(--s3)!important;margin:0!important}
 .replays>.profile-card,.profile-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto!important;align-items:end!important;text-align:left!important;justify-items:stretch!important}
 .profile-card>div{grid-column:1/-1}
 .profile-card>button{justify-self:start!important;margin:0!important}
 .profile-card>.error{grid-column:1/-1}
 @media(max-width:720px){.replays>.profile-card,.profile-card{grid-template-columns:minmax(0,1fr)!important}}
 .team-hub .hub-nav{flex-wrap:nowrap!important}.team-hub .hub-tabs{flex-wrap:nowrap!important;flex:none}
-.version-bar{flex:0 1 auto;min-width:0}.version-bar .version-select{min-width:0}.version-bar .version-select select{max-width:220px!important;min-width:0;text-overflow:ellipsis}
 @media(max-width:1100px){.team-hub .hub-nav{flex-wrap:wrap!important}}
 .profile-card>button{grid-column:3!important;grid-row:2!important;width:auto!important}
 .profile-card>label{grid-row:2}
 @media(max-width:720px){.profile-card>button{grid-column:1!important;grid-row:auto!important}.profile-card>label{grid-row:auto}}
-.add-row{display:flex!important;align-items:stretch!important;gap:var(--s2)!important}
-.add-row textarea{height:var(--control-height)!important;min-height:var(--control-height)!important;padding:var(--s2) var(--s3)!important;line-height:1.5;margin:0!important}
-.add-row>button,.add-row .file-button{height:var(--control-height)!important;min-height:var(--control-height)!important;align-self:flex-start!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;gap:var(--s2);box-sizing:border-box}
-@media(max-width:720px){.add-row{display:grid!important;grid-template-columns:1fr 1fr}.add-row textarea{grid-column:1/-1}}
 .history-list{list-style:none;margin:0 0 var(--s6);padding:0;border:2px solid var(--ln-2);background:var(--glass)}.history-list li{display:grid;grid-template-columns:120px minmax(0,1fr) auto auto;align-items:center;gap:var(--s4);padding:var(--s3) var(--s4);border-bottom:1px solid var(--ln)}.history-list li:last-child{border:0}.history-list li.current{background:var(--tint)}.history-list .when{color:var(--mu);font-size:13px}.history-list .team-six.mini{display:flex;gap:2px;padding:0;background:none;border:0}.history-list .team-six.mini .art.small{width:32px;height:32px}.history-list .button-row{margin:0;gap:var(--s2)}@media(max-width:720px){.history-list li{grid-template-columns:1fr auto}.history-list .team-six.mini{grid-column:1/-1;order:3}}
 .new-team>*{width:100%;max-width:none;margin-inline:0;box-sizing:border-box}
 .new-team .signin-for-ai{margin:0}
@@ -424,7 +410,6 @@ main{padding-top:var(--s6)}
 .set-card .notice .button-row{display:inline-flex;margin:0 0 0 var(--s2)}
 @media(max-width:1100px){.workspace-grid{grid-template-columns:minmax(0,1fr)}}
 .replay-filters{justify-content:flex-start!important}
-.opponent-filter{justify-content:flex-start!important}
 .danger-zone button{height:var(--control-height)!important;min-height:var(--control-height)!important;max-height:var(--control-height)!important;flex:none}
 .modal{margin:6vh auto auto}
 .modal:focus{outline:none}
@@ -436,10 +421,8 @@ main{padding-top:var(--s6)}
   .strategy-head{justify-content:space-between!important;text-align:left!important}
   .strategy-head h2{width:auto!important}
   .danger-zone{text-align:left!important;align-items:flex-start!important}
-  .opponent-filter{justify-content:flex-start!important}
   .workspace .hub-head{align-items:flex-start!important}
   .masthead .account-button{width:var(--control-height)!important;height:var(--control-height)!important;min-height:var(--control-height);justify-content:center}
-  .version-bar{flex-wrap:nowrap!important}
 }
 .form-grid+.form-grid,.form-grid+label{margin-top:var(--s4)}
 .replays>.footnote{margin:calc(-1 * var(--s2)) 0 calc(-1 * var(--s3))}
@@ -447,7 +430,7 @@ main{padding-top:var(--s6)}
 .client-tabs button{flex:1 1 0!important;min-width:max-content}
 .copy-line code,.steps .copy-line code{background:none;padding:0}
 .steps{font-size:14px}
-@media(max-width:720px){.replay-filters>.segmented{align-self:flex-start}.opponent-filter .combo{flex:1;width:100%}}
+@media(max-width:720px){.replay-filters>.segmented{align-self:flex-start}}
 @media(max-width:720px){
   .panel-heading{justify-content:space-between!important;text-align:left!important}
   .ai-mode{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.ai-mode button{white-space:normal;line-height:1.2;padding:0 var(--s2)!important}
@@ -477,7 +460,7 @@ html.jade .muted{color:var(--mu)}
 html.jade :focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:6px}
 
 /* ---------- glass ---------- */
-html.jade :is(.panel,.mon-card,.team-card,.set-card,.strategy-block,.plan-card,.set-tile,.source-card,.build-job,.sample-offer,.scoped-reviews,.game-card,.pool-counts>div,.news-signal,.danger-zone,.proposal-card,.lab-result,.welcome-card){
+html.jade :is(.panel,.mon-card,.team-card,.set-card,.strategy-block,.plan-card,.set-tile,.source-card,.build-job,.sample-offer,.game-card,.pool-counts>div,.news-signal,.danger-zone,.proposal-card,.lab-result,.welcome-card){
  background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 11%,transparent),transparent 55%),var(--glass);
  border:1px solid var(--ln)!important;border-radius:var(--r)!important;
  box-shadow:inset 0 1px 0 var(--hi),0 18px 40px -28px var(--shade);
@@ -680,85 +663,23 @@ html.jade .segmented{display:inline-flex;gap:3px;padding:3px;border-radius:12px;
 html.jade .segmented>button{background:transparent!important;border:1px solid transparent!important;box-shadow:none!important;color:var(--mu)!important;border-radius:9px!important;backdrop-filter:none;transform:none!important}
 html.jade .segmented>button:hover{color:var(--tx)!important;background:var(--hover)!important}
 html.jade .segmented>button:is(.on,[aria-pressed=true],[aria-selected=true]){background:var(--glass-2)!important;color:var(--tx)!important;border-color:color-mix(in srgb,var(--ac) 45%,transparent)!important;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px -10px var(--glow)!important}
-html.jade .common-mon .art.small{width:48px!important;height:48px!important}
-html.jade .common-mon small{font:800 13px var(--fdot);color:var(--tx)}
 html.jade .pool-counts>div{background:var(--glass)!important}
 html.jade .pool-counts b,html.jade .pool-counts strong{font-family:var(--fdot);font-weight:900}
 
 /* ---------- welcome ---------- */
 .welcome-page{padding:24px 0 8px}
-.wl-hero{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:28px;align-items:center;min-height:min(620px,78vh)}
-.wl-copy{animation:jRise .7s cubic-bezier(.2,.8,.2,1) both}
-html.jade .wl-copy h1{font-size:clamp(52px,7.4vw,104px);line-height:.9;margin:14px 0 18px;letter-spacing:-.005em}
-.wl-copy h1 em{font-style:normal;background:linear-gradient(100deg,var(--ac),var(--ac-2) 45%,var(--tx) 50%,var(--ac-2) 55%,var(--ac));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:jSheen 6s ease-in-out infinite}
-.wl-sub{font-size:18px;line-height:1.55;color:var(--mu);max-width:34em;margin:0 0 26px}
-.wl-ctas{display:flex;gap:10px;flex-wrap:wrap}
-html.jade .wl-ctas :is(button,.button){height:48px;padding:0 22px;font-size:15px;border-radius:12px}
-.wl-go span{display:inline-block;margin-left:8px;transition:transform .3s}
-.wl-go:hover span{transform:translateX(4px)}
-.wl-facts{display:flex;gap:28px;margin:34px 0 0;padding-top:18px;border-top:1px solid var(--ln)}
-.wl-facts div{margin:0}.wl-facts dt{font:600 10px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
-.wl-facts dd{margin:4px 0 0;font:900 34px/1 var(--fdot);color:var(--tx)}.wl-facts dd.small{font:700 18px/1.9 var(--fd);text-transform:uppercase;letter-spacing:.04em}
 /* the stage: a frosted pane, six renders on a lit arc, leaning toward the pointer */
-.wl-stage{--px:0;--py:0;position:relative;height:540px;perspective:1100px;animation:jRise .8s .1s cubic-bezier(.2,.8,.2,1) both}
-.wl-glass{position:absolute;inset:6% 4% 14%;border-radius:28px;border:1px solid var(--ln-2);
- background:linear-gradient(150deg,color-mix(in srgb,var(--ac) 24%,transparent),transparent 45%),linear-gradient(330deg,color-mix(in srgb,var(--ac) 12%,transparent),transparent 40%),var(--glass);
- box-shadow:inset 0 1px 0 var(--hi),0 50px 90px -40px var(--glow);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);
- transform:rotateY(calc(var(--px) * 9deg)) rotateX(calc(var(--py) * -7deg));transition:transform .5s cubic-bezier(.2,.8,.2,1);overflow:hidden}
-.wl-glass::before{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.16) 48%,transparent 60%);transform:translateX(calc(var(--px) * 40%));transition:transform .6s}
-.wl-glass::after{content:'';position:absolute;inset:12px;border-radius:18px;opacity:.6;
- background:radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) top left/8px 8px no-repeat,radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) top right/8px 8px no-repeat,radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) bottom left/8px 8px no-repeat,radial-gradient(circle,var(--screw) 1.6px,transparent 2.2px) bottom right/8px 8px no-repeat}
-.wl-led{position:absolute;top:24px;right:30px;width:8px;height:8px;border-radius:50%;background:var(--hot);box-shadow:0 0 10px var(--hot);animation:jPulse 1.6s ease-in-out infinite;z-index:1}
-.wl-label{position:absolute;top:19px;left:30px;font:600 10.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gd);z-index:1}
-.wl-six{position:absolute;inset:0;transform:translateX(calc(var(--px) * -14px)) translateY(calc(var(--py) * -8px));transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-html.jade .wl-mon{--t:calc(var(--i) / (var(--n) - 1));position:absolute;left:calc(5% + var(--t) * 74%);top:calc(36% - sin(var(--t) * 180deg) * 13%);width:21%;aspect-ratio:1;padding:0;border:0!important;background:none!important;box-shadow:none!important;backdrop-filter:none;border-radius:50%;
- transition:transform .6s cubic-bezier(.2,.8,.2,1),filter .5s,opacity .5s;filter:saturate(.75) brightness(.92);opacity:.85;animation:jRise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.25s + var(--i) * 70ms)}
-html.jade .wl-mon:hover{transform:none}
-html.jade .wl-mon .art{width:100%!important;height:100%!important;animation:jFloat 5s ease-in-out infinite;animation-delay:calc(var(--i) * -.8s)}
-html.jade .wl-mon::after{content:'';position:absolute;left:18%;right:18%;bottom:-4%;height:12%;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);transition:transform .6s,opacity .6s;opacity:.7}
-html.jade .wl-mon.on{transform:scale(1.32) translateY(-6%);filter:none;opacity:1;z-index:2}
-html.jade .wl-mon.on::after{transform:scaleX(1.25);opacity:1;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac-2) 65%,transparent),transparent)}
-html.jade .wl-mon.on .art img{filter:drop-shadow(0 18px 24px var(--shade)) drop-shadow(0 0 28px color-mix(in srgb,var(--ac) 35%,transparent))!important}
-.wl-caption{position:absolute;left:0;right:0;bottom:4%;display:flex;flex-direction:column;align-items:center;gap:8px;animation:jPop .45s cubic-bezier(.2,.8,.2,1)}
-.wl-caption b{font:800 30px/1 var(--fd);text-transform:uppercase;letter-spacing:.03em}
-.wl-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:34px 0}
-.wl-benefits article{position:relative;padding:22px 20px;border-radius:var(--r);border:1px solid var(--ln);background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 55%),var(--glass);box-shadow:inset 0 1px 0 var(--hi);
- -webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur));overflow:hidden;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;animation:jRise .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.4s + var(--i) * 80ms)}
-.wl-benefits article::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--ac-2) 20%,transparent) 46%,rgba(255,255,255,.2) 50%,transparent 66%) 0 160%/100% 250% no-repeat}
-.wl-benefits article:hover::before{background-position:0 -160%;transition:background-position .9s cubic-bezier(.2,.8,.2,1)}
-.wl-benefits article:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--ac) 50%,transparent);box-shadow:inset 0 1px 0 var(--hi),0 24px 44px -26px var(--glow)}
-.wl-k{display:flex;align-items:center;gap:10px;font:600 10.5px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gd)}
-.wl-n{font:900 22px/1 var(--fdot);color:color-mix(in srgb,var(--tx) 30%,transparent);letter-spacing:0}
-.wl-benefits h3{font:800 22px/1.1 var(--fd)!important;text-transform:uppercase;margin:14px 0 8px}
-.wl-benefits p{margin:0;color:var(--mu);font-size:14px;line-height:1.55}
-.wl-close{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 24px;border-radius:var(--r);border:1px solid var(--ln);background:var(--sunk);margin-bottom:24px}
-.wl-close p{margin:0;color:var(--mu);max-width:52em}
 .footer a{color:var(--ac);margin-right:auto;margin-left:16px}
 @keyframes jSheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
-@media (max-width:1000px){.wl-hero{grid-template-columns:minmax(0,1fr)}.wl-stage{height:440px}.wl-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:620px){.wl-stage{height:340px}.wl-benefits{grid-template-columns:minmax(0,1fr)}.wl-close{flex-direction:column;align-items:stretch}.wl-facts{gap:18px}.wl-caption b{font-size:22px}}
-html.jade .wl-mon{height:auto!important;min-height:0!important;max-height:none!important}
-.wl-stage{height:600px}.wl-glass{inset:4% 2% 16%}.wl-caption{bottom:2%}
-html.jade .wl-mon{top:calc(30% - sin(var(--t) * 180deg) * 12%)}
-@media (max-width:1000px){.wl-stage{height:480px}}@media (max-width:620px){.wl-stage{height:360px}}
 /* arc sits centred inside the pane */
-html.jade .wl-mon{width:20%;left:calc(5% + var(--t) * 71%);top:calc(40% - sin(var(--t) * 180deg) * 13%)}
-.wl-stage{height:560px}.wl-glass{inset:3% 1% 13%}
-.wl-copy h1 em{background-image:linear-gradient(100deg,var(--ac),var(--ac-2) 45%,#fff 50%,var(--ac-2) 55%,var(--ac))}
-.wl-glass .wl-floor{position:absolute;left:8%;right:8%;bottom:9%;height:22%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 22%,transparent),transparent);filter:blur(4px)}
-@media (max-width:620px){.wl-stage{height:320px}html.jade .wl-mon{width:22%;left:calc(2% + var(--t) * 74%)}}
 /* with the Ask dock open the page is ~470px narrower: two rows until there's room for one */
-@media (min-width:761px) and (max-width:1760px){
- html.jade .with-dock .masthead{grid-template-columns:minmax(0,1fr) auto auto auto!important;grid-template-areas:"brand save theme account" "nav nav nav nav"!important;gap:8px 10px!important}
- html.jade .with-dock .masthead-nav{justify-content:flex-start}
-}
 /* Ask dock: glass messages */
-html.jade .dock :is(.assist-turn,.chat-turn,.assist-intro,.dialogue){background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:inset 0 1px 0 var(--hi)!important}
+html.jade .dock :is(.chat-turn){background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:inset 0 1px 0 var(--hi)!important}
 html.jade .dock-head{border-bottom:1px solid var(--ln)!important}
 html.jade .dock-head h2{font-size:20px}
 html.jade .dock-log>.chat-empty,html.jade .chat-turn{background:var(--glass)!important;border:1px solid var(--ln)!important;border-radius:14px!important;box-shadow:inset 0 1px 0 var(--hi)!important;outline:0!important}
 html.jade .chat-turn.user{background:color-mix(in srgb,var(--ac) 14%,transparent)!important;border-color:color-mix(in srgb,var(--ac) 35%,transparent)!important}
-html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user),.welcome-tag)::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--hot);box-shadow:0 0 8px var(--hot);right:12px;bottom:10px;animation:jPulse 1.6s ease-in-out infinite}
+html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user))::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--hot);box-shadow:0 0 8px var(--hot);right:12px;bottom:10px;animation:jPulse 1.6s ease-in-out infinite}
 
 /* =====================================================================================================
    Round 2 polish (owner feedback): chevrons, no LED noise, consolidated calc, favourite star, Ask dock,
@@ -776,7 +697,7 @@ html.jade select:disabled{opacity:.55;cursor:default}
 /* ---------- no flashing LEDs on selected states ---------- */
 html.jade .hub-tabs a.selected::before{display:none!important}
 html.jade .mon-switcher a.selected::after{background:var(--ac);box-shadow:0 0 8px var(--glow)}
-html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user),.welcome-tag)::after{display:none!important}
+html.jade :is(.dock-log>.chat-empty,.chat-turn:not(.user))::after{display:none!important}
 
 /* ---------- spacing: one 4px rhythm everywhere ---------- */
 html.jade body{line-height:1.6}
@@ -831,7 +752,6 @@ html.jade .strategy-head h2{margin:0}
 html.jade .plan-card{padding:20px!important;display:grid;gap:12px}
 html.jade .plan-card header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 html.jade .plan-card footer{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--ln)}
-html.jade :is(.coaching-bar,.objective-form){gap:12px!important;margin-bottom:16px!important}
 
 /* ---------- replay cards: glass, a calm result pill, readable summaries ---------- */
 html.jade article.game{background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 9%,transparent),transparent 55%),var(--glass)!important;border:1px solid var(--ln)!important;border-radius:var(--r)!important;padding:20px!important;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 1px 0 var(--hi);transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,box-shadow .35s;cursor:pointer}
@@ -845,9 +765,6 @@ html.jade .game-teams .six>span{border:0!important;background:none!important;bor
 html.jade .game-teams .six>span.benched{opacity:.35;filter:grayscale(.6)}
 html.jade .game-teams .six>span.lead{background:color-mix(in srgb,var(--ac) 14%,transparent)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 45%,transparent)}
 html.jade .game-teams .art.small{width:44px!important;height:44px!important}
-html.jade .game-lead{margin:0;font-weight:600;line-height:1.5}
-html.jade .game-rest{margin:0;color:var(--mu);font-size:13.5px;line-height:1.6}
-html.jade .game-rest+.game-rest{margin-top:4px}
 html.jade .work-on{display:grid;gap:8px;margin:4px 0 0!important;padding:12px 0 0!important;border-top:1px solid var(--ln);list-style:none}
 html.jade .work-on li{display:flex;align-items:baseline;gap:8px;margin:0!important;line-height:1.45;font-size:13.5px}
 html.jade .work-on .cat{flex:none;font:600 10px var(--fm);letter-spacing:.1em;color:var(--gd)}
@@ -890,23 +807,12 @@ html.jade .direction.static{display:inline-flex;align-items:center;font-weight:6
 .lab-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 12px}
 html.jade .lab-row label{margin-bottom:12px}
 html.jade .set-edit{display:grid;gap:4px;padding-top:8px}
-html.jade .set-edit .sp-grid{gap:8px!important;margin:4px 0 8px}
-html.jade .set-edit .sp-grid label{margin:0;gap:4px}
-html.jade .set-edit .sp-grid small{font:800 13px var(--fdot);color:var(--tx)}
-html.jade .lab-sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-html.jade .lab-sides fieldset{margin:0!important}
-html.jade .lab-flags{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:12px}
-html.jade .lab-more>summary{font-size:13px}
 html.jade .lab-result{margin:0!important;padding:20px!important;display:grid;gap:12px}
 html.jade .lab-result p{margin:0}
 .lab-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
 .lab-big b{font:900 40px/1 var(--fdot);color:var(--tx)}
 .lab-big span{font:600 13px var(--fm);color:var(--mu)}
 .lab-big span+b{margin-left:12px}
-.lab-hp{display:flex;height:10px;border-radius:99px;background:color-mix(in srgb,var(--hot) 22%,transparent);overflow:hidden;box-shadow:inset 0 0 0 1px var(--ln)}
-.lab-hp i{background:linear-gradient(90deg,var(--ac),var(--ac-2));transition:width .6s cubic-bezier(.2,.8,.2,1)}
-.lab-hp i.roll{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--gd) 80%,transparent) 0 4px,color-mix(in srgb,var(--gd) 40%,transparent) 4px 8px)}
-.lab-ko{font-weight:600}
 .lab-desc{font-size:13px;color:var(--mu)}
 html.jade .lab-result>button{justify-self:start}
 html.jade .benchmark-save{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0!important}
@@ -936,18 +842,11 @@ html.jade .dock-head{display:grid!important;grid-template-columns:minmax(0,1fr) 
 html.jade .dock-head h2{grid-area:title;display:flex;align-items:center;gap:12px;margin:0;font:800 26px/1 var(--fd)!important;text-transform:uppercase;letter-spacing:.03em}
 html.jade .dock-head .dock-mark{width:32px;height:32px;filter:drop-shadow(0 4px 10px var(--glow))}
 html.jade .dock-close{grid-area:close;width:40px;height:40px;padding:0!important;border-radius:12px}
-html.jade .dock-controls{grid-area:controls;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px}
-html.jade .dock-controls>:is(.button,button,.model-picker){height:40px!important;min-height:40px;margin:0!important;border-radius:10px!important;font-size:13px!important}
-html.jade .dock-controls .button{display:inline-flex;align-items:center;justify-content:center;padding:0 12px!important}
-html.jade .dock-controls .model-picker{display:block}
-html.jade .dock-controls .model-picker select{width:100%;height:40px}
-html.jade .dock-controls button.icon{width:40px;padding:0!important}
-html.jade .dock-controls:not(:has(button.icon)){grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 html.jade .dock-log{padding:16px 20px!important;display:grid;gap:12px;align-content:start}
 html.jade .dock-log>.chat-empty,html.jade .chat-turn{padding:16px!important;line-height:1.6}
 html.jade .chat-suggestions{display:grid!important;gap:8px!important;padding:0 20px 16px!important}
 html.jade .chat-suggestions button{width:100%;min-height:48px;justify-content:flex-start!important;text-align:left;padding:12px 16px!important;line-height:1.4;white-space:normal;font-weight:500;border-radius:12px}
-html.jade .dock form,html.jade .dock-foot,html.jade .dock-compose{gap:8px}
+html.jade .dock form{gap:8px}
 html.jade .set-card-head .art-wrap>.art{width:140px!important;height:140px!important;position:relative;animation:jFloat 6s ease-in-out infinite}
 html.jade .set-card-head .art-wrap>.art::after{content:'';position:absolute;left:12%;right:12%;bottom:-2px;height:16px;border-radius:50%;background:radial-gradient(closest-side,var(--floor),transparent);z-index:-1}
 html.jade .set-card-head .fav{top:0;right:0}
@@ -1029,10 +928,7 @@ html.jade .combatant-edit+.combatant-edit{border-top:0;padding-top:0}
 /* Mega switch under the render */
 .combatant-art{display:flex;flex-direction:column;align-items:center;gap:12px;height:auto!important}
 html.jade .mega-switch{height:28px;padding:0 10px 0 4px!important;border-radius:999px!important;gap:8px;font:700 11px var(--fm)!important;letter-spacing:.1em;text-transform:uppercase;background:var(--sunk)!important;border:1px solid var(--ln-2)!important;color:var(--mu)!important;box-shadow:none!important;transform:none!important}
-html.jade .mega-switch .knob{width:20px;height:20px;border-radius:50%;background:var(--ln-2);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s}
 html.jade .mega-switch.on{color:var(--tx)!important;border-color:color-mix(in srgb,var(--gd) 60%,transparent)!important;background:color-mix(in srgb,var(--gd) 12%,transparent)!important}
-html.jade .mega-switch.on .knob{background:radial-gradient(circle at 35% 35%,#fff7,transparent 45%),conic-gradient(from 0deg,#ff6b8b,#ffd56b,#6bffb8,#6bb8ff,#c46bff,#ff6b8b);box-shadow:0 0 10px color-mix(in srgb,var(--gd) 70%,transparent)}
-html.jade .mega-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font:700 10px var(--fm);letter-spacing:.1em;text-transform:uppercase;vertical-align:middle;color:var(--gd);border:1px solid color-mix(in srgb,var(--gd) 50%,transparent)}
 /* the axis between them: who attacks, then the field everyone shares */
 .matchup-axis{display:grid!important;justify-items:center;gap:12px;height:auto!important;padding:16px 0!important;position:relative}
 .matchup-axis::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed var(--ln-2)!important;border-top:0!important;z-index:0}
@@ -1116,7 +1012,6 @@ html.jade .field-box .footnote{background:transparent;padding:0;font-size:12px}
 .matchup-axis::before{border-left-style:solid!important;opacity:.6}
 .race .track .runner{transition-timing-function:cubic-bezier(.3,.1,.25,1)!important}
 /* with Ask open, the Pokémon page stacks (set above calc) until there's room for both columns */
-@media (max-width:1900px){html.jade .with-dock .workspace-grid{grid-template-columns:minmax(0,1fr)!important}html.jade .with-dock .set-card{position:static!important}}
 @media (max-width:1180px){html.jade .workspace-grid{grid-template-columns:minmax(0,1fr)!important}html.jade .set-card{position:static!important}}
 html.jade label.stat-row .stat-bar{min-width:48px}
 html.jade .set-card{top:0!important}
@@ -1134,7 +1029,6 @@ html.jade .set-guide .markdown h2{max-width:none}
 .set-art{position:relative;display:inline-flex}
 .set-art .mega-orb{position:absolute;right:0;bottom:2px;z-index:1}
 /* the switch on calc cards uses the same orb */
-html.jade .mega-switch.on .knob{background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.95) 0 12%,rgba(255,255,255,.25) 30%,transparent 55%),conic-gradient(from 210deg,#ff5e7e,#ffb35e,#ffe95e,#5effa8,#5ec8ff,#a35eff,#ff5e7e)}
 /* Overview card head: name, then one tidy row of Mega + type pills */
 html.jade .mon-card-head>div{display:grid;gap:8px;width:100%}
 html.jade .mon-card-head h3{margin:0!important}
@@ -1148,15 +1042,15 @@ html.jade .team-card .set-art{width:100%}html.jade .team-card .set-art .art{widt
 /* ---------- type: two families only. Titles and big numbers in Saira Condensed; everything else in Hanken Grotesk.
    Pasted code keeps the system monospace so Showdown pastes line up. ---------- */
 html.jade :is(pre,code,.paste,textarea.paste,.markdown code,.markdown pre){font-family:var(--code)!important}
-html.jade :is(.lab-big b,.lane-stat b,.wl-facts dd,.stat-final,.mon-slot,.wl-n,.card-record,.hp-head span,.sp-bar .v,.set-edit .sp-grid small,.sp-edit .stat-bars-head b,.common-mon small,.pool-counts b,.stat-plus){font-family:var(--fd)!important;font-weight:800!important;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+html.jade :is(.lab-big b,.lane-stat b,.stat-final,.mon-slot,.card-record,.hp-head span,.sp-bar .v,.sp-edit .stat-bars-head b,.pool-counts b,.stat-plus){font-family:var(--fd)!important;font-weight:800!important;font-variant-numeric:tabular-nums;letter-spacing:.01em}
 html.jade .lab-big b{font-size:48px!important;line-height:1}
 html.jade .lane-stat b{font-size:32px!important}
 html.jade .stat-final{font-size:22px!important}
 html.jade .mon-slot{font-size:30px!important;font-weight:800!important}
 html.jade .hp-head span{font-size:17px!important}
 html.jade .sp-bar .v{font-size:13px!important}
-html.jade :is(.eyebrow,.tag,.status,.result,legend,.ctx-label,.verdict,.type-badge,.lane-stat em,.rolls-label,.hp-scale,.stat-name,.sp-bar .k,th,.wl-label,.wl-k,.wl-facts dt,.direction small,.work-on .cat,.mega-switch,.ticker,.ticker-label,.mono,.combatant-sum .mono,.stat-base,.lab-big span){font-family:var(--fb)!important}
-html.jade :is(.eyebrow,.ctx-label,.wl-label,.wl-k,legend){letter-spacing:.1em;font-weight:700}
+html.jade :is(.eyebrow,.tag,.status,.result,legend,.ctx-label,.verdict,.type-badge,.lane-stat em,.rolls-label,.hp-scale,.stat-name,.sp-bar .k,th,.direction small,.work-on .cat,.mega-switch,.ticker,.ticker-label,.mono,.combatant-sum .mono,.stat-base,.lab-big span){font-family:var(--fb)!important}
+html.jade :is(.eyebrow,.ctx-label,legend){letter-spacing:.1em;font-weight:700}
 html.jade label.stat-row input{font-family:var(--fb)!important}
 /* ---------- header: Account like the other links; a quiet theme switch ---------- */
 html.jade .masthead .account-button{display:inline-flex!important;align-items:center;gap:8px;padding:0 12px 0 6px!important;font:600 13px var(--fb)!important;text-transform:none!important;letter-spacing:0!important}
@@ -1166,7 +1060,7 @@ html.jade .masthead .account-button:hover .avatar{box-shadow:0 0 0 3px color-mix
 html.jade .theme-toggle{border:0!important;background:transparent!important;box-shadow:none!important;color:var(--mu)!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;border-radius:10px!important}
 html.jade .theme-toggle:hover{background:var(--hover)!important;color:var(--tx)!important;transform:none!important}
 /* items side by side in a grid never pick up the stacked-panel spacing */
-html.jade :is(.team-detail-grid,.workspace-grid,.dashboard-grid,.six-grid,.lab-sides,.set-extras,.team-list,.wl-benefits)>*{margin-top:0!important}
+html.jade :is(.team-detail-grid,.workspace-grid,.six-grid,.set-extras,.team-list)>*{margin-top:0!important}
 html.jade .team-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:24px!important;align-items:start}
 @media (max-width:1000px){html.jade .team-detail-grid{grid-template-columns:minmax(0,1fr)!important}}
 /* lead and matchup cards share one header layout */
@@ -1175,7 +1069,6 @@ html.jade .plan-card header .pair{display:flex;align-items:center;gap:8px;flex-w
 html.jade .plan-card header h3{margin:0;font:700 17px/1.3 var(--fb)}
 html.jade .plan-card .lead-back{flex-basis:100%;font-size:13px}
 html.jade .plan-card .art.small{width:44px!important;height:44px!important}
-html.jade .plan-when{margin:0}
 .role-pill{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;font:700 10.5px/1 var(--fb);letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--ln-2);color:var(--mu)}
 .role-pill.core{color:var(--ac);border-color:color-mix(in srgb,var(--ac) 50%,transparent);background:color-mix(in srgb,var(--ac) 12%,transparent)}
 .role-pill.situational{color:var(--gd);border-color:color-mix(in srgb,var(--gd) 50%,transparent);background:color-mix(in srgb,var(--gd) 10%,transparent)}
@@ -1246,7 +1139,6 @@ html.jade .set-card-head .fav{top:0!important;left:0!important}
 .format-tile p{max-width:60ch;margin:0}
 .format-copy{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 html.jade .format-copy label{margin:0}
-html.jade .format-tag{height:32px;display:inline-flex!important;align-items:center}
 html.jade .format-choice{margin-bottom:20px!important}
 html.jade .format-choice select{max-width:360px}
 /* header controls sit directly on the frosted bar: no second blur behind icons */
@@ -1256,44 +1148,20 @@ html.jade :is(.toggle,.text-button,.theme-toggle,.fav,.dialog-close,.direction){
 html.jade .set-card-head .fav{top:-14px!important;left:-14px!important;border-radius:50%!important;background:var(--glass-2)!important;box-shadow:inset 0 0 0 1px var(--ln),0 4px 12px -6px var(--shade)!important;opacity:1}
 html.jade .set-card-head .fav.on{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gd) 50%,transparent),0 4px 12px -6px var(--shade)!important}
 /* the live 3D mark on the welcome page */
-.wl-brain{position:relative;width:min(320px,70%);aspect-ratio:1;margin:-24px 0 -8px -20px}
-.wl-brain canvas,.wl-brain img{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
-.wl-brain canvas:active{cursor:grabbing}
-.wl-brain::before{content:'';position:absolute;inset:18% 12% 8%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 30%,transparent),transparent);filter:blur(18px);z-index:-1}
-.wl-brain-hint{position:absolute;left:24px;bottom:6px;font:600 11px var(--fb);letter-spacing:.06em;color:var(--mu);opacity:0;transition:opacity .3s}
-.wl-brain:hover .wl-brain-hint{opacity:1}
 html.jade .brand-logo{width:38px!important;height:38px!important;object-fit:contain;filter:drop-shadow(0 4px 10px var(--glow))}
 html.jade .dock-mark{object-fit:contain}
 /* the 3D brain sits beside the headline rather than above it */
-.wl-copy{position:relative}
-.wl-brain{position:absolute!important;top:-36px;right:-12px;width:230px!important;margin:0!important;z-index:1}
-.wl-brain-hint{left:50%;transform:translateX(-50%);bottom:-6px;white-space:nowrap}
-@media (max-width:1000px){.wl-brain{position:relative!important;top:0;right:0;width:200px!important;margin:0 auto -12px!important}}
 /* hero: copy on the left, the brain in its network on the right */
-.wl-orb{position:relative;height:min(600px,70vh);min-height:420px;margin:-40px -40px -40px 0}
-.wl-orb canvas,.wl-orb>img{width:100%;height:100%;display:block;cursor:grab;touch-action:none;object-fit:contain}
-.wl-orb canvas:active{cursor:grabbing}
-.wl-orb::before{content:'';position:absolute;inset:20% 18%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 26%,transparent),transparent);filter:blur(30px);z-index:-1}
-.wl-orb .wl-brain-hint{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);opacity:.0;font:600 11px var(--fb);letter-spacing:.06em;color:var(--mu);transition:opacity .3s;white-space:nowrap}
-.wl-orb:hover .wl-brain-hint{opacity:1}
-.wl-team{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:32px;align-items:center;margin:24px 0 8px}
-.wl-team-head h2{font-size:34px!important;margin:8px 0 12px}
-.wl-team .wl-stage{height:480px}
-@media (max-width:1000px){.wl-orb{height:420px;margin:0}.wl-team{grid-template-columns:minmax(0,1fr)}.wl-team .wl-stage{height:420px}}
-@media (max-width:620px){.wl-orb{height:340px;min-height:0}.wl-team .wl-stage{height:320px}}
 /* history and other strips: renders keep their size inside the Mega wrapper */
 html.jade .set-art{flex:none}
 html.jade .set-art>.art{flex:none!important;max-width:none!important}
 html.jade .team-six>.set-art{flex:1 1 0;min-width:0;display:inline-flex;justify-content:center}
 html.jade .history-list .team-six.mini .set-art .art.small{width:32px!important;height:32px!important}
 /* labels styled as buttons stay one row: icon left, text right */
-html.jade label:is(.button,.file-button){flex-direction:row!important;align-items:center;gap:8px;margin:0!important;height:40px;padding:0 14px!important;white-space:nowrap}
+html.jade label:is(.button){flex-direction:row!important;align-items:center;gap:8px;margin:0!important;height:40px;padding:0 14px!important;white-space:nowrap}
 html.jade .file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-html.jade .add-row{display:flex;align-items:flex-start;gap:8px}
 /* replay filters: one 36px row, everything centred on the same line */
 html.jade .replay-filters{display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;flex-wrap:wrap;margin:24px 0 16px!important}
-html.jade .opponent-filter{display:flex;align-items:center!important;gap:8px!important;margin:0}
-html.jade .opponent-filter .combo input,html.jade .opponent-filter input{height:36px!important;min-height:36px!important;margin:0}
 html.jade .replay-filters>.chip-row{margin:0!important;align-items:center}
 html.jade .replay-filters .segmented{height:auto;margin:0}
 html.jade .replay-filters .segmented>button{height:30px}
@@ -1365,12 +1233,6 @@ html.jade .guide-six .art{width:88px!important;height:88px!important}
 .guide-six span:last-child{font:700 13px var(--fd);text-transform:uppercase;letter-spacing:.04em}
 .guide-intro{max-width:78ch}
 html.jade .guide-intro .markdown{font-size:16px;line-height:1.75}
-.guide-sections{display:grid;gap:8px}
-html.jade .guide-sections details{border:1px solid var(--ln);border-radius:12px;background:var(--sunk);padding:0 16px}
-html.jade .guide-sections summary{font:700 15px var(--fd)!important;text-transform:uppercase;letter-spacing:.04em;color:var(--tx)!important;padding:14px 0!important;list-style:none;display:flex;align-items:center;justify-content:space-between}
-html.jade .guide-sections summary::after{content:'+';font:400 20px var(--fb);color:var(--mu)}
-html.jade .guide-sections details[open] summary::after{content:'−'}
-html.jade .guide-sections details>.markdown{padding-bottom:16px}
 /* team members in prose */
 .mon-chip{display:inline-flex;align-items:center;gap:2px;font-weight:600;color:var(--tx);white-space:nowrap;vertical-align:-6px;border-radius:8px;padding-right:4px;transition:background .2s}
 .mon-chip:hover{background:var(--hover);color:var(--ac)}
@@ -1382,30 +1244,15 @@ html.jade .plan-card{padding:16px 20px!important;gap:10px!important;display:grid
 html.jade .plan-card header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:nowrap!important}
 .plan-head{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
 html.jade .plan-head h3{font:700 16px/1.3 var(--fb)!important;margin:0}
-.plan-mons{display:inline-flex;gap:0}
-html.jade .plan-mons .art.small{width:40px!important;height:40px!important}
 .plan-actions{display:flex;gap:4px;flex:none;opacity:.55;transition:opacity .2s}
 .plan-card:hover .plan-actions,.plan-card:focus-within .plan-actions{opacity:1}
 html.jade .plan-actions button.icon{width:32px!important;height:32px!important;padding:0!important;display:inline-grid;place-items:center;border-color:transparent!important;background:transparent!important}
 html.jade .plan-actions button.icon:hover{background:var(--hover)!important}
 html.jade .plan-actions .compact{height:32px}
-.plan-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--mu)}
-.plan-back{display:inline-flex;align-items:center;gap:2px}
-html.jade .plan-back .art.small{width:28px!important;height:28px!important}
-html.jade .plan-back .mega-orb{display:none}
-.plan-sub{flex-basis:100%;font-size:13px;color:var(--mu)}
 .plan-summary{margin:0!important;font-size:14px;line-height:1.55;color:var(--tx);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-html.jade .plan-toggle{justify-self:start;height:28px;padding:0 4px!important;border:0!important;background:none!important;box-shadow:none!important;color:var(--ac)!important;font-size:13px!important;gap:4px}
-html.jade .plan-toggle[aria-expanded=true] .px-icon{transform:rotate(180deg)}
-html.jade .plan-card .plan-text{padding-top:4px;border-top:1px dashed var(--ln)}
-html.jade .plan-card .plan-text .markdown{font-size:14px}
 html.jade .plan-card footer{display:none}
-html.jade .lead-record,html.jade .plan-meta .record{font-size:12.5px}
+html.jade .lead-record{font-size:12.5px}
 /* add replays: a glass panel like the rest */
-html.jade .add-replays{margin-top:24px;padding:20px!important;border-radius:var(--r)!important;border:1px solid var(--ln)!important;background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 10%,transparent),transparent 55%),var(--glass)!important;box-shadow:inset 0 1px 0 var(--hi)!important}
-html.jade .add-row textarea{flex:1;min-height:44px;height:44px;resize:vertical;margin:0}
-html.jade .add-row>*{margin:0!important}
-html.jade .add-row :is(button,label.button){height:44px!important}
 /* format: one tidy row */
 html.jade .format-tile{align-items:center!important;padding:16px 20px!important}
 html.jade .format-tile h3{font-size:20px!important;margin:4px 0 0!important}
@@ -1415,7 +1262,6 @@ html.jade .format-copy button{height:40px}
 /* team members in prose: no underline, sprite tight to the name */
 html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:2px}
 html.jade .mon-chip:hover{color:var(--ac)!important}
-html.jade .plan-toggle{background:none!important;border:0!important}
 .brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
 html.jade .brand-logo{width:34px!important;height:34px!important;filter:drop-shadow(0 3px 8px var(--glow))}
 html.jade .plan-actions button.icon{box-shadow:none!important}
@@ -1461,7 +1307,6 @@ html.jade .plan-head h3{font:800 20px/1.15 var(--fd)!important;text-transform:up
 html.jade .guide-six button{min-height:0!important;max-height:none!important;overflow:visible}
 html.jade .guide-six .set-art .art{width:88px!important;height:88px!important}
 .role-pill.avoid{color:var(--hot);border-color:color-mix(in srgb,var(--hot) 50%,transparent);background:color-mix(in srgb,var(--hot) 10%,transparent)}
-.style-tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:999px;font:600 11px var(--fb);color:var(--mu);border:1px solid var(--ln-2)}
 /* Mega: rainbow keystone with the white Mega symbol, and the tag beside the name */
 .mega-orb{background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.55) 0 10%,transparent 40%),conic-gradient(from 210deg,#ff5e7e,#ffb35e,#ffe95e,#5effa8,#5ec8ff,#a35eff,#ff5e7e)!important}
 .mega-orb::after{inset:14%!important;border:0!important;transform:none!important;background:url(/brand/mega.svg) center/contain no-repeat;filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}
@@ -1470,8 +1315,6 @@ html.jade h3.name-row{display:flex!important}
 html.jade .mega-badge{height:22px;padding:0 9px 0 3px;font-size:10.5px}
 html.jade .mega-badge .mega-orb{width:16px!important;height:16px!important}
 html.jade .set-art .mega-orb{width:18px!important;height:18px!important}
-html.jade .mega-switch.on .knob{position:relative}
-html.jade .mega-switch.on .knob::after{content:'';position:absolute;inset:16%;background:url(/brand/mega.svg) center/contain no-repeat}
 /* reading widths: prose fills the panel up to a comfortable ~90 characters; cards use their full width */
 html.jade .guide-intro,html.jade .guide-intro .markdown,html.jade .guide-intro .markdown>*{max-width:92ch!important}
 html.jade .guide-intro .markdown{font-size:16.5px;line-height:1.7}
@@ -1495,7 +1338,6 @@ html.jade .debrief .themes p{margin:0;line-height:1.65;color:var(--tx);opacity:.
 @media (max-width:1000px){.debrief{grid-template-columns:minmax(0,1fr)}}
 .brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
 html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle):not(.boot):not(.screen-sweep){position:relative;z-index:1}
-.wl-orb .wl-brain-hint{opacity:.8!important;bottom:4%}
 .brain-backdrop{opacity:.55;transition:opacity .6s}
 .brain-backdrop.hero{opacity:.9}
 html.jade nav.mon-switcher{background:color-mix(in srgb,var(--bg) 70%,transparent)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
@@ -1504,7 +1346,7 @@ html.jade{--glass:rgba(244,248,246,.84);--glass-2:rgba(255,255,255,.9);--blur:22
 @media (prefers-color-scheme:dark){html.jade:not([data-theme=light]){--glass:rgba(9,26,19,.84);--glass-2:rgba(18,44,33,.9)}}
 html.jade[data-theme=dark]{--glass:rgba(9,26,19,.84);--glass-2:rgba(18,44,33,.9)}
 /* things that sit straight on the page (tab bar, header pills, team switcher, chips row) get the same solid backing */
-html.jade :is(.hub-tabs,.format-tag,.ticker,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
+html.jade :is(.hub-tabs,.ticker,.replay-filters .segmented,nav.mon-switcher){background:var(--glass)!important;-webkit-backdrop-filter:blur(var(--blur));backdrop-filter:blur(var(--blur))}
 html.jade :is(.landing-head,.hub-head) h1{text-shadow:0 2px 24px var(--bg)}
 
 /* ---------- top of page: news and nav run edge to edge as one bar, and the nav stays full width when you scroll ---------- */
@@ -1596,7 +1438,7 @@ html.jade[data-theme=dark]{
  --phos-gold:0 0 6px rgba(244,196,67,.5),0 0 16px rgba(244,196,67,.18);--scan:rgba(0,0,0,.26)}
 
 /* Numbers: Plex Mono in phosphor. Mono runs wider than Saira Condensed, so the biggest sizes step down a little. */
-html.jade :is(.lab-big b,.lane-stat b,.wl-facts dd,.stat-final,.mon-slot,.wl-n,.card-record,.hp-head span,.sp-bar .v,.set-edit .sp-grid small,.sp-edit .stat-bars-head b,.common-mon small,.pool-counts b){
+html.jade :is(.lab-big b,.lane-stat b,.stat-final,.mon-slot,.card-record,.hp-head span,.sp-bar .v,.sp-edit .stat-bars-head b,.pool-counts b){
  font-family:var(--fnum)!important;font-weight:600!important;color:var(--phos)!important;text-shadow:var(--phos-glow);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 html.jade .lab-big b{font-size:40px!important}
 html.jade .lane-stat b{font-size:28px!important}
@@ -1783,7 +1625,7 @@ html.jade .replays .rf-result>button{height:32px!important;min-height:32px!impor
 @media (max-width:720px){
  html.jade .replays .replay-filters.rf{flex-direction:column!important;align-items:stretch!important}
  .rf-find{flex-direction:column;align-items:stretch}
- .rf-search,.rf-mon{flex:none;width:100%}
+ .rf-search{flex:none;width:100%}
  html.jade .rf-list{min-width:0}
  html.jade .replays .rf-result{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;align-self:stretch!important}
 }
@@ -2000,9 +1842,6 @@ html.jade .pref-chips .chip button:not(#_):hover{background:color-mix(in srgb,va
 }
 
 /* Replays: the add form is a fieldset (one `disabled` locks every control); locked until a Showdown name is set. */
-fieldset.add-row{border:0;padding:0;margin:0;min-width:0}
-.add-replays.locked{opacity:.45;filter:grayscale(.5)}
-.add-replays.locked,.add-replays.locked *{cursor:not-allowed}
 
 /* OAuth consent: the brain behind the card; Allow/Deny fill the bottom of the card, side by side, stacked on phones. */
 .consent-page{position:relative;isolation:isolate}
@@ -2166,9 +2005,6 @@ html.jade .news-page .coverage p,html.jade .news-page .coverage span{display:blo
 
 /* suggestions a connected assistant left for the team, shown at the top of the dock like the chat's own proposals */
 html.jade .queued{display:grid;gap:10px;padding:12px;margin-bottom:14px;border-radius:var(--r);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);background:color-mix(in srgb,var(--ac) 8%,transparent)}
-html.jade .queued-h{display:flex;align-items:center;gap:8px;margin:0;font:700 12px/1.3 var(--fb);letter-spacing:.12em;text-transform:uppercase;color:var(--ac)}
-html.jade .queued-sum{margin:0 0 6px;font-size:13px}
-html.jade .dock-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;margin-left:8px;border-radius:999px;background:var(--ac);color:var(--on);font:700 12px var(--fnum)}
 
 .tile-strategy{font-size:12px;border-top:1px solid var(--ln);padding-top:var(--s2)}.tile-strategy summary{cursor:pointer;color:var(--mu);margin-bottom:var(--s1)}.tile-strategy p,.tile-strategy ul{margin:0 0 var(--s1)}
 
@@ -2270,7 +2106,6 @@ html.jade .account-menu{display:flex;align-items:center;gap:var(--s2)}
 html.jade a.inbox-button{position:relative;display:inline-grid;place-items:center;flex:none;width:40px;height:40px;padding:0;border:0;border-radius:10px;background:transparent;color:var(--mu);text-decoration:none;line-height:0;transition:background .15s,color .15s}
 html.jade a.inbox-button:hover{background:var(--hover);color:var(--tx)}
 html.jade a.inbox-button svg{width:18px;height:18px}
-html.jade .inbox-label{display:none}
 /* the number of things waiting on you, as a red bubble on the corner */
 html.jade .inbox-count{position:absolute;top:1px;right:0;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#e5383b;color:#fff;font:700 11px/1 var(--fnum);box-shadow:0 0 0 2px var(--bg)}
 html.jade .inbox-page{display:grid;gap:var(--s4)}
@@ -2323,7 +2158,6 @@ html.jade .dock.expanded .dock-input{padding:0 28px 20px}
 html.jade .history-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 html.jade .history-list button{display:grid;gap:4px;width:100%;height:auto!important;padding:14px 16px;text-align:left;justify-items:start;border-radius:var(--r)}
 html.jade .history-list b{font-weight:700;white-space:normal}
-html.jade .past-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 @media(max-width:620px){html.jade .dock-scrim{padding:0}html.jade .dock-scrim>.dock.expanded{height:100dvh!important;max-height:100dvh;border-radius:0!important}}
 
 /* Inbox: suggestions, calcs and waiting games shown as what they are, not a line of text. */
@@ -2335,8 +2169,6 @@ html.jade .inbox-games li{display:flex;align-items:center;gap:10px;flex-wrap:wra
 html.jade .inbox-games .six{display:flex;gap:2px}
 html.jade .inbox-item .button-row{flex-wrap:wrap}
 @media(max-width:620px){html.jade .inbox-item .button-row>:is(button,.button){width:100%;justify-content:center}}
-
-html.jade .dock-controls{grid-template-columns:minmax(0,1fr)!important}
 html.jade .dock-corner{gap:6px}
 html.jade .dock-corner button.icon.selected{border-color:var(--ac)!important;color:var(--ac)}
 @media(max-width:380px){html.jade .dock-head h2{font-size:20px!important}html.jade .dock-corner button.icon{width:36px;height:36px}}
