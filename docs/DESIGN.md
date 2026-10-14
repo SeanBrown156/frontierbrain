@@ -1,8 +1,72 @@
 # Frontier Brain design notes
 
+## Design system (October 2026)
+
+One set of components for every control, dialog and panel. Build new screens from these alone; a page rule may place a component (grid, order, width) but not restyle it.
+
+- **Where.** `web/jade.css` in four parts: tokens (`:root`), `@layer base` (element defaults), `@layer components`, then page rules, unlayered. Page rules beat the layers without `!important`. React wrappers are in `web/ui.tsx`. **`#design-system`** (footer › Design system, `web/DesignSystem.tsx`) shows every component in dark and light side by side.
+- **Themes.** Light tokens on `:root`, dark from the system or `data-theme="dark"`. Any element can carry `data-theme` to show the other theme inside it. Tokens built from other tokens (depth) are declared again per theme.
+- **Phones.** `npm run check:phone` (with the app running and Playwright installed) opens every page at 360, 390 and 430px in both themes and fails on sideways scroll.
+
+### Tokens
+
+| Group | Tokens |
+|---|---|
+| Colour | `--bg` `--glass` `--glass-2` `--sunk` `--field` · `--tx` `--mu` · `--ln` `--ln-2` · `--ac` `--ac-2` `--on` · `--gd` (gold) `--hot` (red) · `--hover` `--tint` `--danger-tint` `--backdrop` · `--phos*` (number glow) |
+| Type | `--fd` Saira Condensed (titles), `--fb` Hanken Grotesk (reading, controls), `--fnum` IBM Plex Mono (numbers) · `--t-eyebrow` 10.5 `--t-xs` 11 `--t-sm` 12 `--t-md` 13 (controls) `--t-base` 15 `--t-lg` 18 `--t-xl` 24 `--t-2xl` 44 |
+| Spacing | `--s05` 2 · `--s1` 4 · `--s2` 8 · `--s3` 12 · `--s4` 16 · `--s6` 24 · `--s8` 32 · `--s12` 48 |
+| Shape | `--r-xs` 6 · `--rs` 10 (controls) · `--r` 16 (cards) · `--r-lg` 22 (dialogs) · `--r-pill` |
+| Depth | `--e-inset` (controls) · `--e-card` · `--e-pop` (toasts, menus) · `--e-dialog` |
+| Size | `--control-height` 40 (44 on phones) · `--compact-height` 32 · `--touch` 44 · `--gutter` 32 (16 below 760px) · `--edge` · `--header-offset` |
+
+### Components
+
+| Component | Class | React |
+|---|---|---|
+| Button | `button` / `.button` (secondary), `.primary`, `.danger`, `.text-button` (quiet), `.compact`, `.icon` (square) | `Button`, `IconButton` |
+| Toolbar | `.button-row` | |
+| Field | `label` > control; `label.radio`; `fieldset` + `legend` | `Field` |
+| Input, select, textarea | element styles; selects draw their own chevron | |
+| Panel / Card | `.panel` (a page section, `.panel-heading` on top), `.card` (inside a panel) | `Panel`, `Card` |
+| Dialog | `dialog.modal` > `header` (title, X) · body · `.modal-footer` | `Modal` (`footer` prop), `ModalFooter` |
+| Tabs / Segmented | `.tabs`, `.segmented` (one sunk track; the chosen option lifts out) | `Tabs`, `Segmented` |
+| Toggle / Chip | `.toggle` (control height), `.chip`, `.chip-row`, `.choose` | `Toggle` |
+| Switch | `.mode-switch` | `ModeSwitch` |
+| Tag, Badge with count | `.tag` (`.ok`, `.warn`), `.count-badge` | `Tag`, `CountBadge` |
+| Notice, Empty, Toast | `.notice`, `.empty`, `.toast` (`.error`) | `Notice`, `Empty` |
+| Text roles | `.eyebrow`, `.muted`, `.footnote`, `.error` | |
+
+### Rules
+
+- **Dialogs.** An X top-right is the only close. The footer holds only the action(s), primary last and on the right. Phones (≤720px): the dialog fills the screen less a 16px margin, and the footer stacks full width with the primary first.
+- **Full-width buttons** only when stacked: toolbars and dialog footers on phones, or a tile's single action.
+- **Sticky** things sit at `top: calc(var(--header-offset) + var(--s3))`, under the header.
+- **Art.** `.art` 95px, `.art.small` 48px (HOME renders, Showdown sprites by setting). Box icons 40×30, item icons 24×24, in pickers and lists only.
+- **Phones (≤620px).** One column. Controls are 44px; chips, quiet buttons, segments, the save star and the Mega switch get a 44px touch area. Open pickers become full-screen sheets.
+- **Copy.** Labels and short sentences. No hint paragraphs explaining how to use a control.
+
+### Spacing
+
+| Role | Value |
+|---|---|
+| Page section (`.panel`, `--pad-panel`) | 24px, 16px on phones |
+| Card inside a section (`--pad-card`) | 16px, 12px on phones |
+| Tile inside a card (`--pad-tile`) | 12px |
+| Dialog (`--pad-dialog`) | 24px, 16px at ≤720px |
+| Panel or dialog header | 16px below, then a hairline, then 16px |
+| Between sections (`--gap-section`) | 24px |
+| Stacked blocks (`--gap-stack`), label to next field | 16px |
+| Form columns and rows (`--gap-form`) | 12–16px |
+| Toolbar and inline items (`--gap-inline`) | 8px; tight pairs (`--gap-tight`) 4px |
+| Control inset (`--pad-control`, `--pad-field`) | 16px buttons, 12px fields |
+
+- Every padding, margin and gap uses the scale. Exceptions: 1px hairlines, clearance for an icon inside a field (for example 40px beside an item sprite), room under the page for the floating Ask button, and the welcome page's staged artwork offsets.
+- **Nesting.** A box inside a box gets its own padding and no outer margin; the parent supplies the gap (grid or flex `gap`, or the 24px between stacked sections).
+- Breakpoints: 1100px (one column), 760px, 720px (dialogs), 620px (phones). Check phones at 360, 390 and 430px.
+
 ## Jade Glass (October 2026, branch `jade-glass-ui`)
 
-Chosen from the Round 3 lookbook: Sky Pillar inside a clear emerald shell. It supersedes the Round 2 cream palette (see `docs/history/emerald/`), which is kept as history. The system lives in one stylesheet, `web/jade.css`: an unscoped base section (element defaults and layout) followed by the theme, whose rules are scoped to `html.jade`.
+Chosen from the Round 3 lookbook: Sky Pillar inside a clear emerald shell. It supersedes the Round 2 cream palette (see `docs/history/emerald/`), which is kept as history. The system lives in one stylesheet, `web/jade.css` (structure under Design system above).
 
 - **Themes.** Dark ("after hours") and light ("morning jade"). The app follows the system until the player picks one with the header toggle; the choice is stored in `localStorage` (`frontierbrain.theme`) and applied before first paint by `index.html`.
 - **Tokens.** Background, glass, sunk, text, muted, line, accent (`#1FD08A` dark, `#0B8A55` light), hot red (the LED), gold (stat points and eyebrows).

@@ -168,10 +168,10 @@ html.jade .lp-cmd code b{font-weight:600;color:var(--phos);text-shadow:var(--pho
 html.jade .lp-fine{font:400 12.5px/1.6 var(--fnum);color:var(--mu);margin:0}
 
 /* closing */
-html.jade .lp-close{display:flex;flex-direction:column;align-items:center;gap:var(--s4);text-align:center;padding-block:36px 56px}
+html.jade .lp-close{display:flex;flex-direction:column;align-items:center;gap:var(--s4);text-align:center;padding-block:var(--s8) var(--s12)}
 html.jade .lp-close .lp-title{font-size:clamp(30px,4vw,52px);max-width:16em}
 html.jade .lp-close p{color:var(--tx);font-size:18px;max-width:36em;margin:0}
-html.jade .lp-xl{min-height:68px;padding:0 46px;border-radius:16px;font-size:20px;display:inline-flex;align-items:center}
+html.jade .lp-xl{min-height:68px;padding:0 var(--s12);border-radius:16px;font-size:20px;display:inline-flex;align-items:center}
 
 @media (max-width:1200px){
   html.jade .lp-fan{height:auto;display:grid;gap:var(--s4);perspective:none}

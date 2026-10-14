@@ -6,7 +6,7 @@ Where things live in Frontier Brain. Code is in this repository. The player's ow
 
 | Path | What it is |
 |---|---|
-| `web/` | The browser app (React + Vite). Entry `web/main.tsx`, routes in `web/App.tsx`, styles in `web/jade.css`. |
+| `web/` | The browser app (React + Vite). Entry `web/main.tsx`, routes in `web/App.tsx`, styles in `web/jade.css` (tokens, base and components, then pages), shared components in `web/ui.tsx`, the component reference at `#design-system` (`web/DesignSystem.tsx`). |
 | `tools/` | The Node side: CLI, local API server, hosted API, data sources, calcs, AI. Plain TypeScript run directly by Node 22.18+. |
 | `tools/tests/` | `npm test` (Node's test runner). `fixtures/` holds test data, `corpus.ts` the replay test corpus. |
 | `tools/examples/` | Sample inputs for the CLI calcs (`npm run vgc -- calc tools/examples/damage.json`). |
@@ -16,7 +16,7 @@ Where things live in Frontier Brain. Code is in this repository. The player's ow
 | `public/` | Static files served as-is: app icons (`brand/`) and reference-site logos (`icons/`). |
 | `api/index.mjs` | Vercel function stub. The real hosted API is bundled into `build/api/` by `tools/build-api.mjs`. |
 | `supabase/migrations/` | Hosted database schema (workspaces, files, pool tables). |
-| `docs/` | `DESIGN.md` (the Jade Glass design system), this map, `hosting.md` (who owns the hosted Supabase and Vercel projects) and `history/` (retired designs). |
+| `docs/` | `DESIGN.md` (the design system: tokens, components, rules, spacing), this map, `hosting.md` (who owns the hosted Supabase and Vercel projects) and `history/` (retired designs). |
 | `.github/workflows/` | `hosted-pool.yml`: weekly pool refresh into Supabase. `hosted-news.yml`: seeds `knowledge/news/weeks.json` when it changes on main. `regulation-routine.yml`: daily regulation switch routine (see `docs/REGULATION_ROUTINE.md`). |
 | `index.html`, `vite.config.ts`, `tsconfig*.json`, `vercel.json` | Build and deploy config. |
 | `.env.example`, `config.example.json` | Templates for `.env` (keys, `APP_DATA`) and the data directory's `config.json`. |
@@ -40,6 +40,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 **Entry points**
 - `cli.ts`: `npm run vgc -- <command>` (see `npm run vgc -- help` and `tools/README.md`).
 - `dev.mjs`: `npm run dev` (local) and `npm run dev:hosted`.
+- `check-phone.mjs`: `npm run check:phone`, every page at 360/390/430px in both themes, fails on sideways scroll (needs the app running and Playwright installed).
 - `workbench-server.ts`: the local API behind the UI (`/api/*`).
 - `hosted.ts`, `vercel-entry.ts`, `keep-alive.ts`: the hosted (Supabase + Vercel) API.
 - `mcp.ts`: the MCP connector for Claude, ChatGPT and CLI agents.
