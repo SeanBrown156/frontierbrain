@@ -1,7 +1,7 @@
 import type React from 'react';
 import {useState,useEffect,useLayoutEffect,useRef} from 'react';
 import {TEAM_STYLES,type TeamCoaching,type LeadPlan,type MatchupPlan,type Objective} from '../../shared/workbench.ts';
-import {api,Art,Panel,Modal,Notice,pct,Markdown,SetArt} from '../ui.tsx';
+import {api,Art,Panel,Modal,Notice,pct,Markdown,SetArt,Button,IconButton,Field,Tag,ChoiceChip,Chip} from '../ui.tsx';
 import {useDirty} from '../save-state.ts';
 import SpeciesPicker from '../ai/SpeciesPicker.tsx';
 import {formName} from '../BenchmarkLab.tsx';
@@ -18,17 +18,17 @@ export function PlanCard({status,head,meta,summary,body,foot,accept,edit,remove}
   const [open,setOpen]=useState(false),[long,setLong]=useState(false);const inner=useRef<HTMLDivElement>(null);
   // Measured from the children, which the fold never resizes, so toggling it can't flip the measurement.
   useLayoutEffect(()=>{const el=inner.current;if(!el)return;const check=()=>setLong([...el.children].reduce((h,c)=>h+(c as HTMLElement).offsetHeight,0)>FOLD);check();const ro=new ResizeObserver(check);ro.observe(el);return()=>ro.disconnect();},[summary,body]);
-  return <article className={'plan-card '+status}><header className="plan-top"><div className="plan-head">{head}{status==='proposed'&&<span className="tag">AI draft</span>}</div>
-      <div className="plan-actions">{accept&&<button className="compact primary" onClick={accept}>Accept</button>}<button className="icon" title="Edit" aria-label="Edit" onClick={edit}><Px icon={Pencil} size={16}/></button><button className="icon" title="Delete" aria-label="Delete" onClick={remove}><Px icon={Trash} size={16}/></button></div></header>
+  return <article className={'plan-card '+status}><header className="plan-top"><div className="plan-head">{head}{status==='proposed'&&<Tag>AI draft</Tag>}</div>
+      <div className="plan-actions">{accept&&<Button variant="primary" size="compact" onClick={accept}>Accept</Button>}<IconButton variant="ghost" size="compact" label="Edit" icon={<Px icon={Pencil} size={16}/>} title="Edit" onClick={edit}/><IconButton variant="ghost" size="compact" label="Delete" icon={<Px icon={Trash} size={16}/>} title="Delete" onClick={remove}/></div></header>
     {meta}
     {(summary||body.trim())&&<div className={'plan-body'+(long&&!open?' folded':'')}><div className="plan-copy" ref={inner}>{summary&&<p className="plan-summary">{summary}</p>}{body.trim()&&<Markdown text={body}/>}</div>
-      {long&&<button type="button" className="text-button plan-more" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?'Less':'More'}<Px icon={ChevronDown} size={14}/></button>}</div>}
+      {long&&<Button variant="quiet" className="plan-more" type="button" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?'Less':'More'}<Px icon={ChevronDown} size={14}/></Button>}</div>}
     {foot&&<div className="plan-foot">{foot}</div>}
   </article>;
 }
 // Lead and matchup plans share one panel: title, New, the list, and an empty line.
 function PlanPanel({title,onNew,empty,children}:{title:string;onNew:()=>void;empty?:string;children:React.ReactNode}){
-  return <Panel title={title} className="plan-panel" action={<button onClick={onNew}><Px icon={Plus}/>New</button>}><div className="plan-list">{children}</div>{empty&&<p className="muted">{empty}</p>}</Panel>;
+  return <Panel title={title} className="plan-panel" action={<Button onClick={onNew}><Px icon={Plus}/>New</Button>}><div className="plan-list">{children}</div>{empty&&<p className="muted">{empty}</p>}</Panel>;
 }
 // A lead's role: set explicitly, or read from an older plan's "CORE · …" prefix (shown as the pill, not repeated in the text).
 const ROLE_PREFIX=/^\s*(core|situational|niche|avoid)\s*[·:\-–]\s*/i;
@@ -55,7 +55,7 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
           head={<><RolePill role={leadRole(l)??'lead'}/><h3>{l.title||l.lead.join(' + ')}</h3></>}
           meta={<div className="front-back"><span className="fb-label">Front</span><span className="fb-mons">{l.lead.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span>
             {l.back.length>0&&<><span className="fb-divider"/><span className="fb-label">Back</span><span className="fb-mons">{l.back.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
-          summary={whenText(l)} body={l.plan} foot={<><LeadRecord stats={stats} lead={l.lead}/>{l.versionIds.length>0&&<span className="tag">{versionLabel(l.versionIds)}</span>}</>}
+          summary={whenText(l)} body={l.plan} foot={<><LeadRecord stats={stats} lead={l.lead}/>{l.versionIds.length>0&&<Tag>{versionLabel(l.versionIds)}</Tag>}</>}
           accept={l.status==='proposed'?()=>void save({leads:upsert(coaching.leads,{...l,status:'active'})}):undefined} edit={()=>setEditLead(l)} remove={()=>{if(confirm(`Delete the ${l.lead.join(' + ')} lead plan?`))void save({leads:coaching.leads.filter(x=>x.id!==l.id)});}}/>)}
       </PlanPanel>
       <PlanPanel title="Matchup strategy" onNew={()=>setEditMatchup({id:newId(),opponent:'',threat:'medium',bring:[],plan:'',calcIds:[],versionIds:scopeIds,status:'active'})} empty={coaching.matchups.filter(inScope).length?undefined:'No matchup plans yet. Add one, or ask Frontier Brain to draft them.'}>
@@ -63,7 +63,7 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
           head={<><span className={'threat '+m.threat}>{m.threat}</span><h3>{o.title}</h3></>}
           meta={<div className="front-back">{o.examples.length>0&&<><span className="fb-label">Examples</span><span className="fb-mons">{o.examples.map(p=><span key={p} className="fb-mon"><Art name={p} fallback={p.replace(/-(Mega(-[XYZ])?|[XYZ])$/,'')} art={data.art} small/>{formName(p)}</span>)}</span></>}
             {m.bring.length>0&&<><span className="fb-divider"/><span className="fb-label">Bring</span><span className="fb-mons">{m.bring.map(p=><span key={p} className="fb-mon"><SetArt set={setOf(p)} art={data.art} small/>{p}</span>)}</span></>}</div>}
-          body={m.plan} foot={m.versionIds.length>0?<span className="tag">{versionLabel(m.versionIds)}</span>:undefined}
+          body={m.plan} foot={m.versionIds.length>0?<Tag>{versionLabel(m.versionIds)}</Tag>:undefined}
           accept={m.status==='proposed'?()=>void save({matchups:upsert(coaching.matchups,{...m,status:'active'})}):undefined} edit={()=>setEditMatchup(m)} remove={()=>{if(confirm(`Delete the ${o.archetype} matchup plan?`))void save({matchups:coaching.matchups.filter(x=>x.id!==m.id)});}}/>;})}
       </PlanPanel>
     </div>
@@ -74,17 +74,17 @@ export default function Coaching({team,data,mutate,notify,versionId,games}:{team
 }
 function LeadRecord({stats,lead}:{stats:any;lead:string[]}){const key=[...lead].sort().join(' + ');const r=stats?.leads?.[key];return r?<span className="lead-record">{r.wins}–{r.losses} in replays</span>:null;}
 const csv=(s:string)=>s.split(',').map(x=>x.trim()).filter(Boolean);
-function Pick({label,value,options,onChange}:{label:string;value:string;options:string[];onChange:(v:string)=>void}){return <label>{label}<select value={value} onChange={e=>onChange(e.target.value)}><option value="">—</option>{options.map(o=><option key={o}>{o}</option>)}</select></label>;}
-function Choose({label,value,options,max,onChange}:{label:string;value:string[];options:string[];max:number;onChange:(v:string[])=>void}){return <fieldset><legend>{label} ({value.length}/{max})</legend><div className="choose-row">{options.map(o=><label key={o} className={'choose'+(value.includes(o)?' on':'')}><input type="checkbox" checked={value.includes(o)} disabled={!value.includes(o)&&value.length>=max} onChange={e=>onChange(e.target.checked?[...value,o]:value.filter(x=>x!==o))}/>{o}</label>)}</div></fieldset>;}
+function Pick({label,value,options,onChange}:{label:string;value:string;options:string[];onChange:(v:string)=>void}){return <Field label={label}><select value={value} onChange={e=>onChange(e.target.value)}><option value="">—</option>{options.map(o=><option key={o}>{o}</option>)}</select></Field>;}
+function Choose({label,value,options,max,onChange}:{label:string;value:string[];options:string[];max:number;onChange:(v:string[])=>void}){return <fieldset><legend>{label} ({value.length}/{max})</legend><div className="choose-row">{options.map(o=><ChoiceChip key={o} checked={value.includes(o)} disabled={!value.includes(o)&&value.length>=max} onChange={c=>onChange(c?[...value,o]:value.filter(x=>x!==o))}>{o}</ChoiceChip>)}</div></fieldset>;}
 // Closing a plan editor with changes asks first.
 const useGuardedClose=(key:string,dirty:boolean,onClose:()=>void)=>{useDirty(key,dirty,'plan');return ()=>{if(!dirty||confirm('Discard changes to this plan?'))onClose();};};
 function LeadEditor({plan,team,members,save,onClose}:{plan:LeadPlan;team:any;members:string[];save:(l:LeadPlan)=>Promise<void>;onClose:()=>void}){const [start]=useState(()=>({...plan,role:leadRole(plan),when:plan.when.replace(ROLE_PREFIX,'')}));const [p,setP]=useState(start),[error,setError]=useState(''),[busy,setBusy]=useState(false);const lead=[p.lead[0]??'',p.lead[1]??''];const close=useGuardedClose('lead-'+plan.id,JSON.stringify(p)!==JSON.stringify(start)&&!busy,onClose);
   return <Modal title="Lead plan" onClose={close}><form onSubmit={async e=>{e.preventDefault();setBusy(true);try{if(!p.lead.filter(Boolean).length)throw new Error('Choose the lead');await save({...p,lead:p.lead.filter(Boolean)});}catch(err){setError((err as Error).message);setBusy(false);}}}>
-    <label>Title<input value={p.title??''} onChange={e=>setP({...p,title:e.target.value||undefined})} placeholder="e.g. Rain blitz"/></label>
+    <Field label="Title"><input value={p.title??''} onChange={e=>setP({...p,title:e.target.value||undefined})} placeholder="e.g. Rain blitz"/></Field>
     <div className="form-grid"><Pick label="Lead 1" value={lead[0]} options={members.filter(m=>m!==lead[1])} onChange={v=>setP({...p,lead:[v,lead[1]]})}/><Pick label="Lead 2" value={lead[1]} options={members.filter(m=>m!==lead[0])} onChange={v=>setP({...p,lead:[lead[0],v]})}/></div>
     <Choose label="Back" value={p.back} options={members.filter(m=>!lead.includes(m))} max={2} onChange={v=>setP({...p,back:v})}/>
-    <label>Role<select value={p.role??''} onChange={e=>setP({...p,role:(e.target.value||undefined) as LeadPlan['role']})}><option value="">Not set</option><option value="core">Core: your default lead</option><option value="situational">Situational: into specific teams</option><option value="niche">Niche: a pocket option</option><option value="avoid">Avoid: don't lead this pair</option></select></label>
-    <label>When to use it<textarea rows={2} value={p.when} onChange={e=>setP({...p,when:e.target.value})}/></label><label>Turn 1–2 plan<textarea rows={5} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})}/></label>{error&&<p className="error">{error}</p>}<div className="modal-footer"><button className="primary" disabled={busy}>{busy?'Saving…':'Save lead plan'}</button></div></form></Modal>;}
+    <Field label="Role"><select value={p.role??''} onChange={e=>setP({...p,role:(e.target.value||undefined) as LeadPlan['role']})}><option value="">Not set</option><option value="core">Core: your default lead</option><option value="situational">Situational: into specific teams</option><option value="niche">Niche: a pocket option</option><option value="avoid">Avoid: don't lead this pair</option></select></Field>
+    <Field label="When to use it"><textarea rows={2} value={p.when} onChange={e=>setP({...p,when:e.target.value})}/></Field><Field label="Turn 1–2 plan"><textarea rows={5} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})}/></Field>{error&&<p className="error">{error}</p>}<div className="modal-footer"><Button variant="primary" disabled={busy}>{busy?'Saving…':'Save lead plan'}</Button></div></form></Modal>;}
 // A matchup plan's parts: the team style (shared with replay tags), example opposing Pokémon, threat, who to bring and
 // the game plan. Older plans that kept everything in one "Style: Pokémon list" line are split on opening.
 export function splitOpponent(m:MatchupPlan){if(m.archetype||m.examples?.length)return {title:m.opponent||m.archetype!,archetype:m.archetype??m.opponent,examples:m.examples??[]};
@@ -93,11 +93,11 @@ function MatchupEditor({plan,team,members,save,onClose,styles=[]}:{plan:MatchupP
   const [start]=useState(()=>{const o=splitOpponent(plan);return {...plan,archetype:o.archetype,examples:o.examples};});const [p,setP]=useState(start),[error,setError]=useState(''),[busy,setBusy]=useState(false);const close=useGuardedClose('matchup-'+plan.id,JSON.stringify(p)!==JSON.stringify(start)&&!busy,onClose);
   const styleList=[...new Set([...TEAM_STYLES,...styles])];const ex=p.examples??[];
   return <Modal title="Matchup plan" onClose={close}><form className="plan-form" onSubmit={async e=>{e.preventDefault();setBusy(true);try{if(!p.archetype?.trim())throw new Error('Choose the team style');await save({...p,opponent:(p.opponent&&p.opponent!==plan.opponent?p.opponent:plan.archetype?plan.opponent:p.archetype!).trim()});}catch(err){setError((err as Error).message);setBusy(false);}}}>
-    <div className="form-grid"><label>Opponent team style<input required list="style-options" value={p.archetype??''} onChange={e=>setP({...p,archetype:e.target.value})} placeholder="e.g. Tailwind offense"/><datalist id="style-options">{styleList.map(a=><option key={a} value={a}/>)}</datalist></label>
-      <label>Threat<select value={p.threat} onChange={e=>setP({...p,threat:e.target.value as MatchupPlan['threat']})}><option value="high">HIGH</option><option value="medium">MEDIUM</option><option value="low">LOW</option></select></label></div>
-    <div className="examples-field"><span className="field-label">Example Pokémon</span><div className="example-chips">{ex.map(m=><button type="button" key={m} className="chip on" onClick={()=>setP({...p,examples:ex.filter(x=>x!==m)})}>{m} ×</button>)}</div>{ex.length<8&&<SpeciesPicker label="Add an example Pokémon" placeholder="Add a Pokémon…" value="" onPick={sp=>setP({...p,examples:ex.includes(sp)?ex:[...ex,sp]})}/>}</div>
+    <div className="form-grid"><Field label="Opponent team style"><input required list="style-options" value={p.archetype??''} onChange={e=>setP({...p,archetype:e.target.value})} placeholder="e.g. Tailwind offense"/><datalist id="style-options">{styleList.map(a=><option key={a} value={a}/>)}</datalist></Field>
+      <Field label="Threat"><select value={p.threat} onChange={e=>setP({...p,threat:e.target.value as MatchupPlan['threat']})}><option value="high">HIGH</option><option value="medium">MEDIUM</option><option value="low">LOW</option></select></Field></div>
+    <div className="examples-field"><span className="field-label">Example Pokémon</span><div className="example-chips">{ex.map(m=><Chip on type="button" key={m} onClick={()=>setP({...p,examples:ex.filter(x=>x!==m)})}>{m} ×</Chip>)}</div>{ex.length<8&&<SpeciesPicker label="Add an example Pokémon" placeholder="Add a Pokémon…" value="" onPick={sp=>setP({...p,examples:ex.includes(sp)?ex:[...ex,sp]})}/>}</div>
     <Choose label="Bring" value={p.bring} options={members} max={4} onChange={v=>setP({...p,bring:v})}/>
-    <label>Game plan<textarea rows={5} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})} placeholder="The lead, the key move or switch, what wins it. A few sentences."/></label>{error&&<p className="error">{error}</p>}<div className="modal-footer"><button className="primary" disabled={busy}>{busy?'Saving…':'Save matchup plan'}</button></div></form></Modal>;}
+    <Field label="Game plan"><textarea rows={5} value={p.plan} onChange={e=>setP({...p,plan:e.target.value})} placeholder="The lead, the key move or switch, what wins it. A few sentences."/></Field>{error&&<p className="error">{error}</p>}<div className="modal-footer"><Button variant="primary" disabled={busy}>{busy?'Saving…':'Save matchup plan'}</Button></div></form></Modal>;}
 
 // The difference between two copies of a team's strategy, as one item-level update the server merges into the latest.
 export function coachingUpdate(teamId:string,before:Pick<TeamCoaching,'leads'|'matchups'|'objectives'>,after:Pick<TeamCoaching,'leads'|'matchups'|'objectives'>){

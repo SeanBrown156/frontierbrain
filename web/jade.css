@@ -143,6 +143,7 @@ main h1{text-shadow:var(--phos-title)}
  :is(button,.button).ghost:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);background:var(--hover);border-color:var(--ln);transform:none}
  :is(button,.button).ghost.icon{color:var(--mu);border-color:transparent}
  :is(button,.button).ghost.icon:is(:hover:not(:disabled),[aria-expanded=true]){color:var(--tx);border-color:transparent}
+ :is(button,.button).icon.compact{width:var(--compact-height);min-width:var(--compact-height)}
  .tabs>button:has(>small){flex-direction:column;gap:var(--s05)}
  /* tile: a whole card you click (history rows, team pickers, search results); .on / aria-selected marks the chosen one */
  :is(button,.button).tile{display:grid;justify-items:start;align-content:center;gap:var(--s1);width:100%;height:auto;min-height:0;max-height:none;padding:var(--pad-card);text-align:left;white-space:normal;line-height:1.35;font-weight:400;border-radius:var(--r)}
@@ -421,9 +422,6 @@ i.inferred{font-size:11px;margin-left:var(--s1)}
 .stat-table{width:100%;border-collapse:collapse}
 .stat-table th,.stat-table td{text-align:left;border-bottom:1px solid var(--ln)}
 .stat-table td .art.small{vertical-align:middle}
-.objectives{list-style:none;padding:0}
-.objectives li{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ln)}
-.objectives li.done label{text-decoration:line-through;color:var(--mu)}
 .hub-head>.text-button:first-child{flex-basis:100%}
 .move-list li.known{color:var(--tx)}
 .move-list li.known:before{content:'●';font-size:8px;margin-right:var(--s1);color:var(--hot)}
@@ -501,11 +499,6 @@ a .px-icon,button .px-icon{margin-right:var(--s1)}
 .guess{display:inline-block;margin-left:var(--s1);font:600 10px var(--fb);letter-spacing:.04em;text-transform:uppercase;border:1px dashed var(--ln);padding:0 var(--s1);vertical-align:middle}
 .strategy-block.dirty{border-color:var(--gd)}
 .versions{display:grid}
-.changes{list-style:none;margin:0;padding:0}
-.changes li{display:grid;align-items:center;border-bottom:1px solid var(--ln);font-size:14px}
-.changes li:last-child{border:0}
-.changes .when{color:var(--mu);font-size:13px}
-.changes li.current .what{font-weight:600}
 .set-card.dirty{border-color:var(--gd)}
 .set-card-head{display:flex}
 .grow{flex:1;min-width:0}
@@ -582,9 +575,7 @@ fieldset.plain:disabled input,fieldset.plain:disabled select{background:var(--su
 .mon-card.read-only{opacity:.92}
 .markdown h1,.markdown h2,.markdown h3,.markdown h4,.team-card-title h3,.lab-result h3{font-weight:600;letter-spacing:-.01em}
 .markdown h3,.markdown h4{font-size:16px}
-.plan-card footer button,.lab-result button,.objectives li button,.changes button,.chat-suggestions button{min-height:30px;padding:0 var(--s2);font-size:12px}
-.plan-card footer button:not(.primary){border-color:var(--ln);background:transparent}
-.plan-card footer button:not(.primary):hover{border-color:var(--tx);background:var(--hover)}
+.lab-result button,.chat-suggestions button{min-height:30px;padding:0 var(--s2);font-size:12px}
 .poke-icon{display:inline-block;width:40px;height:30px;flex:none;background:url(/api/icon-sheet) no-repeat}
 .combo.with-icon>.poke-icon{position:absolute;left:6px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:1}
 .combo.with-icon>input,.set-card .combo.with-icon input{padding-left:var(--s12)}
@@ -620,7 +611,7 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .score-strip,.sp-inputs,.stat-row,.tile-stats,.stat-table{font-family:var(--fb);font-variant-numeric:tabular-nums}
 .stat-final,.stat-base,.score-strip b,.pool-counts b,.lab-result h3{font-family:var(--fb)}
 .lab-result h3{font-size:16px;line-height:1.5;overflow-wrap:anywhere}
-.plan-card footer button,.lab-result button,.objectives li button,.changes button,.stat-form button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);font:600 13px/1.2 var(--fb)}
+.lab-result button{height:var(--compact-height);min-height:var(--compact-height);max-height:var(--compact-height);padding:0 var(--s3);font:600 13px/1.2 var(--fb)}
 .profile-card,.account-pop{background:var(--glass);border:2px solid var(--ln-2);border-radius:4px;box-shadow:2px 2px 0 var(--shade)}
 .teams-landing,.team-hub,.workspace{padding:var(--s8) 0 0}
 .landing-head,.hub-head{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--s4);margin:0 0 var(--s6)}
@@ -659,8 +650,6 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .plan-card .pair{gap:var(--s2)}
 .plan-card .pair h3{font-family:var(--fb)}
 .team-detail-grid{gap:var(--s6)}
-.objectives li{gap:var(--s3);padding:var(--s2) 0}
-.objectives label{margin:0}
 .replays{gap:var(--s6)}
 .digest{margin-inline:auto}
 .themes li{margin-bottom:var(--s4)}
@@ -676,8 +665,6 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .threat.low{background:var(--ac)}
 .threat.medium{background:var(--gd)}
 .versions{margin:auto;gap:var(--s6)}
-.changes li{grid-template-columns:100px minmax(0,1fr) auto;gap:var(--s4);padding:var(--s3) 0}
-.changes .button-row{margin:0;gap:var(--s2)}
 .danger-zone{margin:var(--s6) auto 0}
 .danger-zone>div{flex:1;min-width:0}
 .workspace .hub-head{flex-direction:row;justify-content:space-between;align-items:center}
@@ -809,12 +796,9 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
  .plan-card footer{justify-content:center}
  .plan-card footer .muted{flex-basis:100%;text-align:center;margin:0}
  .plan-card .pair{justify-content:center}
- .objectives li{gap:var(--s2)}
  .segmented{justify-content:center}
  .replay-list{grid-template-columns:minmax(0,1fr)}
  .game{padding:var(--s4)}
- .changes li{grid-template-columns:minmax(0,1fr);gap:var(--s2)}
- .changes .button-row{justify-content:flex-start}
  .danger-zone{flex-direction:column;text-align:center}
  .workspace .hub-head{flex-direction:column;gap:var(--s4)}
  .mon-switcher{flex-wrap:nowrap}
@@ -825,7 +809,6 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
  .stat-row{grid-template-columns:36px minmax(0,1fr) 24px 44px 32px;gap:var(--s1)}
  .stat-bars-head{justify-content:center}
  .stat-bars-head .muted{margin-left:0}
- .stat-form .button-row{margin-block:var(--s2)}
  .benchmark-save input{flex-basis:100%}
  .lab .form-grid{grid-template-columns:minmax(0,1fr)}
  .new-team>.tabs>button{font-size:12px}
@@ -1770,9 +1753,6 @@ html.jade .plan-card header{display:flex;align-items:center;justify-content:spac
 html.jade .plan-head h3{font:700 16px/1.3 var(--fb)!important;margin:0}
 .plan-actions{display:flex;gap:var(--s1);flex:none;opacity:.55;transition:opacity .2s}
 .plan-card:hover .plan-actions,.plan-card:focus-within .plan-actions{opacity:1}
-html.jade .plan-actions button.icon{width:32px!important;height:32px!important;padding:0!important;display:inline-grid;place-items:center;border-color:transparent!important;background:transparent!important}
-html.jade .plan-actions button.icon:hover{background:var(--hover)!important}
-html.jade .plan-actions .compact{height:32px}
 .plan-summary{margin:0!important;font-size:14px;line-height:1.55;color:var(--tx);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 html.jade .plan-card footer{display:none}
 html.jade .lead-record{font-size:12.5px}
@@ -1787,7 +1767,6 @@ html.jade .format-copy button{height:40px}
 html.jade .mon-chip{text-decoration:none!important;color:var(--tx)!important;font-weight:700;gap:0;padding-right:var(--s05)}
 html.jade .mon-chip:hover{color:var(--ac)!important}
 .brain-backdrop{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
-html.jade .plan-actions button.icon{box-shadow:none!important}
 .brain-backdrop{z-index:0!important}
 html.jade .shell>:not(.brain-backdrop):not(.masthead):not(.dock):not(.dock-toggle):not(.boot):not(.screen-sweep){position:relative;z-index:1}
 /* dialogs: title flush with the content's left edge */
@@ -2135,7 +2114,6 @@ html.jade .plan-card header.plan-top{display:flex!important;flex-direction:row!i
 html.jade .plan-top .plan-head{flex:1;min-width:0;min-height:32px;display:flex;align-items:center;justify-content:flex-start;gap:var(--s2);flex-wrap:wrap}
 html.jade .plan-top .plan-head h3{min-width:0;overflow-wrap:anywhere}
 html.jade .plan-top .plan-actions{display:flex;align-items:center;gap:var(--s1);flex:none}
-html.jade .plan-top .plan-actions .compact{height:32px!important;min-height:32px!important;max-height:32px!important}
 @media (hover:none){
  .plan-actions{opacity:1!important}
 }
