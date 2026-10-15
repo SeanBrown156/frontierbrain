@@ -240,14 +240,14 @@ main h1{text-shadow:var(--phos-title)}
  .error{color:var(--hot)}
 
  /* ---- Panel (a page section) and Card (anything inside it): frosted glass ---- */
- :is(.panel,.card,.mon-card,.team-card,.set-card,.strategy-block,.plan-card,.set-tile,.source-card,.build-job,.sample-offer,.game-card,.pool-counts>div,.news-signal,.danger-zone,.proposal-card,.lab-result,.welcome-card){
+ :is(.panel,.card,.mon-card,.team-card,.set-card,.strategy-block,.plan-card,.set-tile,.source-card,.build-job,.game-card,.pool-counts>div,.news-signal,.danger-zone,.proposal-card,.lab-result,.welcome-card){
   background:linear-gradient(155deg,color-mix(in srgb,var(--ac) 11%,transparent),transparent 55%),var(--glass);
   border:1px solid var(--ln);border-radius:var(--r);box-shadow:var(--e-card);
   -webkit-backdrop-filter:blur(var(--blur)) saturate(140%);backdrop-filter:blur(var(--blur)) saturate(140%)}
  .panel{position:relative;min-width:0;padding:var(--pad-panel)}
  .card{position:relative;min-width:0;padding:var(--pad-card)}
  /* sections take the panel inset; anything that sits inside one takes the card inset */
- .set-card,.strategy-block,.profile-card,.sample-offer,.danger-zone,.digest{padding:var(--pad-panel)}
+ .set-card,.strategy-block,.profile-card,.danger-zone,.digest{padding:var(--pad-panel)}
  .mon-card,.team-card,.plan-card,.manage-tile,.format-tile,.weekly-digest,.lab-result,.field-box,.pair-card,.inbox-item,.source-card{padding:var(--pad-card)}
  /* stacked sections in normal flow; a grid or flex parent that sets its own gap zeroes this */
  .panel+.panel,.panel+section,section+.panel{margin-top:var(--gap-section)}
@@ -798,11 +798,9 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .account-pop .text-button{justify-self:center}
 .account-pop .button-row{flex-wrap:wrap}
 .account-pop .button-row .primary{flex:1}
-.profile-card,.sample-offer{margin:0 auto var(--s6);gap:var(--s4);text-align:center}
+.profile-card{margin:0 auto var(--s6);gap:var(--s4);text-align:center}
 .profile-card{border-color:var(--ln-2)}
 .profile-card label{text-align:left}
-.sample-offer{display:flex;flex-direction:column;align-items:center}
-.sample-offer p{max-width:640px;margin:0 auto}
 @media(max-width:1100px){
  .set-card{max-width:640px;width:100%;margin:auto}
  .set-fields .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -880,7 +878,6 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
  .welcome{padding:var(--s6) var(--s4)}
  .welcome-card{padding:var(--s6);gap:var(--s4)}
  .welcome-card h1{font-size:28px}
- .sample-offer p{max-width:100%}
  .footer{flex-direction:column;text-align:center;gap:var(--s3);margin-top:var(--s6);padding-bottom:96px}
 }
 @media(max-width:760px){
@@ -895,7 +892,7 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .signin-body .modal-footer{margin-top:0}
 .signin-for-ai{display:grid;gap:var(--s3);justify-items:center;text-align:center;margin:var(--s4);padding:var(--s4);border:1px dashed var(--ln-2);background:var(--tint)}
 .signin-for-ai p{margin:0}
-.teams-landing>*,.teams-landing .profile-card,.teams-landing .sample-offer,.teams-landing .build-jobs{width:100%;max-width:none;margin-inline:0;box-sizing:border-box}
+.teams-landing>*,.teams-landing .profile-card,.teams-landing .build-jobs{width:100%;max-width:none;margin-inline:0;box-sizing:border-box}
 .teams-landing .profile-card{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;text-align:left}
 .teams-landing .profile-card>div{grid-column:1/-1}
 @media(max-width:720px){
@@ -908,7 +905,7 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .replays>.profile-card{width:100%;max-width:none;margin:0}
 .teams-landing .landing-head{display:block;text-align:left;margin:var(--s8) 0 var(--s6)}
 .teams-landing .landing-head h1{text-align:left;margin:0}
-.strategy-block,.digest,.versions,.danger-zone,.profile-card,.sample-offer{max-width:none;width:100%}
+.strategy-block,.digest,.versions,.danger-zone,.profile-card{max-width:none;width:100%}
 .account-pop{width:320px!important;max-width:calc(100vw - 32px)!important;right:0;left:auto}
 .new-team-slot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s2);align-self:stretch;min-height:240px;margin:0;text-align:center;color:var(--ac);font:400 20px var(--fd)}
 .new-team-slot small{font:13px var(--fb);color:var(--mu)}

@@ -159,7 +159,6 @@ export function TeamsLanding({data,onImport,onReview,reload}:{data:any;onImport:
   return <div className="teams-landing"><div className="landing-head"><h1>Your teams</h1></div>
     <BuildJobs onReview={onReview} art={data.art}/>
     <div className="team-list">{data.teams.map((t:any)=>{const games=data.games.filter((g:any)=>g.association?.teamId===t.id);const r=record(games);return <a className="team-card" href={teamHref(t.id,'overview')} key={t.id}><div className="team-card-title"><h3>{t.name}</h3></div><div className="team-six">{t.view.sets.map((s:any,i:number)=><SetArt key={i} set={s} art={data.art} small/>)}</div><div className="card-footer"><Tag>{formatLabel(t.format)}</Tag>{r.n>0&&<span className="card-record">{`${r.label} in ${r.n} game${r.n===1?'':'s'}`}</span>}</div></a>;})}<Button variant="tile" className="team-card new-team-slot" onClick={onImport}><Px icon={Plus} size={24}/><span>New team</span><small>From a tournament list, a paste, or a prompt</small></Button></div>
-    <SampleTeams data={data} reload={reload}/>
     </div>;
 }
 
@@ -194,10 +193,3 @@ function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>voi
 
 // Replays are read from the player's side, so Frontier Brain needs their Showdown name (and any alts).
 
-// Starter teams: recent tournament top-8 lists with the players' shared spreads, plus a ladder team with replays.
-function SampleTeams({data,reload}:{data:any;reload?:()=>Promise<void>}){
-  const [busy,setBusy]=useState(false),[error,setError]=useState('');
-  if(data.teams.length)return null;
-  const add=async()=>{setBusy(true);setError('');try{await api('/samples',{});await reload?.();}catch(e){setError((e as Error).message);}finally{setBusy(false);}};
-  return <div className="sample-offer"><p>Want examples to explore? Add the two latest Regional-winning teams as samples. Where a player didn't publish spreads, the most common competitive spread is filled in and labelled.</p><Button disabled={busy} onClick={()=>void add()}>{busy?'Adding…':'Add sample teams'}</Button>{error&&<p className="error">{error}</p>}</div>;
-}
