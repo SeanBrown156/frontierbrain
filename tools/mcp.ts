@@ -114,6 +114,8 @@ async function call(name:string,input:any){
   if(name==='replay_transcript'){const g=await readGame(input.replayId);if(!db.associations[g.id])throw new Error('Replay not found');return {transcript:transcript(g)};}
   if(name==='import_team'){
     if(typeof input.name!=='string'||!input.name.trim())throw new Error('name is required');
+    // Illegal items or moves go back to the assistant to repair instead of being saved; format_rules lists the legal items.
+    try{validateTeamProposal({name:input.name,paste:input.paste,strategy:''});}catch(e){throw new Error(`${(e as Error).message}\nNothing was saved. Fix these and send the team again; format_rules.legalItems lists every legal held item.`);}
     const r=await mutateLatest(d=>{const t:any=applyAction(d,{type:'import',name:String(input.name).slice(0,120),paste:input.paste,notes:input.notes,setNotes:input.setNotes&&typeof input.setNotes==='object'?Object.fromEntries(Object.entries(input.setNotes as any).map(([sp,v]:any)=>[sp,{role:composePokemonStrategy({role:String(v?.role??'').slice(0,500),howToPlay:String(v?.howToPlay??v?.notes??'').slice(0,3000),watchOut:String(v?.watchOut??'').slice(0,1500)}),benchmarks:''}])):undefined} as any);
       return t;});
     const t:any=r.result;return {created:t.id,name:t.name,note:'New team created. Open it in Frontier Brain to review; nothing existing was changed.'};}
@@ -289,6 +291,8 @@ Work as a collaborator, in short turns, and hand choices back to the player:
 - Replays the player gives you: add_replays takes the Showdown links or pasted HTML they sent (replay.pokemonshowdown.com only, never guess or search for replays), links each to the team whose six matches and says how certain the link is; an automatic "exact" link is consistent with the game, not confirmation of spreads. Games without an AI key wait for you (above). delete_replay removes ONE replay for good: only when they asked, with playerAgreed: true and the exact id. create_pokepaste PUBLISHES a team to pokepast.es: only when they asked for a public link, with playerAgreed: true; show them the URL. export_backup returns a short-lived, single-use download link for a backup (never the file); restore is only in the app (Settings), see restore_backup; backup_info says what a backup would hold.
 - When a calc is what a set is built around (what it must survive, KO or outspeed), save it with save_benchmark so it sits on that Pokémon's page; list_benchmarks shows what is already saved.
 ${focusInstructions}
+- Items: only use items from format_rules.legalItems; never name one from memory (Covert Cloak, Clear Amulet and Assault Vest are not in this format).
+- Building a team is a conversation, not a one-shot. Establish the core first (standard_set, team pool and usage for those Pokémon, reference teams that run them), then add one slot at a time and say why: what it covers, what it gives up, and which popular sets or winning teams it draws on. Only call import_team once the player has agreed the six.
 - End a turn with a question whenever the next choice is theirs.`;
 const prompts=[
   {name:'build_around',description:'Build a team together around Pokémon you want to use',arguments:[{name:'pokemon',description:'The Pokémon to build around, e.g. "Mega Chimecho, Trevenant, Kommo-o"',required:true},{name:'style',description:'Optional: playstyle or anything you already know you want',required:false}],

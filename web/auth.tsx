@@ -24,7 +24,12 @@ export const canUseAI=(a:Account)=>a.kind!=='guest';
 let showDialog:(state:{step:Step;email?:string;error?:string})=>void=()=>{};
 export function requireAccount(_reason?:string){void signInWithGoogle();}
 export async function signInWithGoogle(){if(!supabase)return;await stashGuestWork();markPending('google');
-  const {error}=await supabase.auth.linkIdentity({provider:'google',options:{redirectTo:redirectTo()}});if(error){takePending();showDialog({step:'error',error:error.message});}}
+  // A connector approval (/oauth/consent) needs a real account, not a guest: sign in plainly instead of upgrading a guest,
+  // which also skips the "this Google account already exists" detour. Guest teams still travel via the carry backup.
+  const {data:cur}=await supabase.auth.getSession();
+  const plain=!cur.session||location.pathname.startsWith('/oauth/');
+  const {error}=plain?await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:redirectTo()}})
+    :await supabase.auth.linkIdentity({provider:'google',options:{redirectTo:redirectTo()}});if(error){takePending();showDialog({step:'error',error:error.message});}}
 // The Google "G" (four-colour mark) on the sign-in buttons.
 const G=()=><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" className="google-g"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>;
 export function GoogleButton({label='Sign in with Google'}:{label?:string}){
@@ -70,7 +75,9 @@ function Splash(){
 export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
   const session=useSession(),[error,setError]=useState(''),[note,setNote]=useState(''),[dialog,setDialog]=useState<{step:Step;email?:string;error?:string}|null>(null),starting=useRef(false);
   showDialog=setDialog;
-  useEffect(()=>{if(!supabase||session!==null||starting.current)return;
+  // The connector approval page never starts a guest session: it only needs a signed-in account.
+  const connectorPage=location.pathname.startsWith('/oauth/consent');
+  useEffect(()=>{if(!supabase||session!==null||starting.current||connectorPage)return;
     starting.current=true;supabase.auth.signInAnonymously().then(({error})=>{starting.current=false;if(error)setError(error.message);});},[session]);
   useEffect(()=>{if(!supabase||!session)return;
     // Google said this identity already belongs to an account: sign in to that account instead (guest work is carried).
@@ -83,6 +90,7 @@ export function AuthGate({children}:{children:(account:Account)=>ReactNode}){
     void bringGuestWork(session).then(m=>{if(m){setNote(m);setTimeout(()=>location.reload(),1500);}});},[session]);
   if(!supabase)return <AccountContext.Provider value={{kind:'local'}}>{children({kind:'local'})}</AccountContext.Provider>;
   if(error)return <main className="welcome"><div className="welcome-card"><h1>Frontier Brain</h1><p className="error">Couldn't start a session: {error}</p><Button variant="primary" onClick={()=>location.reload()}>Try again</Button></div></main>;
+  if(!session&&connectorPage)return <AccountContext.Provider value={{kind:'guest'}}>{children({kind:'guest'})}</AccountContext.Provider>;
   if(!session)return <Splash/>;
   const account:Account=session.user.is_anonymous?{kind:'guest'}:{kind:'account',email:session.user.email??''};
   return <AccountContext.Provider value={account}>{children(account)}

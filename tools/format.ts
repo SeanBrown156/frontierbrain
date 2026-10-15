@@ -28,6 +28,8 @@ export function formatRules(format=FORMAT){
     period:reg?{starts:reg.startsAt,ends:reg.endsAt,verified:reg.verifiedAt,source:reg.officialURL}:null,
     regulation:regulationStatus(format.replace(/bo3$/,'')===FORMAT?undefined:format),
     statPoints:'0–32 per stat, 66 total; no IVs; natures ±10%',
+    // Every held item the pinned engine accepts (Covert Cloak, Clear Amulet and Assault Vest are not in it). Never suggest one outside this list.
+    legalItems:(dex.items.all() as any[]).filter(i=>i.exists&&!i.isNonstandard).map(i=>i.name as string).sort(),
   };
 }
 

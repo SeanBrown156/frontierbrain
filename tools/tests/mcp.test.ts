@@ -35,6 +35,10 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     assert.equal((await text('get_strategy',{teamId:made.created})).strategy,'Rain that beats Trick Room. Built around Pelipper and Archaludon.');assert.equal('brief' in (store.db.coaching?.[made.created]??{}),false,'no separate brief is kept');
     assert.equal((await client.listTools()).tools.some(x=>x.name==='save_team_brief'),false,'the brief tool is retired');
     await text('update_player_profile',{playstyle:'Bulky balance',hateFacing:['Trick Room']});const prefs=await text('get_player_profile',{});assert.deepEqual(prefs.hateFacing,['Trick Room']);
+    // An item that isn't in the format is refused with the reason and nothing is saved; format_rules lists the legal ones.
+    const cloak=await client.callTool({name:'import_team',arguments:{name:'Cloak',paste:paste.replace(/@ [^\n]+/,'@ Covert Cloak')}}) as any;
+    assert.equal(cloak.isError,true);assert.match(cloak.content[0].text,/Covert Cloak/);assert.match(cloak.content[0].text,/Nothing was saved/);
+    const fmt=await text('format_rules',{});assert.ok(fmt.legalItems.includes('Focus Sash')&&!fmt.legalItems.includes('Covert Cloak'));
     const teams=await text('list_teams',{});assert.equal(teams.length,1);assert.equal(teams[0].name,'From Claude');assert.equal(teams[0].pokemon.length,6);
     const team=await text('get_team',{teamId:made.created});assert.ok(team.sets?.length===6||team.team?.length===6||JSON.stringify(team).includes(teams[0].pokemon[0]));
     const [a,b,c,d]=teams[0].pokemon;
