@@ -39,6 +39,12 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
     const cloak=await client.callTool({name:'import_team',arguments:{name:'Cloak',paste:paste.replace(/@ [^\n]+/,'@ Covert Cloak')}}) as any;
     assert.equal(cloak.isError,true);assert.match(cloak.content[0].text,/Covert Cloak/);assert.match(cloak.content[0].text,/Nothing was saved/);
     const fmt=await text('format_rules',{});assert.ok(fmt.legalItems.includes('Focus Sash')&&!fmt.legalItems.includes('Covert Cloak'));
+    // Pre-save checks: legal options, structural review, reference teams, and a labelled hint for EV-style pastes.
+    const opts=await text('legal_options',{species:'Incineroar'});assert.ok(opts.legalMoves.includes('Fake Out')&&!opts.legalMoves.includes('Knock Off'));
+    const rev=await text('review_team',{paste});assert.equal(rev.pokemon.length,6);assert.ok(Array.isArray(rev.speedTiers)&&rev.speedTiers.length===6);assert.ok('rolesNotCovered' in rev);
+    const refs=await text('reference_teams',{species:['Incineroar']});assert.equal(typeof refs.searched,'number');
+    const evs=await client.callTool({name:'import_team',arguments:{name:'EVs',paste:paste.replace(/EVs: [^\n]+/,'EVs: 252 HP / 252 Atk / 4 SpD')}}) as any;
+    assert.equal(evs.isError,true);assert.match(evs.content[0].text,/stat points/i);assert.match(evs.content[0].text,/suggestion only/);
     const teams=await text('list_teams',{});assert.equal(teams.length,1);assert.equal(teams[0].name,'From Claude');assert.equal(teams[0].pokemon.length,6);
     const team=await text('get_team',{teamId:made.created});assert.ok(team.sets?.length===6||team.team?.length===6||JSON.stringify(team).includes(teams[0].pokemon[0]));
     const [a,b,c,d]=teams[0].pokemon;
