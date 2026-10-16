@@ -34,5 +34,8 @@ knowledge/artwork/
 .vercel
 .env*
 
+# Private internal docs (competitor notes, community research): never committed
+/internal/
+
 # Agent worktrees and local tool state
 /.claude/
