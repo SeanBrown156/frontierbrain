@@ -28,6 +28,8 @@ test('MCP connector: lists tools, imports a team, proposes plans and runs calcs'
   const client=new Client({name:'test',version:'1'});
   try{
     await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${port}/api/mcp`)));
+    // The connector announces its icon on connect, so clients that show one always have it.
+    const icons=client.getServerVersion()?.icons??[];assert.ok(icons.some(i=>/\/brand\/icon-512\.png$/.test(i.src)),'server info carries the Frontier Brain icon');assert.ok(icons.some(i=>/\/favicon\.ico$/.test(i.src)),'favicon fallback listed');
     const names=(await client.listTools()).tools.map(t=>t.name);for(const n of ['list_teams','get_team','calc_damage','import_team','propose_plans','get_strategy','remove_plans','update_team','update_set','update_strategy','save_benchmark','list_benchmarks','delete_benchmark','update_team_details','duplicate_team','export_team','star_set','delete_team'])assert.ok(names.includes(n),n);
     const text=async(name:string,args:any)=>{const r:any=await client.callTool({name,arguments:args});assert.ok(!r.isError,r.content?.[0]?.text);return JSON.parse(r.content[0].text);};
     const paste=JSON.parse(readFileSync(resolve(CODE,'tools/tests/fixtures/teams.json'),'utf8'))[0].paste;

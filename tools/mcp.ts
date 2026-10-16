@@ -316,7 +316,7 @@ const prompts=[
 function server(prefs:string){
   // Clients that show connector icons read them from the server info (MCP 2025-11-25); some fall back to /favicon.ico.
   const SITE='https://frontierbrain.vercel.app';
-  const info={name:'frontier-brain',title:'Frontier Brain',version:'1.0.0',websiteUrl:SITE,icons:[{src:`${SITE}/brand/icon-512.png`,mimeType:'image/png',sizes:['512x512']},{src:`${SITE}/brand/icon-192.png`,mimeType:'image/png',sizes:['192x192']}]};
+  const info={name:'frontier-brain',title:'Frontier Brain',version:'1.0.0',websiteUrl:SITE,icons:[{src:`${SITE}/brand/icon-512.png`,mimeType:'image/png',sizes:['512x512']},{src:`${SITE}/brand/icon-192.png`,mimeType:'image/png',sizes:['192x192']},{src:`${SITE}/brand/icon-64.png`,mimeType:'image/png',sizes:['64x64']},{src:`${SITE}/favicon.ico`,mimeType:'image/x-icon',sizes:['16x16','32x32']}]};
   const s=new Server(info,{capabilities:{tools:{},prompts:{}},instructions:`${chatInstructions}\n${collaborate}\n${benchGuidance}\n${prefs}`});
   s.setRequestHandler(ListPromptsRequestSchema,async()=>({prompts:prompts.map(({text,...p})=>p)}));
   s.setRequestHandler(GetPromptRequestSchema,async req=>{const p=prompts.find(x=>x.name===req.params.name);if(!p)throw new Error(`Unknown prompt ${req.params.name}`);
