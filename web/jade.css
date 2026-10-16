@@ -180,6 +180,7 @@ main h1{text-shadow:var(--phos-title)}
  label.switch input:checked::after{transform:translateX(18px);background:var(--ac)}
  /* compact and numeric fields (stat points, speed stage, boosts) */
  :is(input,select).compact{height:var(--compact-height);min-height:var(--compact-height);padding:0 var(--s2)}
+ select.compact{padding-right:32px}
  input.num{text-align:center;font:600 var(--t-md) var(--fb);font-variant-numeric:tabular-nums}
  /* links styled as buttons can't be disabled; aria-disabled shows the same state */
  .button[aria-disabled=true]{opacity:.55;pointer-events:none}
@@ -724,7 +725,7 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .lab-result .text-button{height:auto;min-height:32px;max-height:none;padding:var(--s2);white-space:normal}
 .new-team .button-row{margin:var(--s4) 0;align-items:center}
 .model-picker{display:flex;align-items:center;gap:var(--s2);margin:0}
-.model-picker select{height:40px;min-height:40px;padding:0 var(--s2);font:13px var(--fb)}
+.model-picker select{height:40px;min-height:40px;min-width:128px;padding:0 34px 0 var(--s3);font:13px var(--fb)}
 .model-picker>span{display:none}
 .paste-source{grid-template-columns:minmax(0,1fr) auto;gap:var(--s3)}
 .paste-source label{margin:0}
@@ -735,15 +736,18 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
 .paste,.draft-review textarea[spellcheck=false]{font-family:var(--fb)}
 .pool-picker>.form-grid{grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:end}
 .pool-picker .footnote{margin:var(--s4) 0}
-.pool-list{display:grid;gap:var(--s2);max-height:360px;overflow-y:auto;list-style:none}
-.pool-row{grid-template-columns:40px minmax(0,1fr) 240px 104px;align-items:center;gap:var(--s3);min-height:72px;padding:var(--s3);font-size:14px;line-height:1.5}
-.pool-place{min-width:0;text-align:center;font:600 14px var(--fb)}
+.pool-list{display:grid;gap:var(--s2);max-height:min(420px,52vh);overflow-y:auto;list-style:none;padding:var(--s05);margin:0 calc(-1 * var(--s05));scrollbar-width:thin}
+.pool-row{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--s3);min-height:64px;padding:var(--s3) var(--s4);font-size:14px;line-height:1.5}
+.pool-filter{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--s2) var(--s4);margin:var(--s4) 0 var(--s3)}
+.pool-filter .muted{font-size:13px}
+.pool-empty{margin:var(--s4) 0}
+.pool-name{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);min-width:0}
+.pool-name .tag{font-size:11px;white-space:nowrap}
 .pool-who{display:grid;gap:var(--s1);min-width:0}
 .pool-who b{font-family:var(--fb)}
 .pool-who small{font:12px/1.4 var(--fb);white-space:normal;overflow-wrap:anywhere}
-.pool-six{display:flex;align-items:center;justify-content:center;gap:0;min-width:0}
+.pool-six{display:flex;align-items:center;justify-content:flex-end;gap:0;min-width:0}
 .pool-six .poke-icon{width:40px;height:30px}
-.pool-row>.tag{justify-self:center;font-size:11px;white-space:normal;text-align:center}
 .picked-team{display:flex;align-items:center;justify-content:center;gap:var(--s4);flex-wrap:wrap;text-align:center;padding:var(--s4);border:1px solid var(--ln);background:var(--sunk)}
 .picked-team>span{min-width:0;flex:1}
 .slot-basis{padding:0;list-style:none;margin:var(--s4) 0;display:grid;gap:0;font:13px var(--fb)}
@@ -848,14 +852,11 @@ main>.text-button{display:inline-flex;margin-top:var(--s6);margin-bottom:var(--s
  .paste-source>button{justify-self:center}
  .pool-picker>.form-grid{grid-template-columns:minmax(0,1fr)}
  .new-team .button-row{gap:var(--s2);flex-wrap:wrap}
- .model-picker select{max-width:160px}
+ .model-picker select{max-width:200px}
  .pool-list{max-height:320px}
- .pool-row .pool-six{display:flex;justify-content:flex-start;grid-column:2;grid-row:2}
+ .pool-row .pool-six{justify-content:flex-start}
  .pool-row .pool-six .poke-icon{transform:scale(.85);transform-origin:left center;margin-right:calc(-1 * var(--s1))}
- .pool-list button.pool-row{grid-template-columns:32px minmax(0,1fr);gap:var(--s2);padding:var(--s3);min-height:112px}
- .pool-row>.pool-place{grid-column:1;grid-row:1/3;align-self:start}
- .pool-row>.pool-who{grid-column:2;grid-row:1}
- .pool-row>.tag{grid-column:2;justify-self:start}
+ .pool-list button.pool-row{grid-template-columns:minmax(0,1fr);gap:var(--s2);padding:var(--s3);min-height:0}
  .pool-who small{white-space:normal;overflow:visible;text-overflow:clip}
  .pool-row .pool-who b{overflow-wrap:anywhere}
  .picked-team{flex-direction:column;gap:var(--s2);padding:var(--s3)}
@@ -978,7 +979,7 @@ button .px-icon,.button .px-icon,.tabs>a .px-icon{margin-right:0}
 .dock-head{flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:var(--s3)!important}
 .dock-head h2{margin:0!important;text-align:left!important;flex:1;min-width:0}
 .dock-head .button-row{margin:0!important;display:flex!important;flex-wrap:nowrap!important;gap:var(--s2)!important;justify-content:flex-end!important;align-items:center}
-.dock-head .model-picker select{max-width:130px}
+.dock-head .model-picker select{max-width:150px;min-width:0}
 .dock-input{padding:var(--s3) var(--s4)!important}
 .chat-input{display:flex!important;align-items:stretch!important;gap:var(--s2)!important}
 .chat-input textarea{flex:1;height:auto!important;min-height:64px!important;margin:0!important}
@@ -2725,3 +2726,10 @@ html.jade .dock-wrap,html.jade .shell>.dock-wrap{display:contents}
 .ds-states-cells :is(input,select){width:160px}
 .ds-states-cells .tile{width:150px}
 .ds-states-cells .tabs{margin:0}
+
+/* PokePaste link: input and Fetch button on one line, button stacks under on phones */
+html.jade .new-team label.paste-source{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:var(--s2);margin:0;width:100%}
+html.jade .paste-row{display:flex;align-items:stretch;gap:var(--s2);width:100%}
+html.jade .paste-row input{flex:1;min-width:0}
+html.jade .paste-row button{flex:none;width:auto;white-space:nowrap}
+@media(max-width:560px){html.jade .paste-row{flex-direction:column}html.jade .paste-row button{width:100%}}

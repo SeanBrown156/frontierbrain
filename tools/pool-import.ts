@@ -12,9 +12,9 @@ const exact=(t:PoolTeam)=>t.sets.length===6&&t.sets.every(s=>s.statPoints&&Objec
 const ordinal=(n:number)=>n+(['th','st','nd','rd'][n%100>10&&n%100<14?0:n%10]??'th');
 // Best results first: official before online before shared pastes, newest events, best placings.
 const rank=(t:PoolTeam)=>({official:0,online:1,shared:2}[t.lane]*1e6)-(Date.parse(t.date??'2000-01-01')/864e5)+(t.placing??999)/1000;
-export async function searchPoolTeams({q='',lane,limit=40}:{q?:string;lane?:Lane;limit?:number}={}){
+export async function searchPoolTeams({q='',lane,limit=40,exactOnly=false}:{q?:string;lane?:Lane;limit?:number;exactOnly?:boolean}={}){
   const words=q.toLowerCase().split(/\s+/).filter(Boolean);
-  const hits=(await poolTeams()).filter(t=>(!lane||t.lane===lane)&&words.every(w=>[t.player,t.event,...t.pokemon].some(f=>(f??'').toLowerCase().includes(w))));
+  const hits=(await poolTeams()).filter(t=>(!lane||t.lane===lane)&&(!exactOnly||exact(t))&&words.every(w=>[t.player,t.event,...t.pokemon].some(f=>(f??'').toLowerCase().includes(w))));
   return {total:hits.length,teams:hits.sort((a,b)=>rank(a)-rank(b)).slice(0,Math.min(limit,100)).map(t=>({id:t.id,lane:t.lane,event:t.event,date:t.date,players:t.players,player:t.player,placing:t.placing,record:t.record,pokemon:t.pokemon,exactSpreads:exact(t),source:t.sources[0]?.url??null}))};
 }
 async function filledSpread(species:string,nature:string){

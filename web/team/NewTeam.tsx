@@ -1,7 +1,7 @@
 import {FORMATS} from '../../shared/formats.ts';
 import {useState} from 'react';
 import {useEffect} from 'react';
-import {api,Modal,Notice,Tabs,Markdown,PokeIcon,Button,Field,Tag} from '../ui.tsx';
+import {api,Modal,Notice,Tabs,Markdown,PokeIcon,Button,Field,Tag,Switch} from '../ui.tsx';
 import {Px,Sparkles} from '../icons.tsx';
 import {teamHref} from './Hub.tsx';
 import {ModelPicker} from '../ai/AssistDock.tsx';
@@ -33,7 +33,7 @@ export default function NewTeam({mutate,load,onClose,notify,review}:{mutate:(a:a
       <div className="modal-footer"><Button variant="primary" disabled={busy||!prompt.trim()} onClick={()=>void build()}><Px icon={Sparkles}/>{busy?'Starting…':'Build team'}</Button></div></>}
     {tab==='From tournaments'&&!review&&(slots.length?<div className="picked-team"><span>Picked <b>{name}</b></span><Button variant="quiet" onClick={()=>{setSlots([]);setPaste('');setName('');setStrategy('');}}>Choose a different team</Button></div>:<TournamentPicker onPick={d=>{setName(d.name);setPaste(d.paste);setStrategy(d.notes);setSlots(d.slots);}} busy={busy} setError={setError}/>)}
     {tab==='From tournaments'&&slots.length>0&&<ul className="slot-basis">{slots.map(s=><li key={s.species}><b>{s.species}</b> <Tag tone={s.spread==='exact'?'ok':undefined}>{s.spread==='exact'?'★ Exact spread':'Spread filled'}</Tag> <span className="muted">{s.basis}</span></li>)}</ul>}
-    {tab==='Paste or PokePaste link'&&!review&&<><div className="form-grid paste-source"><Field label="PokePaste link"><input value={link} onChange={e=>setLink(e.target.value)} placeholder="https://pokepast.es/…"/></Field><Button disabled={busy||!link.trim()} onClick={()=>void fetchPaste()}>Fetch paste</Button></div></>}
+    {tab==='Paste or PokePaste link'&&!review&&<><Field label="PokePaste link" className="paste-source"><span className="paste-row"><input value={link} onChange={e=>setLink(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&link.trim()&&!busy)void fetchPaste();}} placeholder="https://pokepast.es/…"/><Button variant="primary" disabled={busy||!link.trim()} onClick={e=>{e.preventDefault();void fetchPaste();}}>{busy?'Fetching…':'Fetch paste'}</Button></span></Field></>}
     {error&&<p role="alert" className="error">{error}</p>}
     {(review||hasPaste||tab==='Paste or PokePaste link')&&<div className="draft-review"><Field label="Team name"><input value={name} onChange={e=>setName(e.target.value)} maxLength={120}/></Field>
       <Field label="Showdown paste"><textarea rows={14} value={paste} onChange={e=>setPaste(e.target.value)} spellCheck={false}/></Field>
@@ -48,22 +48,23 @@ export default function NewTeam({mutate,load,onClose,notify,review}:{mutate:(a:a
 type PoolHit={id:string;lane:string;event:string;date:string|null;players:number|null;player:string;placing:number|null;record:string|null;pokemon:string[];exactSpreads:boolean};
 let iconCache:Promise<Record<string,number>>|null=null;
 // The search survives choosing a different team.
-let lastSearch={q:'',lane:''};
+let lastSearch={q:'',lane:'',exact:false};
 function TournamentPicker({onPick,busy,setError}:{onPick:(d:any)=>void;busy:boolean;setError:(s:string)=>void}){
-  const [q,setQ]=useState(lastSearch.q),[lane,setLane]=useState(lastSearch.lane),[result,setResult]=useState<{total:number;teams:PoolHit[]}|null>(null),[loading,setLoading]=useState(''),[icons,setIcons]=useState<Record<string,number>>({});
+  const [q,setQ]=useState(lastSearch.q),[lane,setLane]=useState(lastSearch.lane),[exact,setExact]=useState(lastSearch.exact),[result,setResult]=useState<{total:number;teams:PoolHit[]}|null>(null),[loading,setLoading]=useState(''),[icons,setIcons]=useState<Record<string,number>>({});
   useEffect(()=>{(iconCache??=api('/species-options').then((o:any[])=>Object.fromEntries(o.map(x=>[x.name,x.icon])))).then(setIcons).catch(()=>{});},[]);
-  useEffect(()=>{lastSearch={q,lane};let alive=true;const t=setTimeout(()=>{api(`/pool-teams?q=${encodeURIComponent(q)}${lane?`&lane=${lane}`:''}&limit=40`).then(r=>{if(alive)setResult(r);}).catch(e=>setError(e.message));},250);return()=>{alive=false;clearTimeout(t);};},[q,lane]);
+  useEffect(()=>{lastSearch={q,lane,exact};let alive=true;const t=setTimeout(()=>{api(`/pool-teams?q=${encodeURIComponent(q)}${lane?`&lane=${lane}`:''}${exact?'&exact=1':''}&limit=40`).then(r=>{if(alive)setResult(r);}).catch(e=>setError(e.message));},250);return()=>{alive=false;clearTimeout(t);};},[q,lane,exact]);
   const pick=async(id:string)=>{setLoading(id);setError('');try{onPick(await api('/pool-team?id='+encodeURIComponent(id)));}catch(e){setError((e as Error).message);}finally{setLoading('');}};
-  const place=(t:PoolHit)=>t.placing?`#${t.placing}`:t.lane==='shared'?'VGCPastes':'—';
-  return <div className="pool-picker">
+    return <div className="pool-picker">
     <div className="form-grid"><Field label="Search players, events or Pokémon"><input value={q} onChange={e=>setQ(e.target.value)} placeholder="e.g. Brisbane, Incineroar Gholdengo, Kiran"/></Field>
       <Field label="Source"><select value={lane} onChange={e=>setLane(e.target.value)}><option value="">All</option><option value="official">Official events</option><option value="online">Online events</option><option value="shared">VGCPastes</option></select></Field></div>
-    <p className="footnote">{result?`${result.total.toLocaleString()} teams · best results first`:'Loading teams…'}. ★ Exact spreads come from the player's own VGCPastes paste; the rest get the most common spread for each Pokémon, labelled.</p>
+    <div className="pool-filter"><Switch checked={exact} onChange={e=>setExact(e.target.checked)}>Exact spreads only</Switch>
+      <span className="muted">{result?`${result.total.toLocaleString()} team${result.total===1?'':'s'}`:'Loading teams…'}{!exact&&' · best results first'}</span></div>
+    {!exact&&<p className="footnote">★ Exact spreads come from the player's own VGCPastes paste. Other teams get the most common spread for each Pokémon, labelled.</p>}
+    {result&&!result.teams.length&&<p className="muted pool-empty">No teams match{exact?' with exact spreads':''}. Try fewer words{exact?' or turn off the filter':''}.</p>}
     <ul className="pool-list">{result?.teams.map(t=><li key={t.id}><Button variant="tile" className="pool-row" disabled={busy||!!loading} onClick={()=>void pick(t.id)}>
-      <span className="pool-place">{place(t)}</span>
-      <span className="pool-who"><b>{t.player}</b><small>{t.event||'VGCPastes'}{t.date?` · ${t.date}`:''}{t.record?` · ${t.record}`:''}{t.players?` · ${t.players} players`:''}</small></span>
+      <span className="pool-who"><span className="pool-name">{t.placing?<span className={'pool-place place-'+t.placing}>#{t.placing}</span>:null}<b>{t.player}</b>{t.exactSpreads&&<Tag tone="ok">★ Exact</Tag>}</span>
+        <small>{[t.event||'VGCPastes',t.date,t.record,t.players?`${t.players} players`:''].filter(Boolean).join(' · ')}{loading===t.id?' · Loading…':''}</small></span>
       <span className="pool-six" aria-label={t.pokemon.join(', ')}>{t.pokemon.map((p,i)=><span key={i} title={p}><PokeIcon n={icons[p]}/></span>)}</span>
-      {t.exactSpreads&&<Tag tone="ok">★ Exact spreads</Tag>}{loading===t.id&&<span className="muted">Loading…</span>}
     </Button></li>)}</ul>
   </div>;
 }
