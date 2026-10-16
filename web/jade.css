@@ -2733,3 +2733,11 @@ html.jade .paste-row{display:flex;align-items:stretch;gap:var(--s2);width:100%}
 html.jade .paste-row input{flex:1;min-width:0}
 html.jade .paste-row button{flex:none;width:auto;white-space:nowrap}
 @media(max-width:560px){html.jade .paste-row{flex-direction:column}html.jade .paste-row button{width:100%}}
+
+/* indeterminate loading bar (Data pool while it loads or collects) */
+html.jade .load-bar-wrap{display:grid;gap:var(--s2);margin:var(--s3) 0}
+html.jade .load-bar{position:relative;height:4px;border-radius:2px;background:color-mix(in srgb,var(--ac) 14%,transparent);overflow:hidden}
+html.jade .load-bar>span{position:absolute;inset:0 auto 0 0;width:38%;border-radius:2px;background:var(--ac);animation:load-slide 1.3s ease-in-out infinite}
+html.jade .load-note{font-size:13px;margin:0}
+@keyframes load-slide{0%{transform:translateX(-100%)}100%{transform:translateX(265%)}}
+@media(prefers-reduced-motion:reduce){html.jade .load-bar>span{animation:none;width:100%;opacity:.5}}

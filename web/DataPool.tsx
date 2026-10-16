@@ -3,11 +3,14 @@ import {api,Panel,Notice,Art,date,Button} from './ui.tsx';
 import {Px,Reload} from './icons.tsx';
 import {hostedSite} from './auth.tsx';
 const laneNames:Record<string,string>={official:'Official events (Limitless)',online:'Online tournaments (Limitless)',shared:'Shared pastes (VGCPastes, unmatched)'};
+// A sliding bar with no percentage: the pool doesn't report progress, so this only says something is happening.
+function LoadBar({label}:{label:string}){return <div className="load-bar-wrap"><div className="load-bar" role="progressbar" aria-label={label}><span/></div><p className="muted load-note">{label}…</p></div>;}
 // One deduplicated pool of individual teams; every percentage here is computed from it, once.
 export default function DataPool({art}:{art:any}){
   const [data,setData]=useState<any>(null),[error,setError]=useState('');
   const load=()=>api('/pool').then(setData).catch(e=>setError(e.message));
-  useEffect(()=>{void load();const t=setInterval(()=>void load(),15000);return()=>clearInterval(t);},[]);
+  const refreshing=!!data?.refreshing;
+  useEffect(()=>{void load();const t=setInterval(()=>void load(),refreshing?3000:15000);return()=>clearInterval(t);},[refreshing]);
   const refresh=async()=>{try{await api('/pool-refresh',{});await load();}catch(e){setError((e as Error).message);}};
   const s=data?.status,o=data?.overview;
   // On a wide screen the two columns are the same height: Most used shows as many rows as fit beside the top-4 teams.
@@ -20,7 +23,7 @@ export default function DataPool({art}:{art:any}){
       setRows(Math.max(5,Math.min(o.usage.length,Math.floor((p.height-chrome)/rowH))));};
     fit();const ro=new ResizeObserver(fit);ro.observe(g);return()=>ro.disconnect();},[o,fill]);
   return <div className="data-pool"><Panel title="Data pool" kicker="ONE DEDUPLICATED SET OF TEAMS" action={hostedSite?undefined:<Button onClick={()=>void refresh()} disabled={data?.refreshing}><Px icon={Reload}/>{data?.refreshing?'Refreshing…':'Refresh now'}</Button>}>
-    {error&&<p className="error">{error}</p>}{!s?<Notice>The pool hasn't been built yet. Refresh to collect teams.</Notice>:<>
+    {error&&<p className="error">{error}</p>}{refreshing&&<LoadBar label="Collecting teams from Limitless and VGCPastes, about a minute or two"/>}{!data&&!error?<LoadBar label="Loading the data pool"/>:data&&!s?(refreshing?null:<Notice>{hostedSite?'The team pool is collected every week and this week’s run hasn’t landed yet. Check back soon.':'No team data yet. It collects automatically while the app runs, or you can start it now.'}</Notice>):data&&s&&<>
     <div className="pool-counts">{(['official','online','shared'] as const).map(l=><div key={l}><b>{s.counts[l==='shared'?'shared':l]}</b><span>{laneNames[l]}</span></div>)}<div><b>{s.counts.mergedSpreads}</b><span>pastes matched to a tournament team (spreads attached)</span></div><div><b>{s.counts.total}</b><span>teams in the pool · {s.counts.withSpreads} with exact spreads</span></div></div>
     <p className="footnote">Refreshed {date(s.refreshedAt)} {new Date(s.refreshedAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}. {hostedSite?'Updates weekly':'Updates every 12 hours while the app runs'}; finished events and pastes are cached for good. Online events need ≥{s.minPlayers} players. {s.excluded}</p>
     {s.errors?.length>0&&<Notice>Last refresh had problems: {s.errors.join('; ')}</Notice>}</>}</Panel>
