@@ -120,8 +120,7 @@ test('MCP export_backup (hosted shape): returns a link not the file, the link do
     try{const f=await fetch(dl);assert.equal(f.status,200);const backup=JSON.parse(await f.text());assert.equal(backup.format,'frontierbrain-backup');assert.ok(Object.keys(backup.files).includes('config.json'));
       assert.equal((await fetch(dl)).status,410);}finally{server.close();}
     assert.equal((await withData(ctx,()=>user.list('.exports'))).length,0,'object removed after download');
-    const rb=await call('restore_backup');assert.ok(!rb.isError);assert.match(rb.json.where,/Settings/);assert.match(rb.json.note,/cannot restore/);
-    assert.ok(!(await call('restore_backup',{backup:{format:'frontierbrain-backup'}})).isError,'a supplied blob is ignored, never restored');
+    assert.ok((await call('restore_backup')).isError,'restoring is only done in the app: there is no restore tool');
     assert.equal(store.db.teams.length,0);
     // fails closed without a server key
     const keep=process.env.SUPABASE_SECRET_KEY;delete process.env.SUPABASE_SECRET_KEY;

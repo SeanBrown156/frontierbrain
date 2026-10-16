@@ -179,7 +179,7 @@ function DuplicateTile({team,mutate,notify}:{team:any;mutate:Mutate;notify:(s:st
   return <section className="manage-tile"><span className="eyebrow">Duplicate</span><div className="manage-actions"><Button disabled={busy} onClick={()=>void duplicate()}><Px icon={Copy}/>{busy?'Duplicating…':'Duplicate team'}</Button></div></section>;
 }
 // Background team builds: live steps while running, then a draft to review.
-const buildSteps:Record<string,string>={meta_overview:'Read the meta',team_pool_sets:'Pool sets',standard_set:'Typical set',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',usage_data:'Usage data',dex_lookup:'Dex',get_team:'Team',validation:'Rules check'};
+const buildSteps:Record<string,string>={meta_overview:'Read the meta',team_pool_sets:'Pool sets',standard_set:'Typical set',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',usage_data:'Usage data',legal_options:'Dex',get_team:'Team',validation:'Rules check'};
 function BuildJobs({onReview,art}:{onReview:(r:{jobId:string;proposal:any})=>void;art:any}){
   const [jobs,setJobs]=useState<any[]>([]);
   // Polls only while a build is running (checked once on load, then after starting one, which reloads this page).

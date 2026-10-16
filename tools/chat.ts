@@ -1,6 +1,7 @@
 // In-page calc chat. An OpenAI Responses-API tool loop where every number comes from a local tool:
 // the pinned Champions engine (mechanics.ts) or labelled standard sets (meta-sets.ts). The model never
 // computes damage itself. Transcripts stay local in reports/chats/.
+import {legalOptions} from './team-tools.ts';
 import {pokemonProfile} from './profile.ts';
 import {formatPrimer,formatRules} from './format.ts';
 import {refreshRegulations} from './regulation.ts';
@@ -48,7 +49,7 @@ export const tools=[
   {type:'function',name:'vgc_playbook',description:'Doubles fundamentals adapted to Champions, paraphrased from classic community guides (Nugget Bridge, VGCGuide, Smogon) with links: thinking in fours and team preview, speed control and modes, Fake Out/redirection/Intimidate/positioning, damage and benchmarks, building around a Pokémon, Megas as modes, matchup planning, Bo1 vs Bo3 and open sheets, playtesting, playing well, collaborating. Call with no section for the list.',parameters:{type:'object',properties:{section:{type:'string',description:'Section number or a word from its title, e.g. "3" or "speed control"'}}}},
   {type:'function',name:'format_rules',description:'The rules of a format from the pinned validator and the verified regulation record: team size and how many you bring, level, species/item clauses, bans, Mega Evolutions per battle, open team sheets, Bo1/Bo3, timers and the regulation period, plus a plain-language primer. Defaults to the current regulation.',parameters:{type:'object',properties:{format:{type:'string',description:'Showdown format id, e.g. gen9championsvgc2026regmc (a team\'s format from get_team)'}}}},
   {type:'function',name:'pokemon_profile',description:'What makes a Pokémon distinctive in Champions doubles: its forms (incl. Mega stats/abilities), support, speed-control, disruption and spread moves it can learn, strongest STAB moves, coverage, how often the pool uses it, and a type + base-Speed sheet against the most-used Pokémon (who it threatens, who threatens it, what it outspeeds, what it beats under Trick Room). Use it before suggesting a Pokémon; when the player names Pokémon to build around, profile each and discuss what makes them distinctive before proposing a team.',parameters:{type:'object',properties:{species:{type:'string'},top:{type:'integer',minimum:5,maximum:40,description:'How many top pool Pokémon to compare against (default 20)'}},required:['species']}},
-  {type:'function',name:'dex_lookup',description:'Champions dex entry: types, base stats, legal abilities.',parameters:{type:'object',properties:{species:{type:'string'}},required:['species']}},
+  {type:'function',name:'legal_options',description:'What ONE Pokémon is in this format: types, base stats, abilities, every legal move, and whether it can Mega Evolve. Call it before writing a set for a Pokémon you are unsure of. Held items are the same for everyone: format_rules.legalItems. A move or ability not listed here is refused when the team is saved.',parameters:{type:'object',properties:{species:{type:'string',description:'Species or form, e.g. "Incineroar" or "Charizard-Mega-Y"'}},required:['species']}},
 ];
 // The primer is computed when the module loads; chat() swaps in a fresh one so a regulation switch shows up without a restart.
 const primerAtLoad=formatPrimer();
@@ -102,7 +103,7 @@ export async function runTool(name:string,input:any,ctx:ChatContext,db:Workbench
     case 'where_to_look':return whereToLook(input.topic);
     case 'format_rules':return {...formatRules(input.format||undefined),primer:formatPrimer(input.format||undefined)};
     case 'pokemon_profile':return pokemonProfile(input.species,{top:input.top});
-    case 'dex_lookup':{const s=dex.species.get(input.species);if(!s.exists)throw new Error(`Unknown species ${input.species}`);return {name:s.name,types:s.types,baseStats:s.baseStats,abilities:Object.values(s.abilities)};}
+    case 'legal_options':return legalOptions(input);
   }
   throw new Error(`Unknown tool ${name}`);
 }

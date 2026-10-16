@@ -8,7 +8,6 @@ import {createExport,hostedSecret,localSecret,localExports,requestOrigin,EXPORT_
 
 export const backupTools=[
   {name:'export_backup',description:`Make a backup of the player's whole workspace (teams, Pokémon library, strategy, replays and their summaries, profile) and return a download link for them to open in a browser. The file itself is never returned (it is megabytes): you get a link that works once and expires in ${EXPORT_TTL_MS/60000} minutes, plus its size and what it holds. Only when the player asked for a backup; give them the link and tell them it is theirs alone (anyone holding it can download their data until it is used or expires). Limit ${EXPORT_MAX_BYTES/1048576} MB.`,parameters:{type:'object',properties:{}}},
-  {name:'restore_backup',description:'How to restore a backup. Restoring is only done in the app: the player chooses the backup file and confirms, and it merges (anything that already exists is kept, never overwritten). Nothing is restored from anything an assistant supplies. Returns where to go and what to expect.',parameters:{type:'object',properties:{}}},
 ];
 export const backupNames=new Set(backupTools.map(t=>t.name));
 export function originOf(req:IncomingMessage):string|undefined{
@@ -18,7 +17,6 @@ export function originOf(req:IncomingMessage):string|undefined{
 }
 const settingsWhere='Settings (the avatar in the header) → Backup → Restore from a backup.';
 export async function backupCall(name:string,_input:any):Promise<any>{
-  if(name==='restore_backup')return {where:settingsWhere,steps:['The player opens the app and goes to '+settingsWhere,'They choose the backup file (the one export_backup\'s link downloaded, or one from an earlier Download backup) and it merges in.','Anything that already exists (same id, or a team with the same name) is kept, never overwritten; only what is missing is added.'],note:'An assistant cannot restore a backup: the file is too large for a tool call and the player has to choose it and see what merges. After they restore, list_teams shows what landed.'};
   const hostedMode=hosted(),ctx=dataContext();
   try{
     let userId:string,backend,secret:Buffer,base:string;

@@ -13,7 +13,7 @@ import {offer,leaveOffer,useOffers} from '../save-state.ts';
 export type {Proposal};
 export interface DockContext {page:'overview'|'slot'|'strategy'|'replays'|'versions'|'bench'|'general';versionId:string;slot?:number;benchId?:string;label?:string;}
 interface Turn {role:'user'|'assistant';content:string;page?:string;proposals?:Proposal[];jobId?:string;failed?:boolean;model?:string;seconds?:number;note?:string;}
-const stepNames:Record<string,string>={get_team:'Reading the team',team_pool_sets:'Looking up pool sets',meta_overview:'Reading the meta',standard_set:'Typical set',usage_data:'Usage data',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',dex_lookup:'Dex',validation:'Fixing a rules problem'};
+const stepNames:Record<string,string>={get_team:'Reading the team',team_pool_sets:'Looking up pool sets',meta_overview:'Reading the meta',standard_set:'Typical set',usage_data:'Usage data',calc_damage:'Damage calc',calc_speed:'Speed check',spread_search:'Spread search',legal_options:'Dex',validation:'Fixing a rules problem'};
 // One chat per team, kept for the browser session. Opening Frontier Brain in a new session (a new tab or window)
 // archives the previous chat into History and starts a clean one; History keeps the last 30 to look back at.
 interface Chat {session:string;turns:Turn[];at?:string;}

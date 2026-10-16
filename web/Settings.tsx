@@ -99,7 +99,7 @@ function Connectors(){
       :client==='Claude Code'?<ol className="steps"><li>Add the connector:<Copy text={`claude mcp add --transport http frontier-brain ${url}`}/></li>{!local&&<li>In Claude Code, run <code>/mcp</code>, pick <b>frontier-brain</b> and authenticate. Frontier Brain opens in your browser: click <b>Allow</b>.</li>}<li>Ask: “Use frontier-brain to list my teams.”</li></ol>
       :client==='Codex CLI'?<ol className="steps"><li>Add the connector:<Copy text={`codex mcp add frontier-brain --url ${url}`}/></li>{!local&&<li>Sign in:<Copy text="codex mcp login frontier-brain"/>Frontier Brain opens in your browser: click <b>Allow</b>.</li>}<li>Ask Codex to use frontier-brain to list your teams.</li></ol>
       :<ol className="steps"><li>Cursor: add to <code>~/.cursor/mcp.json</code><Copy text={JSON.stringify({mcpServers:{'frontier-brain':{url}}})}/></li><li>VS Code: add to <code>.vscode/mcp.json</code><Copy text={JSON.stringify({servers:{'frontier-brain':{type:'http',url}}})}/></li>{!local&&<li>When the editor asks you to sign in, Frontier Brain opens: click <b>Allow</b>.</li>}</ol>}
-      <p className="footnote">Tools: list_teams, get_team, list_replays, replay_transcript, calc_damage, calc_speed, spread_search, standard_set, usage_data, team_pool_sets, meta_overview, dex_lookup, import_team, propose_plans.</p>
+      <p className="footnote">Tools: list_teams, get_team, list_replays, replay_transcript, calc_damage, calc_speed, spread_search, standard_set, usage_data, team_pool_sets, meta_overview, legal_options, import_team, propose_plans.</p>
     </>}
   </div>;
 }

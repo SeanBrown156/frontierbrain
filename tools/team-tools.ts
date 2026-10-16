@@ -11,7 +11,6 @@ const str={type:'string'};
 const validator:any=new ps.TeamValidator(FORMAT);
 
 export const teamTools=[
-  {name:'legal_options',description:'What ONE Pokémon can legally hold and run in this format: abilities, every legal move, and whether it can Mega Evolve. Call it before writing a set for a Pokémon you are unsure of. Held items are the same for everyone: format_rules.legalItems. A move or ability not listed here is refused when the team is saved.',parameters:{type:'object',properties:{species:{...str,description:'Species or form, e.g. "Incineroar" or "Charizard-Mega-Y"'}},required:['species']}},
   {name:'review_team',description:'Structural facts about a six, computed locally, for you to reason from: shared weaknesses and resists by type, speed tiers (final stats at level 50), roles it has and lacks (Fake Out, speed control, redirection, Intimidate, Protect, weather or terrain), the types its moves cover, Mega Stone count, duplicate items and any legality errors. Run it on a draft before saving, and again after changes. Observations only; the judgement is yours and the player\'s.',parameters:{type:'object',properties:{teamId:{...str,description:'A saved team (list_teams)'},paste:{...str,description:'Or a draft: a Showdown paste of up to six Pokémon, not saved'}}}},
   {name:'reference_teams',description:'Real tournament teams from the pool that run the Pokémon you name, with event, placing, record, date and source lane (official, online, shared). Use it to see how winning teams are built around the same Pokémon or strategy before proposing a six. The result says how many pooled teams were searched; show that count.',parameters:{type:'object',properties:{species:{type:'array',items:str,minItems:1,maxItems:6,description:'Species the teams should include (all of them first, then teams with most of them)'},limit:{type:'number',description:'How many teams to return (default 8, max 20)'}},required:['species']}},
 ];
@@ -23,14 +22,14 @@ const WEATHER_ABILITY:Record<string,string>={Drought:'Sun',Drizzle:'Rain','Sand 
   'Electric Surge':'Electric Terrain','Grassy Surge':'Grassy Terrain','Psychic Surge':'Psychic Terrain','Misty Surge':'Misty Terrain','Hadron Engine':'Electric Terrain','Seed Sower':'Grassy Terrain'};
 const moveName=(id:string)=>dex.moves.get(id).name;
 
-function legalOptions(input:any){
+export function legalOptions(input:any){
   const raw=String(input.species??'').trim();const resolved=resolveSpecies(raw)??raw;const sp:any=dex.species.get(resolved);
-  if(!sp.exists)throw new Error(`${raw||'That'} isn't a Pokémon in this format. Check the spelling or look it up with dex_lookup.`);
+  if(!sp.exists)throw new Error(`${raw||'That'} isn't a Pokémon in this format. Check the spelling or check the spelling.`);
   const data:any=(dex.species as any).getLearnsetData(sp.id)??(dex.species as any).getLearnsetData(dex.species.get(sp.changesFrom??sp.baseSpecies).id);
   const ids=Object.keys(data?.learnset??{});
   const moves=ids.map(id=>dex.moves.get(id)).filter((m:any)=>m.exists&&!m.isNonstandard).filter((m:any)=>{try{return !validator.checkCanLearn(m,sp);}catch{return false;}}).map((m:any)=>m.name as string).sort();
   const forms=(sp.otherFormes??[]).map((n:string)=>dex.species.get(n)).filter((f:any)=>f.exists&&/mega/i.test(f.forme??''));
-  return {species:sp.name,types:[...sp.types],abilities:Object.values(sp.abilities),legalMoves:moves,
+  return {species:sp.name,types:[...sp.types],baseStats:sp.baseStats,abilities:Object.values(sp.abilities),legalMoves:moves,
     megaForms:forms.map((f:any)=>({name:f.name,item:f.requiredItem,types:[...f.types],ability:f.abilities?.['0']})),
     heldItems:'Use format_rules.legalItems; a Mega Stone only works on its own Pokémon.',
     source:'Pinned Champions validator (checkCanLearn); anything not listed is refused on save.'};
@@ -87,7 +86,6 @@ async function referenceTeams(input:any){
 }
 
 export async function teamToolCall(name:string,input:any,db:Workbench){
-  if(name==='legal_options')return legalOptions(input);
   if(name==='reference_teams')return referenceTeams(input);
   if(name==='review_team'){
     if(typeof input.paste==='string'&&input.paste.trim())return review(importText(input.paste));
