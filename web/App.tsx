@@ -133,7 +133,7 @@ export default function App(){
       {route==='design-system'&&<DesignSystem/>}
       {parts[0]==='team'&&!team&&<Empty>Team not found. <a href="#teams">Back to teams.</a></Empty>}
     </>}</main><footer className="footer site-footer"><div className="footer-grid">
-      <div className="footer-brand"><span className="footer-word">FRONTIER BRAIN</span><p>The open-source brain for Pokémon VGC. Teams, calcs and replay analysis, with the AI you already use.</p></div>
+      <div className="footer-brand"><span className="footer-word">FRONTIER BRAIN</span><p>The open-source brain for Pokémon VGC. Teams, calcs and replay analysis, with the AI you already use.</p><p>It doesn’t play battles, touch ladders or replace anyone. It helps you build teams, check the numbers and learn from your own games.</p></div>
       <nav aria-label="Frontier Brain"><h4>App</h4><a href="#teams">Teams</a><a href="#data">Data pool</a><a href="#welcome">About</a></nav>
       <nav aria-label="Open source"><h4>Open source</h4><a href="https://github.com/SeanBrown156/frontierbrain" target="_blank" rel="noreferrer">View source</a><a href="https://github.com/SeanBrown156/frontierbrain/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT license</a><a href="#design-system">Design system</a><a href="mailto:seanwritesanddesigns@gmail.com">Contact</a></nav>
     </div>
