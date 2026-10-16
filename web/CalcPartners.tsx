@@ -9,7 +9,7 @@ const spLine=(s:any)=>['hp','atk','def','spa','spd','spe'].map(k=>s.statPoints?.
 export default function PartnerCard({side,set,setSet,saved,art,mega,megaOn,setMega,formName,dex,role='speed',editor,extra}:{side:'mine'|'foe';set:any|null;setSet:(s:any|null)=>void;saved:SavedOption[];art:any;mega?:MegaForm;megaOn:boolean;setMega:(v:boolean)=>void;formName:(n:string)=>string;dex:any;role?:'speed'|'target';editor?:ReactNode;extra?:ReactNode}){
   const [note,setNote]=useState(''),[loading,setLoading]=useState(false);
   const load=async(species:string)=>{setLoading(true);
-    try{let m=await api(`/meta-sets?species=${encodeURIComponent(species)}&source=pool`);let src='Pool';if(!m.spreads.length){m=await api(`/meta-sets?species=${encodeURIComponent(species)}&source=pokebase`);src='PokéBase';}
+    try{let m=await api(`/meta-sets?species=${encodeURIComponent(species)}&source=pokebase`);let src='PokéBase tournaments';if(!m.spreads.length){m=await api(`/meta-sets?species=${encodeURIComponent(species)}&source=pokebase-ladder`);src='PokéBase ladder';}
       const sp=m.spreads[0];if(!sp){setSet({species,nature:'Serious',statPoints:{},ability:m.abilities?.[0]?.name,item:'',moves:[]});setNote('No published set found: neutral nature, no stat points. Edit it below.');return;}
       const nature=sp.nature??m.natures?.[0]?.name??'Serious';
       setSet({species:m.species,nature,statPoints:sp.statPoints,ability:m.abilities?.[0]?.name,item:m.items?.[0]?.name??'',moves:(m.moves??[]).slice(0,4).map((x:any)=>x.name)});

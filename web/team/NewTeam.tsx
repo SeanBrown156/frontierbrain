@@ -50,7 +50,7 @@ let iconCache:Promise<Record<string,number>>|null=null;
 // The search survives choosing a different team.
 let lastSearch={q:'',lane:'',exact:false};
 function TournamentPicker({onPick,busy,setError}:{onPick:(d:any)=>void;busy:boolean;setError:(s:string)=>void}){
-  const [q,setQ]=useState(lastSearch.q),[lane,setLane]=useState(lastSearch.lane),[exact,setExact]=useState(lastSearch.exact),[result,setResult]=useState<{total:number;teams:PoolHit[]}|null>(null),[loading,setLoading]=useState(''),[icons,setIcons]=useState<Record<string,number>>({});
+  const [q,setQ]=useState(lastSearch.q),[lane,setLane]=useState(lastSearch.lane),[exact,setExact]=useState(lastSearch.exact),[result,setResult]=useState<{total:number;teams:PoolHit[];icons?:Record<string,number>}|null>(null),[loading,setLoading]=useState(''),[icons,setIcons]=useState<Record<string,number>>({});
   useEffect(()=>{(iconCache??=api('/species-options').then((o:any[])=>Object.fromEntries(o.map(x=>[x.name,x.icon])))).then(setIcons).catch(()=>{});},[]);
   useEffect(()=>{lastSearch={q,lane,exact};let alive=true;const t=setTimeout(()=>{api(`/pool-teams?q=${encodeURIComponent(q)}${lane?`&lane=${lane}`:''}${exact?'&exact=1':''}&limit=40`).then(r=>{if(alive)setResult(r);}).catch(e=>setError(e.message));},250);return()=>{alive=false;clearTimeout(t);};},[q,lane,exact]);
   const pick=async(id:string)=>{setLoading(id);setError('');try{onPick(await api('/pool-team?id='+encodeURIComponent(id)));}catch(e){setError((e as Error).message);}finally{setLoading('');}};
@@ -64,7 +64,7 @@ function TournamentPicker({onPick,busy,setError}:{onPick:(d:any)=>void;busy:bool
     <ul className="pool-list">{result?.teams.map(t=><li key={t.id}><Button variant="tile" className="pool-row" disabled={busy||!!loading} onClick={()=>void pick(t.id)}>
       <span className="pool-who"><span className="pool-name">{t.placing?<span className={'pool-place place-'+t.placing}>#{t.placing}</span>:null}<b>{t.player}</b>{t.exactSpreads&&<Tag tone="ok">★ Exact</Tag>}</span>
         <small>{[t.event||'VGCPastes',t.date,t.record,t.players?`${t.players} players`:''].filter(Boolean).join(' · ')}{loading===t.id?' · Loading…':''}</small></span>
-      <span className="pool-six" aria-label={t.pokemon.join(', ')}>{t.pokemon.map((p,i)=><span key={i} title={p}><PokeIcon n={icons[p]}/></span>)}</span>
+      <span className="pool-six" aria-label={t.pokemon.join(', ')}>{t.pokemon.map((p,i)=><span key={i} title={p}><PokeIcon n={result.icons?.[p]||icons[p]}/></span>)}</span>
     </Button></li>)}</ul>
   </div>;
 }

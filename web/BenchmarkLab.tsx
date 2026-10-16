@@ -14,9 +14,14 @@ const statLabel:Record<string,string>={hp:'HP',atk:'Atk',def:'Def',spa:'SpA',spd
 const pendingTarget:PokemonSet={species:'Incineroar',nature:'Serious',ability:'Intimidate',item:'',statPoints:{},moves:[]};
 const spLine=(s:any)=>stats.map(k=>s.statPoints?.[k]??0).join('/');
 const reduced=()=>typeof matchMedia!=='undefined'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
-// Standard opponent sets come from one labelled source at a time (default: the Frontier Brain pool), never blended.
-const sourceNames:Record<string,string>={pool:'Frontier Brain pool · deduplicated teams',pokebase:'PokéBase · M-C tournaments',vgcpastes:'VGCPastes · shared team pastes',limitless:'Limitless · official Day 2 team lists (no spreads)','pokebase-ladder':'PokéBase · in-game ladder season',smogon:'Smogon · Showdown ladder (fallback)'};
-const sourceShort:Record<string,string>={pool:'Pool',pokebase:'PokéBase',vgcpastes:'VGCPastes',limitless:'Limitless','pokebase-ladder':'PokéBase ladder',smogon:'Smogon'};
+// Standard opponent sets come from one labelled source at a time, never blended. The picker offers the sources that
+// have real spreads (PokéBase tournaments, PokéBase ladder, VGCPastes, Smogon); the pool and Limitless stay labelled
+// here because the assistant and saved benchmarks can still carry them.
+const sourceNames:Record<string,string>={pool:'Frontier Brain pool · deduplicated teams',pokebase:'PokéBase · Champions M-C tournament teams (spreads from teams that placed)',vgcpastes:'VGCPastes · exact spreads players shared',limitless:'Limitless · official Day 2 team lists (no spreads)','pokebase-ladder':'PokéBase · Champions in-game ranked ladder, this season',smogon:'Smogon · Showdown ladder (fallback, not Champions)'};
+const sourceShort:Record<string,string>={pool:'Pool',pokebase:'PokéBase · tournaments',vgcpastes:'VGCPastes',limitless:'Limitless','pokebase-ladder':'PokéBase · ladder',smogon:'Smogon'};
+const pickerSources=['pokebase','pokebase-ladder','vgcpastes','smogon'];
+// When a source has nothing for a Pokémon, try the next one and say so in the picker.
+const nextSource:Record<string,string>={pokebase:'pokebase-ladder','pokebase-ladder':'vgcpastes',vgcpastes:'smogon'};
 // Where each effect lives. Side effects belong to a Pokémon's side (they follow it when you swap who attacks);
 // a card only shows the ones that matter for its current role. Field effects apply to everyone.
 const ATTACK_SIDE=[['isHelpingHand','Helping Hand'],['isBattery','Battery'],['isPowerSpot','Power Spot'],['isSteelySpirit','Steely Spirit']] as const;
@@ -46,7 +51,7 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const setOwn=(s:any)=>{const {b,set}=splitBattle(s);setBattle(b);if(JSON.stringify(set)!==JSON.stringify({...mineBase}))setMine({kind:'custom',set:set as PokemonSet});};
   const mySaved=starred.filter(o=>o.species===draftSet.species&&o.id!==revision.id);
   // Opponent side
-  const [source,setSource]=useState('pool'),[meta,setMeta]=useState<any>(null),[metaError,setMetaError]=useState(''),[loading,setLoading]=useState(false);
+  const [source,setSource]=useState('pokebase'),[meta,setMeta]=useState<any>(null),[metaError,setMetaError]=useState(''),[loading,setLoading]=useState(false);
   const [other,setOther]=useState<any>(structuredClone(pendingTarget)),[foe,setFoe]=useState<Pick>({kind:'custom'}),[targetLabel,setTargetLabel]=useState('');
   const [tab,setTab]=useState('Damage'),[direction,setDirection]=useState<'outgoing'|'incoming'>('outgoing'),[move,setMove]=useState(draftSet.moves?.find(m=>m!=='Protect')??draftSet.moves?.[0]??'Tackle'),[options,setOptions]=useState<any>({}),[result,setResult]=useState<any>(null),[error,setError]=useState(''),[calculating,setCalculating]=useState(false),[dex,setDex]=useState<any>(null),[trickRoom,setTrickRoom]=useState(false),[saved,setSaved]=useState(''),[fromAsk,setFromAsk]=useState('');
   const [field,setField]=useState<any>({gameType:'Doubles'}),[flags,setFlags]=useState<Record<Side,Record<string,boolean>>>({mine:{},foe:{}}),[megaOn,setMegaOn]=useState<Record<Side,boolean>>({mine:true,foe:true});
@@ -57,12 +62,12 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
   const pickSpread=(m:any,i:number)=>{const s=m.spreads[i];if(!s)return;const nature=s.nature??m.natures[0]?.name??'Serious';
     setOther((o:any)=>({...o,species:m.species,nature,statPoints:s.statPoints,ability:m.abilities[0]?.name,item:m.items[0]?.name,moves:(m.moves??[]).slice(0,4).map((x:any)=>x.name),boosts:undefined}));setFoe({kind:'spread',index:i});setMegaOn(x=>({...x,foe:true}));
     setTargetLabel(`${sourceNames[m.source]} · ${m.species} ${nature} ${Object.values(s.statPoints).join('/')} · spread ${s.percent}%${s.nature?'':`, nature ${m.natures[0]?.percent??'?'}%`} · ${m.items[0]?.name??'no item'} · ${m.period}`);};
-  // Choosing a species loads its sets from the chosen source and uses the most common one (pool first, PokéBase if the pool has none).
+  // Choosing a species loads its sets from the chosen source and uses the most common one (PokéBase tournaments first, the next source if it has none).
   const loadFoe=async(species:string,src:string,fallback=false)=>{setLoading(true);setMetaError('');
-    try{const m=await api(`/meta-sets?species=${encodeURIComponent(species)}&source=${src}`);if(!m.spreads.length&&fallback&&src==='pool'){setSource('pokebase');return loadFoe(species,'pokebase');}
+    try{const m=await api(`/meta-sets?species=${encodeURIComponent(species)}&source=${src}`);if(!m.spreads.length&&fallback&&nextSource[src]){setSource(nextSource[src]);return loadFoe(species,nextSource[src],true);}
       setMeta(m);if(m.spreads.length)pickSpread(m,0);else{setOther((o:any)=>({...pendingTarget,...o,species}));setFoe({kind:'custom'});setTargetLabel('');}}
     catch(e){setMeta(null);setMetaError((e as Error).message);setOther((o:any)=>({...o,species}));setFoe({kind:'custom'});setTargetLabel('');}finally{setLoading(false);}};
-  useEffect(()=>{void loadFoe(other.species,'pool',true);},[]);
+  useEffect(()=>{void loadFoe(other.species,'pokebase',true);},[]);
   const pickFoeSaved=(o:SavedOption)=>{setOther((x:any)=>({...x,...structuredClone(o.value),boosts:undefined}));setFoe({kind:'saved',id:o.id,label:o.label,set:o.value});setTargetLabel(`My sets · ${o.label} · ${o.species} ${o.value.nature} ${spLine(o.value)}${o.value.item?` · ${o.value.item}`:''}`);};
   const editFoe=(s:any)=>{setOther(s);const {set}=splitBattle(s),{set:was}=splitBattle(other);if(foe.kind!=='custom'&&JSON.stringify(set)!==JSON.stringify(was)){setFoe({kind:'custom'});setTargetLabel(t=>t?`${t} (edited)`:'');}};
   useEffect(()=>{let alive=true;api('/dex?species='+encodeURIComponent(draftSet.species)).then(d=>{if(alive)setDex(d);}).catch(e=>setError(e.message));return()=>{alive=false;};},[draftSet.species]);
@@ -167,7 +172,7 @@ export default function BenchmarkLab({entry,revision,own:draftSet,data,mutate,of
             {meta?.spreads?.length>0&&<optgroup label={`Most used · ${sourceShort[meta.source]??meta.source}`}>{meta.spreads.slice(0,8).map((sp:any,i:number)=><option key={i} value={'spread:'+i}>{sp.nature?sp.nature+' ':''}{Object.values(sp.statPoints).join('/')} · {sp.percent}%</option>)}</optgroup>}
             {starred.some(o=>o.species===other.species)&&<optgroup label="My sets">{starred.filter(o=>o.species===other.species).map(o=><option key={o.id} value={'saved:'+o.id}>★ {o.label}</option>)}</optgroup>}
             <option value="custom">Custom set</option></select></Field>
-          <Field label={<span className="sr-only">Source</span>}><select value={source} title={sourceNames[source]} onChange={e=>{setSource(e.target.value);void loadFoe(other.species,e.target.value);}}>{Object.entries(sourceNames).map(([k])=><option key={k} value={k}>{sourceShort[k]}</option>)}</select></Field></div>}
+          <Field label={<span className="sr-only">Source</span>}><select value={source} title={sourceNames[source]} onChange={e=>{setSource(e.target.value);void loadFoe(other.species,e.target.value);}}>{[...new Set([...pickerSources,source])].map(k=><option key={k} value={k}>{sourceShort[k]}</option>)}</select></Field></div>}
         note={loading?'Loading sets…':metaError?metaError:foe.kind==='spread'&&meta?.source!=='pool'&&meta?.url?.startsWith('http')?<a href={meta.url} target="_blank" rel="noreferrer" title={`${sourceNames[meta.source]} · ${meta.period}`}>source ↗</a>:''}
         context={context('foe',other,editFoe)} editor={<SetFields set={other} update={editFoe} dex={dex} form={otherC.species}/>} conditions={<BattleConditions set={other} update={editFoe}/>} editOpen={foe.kind==='custom'&&!targetLabel}/>;
   const swap=<Button className="direction" type="button" onClick={()=>setDirection(outgoing?'incoming':'outgoing')} title="Swap who attacks"><span aria-hidden="true">↓</span>{formName((outgoing?ownC:otherC).species)} attacks {formName((outgoing?otherC:ownC).species)}<small>swap</small></Button>;

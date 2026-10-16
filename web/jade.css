@@ -1313,7 +1313,7 @@ html.jade .combatant-head h3{margin:0;font:800 24px/1.1 var(--fd);text-transform
 html.jade .combatant-head .combo{flex:1 1 220px;max-width:320px}
 html.jade .combatant-head .combo input{font:700 15px var(--fb);height:40px}
 html.jade .combatant-pick{margin:0!important;display:block}
-html.jade .combatant-pick.two{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:var(--s2)}
+html.jade .combatant-pick.two{display:grid;grid-template-columns:minmax(0,1fr) 224px;gap:var(--s2)}
 html.jade .combatant-pick.two label{margin:0}
 html.jade .combatant-pick select{width:100%}
 .combatant-sum{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s1) var(--s3);margin:0!important;font-size:13px;color:var(--mu)}

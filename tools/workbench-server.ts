@@ -68,7 +68,10 @@ async function serve(req:IncomingMessage,res:ServerResponse){
   try{
     if(path==='/api/mcp')return handleMcp(req,res,req.method==='POST'?await body(req):undefined);
     if(req.method==='GET'&&path==='/api/dashboard'){if(storageRoot===ROOT)await seedNewWorkspace().catch(e=>console.error('Sample teams not added:',(e as Error).message));return respond(res,200,await dashboard(storageRoot));}
-    if(req.method==='GET'&&path==='/api/pool-teams'){const lane=url.searchParams.get('lane');return respond(res,200,await searchPoolTeams({q:url.searchParams.get('q')??'',lane:['official','online','shared'].includes(lane??'')?lane as any:undefined,limit:Number(url.searchParams.get('limit')??40),exactOnly:url.searchParams.get('exact')==='1'}));}
+    if(req.method==='GET'&&path==='/api/pool-teams'){const lane=url.searchParams.get('lane');const found=await searchPoolTeams({q:url.searchParams.get('q')??'',lane:['official','online','shared'].includes(lane??'')?lane as any:undefined,limit:Number(url.searchParams.get('limit')??40),exactOnly:url.searchParams.get('exact')==='1'});
+      // Icons for every Pokémon in these rows, Megas and forms included (the species list leaves those out).
+      const index=await iconIndex().catch(()=>null);const icons:Record<string,number>={};if(index)for(const t of found.teams)for(const n of t.pokemon)icons[n]??=iconNumber(n,index);
+      return respond(res,200,{...found,icons});}
     if(req.method==='GET'&&path==='/api/pool-team')return respond(res,200,await poolTeamDraft(url.searchParams.get('id')??''));
     if(path==='/api/backup-download'&&!hostedMode)return serveBackupDownload(req,res,{hostedMode:false,secret:()=>localSecret(ROOT),backendFor:u=>{if(u!=='local')throw new LinkError(403,'This backup link is not valid.');return localExports(ROOT);}}); // signed one-time link from export_backup
     if(req.method==='GET'&&path==='/api/backup')return respond(res,200,await createBackup());
