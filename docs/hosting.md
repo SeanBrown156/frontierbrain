@@ -30,6 +30,7 @@ local, untracked `.env.hosted`.
 ## Scheduled jobs
 
 - `hosted-pool.yml` (GitHub Actions, Mondays 22:00 UTC): pool refresh → `pool_*` tables → pool files in `shared_files`.
+- `hosted-guest-cleanup.yml` (Sundays 20:00 UTC): deletes guest sessions not seen for 30 days (anonymous users only; their workspace and files cascade). Manual runs default to a dry run that reports counts. Signed-in accounts are never touched.
 - `hosted-news.yml` (GitHub Actions, on push of `knowledge/news/weeks.json`): schema test → news file in `shared_files`.
 - `frontier-brain-news` (Claude routine, Sundays 21:00 UTC, no connectors): researches the week and commits
   `knowledge/news/weeks.json` to main.

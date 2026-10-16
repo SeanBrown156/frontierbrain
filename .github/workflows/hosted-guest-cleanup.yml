@@ -1,0 +1,49 @@
+# Weekly cleanup of stale guest sessions on the hosted site: anonymous users not seen for 30 days are deleted, which
+# cascades to their workspace and files. Signed-in accounts are never touched. Deterministic, no AI. Authenticates with
+# the project's secret key (repository secrets SUPABASE_URL and SUPABASE_SECRET_KEY).
+# Safety: only anonymous users with no email or linked identity; at most 500 per run; stops if a run would remove more
+# than half of all accounts. Run it by hand with dry_run (the default for manual runs) to see the counts first.
+name: Hosted guest cleanup
+
+on:
+  schedule:
+    - cron: '0 20 * * 0' # Sundays 20:00 UTC (Monday morning in Melbourne)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only report counts, delete nothing'
+        type: boolean
+        default: true
+      days:
+        description: 'Delete guests not seen for this many days (7 or more)'
+        default: '30'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hosted-guest-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Remove stale guests
+        run: |
+          DRY=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then DRY="--dry-run"; fi
+          node tools/guest-cleanup.ts --days "${{ inputs.days || '30' }}" $DRY
