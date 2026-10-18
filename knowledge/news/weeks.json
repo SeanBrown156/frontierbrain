@@ -1,5 +1,21 @@
 [
   {
+    "start": "2026-10-19",
+    "end": "2026-10-25",
+    "partial": true,
+    "researchedAt": "2026-10-18T21:09:38.000Z",
+    "digest": [
+      "The week has not started; no articles are indexed yet.",
+      "Nice Regional and VR October Challenge #3 results from 17-18 October may be published early in the week and should be checked next run."
+    ],
+    "coverage": [
+      "Created on Sunday 18 October before the week began, so there is nothing to report yet. Curated discovery, not an exhaustive scrape.",
+      "Victory Road, Limitless and Liberty Note could not be fetched in this run; no results for Nice were found by web search."
+    ],
+    "articles": [],
+    "signals": []
+  },
+  {
     "start": "2026-10-12",
     "end": "2026-10-18",
     "partial": true,
@@ -14,7 +30,8 @@
       "Opened Victory Road, Limitless results/statistics/team sheets, Liberty Note and the official M-C announcement. Archived eight source pages locally with retrieval times and hashes.",
       "Nice and VR October Challenge #3 coverage is pending; no winner or final usage inferred. Online pool includes event snapshots, not a verified census of completed Bo3 events.",
       "Pokémon Zone and Liquipedia returned HTTP 403; LabMaus fetch failed. VGCPastes was read through the existing public-sheet adapter; homepage availability checks alone still label it connector-required.",
-      "No new authored player team report was verified beyond the older material already indexed. This is curated coverage, not an exhaustive scrape. September remains the latest published exact-format Showdown month."
+      "No new authored player team report was verified beyond the older material already indexed. This is curated coverage, not an exhaustive scrape. September remains the latest published exact-format Showdown month.",
+      "Re-checked 2026-10-18T21:09:38.000Z: Victory Road, Limitless and Liberty Note were unreachable from this run (DNS failure); a web search found no published Nice or VR October Challenge #3 results. Week stays partial because Nice Day 2 was still in progress."
     ],
     "articles": [
       {
