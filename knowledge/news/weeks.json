@@ -3,31 +3,114 @@
     "start": "2026-10-12",
     "end": "2026-10-18",
     "partial": true,
-    "researchedAt": "2026-10-12T23:55:00.000Z",
+    "researchedAt": "2026-10-18T04:34:01.718Z",
     "digest": [
-      "The week has just begun and no articles have been verified yet.",
-      "Search snippets mention a Louisville Regional finishing around Oct 12, but its format and results were not opened or confirmed."
+      "Louisville coverage published on 12 October confirms Joseph Ugarte’s win; the event itself ran 10–11 October. Its 145 Day 2 teams remain a selected population.",
+      "Two Liberty Note reports published on 16 October cover older events with different information policies. Nice and VR October Challenge #3 have no final results on the checked pages yet.",
+      "Fresh online team lists are available through Limitless. Event-level formats and completion must be checked before treating standings as final or comparing performance."
     ],
     "coverage": [
-      "Current week is incomplete and mostly unchecked: page fetches failed from the research environment, so nothing was opened or cited.",
-      "Curated discovery, not an exhaustive scrape; a later run should recheck Limitless, Victory Road, Liberty Note and community threads."
+      "Checked 2026-10-18T04:34:01.718Z; Sunday in Melbourne is still before the scheduled Nice Day 2 stream at 06:40 UTC. Current week remains partial.",
+      "Opened Victory Road, Limitless results/statistics/team sheets, Liberty Note and the official M-C announcement. Archived eight source pages locally with retrieval times and hashes.",
+      "Nice and VR October Challenge #3 coverage is pending; no winner or final usage inferred. Online pool includes event snapshots, not a verified census of completed Bo3 events.",
+      "Pokémon Zone and Liquipedia returned HTTP 403; LabMaus fetch failed. VGCPastes was read through the existing public-sheet adapter; homepage availability checks alone still label it connector-required.",
+      "No new authored player team report was verified beyond the older material already indexed. This is curated coverage, not an exhaustive scrape. September remains the latest published exact-format Showdown month."
     ],
-    "articles": [],
-    "signals": []
+    "articles": [
+      {
+        "id": "louisville-report-20261012",
+        "title": "Louisville Regional — published results and teams",
+        "url": "https://victoryroad.pro/2027-louisville/",
+        "source": "Victory Road",
+        "publishedAt": "2026-10-12",
+        "category": "report",
+        "format": "Champions M-C · regional · open team lists · event 10–11 October",
+        "summary": "Joseph Ugarte won ahead of Andrew Figueras. The winning roster has Charizard Y, Garchomp, Incineroar, Farigiraf, Sylveon and Venusaur. Publication this week does not make it this week’s event."
+      },
+      {
+        "id": "teru5-report",
+        "title": "Teru Challenge Champions #5 Offline — event report",
+        "url": "https://liberty-note.com/2026/10/16/terurun-challenge-champions-5-offline-result/",
+        "source": "Liberty Note",
+        "publishedAt": "2026-10-16",
+        "category": "report",
+        "format": "Champions · closed sheets Bo1 · event 4 October",
+        "summary": "249 competitors; アルカナ won. Published this week about an older event. Keep the event’s closed-sheet Bo1 results separate from open-sheet Bo3 evidence."
+      },
+      {
+        "id": "teru4-report",
+        "title": "Teru Challenge Champions #4 Online — event report",
+        "url": "https://liberty-note.com/2026/10/16/terurun-challenge-champions-4-online-result/",
+        "source": "Liberty Note",
+        "publishedAt": "2026-10-16",
+        "category": "report",
+        "format": "Champions · open sheets Bo3 · event date/regulation unresolved",
+        "summary": "The article states 25 August and 126 competitors, with teddy/tedyportuano first, but is tagged M-C. The usage table also implies a different denominator. Retain as a report reference; exclude from current M-C usage pending clarification."
+      },
+      {
+        "id": "nice-pending",
+        "title": "Nice Regional — final results pending",
+        "url": "https://victoryroad.pro/2027-nice/",
+        "source": "Victory Road",
+        "publishedAt": "2026-10-17",
+        "category": "tournament",
+        "format": "Champions M-C · open team lists · 17–18 October",
+        "summary": "Event page verifies dates and format. Final results and usage were unavailable at retrieval; Day 2 streaming is scheduled for 18 October at 06:40 UTC."
+      },
+      {
+        "id": "vr3-pending",
+        "title": "VR October Challenge #3 — final results pending",
+        "url": "https://victoryroad.pro/vr-oct26-3/",
+        "source": "Victory Road",
+        "publishedAt": "2026-10-17",
+        "category": "tournament",
+        "format": "Champions M-C · online · open team lists · 17–18 October",
+        "summary": "Event page supplies format and registration requirements, but no final standings at retrieval."
+      },
+      {
+        "id": "friday-fight-77",
+        "title": "Friday Fight Night 77 — standings",
+        "url": "https://play.limitlesstcg.com/tournament/6acdb7b7115c12b73a5a2cd5/standings",
+        "source": "Limitless Online",
+        "publishedAt": "2026-10-16",
+        "category": "tournament",
+        "format": "Champions M-C · online · event-specific standings",
+        "summary": "Opened standings list Asteriio first and CooperKid second. Team lists are available in the refreshed pool; do not infer a shared battle format across all online events."
+      }
+    ],
+    "signals": [
+      {
+        "kind": "report",
+        "title": "Prepare for sun and weather flexibility",
+        "summary": "Louisville’s winner used Charizard Y and Venusaur; the runner-up roster also paired them with Pelipper and Archaludon. These results justify testing both sun and mixed-weather matchups, without proving an overall usage trend.",
+        "articleIds": [
+          "louisville-report-20261012"
+        ]
+      },
+      {
+        "kind": "report",
+        "title": "Publication date is not tournament date",
+        "summary": "The new Japanese reports cover older events. One is closed-sheet Bo1; the other has conflicting date/regulation metadata. Neither should be blended into a current open-sheet Bo3 percentage.",
+        "articleIds": [
+          "teru5-report",
+          "teru4-report"
+        ]
+      }
+    ]
   },
   {
     "start": "2026-10-05",
     "end": "2026-10-11",
     "partial": false,
-    "researchedAt": "2026-10-12T23:55:00.000Z",
+    "researchedAt": "2026-10-18T04:34:01.718Z",
     "digest": [
       "A player-authored PSYSPAM VIOLENCE report explains a Global Challenge I team, and Liberty Note published its M-6 doubles top-100 ladder compilation.",
-      "Community questions focused on turning favourite Pokémon into a functional doubles team; these are discussion signals, not evidence of usage changes."
+      "Community questions focused on turning favourite Pokémon into a functional doubles team; these are discussion signals, not evidence of usage changes.",
+      "Backfilled results: Joseph Ugarte won Louisville; Kiran Singh won VR October Challenge #2."
     ],
     "coverage": [
-      "Final pass for the week: the articles below were opened in an earlier pass; during this pass page fetches (Limitless, Liberty Note, Victory Road, Pokémon Zone, pokemon.com, Reddit) failed from the research environment, so no new items were added.",
-      "Web search snippets (not opened, so not cited) suggest Champions M-C ladder and small online events ran this week, including Intimidators Champions Challenge #48 on Oct 5; regional or Day 2 team-list results were not verified.",
-      "Curated discovery, not an exhaustive scrape of every source. Source dates are publication dates except event results, which use event dates."
+      "Curated discovery, not an exhaustive scrape of every source. Source dates are publication dates except event results, which use event dates.",
+      "Backfilled on 18 October: Louisville results, phase-2 statistics and VR October Challenge #2 opened successfully. Earlier failed-fetch notes do not describe these refreshed sources."
     ],
     "articles": [
       {
@@ -59,6 +142,26 @@
         "category": "community",
         "format": "Champions · unverified discussion",
         "summary": "A new-player team thread prompts suggestions about support and coherent team roles. Treat individual recommendations as hypotheses, not verified strength rankings."
+      },
+      {
+        "id": "louisville-445",
+        "title": "Louisville Regional — results and Day 2 teams",
+        "url": "https://limitlessvgc.com/tournaments/445",
+        "source": "Limitless VGC",
+        "publishedAt": "2026-10-10",
+        "category": "tournament",
+        "format": "Champions M-C · regional · 10–11 October · Day 2 sample",
+        "summary": "Joseph Ugarte first, Andrew Figueras second; 1,013 Masters entrants and 145 Day 2 teams. Event usage covers Day 2, not the entire field."
+      },
+      {
+        "id": "vr-oct2",
+        "title": "VR October Challenge #2 — results",
+        "url": "https://victoryroad.pro/vr-oct26-2/",
+        "source": "Victory Road",
+        "publishedAt": "2026-10-11",
+        "category": "tournament",
+        "format": "Champions M-C · online · open team lists · 10–11 October",
+        "summary": "220 players; Kiran Singh first, Hiroto Saito second. Winning roster includes Mega Garchomp Z, Mega Charizard Y, Grimmsnarl, Archaludon, Pelipper and Venusaur."
       }
     ],
     "signals": [

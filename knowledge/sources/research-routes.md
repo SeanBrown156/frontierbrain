@@ -18,3 +18,12 @@
 ## Access gaps
 
 Raw requests to Pokémon Zone and Liquipedia returned 403; LabMaus failed to fetch. Use browsing/connected access when available, and record current format coverage. Those failures do not prove the sites contain no relevant data. The PASRS and VGCPastes spreadsheets use Drive or publicly published exports; do not equate a Google Sheets HTML shell with parsed table contents.
+
+## Refresh on 18 October 2026
+
+- [Louisville](https://limitlessvgc.com/tournaments/445): event 10–11 October, 1,013 Masters entrants; [statistics](https://limitlessvgc.com/tournaments/445/statistics) cover 145 Day 2 teams. [Victory Road coverage](https://victoryroad.pro/2027-louisville/) was published 12 October.
+- [VR October Challenge #2 results](https://victoryroad.pro/vr-oct26-2/): 10–11 October, 220 players, online open lists.
+- [Nice](https://victoryroad.pro/2027-nice/) and [VR October Challenge #3](https://victoryroad.pro/vr-oct26-3/): 17–18 October. Checked before final results were published; revisit.
+- [Teru #5 Offline report](https://liberty-note.com/2026/10/16/terurun-challenge-champions-5-offline-result/): published 16 October, event 4 October, closed-sheet Bo1, 249 competitors.
+- [Teru #4 Online report](https://liberty-note.com/2026/10/16/terurun-challenge-champions-4-online-result/): published 16 October; stated August date conflicts with M-C category, and usage denominator is unresolved. Exclude from current M-C usage.
+- PokéBase: current parser did not recover tournament distributions for 24 attempted species; form routes Indeedee-F and Basculegion-F returned 404. Retain cached dates and investigate payload/route changes; do not interpret parser failure as no data.
