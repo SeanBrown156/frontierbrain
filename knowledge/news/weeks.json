@@ -3,14 +3,14 @@
     "start": "2026-10-19",
     "end": "2026-10-25",
     "partial": true,
-    "researchedAt": "2026-10-18T21:09:38.000Z",
+    "researchedAt": "2026-10-25T21:20:00.000Z",
     "digest": [
-      "The week has not started; no articles are indexed yet.",
-      "Nice Regional and VR October Challenge #3 results from 17-18 October may be published early in the week and should be checked next run."
+      "No articles for 19–25 October could be verified in this run; the week is still in progress (Sunday).",
+      "Search found only the Nice Regional winner report (event dated 17–18 October, filed under the previous week) and background on Regulation M-C, which runs 9 September to 2 December per Victory Road's announcement title."
     ],
     "coverage": [
-      "Created on Sunday 18 October before the week began, so there is nothing to report yet. Curated discovery, not an exhaustive scrape.",
-      "Victory Road, Limitless and Liberty Note could not be fetched in this run; no results for Nice were found by web search."
+      "Researched 2026-10-25T21:20:00.000Z (Sunday of the week). Curated discovery, not an exhaustive scrape.",
+      "All direct page fetches failed (DNS errors for Victory Road, Limitless, Bulbagarden, Pokémon Zone), so only web-search summaries were available and no article is cited this week. Liberty Note, labmaus and community threads were not checked."
     ],
     "articles": [],
     "signals": []
@@ -18,12 +18,11 @@
   {
     "start": "2026-10-12",
     "end": "2026-10-18",
-    "partial": true,
-    "researchedAt": "2026-10-18T04:34:01.718Z",
+    "partial": false,
+    "researchedAt": "2026-10-25T21:20:00.000Z",
     "digest": [
-      "Louisville coverage published on 12 October confirms Joseph Ugarte’s win; the event itself ran 10–11 October. Its 145 Day 2 teams remain a selected population.",
-      "Two Liberty Note reports published on 16 October cover older events with different information policies. Nice and VR October Challenge #3 have no final results on the checked pages yet.",
-      "Fresh online team lists are available through Limitless. Event-level formats and completion must be checked before treating standings as final or comparing performance."
+      "Louisville (10–11 October) coverage and two older Japanese Liberty Note reports were already indexed. A search summary of a Bulbagarden post reports Louis Fontvieille won the 862-player Nice Regional (17–18 October) with a team headed by Mega Golisopod and Mega Raichu X; this is a single unopened secondary source.",
+      "No final Nice standings, Day 2 team lists or VR October Challenge #3 results could be verified, so no usage conclusions are drawn for the week."
     ],
     "coverage": [
       "Checked 2026-10-18T04:34:01.718Z; Sunday in Melbourne is still before the scheduled Nice Day 2 stream at 06:40 UTC. Current week remains partial.",
@@ -31,7 +30,8 @@
       "Nice and VR October Challenge #3 coverage is pending; no winner or final usage inferred. Online pool includes event snapshots, not a verified census of completed Bo3 events.",
       "Pokémon Zone and Liquipedia returned HTTP 403; LabMaus fetch failed. VGCPastes was read through the existing public-sheet adapter; homepage availability checks alone still label it connector-required.",
       "No new authored player team report was verified beyond the older material already indexed. This is curated coverage, not an exhaustive scrape. September remains the latest published exact-format Showdown month.",
-      "Re-checked 2026-10-18T21:09:38.000Z: Victory Road, Limitless and Liberty Note were unreachable from this run (DNS failure); a web search found no published Nice or VR October Challenge #3 results. Week stays partial because Nice Day 2 was still in progress."
+      "Re-checked 2026-10-18T21:09:38.000Z: Victory Road, Limitless and Liberty Note were unreachable from this run (DNS failure); a web search found no published Nice or VR October Challenge #3 results. Week stays partial because Nice Day 2 was still in progress.",
+      "Final check 2026-10-25T21:20:00.000Z: every direct page fetch failed with DNS errors (Victory Road, Bulbagarden, Pokémon Zone, Limitless), so no cited page from this check was opened. The Nice item below comes from a web-search result summary only and needs confirmation against Victory Road or Limitless. VR October Challenge #3 results were not found. Curated discovery, not an exhaustive scrape."
     ],
     "articles": [
       {
@@ -93,6 +93,16 @@
         "category": "tournament",
         "format": "Champions M-C · online · event-specific standings",
         "summary": "Opened standings list Asteriio first and CooperKid second. Team lists are available in the refreshed pool; do not infer a shared battle format across all online events."
+      },
+      {
+        "id": "nice-winner-bulbagarden",
+        "title": "Nice Regional Championships — winner report (forum post, via search summary)",
+        "url": "https://bulbagarden.net/home/?id=7336422",
+        "source": "Bulbagarden",
+        "publishedAt": "2026-10-18",
+        "category": "community",
+        "format": "Champions · Nice Regional · 17–18 October · 862 VGC players",
+        "summary": "Search summary says Louis Fontvieille won, with a team headed by Mega Golisopod and Mega Raichu X. Page not opened and no second source found; treat as unconfirmed and do not infer usage from it."
       }
     ],
     "signals": [
@@ -111,6 +121,15 @@
         "articleIds": [
           "teru5-report",
           "teru4-report"
+        ]
+      },
+      {
+        "kind": "community",
+        "title": "Nice winner reported on Mega Golisopod and Mega Raichu X",
+        "summary": "One unopened forum-sourced summary names Fontvieille as winner with this core. One team does not show a trend; verify against the official Nice team lists before drawing conclusions.",
+        "whyItMatters": "If confirmed, it is a tournament-winning data point worth checking in the next team-list pool refresh.",
+        "articleIds": [
+          "nice-winner-bulbagarden"
         ]
       }
     ]
