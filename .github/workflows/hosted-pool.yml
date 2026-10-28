@@ -45,7 +45,7 @@ jobs:
             data/knowledge/metagame/limitless
             data/knowledge/metagame/limitless-online
             data/knowledge/metagame/vgcpastes
-          key: hosted-pool-${{ github.run_id }}
+          key: hosted-pool-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: hosted-pool-
 
       - name: Recover source caches from a durable artifact
@@ -88,7 +88,7 @@ jobs:
             data/knowledge/metagame/limitless
             data/knowledge/metagame/limitless-online
             data/knowledge/metagame/vgcpastes
-          key: hosted-pool-${{ github.run_id }}
+          key: hosted-pool-${{ github.run_id }}-${{ github.run_attempt }}
 
       # Include successful per-event fetches even after a failed refresh; the published baseline is
       # restored separately on every run, so an incomplete cached pool can never become the baseline.
@@ -96,6 +96,7 @@ jobs:
         if: always()
         with:
           name: hosted-pool-cache
+          overwrite: true
           retention-days: 30
           path: |
             data/knowledge/pool
