@@ -35,6 +35,29 @@ local, untracked `.env.hosted`.
 - `frontier-brain-news` (Claude routine, Sundays 21:00 UTC, no connectors): researches the week and commits
   `knowledge/news/weeks.json` to main.
 
+The pool job restores the last published pool from `shared_files` on every run. Source caches use both the
+Actions cache and a 30-day `hosted-pool-cache` artifact, so a delayed weekly run can recover after cache eviction.
+Limitless requests are paced at two seconds and retry rate limits with exponential backoff and `Retry-After`.
+Any failed lane stops publication; a cold, incomplete refresh records `last-attempt.json` without saving a pool.
+The loader retains its 5% shrink guard, both pool files publish together, seed errors fail the job, and verification compares the published files,
+snapshot timestamp and all five table counts.
+
+To recover manually, use an isolated data directory (not the player's `APP_DATA`). Load `.env.hosted` before
+running the scripts; its `VITE_SUPABASE_URL` is accepted as an alternative to `SUPABASE_URL`:
+
+```sh
+export APP_DATA=.cache/hosted-pool-refresh
+node --env-file=.env.hosted tools/hosted-pool.ts restore
+node --input-type=module -e 'const {refreshPool}=await import("./tools/pool.ts"); const s=await refreshPool(); if(s.errors?.length)throw new Error(s.errors.join("; "));'
+node --env-file=.env.hosted tools/pool-db.ts
+node --env-file=.env.hosted tools/hosted-seed.ts --only knowledge/pool/
+node --env-file=.env.hosted tools/hosted-pool.ts verify
+```
+
+Do not bypass the shrink guard to recover a failed source fetch. Restore and retry instead. A successful refresh
+can be published only after its sources finish without errors. Shared file caches on running API instances may
+take up to ten minutes to see the newly seeded pool.
+
 ## Environment variables
 
 Vercel (production and preview; the first two also for development):

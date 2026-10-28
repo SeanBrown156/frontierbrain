@@ -14,6 +14,7 @@ import {speciesKey,dex,resolveSpecies} from './mechanics.ts';
 import {recentEvents,standings,teamList} from './limitless.ts';
 import {pasteIndex,setsFromPaste} from './vgcpastes.ts';
 import {correctName,type NameKind} from './pool-names.ts';
+import {limitlessAPI} from './limitless-api.ts';
 import type {MetaSets,Share,MetaSpread} from './meta-sets.ts';
 
 export type Lane='official'|'online'|'shared';
@@ -36,23 +37,21 @@ async function officialTeams(log:Log):Promise<PoolTeam[]>{
       out.push({id:`official:${e.id}:${r.place}:${playerKey(r.player)}`,lane:'official',event:e.name,eventId:e.id,date:e.date,players:e.entrants,player:r.player,placing:r.place,record:null,pokemon:r.pokemon.map(species),sets,sources:[{name:'Limitless',url:r.teamId?`https://limitlessvgc.com/teams/${r.teamId}`:e.url}]});}}
   return out;
 }
-const ONLINE='https://play.limitlesstcg.com/api';
 export const NONSTANDARD=/mono ?type|gen ?\d+ edition|draft|little cup|singles|\bbss\b|1v1|no mega|\bnfe\b|random|inverse|doubles? ?ou/i;
 async function onlineTeams(log:Log,minPlayers:number):Promise<PoolTeam[]>{
-  const list=JSON.parse((await fetchText(`${ONLINE}/tournaments?game=VGC&format=M-C&limit=500`,5_000_000)).text) as any[];const out:PoolTeam[]=[];let read=0;
+  const get=limitlessAPI({log});
+  const list=await get('/tournaments?game=VGC&format=M-C&limit=500',5_000_000);const out:PoolTeam[]=[];let read=0;
   // Organisers tag custom-rule events as M-C too; their teams would distort standard usage.
   const custom=list.filter(t=>t.players>=minPlayers&&NONSTANDARD.test(t.name));if(custom.length)log(`Online · skipped ${custom.length} custom-rule event(s): ${custom.map(t=>t.name).join('; ')}`);
-  // An event whose standings can't be read (Limitless rate-limits bursts with HTTP 429) is retried once more slowly
-  // after the rest; if any still fail, the whole lane fails, so the refresh keeps the previous pool instead of
-  // silently dropping those teams. Finished events already read are cached, so the next run only fetches the rest.
-  const events=list.filter(t=>t.players>=minPlayers&&!NONSTANDARD.test(t.name));const unread:any[]=[];
-  const standingsOf=async(t:any,pause:number):Promise<any[]>=>{const path=`knowledge/metagame/limitless-online/${t.id}.json`;let rows=await optionalJSON<any[]|null>(path,null);if(rows)return rows;
-    const fresh=JSON.parse((await fetchText(`${ONLINE}/tournaments/${t.id}/standings`,10_000_000)).text) as any[];if(Date.parse(t.date)<Date.now()-2*86400_000)await save(path,fresh);read++;await sleep(pause);return fresh;};
+  // Finished events already read are cached. Exhausted retries stop the lane immediately; successful
+  // event caches survive for the next run, while the previous complete pool stays in place.
+  const events=list.filter(t=>t.players>=minPlayers&&!NONSTANDARD.test(t.name));
+  const standingsOf=async(t:any):Promise<any[]>=>{const path=`knowledge/metagame/limitless-online/${t.id}.json`;let rows=await optionalJSON<any[]|null>(path,null);if(rows)return rows;
+    const fresh=await get(`/tournaments/${t.id}/standings`);if(Date.parse(t.date)<Date.now()-2*86400_000)await save(path,fresh);read++;return fresh;};
   const tables=new Map<string,any[]>();
-  for(const t of events){try{tables.set(t.id,await standingsOf(t,200));}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);unread.push(t);}}
-  if(unread.length){log(`Online · retrying ${unread.length} event(s) more slowly`);await sleep(60_000);
-    for(const t of unread.splice(0)){try{tables.set(t.id,await standingsOf(t,2000));}catch(err){log(`Online · ${t.name}: ${(err as Error).message}`);unread.push(t);}}}
-  if(unread.length)throw new Error(`${unread.length} online event(s) unreadable after retrying: ${unread.slice(0,3).map(t=>t.name).join('; ')}${unread.length>3?'…':''}`);
+  log(`Online · reading ${events.length} standard events (reusing settled standings where available)`);
+  for(const t of events){try{tables.set(t.id,await standingsOf(t));}catch(err){throw new Error(`${t.name}: ${(err as Error).message}`);}
+    if(tables.size%25===0)log(`Online · ${tables.size}/${events.length} events read (${read} newly fetched)`);}
   for(const t of events){const rows=tables.get(t.id);
     for(const r of rows??[]){if(!Array.isArray(r.decklist)||r.decklist.length!==6)continue;const sets=r.decklist.map((p:any)=>({species:species(p.name??p.id),item:p.item??'',ability:p.ability??'',nature:p.nature??'',moves:p.attacks??[]}));
       out.push({id:`online:${t.id}:${playerKey(r.player??r.name)}`,lane:'online',event:t.name,eventId:t.id,date:t.date.slice(0,10),players:t.players,player:r.name??r.player,placing:r.placing??null,record:r.record?`${r.record.wins}-${r.record.losses}${r.record.ties?'-'+r.record.ties:''}`:null,pokemon:sets.map((s:PoolSet)=>s.species),sets,sources:[{name:'Limitless online',url:`https://play.limitlesstcg.com/tournament/${t.id}/standings`}]});}}
@@ -105,6 +104,11 @@ export async function refreshPool({minPlayers=16,log=(s:string)=>console.log(s)}
       const status={...(before?.refreshedAt===previous!.refreshedAt?before:{counts:laneCounts(previous!.teams)}),refreshedAt:previous!.refreshedAt,errors,
         notes:[...notes,`Kept the previous pool (refreshed ${previous!.refreshedAt}): this refresh had errors.`],lastAttempt:{started,at:now,counts,errors},excluded};
       await save(STATUS,status);return status;}
+    // With no baseline, an incomplete refresh is an attempt, never a publishable pool.
+    if(errors.length||!teams.length){
+      await save('knowledge/pool/last-attempt.json',{started,at:now,counts,errors,notes});
+      throw new Error(`Pool not saved: ${errors.join('; ')||'no teams returned'}`);
+    }
     const status={refreshedAt:now,regulation:'M-C',started,minPlayers,counts,notes,errors,excluded};
     await save(TEAMS,{refreshedAt:now,teams});memo=null;await save(STATUS,status);return status;})();
   try{return await running;}finally{running=null;}

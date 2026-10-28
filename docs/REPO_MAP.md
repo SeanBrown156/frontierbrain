@@ -67,7 +67,7 @@ Generated or local only (gitignored): `node_modules/`, `dist/`, `build/`, `.env*
 - `format.ts`: format rules for validation and AI prompts; `regulationStatus()` reads the active record from the regulation index. `regulation.ts`: regulation index and records, validators. `regulation-routine.ts`: the self-correcting switch routine (`npm run vgc -- regulation-check`). `../shared/benchmarks.ts`: saved calcs.
 
 **Metagame data** (never blended; see AGENTS.md)
-- `pool.ts`: the deduplicated team pool. `pool-db.ts`: the same pool as Supabase `pool_*` rows. `pool-names.ts`: reviewed corrections for misspelled names in team lists. `pool-import.ts`: pool team to editable team.
+- `pool.ts`: the deduplicated team pool. `pool-db.ts`: the same pool as Supabase `pool_*` rows. `hosted-pool.ts`: restore the published baseline and verify hosted files/table counts. `limitless-api.ts`: paced online API requests with rate-limit backoff. `pool-names.ts`: reviewed corrections for misspelled names in team lists. `pool-import.ts`: pool team to editable team.
 - `limitless.ts`, `vgcpastes.ts`, `meta-sets.ts`: upstream sources and standard opponent sets.
 - `typical-set.ts`, `profile.ts`: expected sets and per-species profiles.
 - `research.ts`, `library.ts`: `refresh`, source checks and the reference library.

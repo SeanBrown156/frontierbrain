@@ -1,8 +1,8 @@
 # Weekly refresh of the hosted site's tournament pool: fetch the pool, load it into the Supabase pool_* tables and
 # seed the pool files into shared_files. Deterministic, no AI. Authenticates with the project's secret key (repository
 # secrets SUPABASE_URL and SUPABASE_SECRET_KEY), not a personal login.
-# Safety: refreshPool keeps the previous pool when a source fails, and pool-db refuses a load that would shrink the
-# hosted pool by more than 5%. A run whose sources failed exits non-zero so GitHub notifies the owner.
+# Safety: restore the published pool first, reject source errors before loading, and retain the 5% shrink guard.
+# Source caches are also stored as 30-day artifacts: a delayed weekly run can outlive the Actions cache.
 name: Hosted pool refresh
 
 on:
@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: hosted-pool
@@ -37,20 +38,38 @@ jobs:
 
       # Previous pool and cached source pages (finished online events, VGCPastes pastes), so a run only fetches what is new.
       - uses: actions/cache/restore@v6
+        id: cache
         with:
           path: |
             data/knowledge/pool
+            data/knowledge/metagame/limitless
             data/knowledge/metagame/limitless-online
             data/knowledge/metagame/vgcpastes
           key: hosted-pool-${{ github.run_id }}
           restore-keys: hosted-pool-
+
+      - name: Recover source caches from a durable artifact
+        if: steps.cache.outputs.cache-matched-key == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=hosted-pool-cache&per_page=100" --jq '[.artifacts[] | select(.expired == false)][0].workflow_run.id // empty')
+          if [ -n "$run_id" ]; then
+            gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --name hosted-pool-cache --dir data/knowledge
+          else
+            echo "No durable source cache yet; fetching sources from scratch."
+          fi
+
+      - name: Restore the published pool
+        run: node tools/hosted-pool.ts restore
 
       - name: Refresh the pool
         run: |
           node --input-type=module -e "
             const {refreshPool}=await import('./tools/pool.ts');
             const s=await refreshPool();
-            console.log(JSON.stringify({refreshedAt:s.refreshedAt,counts:s.counts,errors:s.errors,lastAttempt:s.lastAttempt?.counts},null,2));"
+            console.log(JSON.stringify({refreshedAt:s.refreshedAt,counts:s.counts,errors:s.errors,lastAttempt:s.lastAttempt?.counts},null,2));
+            if(s.errors?.length)throw new Error('Pool sources failed: '+s.errors.join('; '));"
 
       - name: Load into the pool tables
         run: node tools/pool-db.ts
@@ -58,15 +77,28 @@ jobs:
       - name: Seed the pool files
         run: node tools/hosted-seed.ts --only knowledge/pool/
 
+      - name: Verify the hosted pool
+        run: node tools/hosted-pool.ts verify
+
       - uses: actions/cache/save@v6
         if: always()
         with:
           path: |
             data/knowledge/pool
+            data/knowledge/metagame/limitless
             data/knowledge/metagame/limitless-online
             data/knowledge/metagame/vgcpastes
           key: hosted-pool-${{ github.run_id }}
 
-      - name: Fail if a source failed
-        run: |
-          node -e "const s=require('./data/knowledge/pool/status.json');if(s.errors?.length){console.error('Pool sources failed:',s.errors.join('; '));process.exit(1);}"
+      # Include successful per-event fetches even after a failed refresh; the published baseline is
+      # restored separately on every run, so an incomplete cached pool can never become the baseline.
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: hosted-pool-cache
+          retention-days: 30
+          path: |
+            data/knowledge/pool
+            data/knowledge/metagame/limitless
+            data/knowledge/metagame/limitless-online
+            data/knowledge/metagame/vgcpastes
