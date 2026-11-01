@@ -1,16 +1,32 @@
 [
   {
-    "start": "2026-10-19",
-    "end": "2026-10-25",
+    "start": "2026-10-26",
+    "end": "2026-11-01",
     "partial": true,
-    "researchedAt": "2026-10-25T21:20:00.000Z",
+    "researchedAt": "2026-11-01T21:05:36.256Z",
     "digest": [
-      "No articles for 19–25 October could be verified in this run; the week is still in progress (Sunday).",
-      "Search found only the Nice Regional winner report (event dated 17–18 October, filed under the previous week) and background on Regulation M-C, which runs 9 September to 2 December per Victory Road's announcement title."
+      "No articles for 26 October to 1 November could be verified in this run; the week ends today.",
+      "Search found no published results, rule changes or reports for the week."
     ],
     "coverage": [
-      "Researched 2026-10-25T21:20:00.000Z (Sunday of the week). Curated discovery, not an exhaustive scrape.",
-      "All direct page fetches failed (DNS errors for Victory Road, Limitless, Bulbagarden, Pokémon Zone), so only web-search summaries were available and no article is cited this week. Liberty Note, labmaus and community threads were not checked."
+      "Researched 2026-11-01T21:05:36.256Z (Sunday of the week). Curated discovery, not an exhaustive scrape.",
+      "Direct fetches failed with DNS errors (limitlessvgc.com, victoryroad.pro) and web searches surfaced nothing dated this week, so no article is cited. Liberty Note, labmaus, official sites and community threads were not checked."
+    ],
+    "articles": [],
+    "signals": []
+  },
+  {
+    "start": "2026-10-19",
+    "end": "2026-10-25",
+    "partial": false,
+    "researchedAt": "2026-11-01T21:05:36.256Z",
+    "digest": [
+      "No article for 19–25 October could be opened and verified in this run. Search listings show the Puebla Regional scheduled for 24–25 October 2026, but no result, winner or team list was found.",
+      "Regulation M-C is listed as running 9 September to 2 December 2026 (search listing of Victory Road announcement, not opened); no rule change was found."
+    ],
+    "coverage": [
+      "Researched 2026-11-01T21:05:36.256Z. Curated discovery, not an exhaustive scrape.",
+      "Direct fetches failed with DNS errors (limitlessvgc.com, victoryroad.pro), so only web-search summaries were available and no page is cited. Search results for Puebla (Victory Road, RK9, Dittobase) still showed the event as upcoming or a placeholder, so whether it ran is unconfirmed here. Liberty Note, labmaus and community threads were not checked."
     ],
     "articles": [],
     "signals": []
