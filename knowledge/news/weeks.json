@@ -1,16 +1,32 @@
 [
   {
-    "start": "2026-10-26",
-    "end": "2026-11-01",
+    "start": "2026-11-02",
+    "end": "2026-11-08",
     "partial": true,
-    "researchedAt": "2026-11-01T21:05:36.256Z",
+    "researchedAt": "2026-11-08T21:05:22.220Z",
     "digest": [
-      "No articles for 26 October to 1 November could be verified in this run; the week ends today.",
-      "Search found no published results, rule changes or reports for the week."
+      "No article for 2 to 8 November could be opened and verified in this run; the week ends today.",
+      "Search listings (unopened) still show Regulation M-C running 9 September to 2 December 2026; no rule change or new results were found for this week."
     ],
     "coverage": [
-      "Researched 2026-11-01T21:05:36.256Z (Sunday of the week). Curated discovery, not an exhaustive scrape.",
-      "Direct fetches failed with DNS errors (limitlessvgc.com, victoryroad.pro) and web searches surfaced nothing dated this week, so no article is cited. Liberty Note, labmaus, official sites and community threads were not checked."
+      "Researched 2026-11-08T21:05:22.220Z (Sunday of the week). Curated discovery, not an exhaustive scrape.",
+      "Direct fetches failed with DNS errors, so only web-search snippets were available and nothing is cited. Limitless, labmaus, Liberty Note, official sites and community threads were not checked."
+    ],
+    "articles": [],
+    "signals": []
+  },
+  {
+    "start": "2026-10-26",
+    "end": "2026-11-01",
+    "partial": false,
+    "researchedAt": "2026-11-08T21:05:22.220Z",
+    "digest": [
+      "No article for 26 October to 1 November could be opened and verified in this run, so none is cited.",
+      "Search listings (unopened) place the Gdańsk Regional on 31 October to 1 November 2026 under Regulation M-C, but no winner, placings or team lists were found."
+    ],
+    "coverage": [
+      "Researched 2026-11-08T21:05:22.220Z. Curated discovery, not an exhaustive scrape.",
+      "All direct fetches failed with DNS errors (serebii.net, pokemon-zone.com, victoryroad.pro, bulbagarden.net are outside the session network allowlist), so only web-search snippets were available and nothing is cited. Limitless, labmaus, Liberty Note, official sites and community threads were not opened."
     ],
     "articles": [],
     "signals": []
