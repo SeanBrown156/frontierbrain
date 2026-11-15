@@ -1,16 +1,32 @@
 [
   {
-    "start": "2026-11-02",
-    "end": "2026-11-08",
+    "start": "2026-11-09",
+    "end": "2026-11-15",
     "partial": true,
-    "researchedAt": "2026-11-08T21:05:22.220Z",
+    "researchedAt": "2026-11-15T21:20:00.000Z",
     "digest": [
-      "No article for 2 to 8 November could be opened and verified in this run; the week ends today.",
-      "Search listings (unopened) still show Regulation M-C running 9 September to 2 December 2026; no rule change or new results were found for this week."
+      "No article for 9 to 15 November could be opened and verified in this run; the week ends today.",
+      "Search listings (unopened) show online events on Regulation M-C (Victory Road November Challenge #2 and the in-game Mega Evolution Battle, both 13-15 November) and the Buenos Aires Special Championships on 14-15 November; no results were found."
     ],
     "coverage": [
-      "Researched 2026-11-08T21:05:22.220Z (Sunday of the week). Curated discovery, not an exhaustive scrape.",
-      "Direct fetches failed with DNS errors, so only web-search snippets were available and nothing is cited. Limitless, labmaus, Liberty Note, official sites and community threads were not checked."
+      "Researched 2026-11-15T21:20:00.000Z. Curated discovery, not an exhaustive scrape.",
+      "The Limitless VGC tournaments list and home page opened but listed no event dated 2-15 November 2026 (latest: Regional Gdańsk, 31 October). Event dates above come from unopened search snippets and are unconfirmed. victoryroad.pro, bulbagarden.net, pokemon-zone.com and pokemon.com (403) could not be fetched. Liberty Note, labmaus and community threads were not checked."
+    ],
+    "articles": [],
+    "signals": []
+  },
+  {
+    "start": "2026-11-02",
+    "end": "2026-11-08",
+    "partial": false,
+    "researchedAt": "2026-11-15T21:20:00.000Z",
+    "digest": [
+      "No article for 2 to 8 November could be opened and verified in this run, so none is cited.",
+      "The Limitless VGC tournaments list opened and showed no event dated in this week; search listings (unopened) show Victory Road November Challenge #1 online on 7-8 November under Regulation M-C and Regulation M-C running 9 September to 2 December 2026. No rule change was found."
+    ],
+    "coverage": [
+      "Researched 2026-11-15T21:20:00.000Z. Curated discovery, not an exhaustive scrape.",
+      "Limitless VGC tournaments list and home page opened with no entry for 2-8 November. victoryroad.pro, bulbagarden.net, pokemon-zone.com (DNS blocked) and pokemon.com (403) could not be fetched. Official social posts, Liberty Note, labmaus and community threads were not checked."
     ],
     "articles": [],
     "signals": []
